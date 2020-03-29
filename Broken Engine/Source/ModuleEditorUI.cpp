@@ -6,6 +6,7 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "Imgui/imgui_internal.h"
 #include "Imgui/ImGuizmo/ImGuizmo.h"
+#include "ModuleUndo.h"
 #pragma comment( lib, "SDL/libx86/SDL2.lib" )
 //#include "mmgr/mmgr.h"
 
@@ -81,7 +82,8 @@ update_status ModuleEditorUI::Update(float dt) {
 				EngineApp->scene_manager->SaveScene(EngineApp->scene_manager->currentScene);
 			}
 
-			if (ImGui::MenuItem("Load Scene")) {
+			// Disabled for now
+			if (ImGui::MenuItem("Load Scene", 0, false, false)) {
 				//App->scene_manager->SetActiveScene();
 			}
 
@@ -92,12 +94,17 @@ update_status ModuleEditorUI::Update(float dt) {
 		}
 
 		if (ImGui::BeginMenu("Edit")) {
-			if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-			if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-			ImGui::Separator();
-			if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-			if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-			if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+			if (ImGui::MenuItem("Undo", "CTRL+Z")) {
+				EngineApp->undo->undo();
+			}
+			if (ImGui::MenuItem("Redo", "CTRL+Y")) {
+				EngineApp->undo->redo();
+			}
+			// MYTODO: Uncomment these when they have actual functionality
+			//ImGui::Separator();
+			//if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+			//if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+			//if (ImGui::MenuItem("Paste", "CTRL+V")) {}
 			ImGui::EndMenu();
 		}
 

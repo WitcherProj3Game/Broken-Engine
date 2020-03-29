@@ -57,9 +57,6 @@
     <ClInclude Include="VSresource.h">
       <Filter>Sources\VSResources</Filter>
     </ClInclude>
-    <ClInclude Include="EngineApplication.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
     <ClInclude Include="PanelToolbar.h">
       <Filter>Sources\EditorPanels</Filter>
     </ClInclude>
@@ -365,6 +362,9 @@
     </ClInclude>
     <ClInclude Include="Imgui\imstb_truetype.h">
       <Filter>Sources\3rd party\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineApplication.h">
+      <Filter>Sources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

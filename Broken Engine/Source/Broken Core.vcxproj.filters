@@ -678,6 +678,9 @@
     <ClInclude Include="ComponentLight.h">
       <Filter>Sources\BrokenEngine\Game Objects\Components</Filter>
     </ClInclude>
+    <ClInclude Include="ModuleUndo.h">
+      <Filter>Sources\BrokenEngine\Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MathGeoLib\include\SystemInfo.cpp">
@@ -1123,6 +1126,9 @@
     </ClCompile>
     <ClCompile Include="ComponentLight.cpp">
       <Filter>Sources\BrokenEngine\Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleUndo.cpp">
+      <Filter>Sources\BrokenEngine\Modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

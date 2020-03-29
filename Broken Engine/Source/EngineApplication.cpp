@@ -34,6 +34,7 @@ EngineApplication::EngineApplication() {
 	AddModule(resources);
 	AddModule(window);
 	AddModule(camera);
+	AddModule(undo);
 	AddModule(editorui);
 	AddModule(gui);
 	AddModule(ui_system);

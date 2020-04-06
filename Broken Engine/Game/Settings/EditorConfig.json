@@ -12,7 +12,7 @@
         "Physics": true,
         "Project": true,
         "Rendering": false,
-        "Resources": false,
+        "Resources": true,
         "Scene": true,
         "Settings": false,
         "ShaderEditor": false,
@@ -199,10 +199,10 @@
         "borderless": false,
         "fullscreen": false,
         "fullscreenDesktop": false,
-        "height": 648,
+        "height": 1008,
         "resizable": true,
         "sceneX": 480,
         "sceneY": 640,
-        "width": 1152
+        "width": 958
     }
 }

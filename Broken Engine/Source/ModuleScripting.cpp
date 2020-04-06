@@ -8,6 +8,7 @@
 #include "Resource.h"
 #include "ModuleSceneManager.h"
 #include "ResourceScene.h"
+#include "ModuleEventManager.h"
 
 #include "ResourceScript.h"
 #include "ComponentScript.h"
@@ -188,6 +189,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("GameTime", &ScriptingSystem::GameTime)
 		.addFunction("PauseGame", &ScriptingSystem::PauseGame)
 		.addFunction("ResumeGame", &ScriptingSystem::ResumeGame)
+		.addFunction("GetDebuggingPath", &ScriptingSystem::GetDebuggingPath)
 
 		// Maths
 		.addFunction("CompareFloats", &ScriptingSystem::FloatNumsAreEqual)
@@ -248,6 +250,8 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("GetBottomFrustumIntersection", &ScriptingGameobject::GetBottomFrustumIntersection)
 		.addFunction("GetLeftFrustumIntersection", &ScriptingGameobject::GetLeftFrustumIntersection)
 		.addFunction("GetRightFrustumIntersection", &ScriptingGameobject::GetRightFrustumIntersection)
+		.addFunction("WorldToScreen", &ScriptingGameobject::WorldToScreen)
+		.addFunction("ScreenToWorld", &ScriptingGameobject::ScreenToWorld)
 		.addFunction("GetScript", &ScriptingGameobject::GetScript)
 		.endClass()
 
@@ -455,6 +459,11 @@ void ModuleScripting::SendScriptToModule(ComponentScript* script_component) {
 // Fill the ScriptVars of the component associated with this script
 void ModuleScripting::FillScriptInstanceComponentVars(ScriptInstance* script) {
 
+	if (script == nullptr)
+	{
+		ENGINE_CONSOLE_LOG("|[Error] The script sent to FillScriptInstanceComponentVars is NULLPTR, operation will be aborted");
+		return;
+	}
 	// Reset the type of all the variables
 	for (int i = 0; i < script->my_component->script_variables.size(); ++i)
 		script->my_component->script_variables[i].type = VarType::NONE;
@@ -565,7 +574,10 @@ void ModuleScripting::FillScriptInstanceComponentFuncs(ScriptInstance* script)
 void ModuleScripting::DeleteScriptInstanceWithParentComponent(ComponentScript* script_component) {
 	for (int i = 0; i < class_instances.size(); ++i) {
 		if (class_instances[i] != nullptr && class_instances[i]->my_component == script_component) {
-			//delete class_instances[i];
+			if (class_instances[i] == current_script)
+				current_script = nullptr;
+
+			delete class_instances[i];
 			class_instances.erase(class_instances.begin() + i);
 		}
 	}
@@ -614,13 +626,76 @@ void ModuleScripting::CallbackScriptFunction(ComponentScript* script_component, 
 	{
 		if (App->GetAppState() == AppState::PLAY)
 		{
-			script->my_table_class[aux_str.c_str()](); // call to Lua to execute the given function
-			ENGINE_CONSOLE_LOG("Callback of function %s", aux_str.c_str());
+			for (int i = 0; i < script_component->script_functions.size(); ++i)
+			{
+				if (script_component->script_functions[i].name == aux_str.c_str())
+				{
+					script->my_table_class[aux_str.c_str()](); // call to Lua to execute the given function
+					ENGINE_CONSOLE_LOG("Callback of function %s", aux_str.c_str());
+				}
+			}
 		}
 	}
 	else
 	{
 		ENGINE_CONSOLE_LOG("Can't callback %s since component has a null script instance", aux_str.c_str());
+	}
+}
+
+void ModuleScripting::CompileDebugging()
+{
+	std::string abs_path = App->fs->GetBasePath();
+	App->fs->NormalizePath(abs_path);
+
+	std::size_t d_pos = 0;
+	d_pos = abs_path.find("Debug");
+	std::size_t r_pos = 0;
+	r_pos = abs_path.find("Release");
+
+	if (d_pos != 4294967295)  // If we are in DEBUG
+	{
+		abs_path = abs_path.substr(0, d_pos);
+		abs_path += "Game/";
+	}
+	else if (r_pos != 4294967295) // If we are in RELEASE
+	{
+		abs_path = abs_path.substr(0, r_pos);
+		abs_path += "Game/";
+	}
+
+	abs_path += "Lua_Debug";
+
+	debug_path = abs_path;
+
+	luabridge::getGlobalNamespace(L)
+		.beginNamespace("Scripting")
+		.beginClass <ScriptingSystem>("System")
+		.addConstructor<void(*) (void)>()
+		.addFunction("GetDebuggingPath", &ScriptingSystem::GetDebuggingPath)
+		.endClass()
+		.endNamespace();
+
+	std::string test = debug_path + "/IDE_Debugger.lua";
+	bool compiled = luaL_dofile(L, test.c_str());
+
+	if (compiled == LUA_OK) {
+		//We don't need to do nothing here, LOG something at most
+		ENGINE_CONSOLE_LOG("Compiled %s successfully!", test.c_str());
+	}
+	else {
+		std::string error = lua_tostring(L, -1);
+		ENGINE_CONSOLE_LOG("%s", error.data());
+	}
+
+	//debug_instance->my_table_class = luabridge::getGlobal(L, "GetTableDebug");
+}
+
+void ModuleScripting::StopDebugging()
+{
+	if (debug_instance != nullptr)
+	{
+			std::string path = debug_path + "/Debugger_Close.lua";
+			luaL_dofile(L, path.c_str());
 	}
 }
 
@@ -649,6 +724,8 @@ bool ModuleScripting::Init(json& file) {
 	L = luaL_newstate();
 	luaL_openlibs(L);
 
+	debug_instance = new ScriptInstance;
+
 	return true;
 }
 
@@ -658,6 +735,12 @@ bool ModuleScripting::Start() {
 
 bool ModuleScripting::CleanUp() {
 	CleanUpInstances();
+
+	if (debug_instance != nullptr)
+	{
+		delete debug_instance;
+		debug_instance = nullptr;
+	}
 
 	return true;
 }
@@ -677,7 +760,6 @@ update_status ModuleScripting::Update(float realDT) {
 			(*it)->started = false;
 		}
 	}
-
 	// Carles to Didac
 	// 1. You can use the "IsWhatever" functions of App to check the current game state.
 	// 2. "App->IsGameFirstFrame()" marks the first frame a GameUpdate() will happen, if you want to do anything right before the game plays in preparation
@@ -692,6 +774,7 @@ update_status ModuleScripting::Update(float realDT) {
 
 update_status ModuleScripting::GameUpdate(float gameDT)
 {
+
 	if (cannot_start == false && App->GetAppState() == AppState::PLAY)
 	{
 		const uint origSize = class_instances.size();	// This avoids messing the iteration with newly Instantiated scripts
@@ -738,7 +821,9 @@ update_status ModuleScripting::GameUpdate(float gameDT)
 						else
 						{
 							current_script->my_table_class["Update"]();	// Update is done on every iteration of the script as long as it remains active
-							FillScriptInstanceComponentVars(current_script); // Show variables at runtime
+							
+							if(current_script != nullptr)
+								FillScriptInstanceComponentVars(current_script); // Show variables at runtime
 						}
 					}
 				}
@@ -760,6 +845,9 @@ void ModuleScripting::CleanUpInstances() {
 		if ((*it) != nullptr)
 			delete (*it);
 	}
+
+	current_script = nullptr;
+	//debug_instance->my_table_class = 0;
 
 	class_instances.clear();
 }

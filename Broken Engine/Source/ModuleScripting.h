@@ -37,8 +37,11 @@ public:
 	void NotifyHotReloading();
 	bool CheckEverythingCompiles();
 	void CallbackScriptFunction(ComponentScript* script_component, const ScriptFunc& function_to_call);
+	void CompileDebugging();
+	void StopDebugging();
 	void CallbackScriptFunctionParam(ComponentScript* script_component, const ScriptFunc& function_to_call, uint id);
 
+	void CleanUpInstances();
 
 	bool Init(json& file) override;
 	bool Start();
@@ -53,6 +56,7 @@ public:
 public:
 	ScriptInstance* current_script;
 	update_status game_update = UPDATE_CONTINUE;
+	std::string debug_path = "null";
 
 private:
 	// L is our Lua Virtual Machine, it's called L because its the common name it receives, so all programers can understand what this var is
@@ -63,7 +67,7 @@ private:
 
 	_AppState previous_AppState = (_AppState)2; // we use the EDITOR value of the script (can't include application.h because it would slow down compilation time)
 
-	void CleanUpInstances();
+	ScriptInstance* debug_instance = nullptr;
 
 	std::vector<ScriptInstance*> recompiled_instances;
 	std::vector<ScriptInstance*> class_instances;

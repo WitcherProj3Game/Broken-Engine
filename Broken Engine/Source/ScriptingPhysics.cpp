@@ -49,7 +49,7 @@ void ScriptingPhysics::SetAngularVelocity(float x, float y, float z, uint gameob
 }
 
 void ScriptingPhysics::SetMass(float mass, uint gameobject_UUID)
-{	
+{
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 
 	if (go) {
@@ -87,7 +87,7 @@ float ScriptingPhysics::GetMass(uint gameobject_UUID)
 
 luabridge::LuaRef ScriptingPhysics::GetLinearVelocity(uint gameobject_UUID, lua_State* L)
 {
-	float3 vel = float3(0.0f); 
+	float3 vel = float3(0.0f);
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 
 	if (go) {
@@ -208,7 +208,7 @@ void ScriptingPhysics::UseGravity(bool enable, uint gameobject_UUID)
 }
 
 luabridge::LuaRef ScriptingPhysics::GetCharacterPosition(uint gameobject_UUID, lua_State* L) {
-	
+
 	float3 aux = float3(0.0f);
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 
@@ -235,7 +235,7 @@ luabridge::LuaRef ScriptingPhysics::GetCharacterPosition(uint gameobject_UUID, l
 	return table;
 }
 
-void ScriptingPhysics::SetCharacterPosition(float posx, float posy, float posz, uint gameobject_UUID) 
+void ScriptingPhysics::SetCharacterPosition(float posx, float posy, float posz, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 

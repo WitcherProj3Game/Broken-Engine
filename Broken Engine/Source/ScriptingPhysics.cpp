@@ -419,10 +419,10 @@ luabridge::LuaRef ScriptingPhysics::OverlapSphere(float position_x, float positi
 
 int ScriptingPhysics::OnTriggerEnter(uint UID, lua_State* L)
 {
-	int ret = 0;
-	GameObject* body = App->scripting->current_script->my_component->GetContainerGameObject();
-	if (body) {
-		GameObject* other = body->collisions.at(ONTRIGGER_ENTER);
+	int ret = 0; 
+	GameObject* GO = App->scene_manager->currentScene->GetGOWithUID(UID);
+	if (GO) {
+		GameObject* other = GO->collisions.at(ONTRIGGER_ENTER);
 		if (other) {
 			ret = other->GetUID();
 		}

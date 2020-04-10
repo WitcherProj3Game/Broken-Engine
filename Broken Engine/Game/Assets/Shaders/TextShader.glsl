@@ -1,5 +1,4 @@
 #version 440 core
-
 #define VERTEX_SHADER
 #ifdef VERTEX_SHADER
 
@@ -10,7 +9,7 @@ uniform mat4 u_Model;
 uniform mat4 u_View;
 uniform mat4 u_Proj;
 
-out vec2 v_TexCoords;
+out vec2 v_TexCoords; 
 
 void main()
 {
@@ -21,19 +20,19 @@ void main()
 #endif //VERTEX_SHADER
 
 #define FRAGMENT_SHADER
-#ifdef FRAGMENT_SHADER
+		#ifdef FRAGMENT_SHADER
 
-in vec2 v_TexCoords;
+		in vec2 v_TexCoords;
 
-uniform sampler2D text;
-uniform vec3 textColor;
+		uniform sampler2D text;
+		uniform vec3 textColor;
 
-out vec4 color;
+		out vec4 color;
 
-void main()
-{
-	vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, v_TexCoords).r);
-	color = vec4(textColor, 1.0) * sampled;
-}
+		void main()
+		{
+			vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, v_TexCoords).r);
+			color = vec4(textColor, 1.0) * sampled;
+		}
 
-#endif //FRAGMENT_SHADER
+		#endif //FRAGMENT_SHADER

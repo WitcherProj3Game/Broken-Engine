@@ -189,30 +189,6 @@ void ComponentParticleEmitter::DrawParticles()
 	if (!active || drawingIndices.empty())
 		return;
 
-	//while (!drawingIndices.empty())
-	//{
-	//	//particles[drawingIndices.front()]->Draw();
-
-	//	drawingIndices.pop();
-	//}
-
-	//physx::PxParticleReadData* rd = particleSystem->lockParticleReadData();
-	//if (rd)
-	//{
-	//	physx::PxStrideIterator<const physx::PxParticleFlags> flagsIt(rd->flagsBuffer);
-
-	//	for (unsigned i = 0; i < rd->validParticleRange; ++i, ++flagsIt)
-	//	{
-	//		if (*flagsIt & physx::PxParticleFlag::eVALID)
-	//		{
-	//			particles[i]->Draw();
-	//		}
-	//	}
-
-	//	// return ownership of the buffers back to the SDK
-	//	rd->unlock();
-	//}
-
 	std::map<float, int>::iterator it = drawingIndices.begin();
 	while (it != drawingIndices.end())
 	{
@@ -223,29 +199,6 @@ void ComponentParticleEmitter::DrawParticles()
 	drawingIndices.clear();
 }
 
-//void ComponentParticleEmitter::DrawComponent()
-//{
-//	if (!active)
-//		return;
-//
-//	physx::PxParticleReadData* rd = particleSystem->lockParticleReadData();
-//	if (rd)
-//	{
-//		physx::PxStrideIterator<const physx::PxParticleFlags> flagsIt(rd->flagsBuffer);
-//
-//		for (unsigned i = 0; i < rd->validParticleRange; ++i, ++flagsIt)
-//		{
-//			if (*flagsIt & physx::PxParticleFlag::eVALID)
-//			{
-//				particles[i]->Draw();
-//			}
-//		}
-//
-//		// return ownership of the buffers back to the SDK
-//		rd->unlock();
-//	}
-//}
-
 void ComponentParticleEmitter::ChangeParticlesColor(float3 color)
 {
 	color /= 255.0f;
@@ -253,7 +206,6 @@ void ComponentParticleEmitter::ChangeParticlesColor(float3 color)
 	for (int i = 0; i < maxParticles; ++i)
 		particles[i]->color = color;
 }
-
 
 json ComponentParticleEmitter::Save() const
 {
@@ -631,28 +583,34 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 		physx::PxVec3* velocityBuffer = new physx::PxVec3[particlesToCreate];
 
 		for (int i = 0; i < particlesToCreate; ++i) {
-			velocityBuffer[i] = { physx::PxVec3((particlesVelocity.x + GetRandomValue(-velocityRandomFactor.x, velocityRandomFactor.x)),
-											particlesVelocity.y + GetRandomValue(-velocityRandomFactor.y,velocityRandomFactor.y),
-											particlesVelocity.z + GetRandomValue(-velocityRandomFactor.z,velocityRandomFactor.z)) };
+			
+			//Set velocity of the new particles
+			physx::PxVec3 velocity((particlesVelocity.x + GetRandomValue(-velocityRandomFactor.x, velocityRandomFactor.x)),
+				particlesVelocity.y + GetRandomValue(-velocityRandomFactor.y, velocityRandomFactor.y),
+				particlesVelocity.z + GetRandomValue(-velocityRandomFactor.z, velocityRandomFactor.z));
 
-			//TESTING PERFORMANCE
-
-			Quat velocityQuat = Quat(velocityBuffer[i].x, velocityBuffer[i].y, velocityBuffer[i].z,0);
+			Quat velocityQuat = Quat(velocity.x, velocity.y, velocity.z,0);
 
 			velocityQuat = rotation * velocityQuat * rotation.Conjugated();
 
 			velocityBuffer[i] = physx::PxVec3(velocityQuat.x, velocityQuat.y, velocityQuat.z);
 
-			//TESTING PERFORMANCE
+			//Set position of the new particles
+			physx::PxVec3 position( GetRandomValue(-size.x,size.x),
+											+ GetRandomValue(-size.y,size.y),
+											+ GetRandomValue(-size.z,size.z));
 
-			positionBuffer[i] = { physx::PxVec3(globalPosition.x + GetRandomValue(-size.x,size.x),
-											globalPosition.y + GetRandomValue(-size.y,size.y),
-											globalPosition.z + GetRandomValue(-size.z,size.z)) };
+		
+			Quat positionQuat = Quat(position.x, position.y, position.z, 0);
+			positionQuat = rotation * positionQuat * rotation.Conjugated();
+			positionBuffer[i] = physx::PxVec3(positionQuat.x + globalPosition.x, positionQuat.y + globalPosition.y, positionQuat.z + globalPosition.z);
 
 			particles[index[i]]->lifeTime = particlesLifeTime;
 			particles[index[i]]->spawnTime = spawnClock;
 			particles[index[i]]->color = particlesColor;
 			particles[index[i]]->texture = texture;
+
+			//Set scale
 			float randomScaleValue = GetRandomValue(1, particlesScaleRandomFactor);
 			particles[index[i]]->scale.x = particlesScale.x *randomScaleValue;
 			particles[index[i]]->scale.y = particlesScale.y * randomScaleValue;

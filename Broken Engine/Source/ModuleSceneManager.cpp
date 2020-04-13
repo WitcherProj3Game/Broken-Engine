@@ -15,6 +15,7 @@
 #include "ComponentCamera.h"
 #include "ComponentBone.h"
 #include "ModuleUI.h"
+#include "ModuleDetour.h"
 #include "ModuleSelection.h"
 #include "ModuleScripting.h"
 #include "ModuleGui.h"
@@ -184,7 +185,8 @@ void ModuleSceneManager::DrawScene()
 				if (aabb.IsFinite() && App->renderer3D->culling_camera->frustum.Intersects(aabb))
 				{
 					// --- Issue render order ---
-					(*it).second->Draw();
+					if ((*it).second->GetActive())
+						(*it).second->Draw();
 				}
 			}
 		}
@@ -197,6 +199,9 @@ void ModuleSceneManager::DrawScene()
 			if ((*it)->GetActive())
 				(*it)->Draw();
 		}
+
+		App->detour->Draw();
+
 	}
 
 }
@@ -458,6 +463,8 @@ void ModuleSceneManager::SetActiveScene(ResourceScene* scene)
 		// --- Unload current scene ---
 		if (currentScene)
 		{
+			App->physics->DeleteActors();
+
 			// --- Reset octree ---
 			tree.SetBoundaries(AABB(float3(-100, -100, -100), float3(100, 100, 100)));
 

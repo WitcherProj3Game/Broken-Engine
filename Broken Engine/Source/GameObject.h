@@ -72,6 +72,7 @@ public:
 	// This will not erase the GO at index, just displace it and everything after it
 	void InsertChildGO(GameObject* GO, int index);
 	bool FindChildGO(GameObject* GO);
+	bool FindParentGO(GameObject* GO);
 	void GetAllChilds(std::vector<GameObject*>& collector);
 	GameObject* GetAnimGO(GameObject* GO);
 
@@ -84,6 +85,8 @@ public:
 	std::vector<GameObject*> childs;
 	std::vector<GameObject*> collisions;
 	bool Static = false;
+	bool navigationStatic = false;
+	uint navigationArea = 0; 
 	ResourceModel* model = nullptr;
 	LayerMask layer;
 	bool is_prefab_child = false;

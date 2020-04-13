@@ -22,7 +22,7 @@ ResourceMesh::ResourceMesh(uint UID, const char* source_file) : Resource(Resourc
 
 ResourceMesh::~ResourceMesh() 
 {
-	glDeleteTextures(1, (GLuint*)&previewTexID);
+	//glDeleteTextures(1, (GLuint*)&previewTexID);
 }
 
 void ResourceMesh::CreateAABB() 
@@ -31,6 +31,18 @@ void ResourceMesh::CreateAABB()
 
 	for (uint i = 0; i < VerticesSize; ++i)
 		aabb.Enclose(float3(vertices[i].position));
+}
+
+void ResourceMesh::CreateOBB() {
+	//obb.SetNegativeInfinity();
+
+	std::vector<vec> vec_array;
+	for (uint i = 0; i < VerticesSize; ++i)
+		vec_array.push_back(vec(vertices[i].position));
+
+	obb = OBB::OptimalEnclosingOBB(vec_array.data(), VerticesSize);
+
+
 }
 
 bool ResourceMesh::LoadInMemory()
@@ -151,6 +163,7 @@ bool ResourceMesh::LoadInMemory()
 	}
 
 	CreateAABB();
+	//CreateOBB();
 	CreateVBO();
 	CreateEBO();
 	CreateVAO();

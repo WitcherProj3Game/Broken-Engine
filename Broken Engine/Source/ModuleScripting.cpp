@@ -23,6 +23,7 @@
 #include "ScriptingParticles.h"
 #include "ScriptingInterface.h"
 #include "ScriptingScenes.h"
+#include "ScriptingNavigation.h"
 #include "ScriptVar.h"
 #include <iterator>
 
@@ -46,7 +47,7 @@ ModuleScripting::ModuleScripting(bool start_enabled) : Module(start_enabled) {
 ModuleScripting::~ModuleScripting() {}
 
 bool ModuleScripting::DoHotReloading() {
-	bool ret = true;
+ 	bool ret = true;
 
 	if (App->GetAppState() == AppState::EDITOR) // 	Ask Aitor, only return true when no gameplay is happening	App->scene_intro->playing == false
 	{
@@ -149,6 +150,10 @@ bool ModuleScripting::JustCompile(std::string absolute_path) {
 		.endClass()
 
 		.beginClass <ScriptingScenes>("Scenes")
+		.addConstructor<void(*) (void)>()
+		.endClass()
+
+		.beginClass <ScriptingNavigation>("Navigation")
 		.addConstructor<void(*) (void)>()
 		.endClass()
 
@@ -359,6 +364,20 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 
 		.addFunction("LoadScene", &ScriptingScenes::LoadSceneFromScript)
 		.addFunction("QuitGame", &ScriptingScenes::QuitGame)
+		.addFunction("Instantiate", &ScriptingScenes::Instantiate)
+		.endClass()
+
+		// ----------------------------------------------------------------------------------
+		// NAVIGATION
+		// ----------------------------------------------------------------------------------
+		.beginClass <ScriptingNavigation>("Navigation")
+		.addConstructor<void(*) (void)>()
+
+		.addFunction("AllAreas", &ScriptingNavigation::AllAreas)
+		.addFunction("GetAreaFromName", &ScriptingNavigation::GetAreaFromName)
+		.addFunction("GetAreaCost", &ScriptingNavigation::GetAreaCost)
+		.addFunction("SetAreaCost", &ScriptingNavigation::SetAreaCost)
+		.addFunction("CalculatePath", &ScriptingNavigation::CalculatePath)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------
@@ -607,7 +626,6 @@ void ModuleScripting::CallbackScriptFunction(ComponentScript* script_component, 
 				if (script_component->script_functions[i].name == aux_str.c_str())
 				{
 					script->my_table_class[aux_str.c_str()](); // call to Lua to execute the given function
-					ENGINE_CONSOLE_LOG("Callback of function %s", aux_str.c_str());
 				}
 			}
 		}

@@ -146,7 +146,16 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				//Update particle position
 				float3 newPosition(positionIt->x, positionIt->y, positionIt->z);
 				particles[i]->position = newPosition;
-				particles[i]->diameter = particlesSize;
+				particles[i]->scale.x += scaleOverTime;
+				particles[i]->scale.y += scaleOverTime;
+
+				if (particles[i]->scale.x < 0)
+					particles[i]->scale.x = 0;
+
+				if (particles[i]->scale.y < 0)
+					particles[i]->scale.y = 0;
+
+
 			}
 		}
 		// return ownership of the buffers back to the SDK
@@ -235,8 +244,6 @@ json ComponentParticleEmitter::Save() const
 
 	node["particlesLifeTime"] = std::to_string(particlesLifeTime);
 
-	node["particlesSize"] = std::to_string(particlesSize);
-
 	node["ColorR"] = std::to_string(particlesColor.x);
 	node["ColorG"] = std::to_string(particlesColor.y);
 	node["ColorB"] = std::to_string(particlesColor.z);
@@ -249,6 +256,7 @@ json ComponentParticleEmitter::Save() const
 
 	node["particleScaleRandomFactor"] = std::to_string(particlesScaleRandomFactor);
 
+	node["particleScaleOverTime"] = std::to_string(scaleOverTime);
 
 	node["Resources"]["ResourceTexture"];
 
@@ -298,6 +306,8 @@ void ComponentParticleEmitter::Load(json& node)
 
 	std::string LParticleScaleRandomFactor = node["particleScaleRandomFactor"].is_null() ? "1" : node["particleScaleRandomFactor"];
 
+	std::string LScaleOverTime = node["particleScaleOverTime"].is_null() ? "0" : node["particleScaleOverTime"];
+
 	if (!node["Loop"].is_null())
 		loop = node["Loop"];
 	else
@@ -339,8 +349,6 @@ void ComponentParticleEmitter::Load(json& node)
 
 	particlesLifeTime = std::stof(LparticlesLifeTime);
 
-	particlesSize = std::stof(LParticlesSize);
-
 	particlesColor = float3(std::stof(LColorR), std::stof(LColorG), std::stof(LColorB));
 
 	duration = std::stoi(LDuration);
@@ -349,6 +357,8 @@ void ComponentParticleEmitter::Load(json& node)
 	particlesScale.y = std::stof(LParticlesScaleY);
 
 	particlesScaleRandomFactor = std::stof(LParticleScaleRandomFactor);
+
+	scaleOverTime = std::stof(LScaleOverTime);
 }
 
 void ComponentParticleEmitter::CreateInspectorNode()
@@ -368,6 +378,32 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 		if (ImGui::Button("Delete component"))
 			to_delete = true;
+
+
+		//Emitter position
+		ImGui::Text("Position");
+
+		ImGui::Text("X");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+
+		ImGui::DragFloat("##SPositionX", &emitterPosition.x, 0.05f, 0.0f, 100.0f);
+
+		ImGui::SameLine();
+
+		ImGui::Text("Y");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+
+		ImGui::DragFloat("##SPositionY", &emitterPosition.y, 0.05f, 0.0f, 100.0f);
+
+		ImGui::SameLine();
+
+		ImGui::Text("Z");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+
+		ImGui::DragFloat("##SPositionZ", &emitterPosition.z , 0.05f, 0.0f, 100.0f);
 
 		//Emitter size
 		ImGui::Text("Emitter size");
@@ -512,6 +548,10 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 			ImGui::DragFloat("##SParticlesRandomScaleX", &particlesScaleRandomFactor, 0.05f, 1.0f, 50.0f);
 
+			//Scale over time
+			ImGui::Text("Scale over time");
+			ImGui::DragFloat("##SParticlesScaleOverTime", &scaleOverTime, 0.005f, -50.0f, 50.0f);
+
 			// Image
 			ImGui::Text("Image");
 
@@ -596,14 +636,14 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 			velocityBuffer[i] = physx::PxVec3(velocityQuat.x, velocityQuat.y, velocityQuat.z);
 
 			//Set position of the new particles
-			physx::PxVec3 position( GetRandomValue(-size.x,size.x),
-											+ GetRandomValue(-size.y,size.y),
-											+ GetRandomValue(-size.z,size.z));
+			physx::PxVec3 position( GetRandomValue(-size.x,size.x) + emitterPosition.x,
+											+ GetRandomValue(-size.y,size.y) + emitterPosition.y,
+											+ GetRandomValue(-size.z,size.z) + emitterPosition.z);
 
 		
 			Quat positionQuat = Quat(position.x, position.y, position.z, 0);
 			positionQuat = rotation * positionQuat * rotation.Conjugated();
-			positionBuffer[i] = physx::PxVec3(positionQuat.x + globalPosition.x, positionQuat.y + globalPosition.y, positionQuat.z + globalPosition.z);
+			positionBuffer[i] = physx::PxVec3(positionQuat.x + globalPosition.x  , positionQuat.y + globalPosition.y , positionQuat.z + globalPosition.z );
 
 			particles[index[i]]->lifeTime = particlesLifeTime;
 			particles[index[i]]->spawnTime = spawnClock;

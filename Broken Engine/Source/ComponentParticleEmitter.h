@@ -11,6 +11,40 @@ BE_BEGIN_NAMESPACE
 class Particle;
 class ResourceTexture;
 
+enum class SHAPE_TYPE{
+	NONE=0,
+	SPHERE,
+	CUBE,
+	CONE
+};
+
+struct shape_sphere {
+	float radius=00.f;
+};
+
+struct shape_cube {
+	float height = 0.0f;
+	float width = 0.0f;
+	float depth = 0.0f;
+};
+
+struct shape_cone {
+	float height = 0.0f;
+	float bottomRadious = 0.0f;
+	float topRadious = 0.0f;
+};
+
+struct EmitterShape {
+	
+	float position;
+
+	union {
+		shape_cone cone;
+		shape_cube cube;
+		shape_sphere sphere;
+	};
+};
+
 class BROKEN_API ComponentParticleEmitter : public Component
 {
 	friend class ModuleParticles;
@@ -65,7 +99,7 @@ private:
 	std::vector<Particle*> particles;
 	std::map<float, int> drawingIndices;
 
-	unsigned int maxParticles = 1000;
+	unsigned int maxParticles = 2000;
 	bool perParticleRestOffset = false;
 
 	physx::PxParticleExt::IndexPool* indexPool;
@@ -73,6 +107,7 @@ private:
 	uint validParticles=0;
 
 	//Emitter properties
+	float3 emitterPosition = { 0,0,0 };
 	int particlesPerCreation =1  ;
 	physx::PxVec3 size = { 0,0,0 };
 	float emisionRate=500.0f;	//in milliseconds
@@ -86,8 +121,8 @@ private:
 
 	//Particle properties
 	int particlesLifeTime=1000;
-	float particlesSize = 1;
 	float2 particlesScale = { 1,1 };
+	float scaleOverTime = 0.0f;
 	float particlesScaleRandomFactor = 1;
 	ResourceTexture* texture = nullptr;
 

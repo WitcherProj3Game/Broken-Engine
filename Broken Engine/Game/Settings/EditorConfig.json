@@ -9,7 +9,7 @@
         "Console": false,
         "Hierarchy": true,
         "Inspector": true,
-        "Navigation": true,
+        "Navigation": false,
         "Physics": true,
         "Project": true,
         "Rendering": false,

@@ -137,8 +137,6 @@ bool ModulePhysics::Init(json& config)
 		}
 	}
 
-	
-
 	static physx::PxDefaultErrorCallback gDefaultErrorCallback;
 	static physx::PxDefaultAllocator gDefaultAllocatorCallback;
 
@@ -181,7 +179,7 @@ bool ModulePhysics::Init(json& config)
 	mScene = mPhysics->createScene(sceneDesc);
 
 	// This will enable basic visualization of PhysX objects like - actors collision shapes and their axes.
-		//The function PxScene::getRenderBuffer() is used to render any active visualization for scene.
+		// The function PxScene::getRenderBuffer() is used to render any active visualization for scene.
 	mScene->setVisualizationParameter(physx::PxVisualizationParameter::eSCALE, 1.0);	//Global visualization scale which gets multiplied with the individual scales
 	mScene->setVisualizationParameter(physx::PxVisualizationParameter::eCOLLISION_SHAPES, 1.0f);	//Enable visualization of actor's shape
 	mScene->setVisualizationParameter(physx::PxVisualizationParameter::eACTOR_AXES, 1.0f);	//Enable visualization of actor's axis
@@ -238,12 +236,12 @@ void ModulePhysics::FixedUpdate()
 
 bool ModulePhysics::CleanUp()
 {	
-	cache->release();	//195
-	mControllerManager->release();//182
-	mScene->release(); //172
-	mPhysics->release(); //153
-	mPvd->release(); //149
-	mFoundation->release(); //136
+	cache->release();	
+	mControllerManager->release();
+	mScene->release(); 
+	mPhysics->release(); 
+	mPvd->release(); 
+	mFoundation->release();
 
 	mControllerManager = nullptr;
 	mPhysics = nullptr;
@@ -289,8 +287,18 @@ void ModulePhysics::addActor(physx::PxRigidActor* actor, GameObject* gameObject)
 	mScene->addActor(*actor);
 }
 
-void ModulePhysics::UpdateActorLayer(const physx::PxRigidActor* actor, const LayerMask* Layermask) {
-	if (actor) {
+void ModulePhysics::AddParticleActor(physx::PxActor* actor, GameObject* gameObject)
+{
+	particleActors.insert(std::pair<physx::PxActor*, GameObject*>(actor, gameObject));
+	mScene->addActor(*actor);
+}
+
+void ModulePhysics::UpdateActorLayer(const physx::PxRigidActor* actor, const LayerMask* Layermask) 
+{
+	if (actor) 
+	{
+		physx::PxRigidActor* tmp = (physx::PxRigidActor*)actor;
+
 		physx::PxShape* shape;
 		actor->getShapes(&shape, 1);
 
@@ -305,6 +313,24 @@ void ModulePhysics::UpdateActorLayer(const physx::PxRigidActor* actor, const Lay
 	}
 }
 
+void ModulePhysics::UpdateParticleActorLayer(physx::PxActor* actor, const LayerMask* LayerMask)
+{
+	if (actor) 
+	{
+		physx::PxParticleSystem* pSystem = (physx::PxParticleSystem*)actor;
+
+		mScene->removeActor(*pSystem);
+
+		physx::PxFilterData* filterData;
+		filterData = &pSystem->getSimulationFilterData();
+		filterData->word0 = (1 << *LayerMask);
+
+		pSystem->setSimulationFilterData(*filterData);
+
+		mScene->addActor(*pSystem);
+	}
+}
+
 void ModulePhysics::UpdateActorsGroupFilter(LayerMask* updateLayer)
 {
 	if (actors.size() == 0)
@@ -312,11 +338,12 @@ void ModulePhysics::UpdateActorsGroupFilter(LayerMask* updateLayer)
 
 	for (std::map<physx::PxRigidActor*, GameObject*>::iterator it = actors.begin(); it != actors.end(); ++it)
 	{
-		if ((*it).first != nullptr && (*it).second != nullptr) {
+		if ((*it).first != nullptr && (*it).second != nullptr) 
+		{
 			LayerMask layer1 = (LayerMask)(*it).second->layer;
 			LayerMask layer2 = *updateLayer;
-			if (layer1 == layer2) {
-
+			if (layer1 == layer2) 
+			{
 				physx::PxShape* shape;
 				(*it).first->getShapes(&shape, 1);
 
@@ -332,6 +359,32 @@ void ModulePhysics::UpdateActorsGroupFilter(LayerMask* updateLayer)
 			}
 		}
 	}
+
+	if (particleActors.size() == 0)
+		return;
+
+	for (std::map<physx::PxActor*, GameObject*>::iterator it = particleActors.begin(); it != particleActors.end(); ++it)
+	{
+		if ((*it).first != nullptr && (*it).second != nullptr) 
+		{
+			LayerMask layer1 = (LayerMask)(*it).second->layer;
+			LayerMask layer2 = *updateLayer;
+			if (layer1 == layer2) 
+			{
+				physx::PxParticleSystem* pSystem = (physx::PxParticleSystem*)(*it).first;
+				mScene->removeActor(*pSystem);
+
+				physx::PxFilterData* filterData;
+				filterData = &pSystem->getSimulationFilterData();
+				filterData->word1 = layer_list.at(layer2).LayerGroup;
+
+				pSystem->setSimulationFilterData(*filterData);
+				mScene->addActor(*pSystem);
+
+				break;
+			}
+		}
+	}
 }
 
 bool ModulePhysics::DeleteActor(physx::PxRigidActor* actor)
@@ -342,6 +395,20 @@ bool ModulePhysics::DeleteActor(physx::PxRigidActor* actor)
 			mScene->removeActor(*actor);
 
 		actors.erase(actor);
+		return true;
+	}
+
+	return false;
+}
+
+bool ModulePhysics::DeleteActor(physx::PxActor* actor)
+{
+	if (particleActors.size() > 0 && actor)
+	{
+		if (mScene)
+			mScene->removeActor(*actor);
+
+		particleActors.erase(actor);
 		return true;
 	}
 

@@ -59,7 +59,7 @@ ComponentParticleEmitter::~ComponentParticleEmitter()
 
 	if (particleSystem && App->physics->mScene) {
 		particleSystem->releaseParticles();
-		App->physics->mScene->removeActor(*particleSystem);
+		App->physics->DeleteActor(particleSystem);
 		indexPool->release();
 		particles.clear();
 	}
@@ -83,12 +83,17 @@ void ComponentParticleEmitter::Update()
 void ComponentParticleEmitter::Enable()
 {
 	active = true;
-
+	
 	particleSystem = App->physics->mPhysics->createParticleSystem(maxParticles, perParticleRestOffset);
 	particleSystem->setMaxMotionDistance(100);
 
+	physx::PxFilterData filterData;
+	filterData.word0 = (1 << GO->layer);
+	filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup;
+	particleSystem->setSimulationFilterData(filterData);
+
 	if (particleSystem)
-		App->physics->mScene->addActor(*particleSystem);
+		App->physics->AddParticleActor(particleSystem, GO);
 
 	indexPool = physx::PxParticleExt::createIndexPool(maxParticles);
 
@@ -98,7 +103,7 @@ void ComponentParticleEmitter::Enable()
 void ComponentParticleEmitter::Disable()
 {
 
-	App->physics->mScene->removeActor(*particleSystem);
+	App->physics->DeleteActor(particleSystem);
 
 	active = false;
 }
@@ -119,10 +124,16 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				emisionActive = false;
 		}
 	}
+
+	physx::PxFilterData filterData;
+	filterData.word0 = (1 << GO->layer); // word0 = own ID
+	filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup; // word1 = ID mask to filter pairs that trigger a contact callback;
+	particleSystem->setSimulationFilterData(filterData);
+
 		//Update particles
 	//lock SDK buffers of *PxParticleSystem* ps for reading
 	physx::PxParticleReadData* rd = particleSystem->lockParticleReadData();
-
+	
 	std::vector<physx::PxU32> indicesToErease;
 	uint particlesToRelease = 0;
 
@@ -131,7 +142,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 	{
 		physx::PxStrideIterator<const physx::PxParticleFlags> flagsIt(rd->flagsBuffer);
 		physx::PxStrideIterator<const physx::PxVec3> positionIt(rd->positionBuffer);
-
+		
 		for (unsigned i = 0; i < rd->validParticleRange; ++i, ++flagsIt, ++positionIt)
 		{
 			if (*flagsIt & physx::PxParticleFlag::eVALID)
@@ -794,4 +805,9 @@ void ComponentParticleEmitter::SetParticlesScale(float x, float y)
 void ComponentParticleEmitter::SetParticlesScaleRF(float randomFactor)
 {
 	particlesScaleRandomFactor = randomFactor;
+}
+
+void ComponentParticleEmitter::UpdateActorLayer(const int* layerMask) 
+{
+	App->physics->UpdateParticleActorLayer(particleSystem, (LayerMask*)layerMask);
 }

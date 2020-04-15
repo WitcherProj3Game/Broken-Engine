@@ -44,6 +44,14 @@ void ComponentCollider::Update()
 		Delete();
 		this->GetContainerGameObject()->RemoveComponent(this);
 	}
+
+	if (shape)
+	{
+		physx::PxFilterData filterData;
+		filterData.word0 = App->physics->layer_list.at((int)GO->layer).LayerGroup;
+		shape->setSimulationFilterData(filterData);
+	}
+
 }
 
 void ComponentCollider::Enable()
@@ -852,4 +860,5 @@ void ComponentCollider::UpdateActorLayer(const int* layerMask) {
 		App->physics->UpdateActorLayer(dynamicRB->rigidBody, (LayerMask*)layerMask);
 	else
 		App->physics->UpdateActorLayer(rigidStatic, (LayerMask*)layerMask);
+
 }

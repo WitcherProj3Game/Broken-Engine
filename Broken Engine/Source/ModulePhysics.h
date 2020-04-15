@@ -120,12 +120,15 @@ public:
 	void SimulatePhysics(float dt, float speed = 1.0f);
 
 	void addActor(physx::PxRigidActor* actor, GameObject* gameObject);
+	void AddParticleActor(physx::PxActor* actor, GameObject* gameObject);
 
 	void UpdateActorLayer(const physx::PxRigidActor* actor, const LayerMask* LayerMask);
+	void UpdateParticleActorLayer(physx::PxActor* actor, const LayerMask* LayerMask);
 
 	void UpdateActorsGroupFilter(LayerMask* updateLayer);
 
 	bool DeleteActor(physx::PxRigidActor* actor);
+	bool DeleteActor(physx::PxActor* actor);
 
 	void DeleteActors(GameObject* go = nullptr);
 
@@ -152,6 +155,8 @@ public:
 
 	std::vector<Layer> layer_list;
 	std::map<physx::PxRigidActor*, GameObject*> actors;
+	std::map<physx::PxActor*, GameObject*> particleActors;
+
 	std::vector<uint>* detected_objects;
 	physx::PxVolumeCache* cache;
 	UserIterator iter;

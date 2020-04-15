@@ -50,6 +50,7 @@ public:
 	void SetLifeTime(int ms);
 	void SetParticlesScale(float x, float y);
 	void SetParticlesScaleRF(float randomFactor);
+	void UpdateActorLayer(const int* layerMask);
 
 private:
 

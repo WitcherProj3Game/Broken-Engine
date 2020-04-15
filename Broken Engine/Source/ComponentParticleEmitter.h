@@ -74,6 +74,8 @@ private:
 
 	//Emitter properties
 	float3 emitterPosition = { 0,0,0 };
+	float3 eulerRotation = float3::zero;
+	Quat emitterRotation = Quat::identity;
 	int particlesPerCreation =1  ;
 	physx::PxVec3 size = { 0,0,0 };
 	float emisionRate=500.0f;	//in milliseconds

@@ -23,7 +23,7 @@
         "Layer0": {
             "0": true,
             "1": true,
-            "2": true,
+            "2": false,
             "3": true,
             "4": true,
             "5": true,
@@ -32,7 +32,7 @@
             "8": true,
             "9": true,
             "Active": true,
-            "Group": 1023,
+            "Group": 1019,
             "GroupSize": 10,
             "Layer": 0,
             "Name": "Default"
@@ -55,7 +55,7 @@
             "Name": "Player"
         },
         "Layer2": {
-            "0": true,
+            "0": false,
             "1": true,
             "2": true,
             "3": true,
@@ -66,7 +66,7 @@
             "8": true,
             "9": true,
             "Active": true,
-            "Group": 1023,
+            "Group": 1022,
             "GroupSize": 10,
             "Layer": 2,
             "Name": "Enemy"

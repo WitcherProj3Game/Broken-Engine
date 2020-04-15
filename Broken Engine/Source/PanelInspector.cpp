@@ -16,6 +16,7 @@
 #include "Component.h"
 #include "ComponentScript.h"
 #include "ComponentCollider.h"
+#include "ComponentParticleEmitter.h"
 
 // -- Panels --
 #include "PanelProject.h"
@@ -364,9 +365,13 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject* Selected) const
 				Selected->layer = (*it).layer;
 
 				Broken::ComponentCollider* col = Selected->GetComponent<Broken::ComponentCollider>();
+				Broken::ComponentParticleEmitter* particle = Selected->GetComponent<Broken::ComponentParticleEmitter>();
 
 				if(col)
 					col->UpdateActorLayer((int*)&(*it).layer);
+
+				if (particle)
+					particle->UpdateActorLayer((int*)&(*it).layer);
 			}
 			if (is_selected) {
 				ImGui::SetItemDefaultFocus();

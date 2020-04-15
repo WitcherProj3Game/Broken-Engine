@@ -11,40 +11,6 @@ BE_BEGIN_NAMESPACE
 class Particle;
 class ResourceTexture;
 
-enum class SHAPE_TYPE{
-	NONE=0,
-	SPHERE,
-	CUBE,
-	CONE
-};
-
-struct shape_sphere {
-	float radius=00.f;
-};
-
-struct shape_cube {
-	float height = 0.0f;
-	float width = 0.0f;
-	float depth = 0.0f;
-};
-
-struct shape_cone {
-	float height = 0.0f;
-	float bottomRadious = 0.0f;
-	float topRadious = 0.0f;
-};
-
-struct EmitterShape {
-	
-	float position;
-
-	union {
-		shape_cone cone;
-		shape_cube cube;
-		shape_sphere sphere;
-	};
-};
-
 class BROKEN_API ComponentParticleEmitter : public Component
 {
 	friend class ModuleParticles;

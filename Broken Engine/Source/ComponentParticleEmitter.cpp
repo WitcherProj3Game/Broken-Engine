@@ -146,8 +146,8 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				//Update particle position
 				float3 newPosition(positionIt->x, positionIt->y, positionIt->z);
 				particles[i]->position = newPosition;
-				particles[i]->scale.x += scaleOverTime;
-				particles[i]->scale.y += scaleOverTime;
+				particles[i]->scale.x += scaleOverTime*dt;
+				particles[i]->scale.y += scaleOverTime*dt;
 
 				if (particles[i]->scale.x < 0)
 					particles[i]->scale.x = 0;

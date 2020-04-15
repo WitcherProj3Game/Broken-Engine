@@ -222,6 +222,14 @@ json ComponentParticleEmitter::Save() const
 
 	node["Active"] = this->active;
 
+	node["positionX"] = std::to_string(emitterPosition.x);
+	node["positionY"] = std::to_string(emitterPosition.y);
+	node["positionZ"] = std::to_string(emitterPosition.z);
+
+	node["rotationX"] = std::to_string(eulerRotation.x);
+	node["rotationY"] = std::to_string(eulerRotation.y);
+	node["rotationZ"] = std::to_string(eulerRotation.z);
+
 	node["sizeX"]=std::to_string(size.x);
 	node["sizeY"] = std::to_string(size.y);
 	node["sizeZ"] = std::to_string(size.z);
@@ -271,6 +279,14 @@ void ComponentParticleEmitter::Load(json& node)
 	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
 
 	//load the strings
+	std::string LpositionX = node["positionX"].is_null() ? "0" : node["positionX"];
+	std::string LpositionY = node["positionY"].is_null() ? "0" : node["positionY"];
+	std::string LpositionZ = node["positionZ"].is_null() ? "0" : node["positionZ"];
+
+	std::string LrotationX = node["rotationX"].is_null() ? "0" : node["rotationX"];
+	std::string LrotationY = node["rotationY"].is_null() ? "0" : node["rotationY"];
+	std::string LrotationZ = node["rotationZ"].is_null() ? "0" : node["rotationZ"];
+
 	std::string Lsizex = node["sizeX"].is_null() ? "0" : node["sizeX"];
 	std::string Lsizey = node["sizeY"].is_null() ? "0" : node["sizeY"];
 	std::string Lsizez = node["sizeZ"].is_null() ? "0" : node["sizeZ"];
@@ -326,6 +342,16 @@ void ComponentParticleEmitter::Load(json& node)
 		texture->AddUser(GO);
 
 	//Pass the strings to the needed dada types
+	emitterPosition.x = std::stof(LpositionX);
+	emitterPosition.y = std::stof(LpositionY);
+	emitterPosition.z = std::stof(LpositionZ);
+
+	eulerRotation.x = std::stof(LrotationX);
+	eulerRotation.y = std::stof(LrotationY);
+	eulerRotation.z = std::stof(LrotationZ);
+	
+	emitterRotation = Quat::FromEulerXYZ(eulerRotation.x * DEGTORAD, eulerRotation.y * DEGTORAD, eulerRotation.z*DEGTORAD);
+
 	size.x = std::stof(Lsizex);
 	size.y = std::stof(Lsizey);
 	size.z = std::stof(Lsizez);
@@ -404,6 +430,45 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 
 		ImGui::DragFloat("##SPositionZ", &emitterPosition.z , 0.05f, 0.0f, 100.0f);
+
+		//Emitter rotation
+		ImGui::Text("Rotation");
+
+		float3 rotation = eulerRotation;
+		bool rotationUpdated = false;
+
+		ImGui::Text("X");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+
+		if (ImGui::DragFloat("##SRotationX", &rotation.x, 0.05f, 0.0f, 10000.0f))
+			rotationUpdated = true;
+
+		ImGui::SameLine();
+
+		ImGui::Text("Y");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+
+		if (ImGui::DragFloat("##SRotationY", &rotation.y, 0.05f, 0.0f, 10000.0f))
+			rotationUpdated = true;
+
+		ImGui::SameLine();
+
+		ImGui::Text("Z");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+
+		if (ImGui::DragFloat("##SRotationZ", &rotation.z, 0.05f, 0.0f, 10000.0f))
+			rotationUpdated = true;
+
+		if (rotationUpdated) {
+			float3 difference = (rotation - eulerRotation) * DEGTORAD;
+			Quat quatrot = Quat::FromEulerXYZ(difference.x, difference.y, difference.z);
+
+			emitterRotation = emitterRotation * quatrot;
+			eulerRotation = rotation;
+		}
 
 		//Emitter size
 		ImGui::Text("Emitter size");
@@ -599,7 +664,7 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 
 	if (validParticles < maxParticles)
 	{
-		Quat rotation= GO->GetComponent<ComponentTransform>()->rotation;
+		Quat rotation= GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
 
 		if (particlesToCreate > maxParticles - validParticles)
 			particlesToCreate = maxParticles - validParticles;

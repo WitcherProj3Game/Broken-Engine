@@ -17,6 +17,8 @@ public:
 
 	bool Draw();
 
+	void CreateComponentOptionsMenu(std::vector<Broken::Component*>::const_iterator& it);
+
 	bool Startup = true;
 
 private:

@@ -160,6 +160,9 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				particles[i]->scale.x += scaleOverTime*dt;
 				particles[i]->scale.y += scaleOverTime*dt;
 
+				if (colorGradient)
+					particles[i]->color += particleColorVariation*dt*1000;
+
 				if (particles[i]->scale.x < 0)
 					particles[i]->scale.x = 0;
 
@@ -477,7 +480,9 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			float3 difference = (rotation - eulerRotation) * DEGTORAD;
 			Quat quatrot = Quat::FromEulerXYZ(difference.x, difference.y, difference.z);
 
-			emitterRotation = emitterRotation * quatrot;
+			
+			//emitterRotation = emitterRotation * quatrot;
+			emitterRotation = Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD);
 			eulerRotation = rotation;
 		}
 
@@ -654,12 +659,31 @@ void ComponentParticleEmitter::CreateInspectorNode()
 				}
 				ImGui::EndDragDropTarget();
 			}
+			
 			////Particles Color
+			ImGui::Checkbox("Color gradient",&colorGradient);
 
-			ImGui::ColorEdit4("##PEParticle Color", (float*)&particlesColor, ImGuiColorEditFlags_NoInputs);
-			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
-			ImGui::Text("Color");
+			if (colorGradient) {
+				bool colorsChanged = false;
+				if (ImGui::ColorEdit4("##PEParticle Color", (float*)&particlesColor, ImGuiColorEditFlags_NoInputs))
+					colorsChanged = true;
+				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+				ImGui::Text("Color");
 
+				if (ImGui::ColorEdit4("##PEParticle Color2", (float*)&particlesColor2, ImGuiColorEditFlags_NoInputs))
+					colorsChanged = true;
+				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+				ImGui::Text("Color2");
+
+				if (colorsChanged)
+					particleColorVariation = (particlesColor2 - particlesColor) / (particlesLifeTime);
+				
+			}
+			else {
+				ImGui::ColorEdit4("##PEParticle Color", (float*)&particlesColor2, ImGuiColorEditFlags_NoInputs);
+				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+				ImGui::Text("Color");
+			}
 			ImGui::TreePop();
 		}
 }

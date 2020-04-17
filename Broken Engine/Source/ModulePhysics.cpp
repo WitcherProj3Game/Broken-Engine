@@ -92,6 +92,10 @@ physx::PxFilterFlags customFilterShader(
 	physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize)
 {
 	// Let triggers through
+	if ((physx::PxFilterObjectType::ePARTICLE_SYSTEM == attributes0 && physx::PxFilterObjectIsTrigger(attributes1)) || (physx::PxFilterObjectType::ePARTICLE_SYSTEM == attributes1 && physx::PxFilterObjectIsTrigger(attributes0))) {
+		return physx::PxFilterFlag::eSUPPRESS;
+	}
+
 	if ((physx::PxFilterObjectIsTrigger(attributes0) || physx::PxFilterObjectIsTrigger(attributes1))
 		&& (filterData0.word0 & filterData1.word1 || filterData1.word0 & filterData0.word1)) {
 		pairFlags = physx::PxPairFlag::eTRIGGER_DEFAULT;

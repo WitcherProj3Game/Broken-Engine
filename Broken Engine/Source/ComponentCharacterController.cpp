@@ -264,6 +264,7 @@ json ComponentCharacterController::Save() const
 	node["positionX"] = std::to_string(controller->getPosition().x);
 	node["positionY"] = std::to_string(controller->getPosition().y);
 	node["positionZ"] = std::to_string(controller->getPosition().z);
+	node["draw"] = std::to_string(draw);
 
 	if (controller->getNonWalkableMode() == physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING)
 		node["nonWalkableMode"] = std::to_string(0);
@@ -290,6 +291,7 @@ void ComponentCharacterController::Load(json& node)
 	std::string nonWalkableMode = node["nonWalkableMode"].is_null() ? "0" : node["nonWalkableMode"];
 	std::string firstTime_ = node["firstTime"].is_null() ? "0" : node["firstTime"];
 	std::string gravity_ = node["gravity"].is_null() ? "0" : node["gravity"];
+	std::string draw_ = node["draw"].is_null() ? "0" : node["draw"];
 
 	contactOffset = std::stof(contactOffset_);
 	stepOffset = std::stof(stepOffset_);
@@ -300,6 +302,7 @@ void ComponentCharacterController::Load(json& node)
 	position.y = std::stof(positionY);
 	position.z = std::stof(positionZ);
 	gravity = std::stof(gravity_);
+	draw = std::stof(draw_);
 
 	SetContactOffset(contactOffset);
 	SetStepOffset(stepOffset);

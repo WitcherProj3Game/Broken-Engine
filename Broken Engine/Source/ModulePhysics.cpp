@@ -209,6 +209,7 @@ bool ModulePhysics::Init(json& config)
 	//-------------------------------------
 
 	cache = mScene->createVolumeCache(32, 8);
+	//PlaneCollider(0, 0, 0);
 
 	return true;
 }

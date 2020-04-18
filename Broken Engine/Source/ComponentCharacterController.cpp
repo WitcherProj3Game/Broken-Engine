@@ -69,7 +69,7 @@ void ComponentCharacterController::Update()
 {
 	vel = physx::PxVec3(0);
 	
-	/*if (App->input->GetKey(SDL_SCANCODE_UP))
+	if (App->input->GetKey(SDL_SCANCODE_UP))
 		vel.z = -10.0f;
 
 	else if (App->input->GetKey(SDL_SCANCODE_DOWN))
@@ -83,7 +83,7 @@ void ComponentCharacterController::Update()
 	else if (App->input->GetKey(SDL_SCANCODE_LEFT))
 		vel.x = -10.0f;
 	else
-		vel.x = 0.0f;*/
+		vel.x = 0.0f;
 
 
 
@@ -575,7 +575,7 @@ void ComponentCharacterController::defaultCCTInteraction(const physx::PxControll
 				if (act1->getConcreteType() == physx::PxConcreteType::eRIGID_DYNAMIC)
 					actor1 = (physx::PxRigidDynamic*)hit.shape->getActor();
 			}
-			addForceAtLocalPos(*actor, hit.dir* hit.length * 80, localPos, physx::PxForceMode::eACCELERATION);
+			addForceAtLocalPos(*actor, hit.dir* hit.length * 1000, localPos, physx::PxForceMode::eACCELERATION);
 
 		}
 	}

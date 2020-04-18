@@ -270,6 +270,16 @@ json ComponentParticleEmitter::Save() const
 	node["ColorG"] = std::to_string(particlesColor.y);
 	node["ColorB"] = std::to_string(particlesColor.z);
 
+	node["Color2R"] = std::to_string(particlesColor2.x);
+	node["Color2G"] = std::to_string(particlesColor2.y);
+	node["Color2B"] = std::to_string(particlesColor2.z);
+
+	node["ColorVariationR"] = std::to_string(particleColorVariation.x);
+	node["ColorVariationG"] = std::to_string(particleColorVariation.y);
+	node["ColorVariationB"] = std::to_string(particleColorVariation.z);
+
+	node["GradientColor"] = colorGradient;
+
 	node["Loop"] = loop;
 	node["Duration"] = std::to_string(duration);
 
@@ -331,12 +341,25 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string LColorG = node["ColorG"].is_null() ? "0" : node["ColorG"];
 	std::string LColorB = node["ColorB"].is_null() ? "0" : node["ColorB"];
 
+	std::string LColor2R = node["Color2R"].is_null() ? "0" : node["Color2R"];
+	std::string LColor2G = node["Color2G"].is_null() ? "0" : node["Color2G"];
+	std::string LColor2B = node["Color2B"].is_null() ? "0" : node["Color2B"];
+
+	std::string LColorVariationR = node["ColorVariationR"].is_null() ? "0" : node["ColorVariationR"];
+	std::string LColorVariationG = node["ColorVariationG"].is_null() ? "0" : node["ColorVariationG"];
+	std::string LColorVariationB = node["ColorVariationB"].is_null() ? "0" : node["ColorVariationB"];
+
 	std::string LParticlesScaleX = node["particlesScaleX"].is_null() ? "1" : node["particlesScaleX"];
 	std::string LParticlesScaleY = node["particlesScaleY"].is_null() ? "1" : node["particlesScaleY"];
 
 	std::string LParticleScaleRandomFactor = node["particleScaleRandomFactor"].is_null() ? "1" : node["particleScaleRandomFactor"];
 
 	std::string LScaleOverTime = node["particleScaleOverTime"].is_null() ? "0" : node["particleScaleOverTime"];
+
+	if (!node["GradientColor"].is_null())
+		colorGradient = node["GradientColor"];
+	else 
+		colorGradient = false;
 
 	if (!node["Loop"].is_null())
 		loop = node["Loop"];
@@ -390,6 +413,8 @@ void ComponentParticleEmitter::Load(json& node)
 	particlesLifeTime = std::stof(LparticlesLifeTime);
 
 	particlesColor = float3(std::stof(LColorR), std::stof(LColorG), std::stof(LColorB));
+	particlesColor2 = float3(std::stof(LColor2R), std::stof(LColor2G), std::stof(LColor2B));
+	particleColorVariation = float3(std::stof(LColorVariationR), std::stof(LColorVariationG), std::stof(LColorVariationB));
 
 	duration = std::stoi(LDuration);
 
@@ -552,7 +577,9 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 		//Particles lifetime
 		ImGui::Text("Particles lifetime (ms)");
-		ImGui::DragInt("##SParticlesLifetime", &particlesLifeTime, 3.0f, 0.0f, 10000.0f);
+		 if (ImGui::DragInt("##SParticlesLifetime", &particlesLifeTime, 3.0f, 0.0f, 10000.0f))
+			 if (colorGradient)
+				 particleColorVariation = (particlesColor2 - particlesColor) / (particlesLifeTime);
 		
 		ImGui::Separator();
 
@@ -680,7 +707,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 				
 			}
 			else {
-				ImGui::ColorEdit4("##PEParticle Color", (float*)&particlesColor2, ImGuiColorEditFlags_NoInputs);
+				ImGui::ColorEdit4("##PEParticle Color", (float*)&particlesColor, ImGuiColorEditFlags_NoInputs);
 				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 				ImGui::Text("Color");
 			}
@@ -818,6 +845,9 @@ void ComponentParticleEmitter::SetDuration(int duration)
 void ComponentParticleEmitter::SetLifeTime(int ms)
 {
 	particlesLifeTime = ms;
+
+	if (colorGradient)
+		particleColorVariation = (particlesColor2 - particlesColor) / (particlesLifeTime);
 }
 
 void ComponentParticleEmitter::SetParticlesScale(float x, float y)

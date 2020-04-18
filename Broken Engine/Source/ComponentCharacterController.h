@@ -11,7 +11,7 @@ class ResourceMesh;
 
 
 
-class BROKEN_API ComponentCharacterController : public Component, public physx::PxControllerBehaviorCallback
+class BROKEN_API ComponentCharacterController : public Component, public physx::PxControllerBehaviorCallback, public physx::PxUserControllerHitReport
 {
 public:
 	ComponentCharacterController(GameObject* ContainerGO);
@@ -45,6 +45,15 @@ public:
 	virtual physx::PxControllerBehaviorFlags		getBehaviorFlags(const physx::PxShape& shape, const physx::PxActor& actor);
 	virtual physx::PxControllerBehaviorFlags		getBehaviorFlags(const physx::PxController&);
 	virtual physx::PxControllerBehaviorFlags		getBehaviorFlags(const physx::PxObstacle&);
+	virtual void									onShapeHit(const physx::PxControllerShapeHit& hit);
+	virtual void									onControllerHit(const physx::PxControllersHit& hit) {}
+	virtual void									onObstacleHit(const physx::PxControllerObstacleHit& hit) {}
+
+	void defaultCCTInteraction(const physx::PxControllerShapeHit& hit);
+
+	void addForceAtLocalPos(physx::PxRigidBody& body, const physx::PxVec3& force, const physx::PxVec3& pos, physx::PxForceMode::Enum mode, bool wakeup = true);
+
+	void addForceAtPosInternal(physx::PxRigidBody& body, const physx::PxVec3& force, const physx::PxVec3& pos, physx::PxForceMode::Enum mode, bool wakeup);
 
 public: 
 	ResourceMesh* mesh = nullptr;

@@ -60,6 +60,10 @@ void ComponentCollider::Enable()
 		if (hasBeenDeactivated)
 		{
 			App->physics->mScene->addActor(*GetActor());
+			ComponentDynamicRigidBody* dynamic = GO->GetComponent<ComponentDynamicRigidBody>();
+			if (dynamic) {
+				dynamic->Enable();
+			}
 			hasBeenDeactivated = false;
 		}
 		//GetActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, false);
@@ -186,8 +190,8 @@ void ComponentCollider::UpdateLocalMatrix() {
 	else
 	{
 		if ((App->gui->isUsingGuizmo && !App->isGame) || cTransform->updateValues){ //ON EDITOR
-
-			dynamicRB->rigidBody->setGlobalPose(transform);
+			if(dynamicRB->rigidBody)
+				dynamicRB->rigidBody->setGlobalPose(transform);
 		}
 		else if (dynamicRB->rigidBody != nullptr) //ON GAME
 		{
@@ -432,7 +436,7 @@ void ComponentCollider::CreateInspectorNode()
 	ImGui::SameLine();
 	ImGui::Checkbox("Show", &draw);
 
-	if (ImGui::Combo("Type", &colliderType, "NONE\0BOX\0SPHERE\0CAPSULE\0MESH\0\0")) 
+	if (ImGui::Combo("Type", &colliderType, "NONE\0BOX\0SPHERE\0CAPSULE\0MESH\0\0"))
 	{
 		type = (ComponentCollider::COLLIDER_TYPE)colliderType;
 		current_mesh = nullptr;
@@ -444,7 +448,7 @@ void ComponentCollider::CreateInspectorNode()
 		editCollider = true;
 		dragged_UID = 0;
 	}
-	
+
 	if (type != ComponentCollider::COLLIDER_TYPE::MESH && type != ComponentCollider::COLLIDER_TYPE::NONE) {
 		ImGui::Text("Is Trigger");
 		ImGui::SameLine();
@@ -607,7 +611,7 @@ void ComponentCollider::CreateInspectorNode()
 			if (ImGui::BeginDragDropTarget()) {
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GO"))
 				{
-					uint UID = *(const uint*)payload->Data; 
+					uint UID = *(const uint*)payload->Data;
 					GameObject* go = App->scene_manager->currentScene->GetGOWithUID(UID);
 					if (go->HasComponent(ComponentType::Mesh)) {
 						dragged_UID = UID;
@@ -727,8 +731,6 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 
 			physx::PxTransform position(physx::PxVec3(center.x, center.y, center.z));
 
-			shape = App->physics->mPhysics->createShape(boxGeometry, *App->physics->mMaterial);
-
 			CreateRigidbody(boxGeometry,position);
 
 			if (!firstCreation)
@@ -819,7 +821,7 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 						convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX | physx::PxConvexFlag::eDISABLE_MESH_VALIDATION | physx::PxConvexFlag::eFAST_INERTIA_COMPUTATION;
 						convex_mesh = App->physics->mCooking->createConvexMesh(convexDesc,App->physics->mPhysics->getPhysicsInsertionCallback());
 						///-----------------------------------------------------------------------------------
-						
+
 						App->physics->cooked_convex.insert(std::pair<ResourceMesh*, physx::PxConvexMesh*>(dragged_mesh, nullptr));
 						App->physics->cooked_convex[dragged_mesh] = convex_mesh;
 
@@ -873,7 +875,7 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 						App->physics->mCooking->setParams(params);
 						triangle_mesh = App->physics->mCooking->createTriangleMesh(meshDesc, App->physics->mPhysics->getPhysicsInsertionCallback());
 						///----------------------------------------------------------------------------------------------------------
-						
+
 						App->physics->cooked_meshes.insert(std::pair<ResourceMesh*, physx::PxBase*>(dragged_mesh, nullptr));
 						App->physics->cooked_meshes[dragged_mesh] = triangle_mesh;
 
@@ -905,7 +907,9 @@ template <class Geometry>
 void ComponentCollider::CreateRigidbody(Geometry geometry, physx::PxTransform position) {
 	if (!HasDynamicRigidBody(geometry, position))
 	{
-		if (rigidStatic)
+		shape = App->physics->mPhysics->createShape(geometry, *App->physics->mMaterial);
+
+		if(rigidStatic)
 			App->physics->DeleteActor(rigidStatic);
 
 		physx::PxFilterData filterData;
@@ -926,28 +930,28 @@ void ComponentCollider::CreateRigidbody(Geometry geometry, physx::PxTransform po
 		shape->setQueryFilterData(filterData);
 
 		rigidStatic = PxCreateStatic(*App->physics->mPhysics, position, *shape);
-		
+
 		App->physics->addActor(rigidStatic, GO);
-		
 	}
 }
 
 void ComponentCollider::Delete()
 {
-	if (shape)
-	{
-		shape->release();
-		shape = nullptr;
-	}
 
 	if (GO->GetComponent<ComponentDynamicRigidBody>() != nullptr)
 	{
 		if (GO->GetComponent<ComponentDynamicRigidBody>()->rigidBody != nullptr) {
-			App->physics->DeleteActor(GO->GetComponent<ComponentDynamicRigidBody>()->rigidBody);
+			App->physics->DeleteActor(GO->GetComponent<ComponentDynamicRigidBody>()->rigidBody,true);
 			GO->GetComponent<ComponentDynamicRigidBody>()->rigidBody = nullptr;
+			shape = nullptr;
 		}
 	}
 	if (rigidStatic) {
+		if (shape)
+		{
+			shape->release();
+			shape = nullptr;
+		}
 		App->physics->DeleteActor(rigidStatic);
 		rigidStatic = nullptr;
 	}
@@ -960,7 +964,6 @@ bool ComponentCollider::HasDynamicRigidBody(Geometry geometry, physx::PxTransfor
 
 	if (dynamicRB != nullptr)
 	{
-
 		float3 position, scale = float3::zero;
 		Quat rot = Quat::identity;
 
@@ -973,7 +976,8 @@ bool ComponentCollider::HasDynamicRigidBody(Geometry geometry, physx::PxTransfor
 			App->physics->DeleteActor(dynamicRB->rigidBody);
 		}
 
-		shape = App->physics->mPhysics->createShape(geometry, *App->physics->mMaterial);
+		dynamicRB->rigidBody = App->physics->mPhysics->createRigidDynamic(transform);
+		shape = physx::PxRigidActorExt::createExclusiveShape(*dynamicRB->rigidBody,geometry, *App->physics->mMaterial);
 
 		if (isTrigger) {
 			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);
@@ -992,7 +996,6 @@ bool ComponentCollider::HasDynamicRigidBody(Geometry geometry, physx::PxTransfor
 		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 		shape->setQueryFilterData(filterData);
 
-		dynamicRB->rigidBody = PxCreateDynamic(*App->physics->mPhysics,transform, *shape,1.0f);
 		dynamicRB->update = true;
 		dynamicRB->UpdateRBValues();
 

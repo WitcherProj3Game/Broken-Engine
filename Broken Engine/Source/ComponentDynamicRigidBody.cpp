@@ -37,7 +37,18 @@ ComponentDynamicRigidBody::ComponentDynamicRigidBody(GameObject* ContainerGO) : 
 
 ComponentDynamicRigidBody::~ComponentDynamicRigidBody()
 {
-	App->physics->DeleteActor(rigidBody);
+}
+
+void ComponentDynamicRigidBody::Enable()
+{
+	if(rigidBody)
+		rigidBody->wakeUp();
+}
+
+void ComponentDynamicRigidBody::Disable()
+{
+	if (rigidBody)
+		rigidBody->putToSleep();
 }
 
 void ComponentDynamicRigidBody::Update()

@@ -14,6 +14,8 @@ public:
 	ComponentDynamicRigidBody(GameObject* ContainerGO);
 	virtual ~ComponentDynamicRigidBody();
 
+	void Enable();
+	void Disable();
 	void Update() override;
 
 	inline physx::PxReal GetMass() { return rigidBody->getMass(); }

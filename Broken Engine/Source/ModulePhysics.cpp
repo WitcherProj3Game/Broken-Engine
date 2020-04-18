@@ -244,7 +244,7 @@ void ModulePhysics::FixedUpdate()
 }
 
 bool ModulePhysics::CleanUp()
-{	
+{
 	cache->release();	//195
 	mControllerManager->release();//182
 	mMaterial->release();
@@ -345,12 +345,14 @@ void ModulePhysics::UpdateActorsGroupFilter(LayerMask* updateLayer)
 	}
 }
 
-bool ModulePhysics::DeleteActor(physx::PxRigidActor* actor)
+bool ModulePhysics::DeleteActor(physx::PxRigidActor* actor, bool dynamic)
 {
 	if (actors.size() > 0 && actor)
 	{
 		if(mScene)
 			mScene->removeActor(*actor);
+		if(dynamic)
+			actor->release();
 
 		actors.erase(actor);
 		return true;
@@ -375,7 +377,7 @@ void ModulePhysics::DeleteActors(GameObject* go)
 			DeleteActors((GO));
 		}
 	}
-	
+
 	if (go->GetComponent<ComponentCollider>() != nullptr) {
 		ComponentCollider* col = go->GetComponent<ComponentCollider>();
 		col->Delete();
@@ -412,7 +414,7 @@ void ModulePhysics::RemoveCookedActors() {
 			}
 		}
 	}*/
-	mCooking->release(); 
+	mCooking->release();
 	mCooking = PxCreateCooking(PX_PHYSICS_VERSION, *mFoundation, physx::PxCookingParams(physx::PxTolerancesScale()));
 	cooked_meshes.clear();
 	cooked_convex.clear();
@@ -479,7 +481,7 @@ const Broken::json& ModulePhysics::SaveStatus() const {
 	//maybe we should call SaveStatus on every panel
 	static Broken::json config;
 
-	config["gravity"] = gravity;
+	config["gravity"] = -mScene->getGravity().y;
 	config["staticFriction"] = mMaterial->getStaticFriction();
 	config["dynamicFriction"] = mMaterial->getDynamicFriction();
 	config["restitution"] = mMaterial->getRestitution();
@@ -539,10 +541,10 @@ bool ModulePhysics::Raycast(float3 origin_, float3 direction_, float maxDistance
 	physx::PxVec3 origin(origin_.x, origin_.y, origin_.z);
 	physx::PxVec3 direction(direction_.x, direction_.y, direction_.z);
 	direction.normalize();
-	
+
 	physx::PxRaycastBuffer hit;
 	physx::PxQueryFilterData filterData;
-	
+
 	filterData.data.word0 = App->physics->layer_list.at((int)layer).LayerGroup;
 
 	bool status = mScene->raycast(origin, direction, maxDistance, hit, physx::PxHitFlag::eDEFAULT, filterData) && !(origin - hit.block.position == physx::PxVec3(0.f,0.f,0.f));

@@ -93,10 +93,6 @@ void ComponentCharacterController::Update()
 	p.x = controller->getActor()->getGlobalPose().p.x;
 	p.y = controller->getActor()->getGlobalPose().p.y;
 	p.z = controller->getActor()->getGlobalPose().p.z;
-	if (App->physics->RaycastGO(p, float3(0,-11,0), 5) != nullptr)
-	{
-		int a = 0;
-	}
 
 	//Move(velocity.x, velocity.z);
 

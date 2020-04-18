@@ -216,8 +216,18 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 
 	bool isFalling = RB->rigidBody->getLinearVelocity().y != 0.0f;
 
+
 	if (isFalling)
-		cTransform->SetPosition(transform.p.x - offset.x, transform.p.y - offset.y - localMatrix.y, transform.p.z - offset.z);
+	{
+		physx::PxTransform localTransform;
+
+		localTransform.p.x = transform.p.x - cTransform->GetGlobalPosition().x + cTransform->GetLocalTransform().x;
+		localTransform.p.y = transform.p.y - cTransform->GetGlobalPosition().y + cTransform->GetLocalTransform().y;
+		localTransform.p.z = transform.p.z - cTransform->GetGlobalPosition().z + cTransform->GetLocalTransform().z;
+
+		cTransform->SetPosition(localTransform.p.x - offset.x, localTransform.p.y - offset.y - localMatrix.y, localTransform.p.z - offset.z);
+	}
+	
 
 	cTransform->SetRotation(Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
 	globalMatrix = cTransform->GetGlobalTransform() * localMatrix;

@@ -1,5 +1,4 @@
 #include "ModulePhysics.h"
-#include "ModulePhysics.h"
 #include "Application.h"
 #include "ModuleSceneManager.h"
 #include "ComponentCollider.h"
@@ -21,6 +20,7 @@
 #include "PhysX_3.4/Include/PxQueryReport.h"
 #include "PhysX_3.4/Include/PxQueryFiltering.h"
 #include "PhysX_3.4/Include/extensions/PxRaycastCCD.h"
+#include "PhysX_3.4/Include/cooking/PxCooking.h"
 
 #ifndef _DEBUG
 #pragma comment(lib, "PhysX_3.4/lib/Checked/PhysX3CHECKED_x86.lib")
@@ -30,6 +30,7 @@
 #pragma comment(lib, "PhysX_3.4/lib/Checked/PxPvdSDKCHECKED_x86.lib")
 #pragma comment(lib, "PhysX_3.4/lib/Checked/PhysX3CharacterKinematicCHECKED_x86.lib")
 #pragma comment(lib, "PhysX_3.4/lib/Checked/SceneQueryCHECKED.lib")
+#pragma comment(lib, "PhysX_3.4/lib/Checked/PhysX3CookingCHECKED_x86.lib")
 /*
 #pragma comment(lib, "PhysX_3.4/lib/Release/PhysX3_x86.lib")
 #pragma comment(lib, "PhysX_3.4/lib/Release/PhysX3Common_x86.lib")
@@ -38,6 +39,7 @@
 #pragma comment(lib, "PhysX_3.4/lib/Release/PxPvdSDK_x86.lib")
 #pragma comment(lib, "PhysX_3.4/lib/Release/PhysX3CharacterKinematic_x86.lib")
 #pragma comment(lib, "PhysX_3.4/lib/Release/SceneQuery.lib")
+#pragma comment(lib, "PhysX_3.4/lib/Release/PhysX3Cooking_x86.lib")
 */
 #else
 #pragma comment(lib, "PhysX_3.4/lib/Debug/PhysX3CommonDEBUG_x86.lib")
@@ -47,6 +49,7 @@
 #pragma comment(lib, "PhysX_3.4/lib/Debug/PxPvdSDKDEBUG_x86.lib")
 #pragma comment(lib, "PhysX_3.4/lib/Debug/PhysX3CharacterKinematicDEBUG_x86.lib")
 #pragma comment(lib, "PhysX_3.4/lib/Debug/SceneQueryDEBUG.lib")
+#pragma comment(lib, "PhysX_3.4/lib/Debug/PhysX3CookingDEBUG_x86.lib")
 #endif // _DEBUG
 
 //#include "mmgr/mmgr.h"
@@ -140,7 +143,6 @@ bool ModulePhysics::Init(json& config)
 				layer_list.at(i).LayerGroup = layer_list.at(0).LayerGroup;
 		}
 	}
-
 	static physx::PxDefaultErrorCallback gDefaultErrorCallback;
 	static physx::PxDefaultAllocator gDefaultAllocatorCallback;
 
@@ -148,11 +150,20 @@ bool ModulePhysics::Init(json& config)
 	if (!mFoundation)
 		ENGINE_CONSOLE_LOG("PxCreateFoundation failed!");
 
+	mCooking = PxCreateCooking(PX_PHYSICS_VERSION, *mFoundation, physx::PxCookingParams(physx::PxTolerancesScale()));
+	if (!mCooking)
+		ENGINE_CONSOLE_LOG("PxCreateCooking failed!");
+	else {
+		physx::PxCookingParams params = mCooking->getParams();
+		params.convexMeshCookingType = physx::PxConvexMeshCookingType::eQUICKHULL;
+		params.gaussMapLimit = 32;
+		mCooking->setParams(params);
+	}
+
 	bool recordMemoryAllocations = true;
 
 	//Setup Connection-----------------------------------------------------------------------
 	physx::PxPvdTransport* mTransport = physx::PxDefaultPvdSocketTransportCreate("localhost", 5425, 10000);
-
 	if (mTransport == NULL)
 		return false;
 
@@ -175,7 +186,7 @@ bool ModulePhysics::Init(json& config)
 	physx::PxSceneDesc sceneDesc(mPhysics->getTolerancesScale());
 	sceneDesc.gravity = physx::PxVec3(0.0f, -gravity, 0.0f);
 	sceneDesc.bounceThresholdVelocity = gravity * 0.2;
-	sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
+	sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(4);
 	//sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
 	sceneDesc.flags |= physx::PxSceneFlag::eENABLE_KINEMATIC_PAIRS | physx::PxSceneFlag::eENABLE_KINEMATIC_STATIC_PAIRS;
 	sceneDesc.filterShader = customFilterShader;
@@ -200,8 +211,6 @@ bool ModulePhysics::Init(json& config)
 		pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 	}
 	//-------------------------------------
-	//BoxCollider(0, 10, 0);
-	//PlaneCollider(0, 0, 0);
 
 	cache = mScene->createVolumeCache(32, 8);
 
@@ -239,21 +248,26 @@ void ModulePhysics::FixedUpdate()
 }
 
 bool ModulePhysics::CleanUp()
-{	
-	cache->release();	
-	mControllerManager->release();
-	mScene->release(); 
-	mPhysics->release(); 
-	mPvd->release(); 
-	mFoundation->release();
+{
+	cache->release();	//195
+	mControllerManager->release();//182
+	mMaterial->release();
+	mCooking->release();
+	mScene->release(); //172
+	mPhysics->release(); //153
+	mPvd->release(); //149
+	mFoundation->release(); //136
+	RELEASE(simulationEventsCallback);
+	RELEASE(raycastManager);
+	RELEASE(detected_objects);
+	cooked_meshes.clear();
+	actors.clear();
 
 	mControllerManager = nullptr;
 	mPhysics = nullptr;
 	mFoundation = nullptr;
 	mScene = nullptr;
 	mPvd = nullptr;
-
-	RELEASE(simulationEventsCallback);
 
 	return true;
 }
@@ -297,9 +311,9 @@ void ModulePhysics::AddParticleActor(physx::PxActor* actor, GameObject* gameObje
 	mScene->addActor(*actor);
 }
 
-void ModulePhysics::UpdateActorLayer(const physx::PxRigidActor* actor, const LayerMask* Layermask) 
+void ModulePhysics::UpdateActorLayer(const physx::PxRigidActor* actor, const LayerMask* Layermask)
 {
-	if (actor) 
+	if (actor)
 	{
 		physx::PxRigidActor* tmp = (physx::PxRigidActor*)actor;
 
@@ -319,7 +333,7 @@ void ModulePhysics::UpdateActorLayer(const physx::PxRigidActor* actor, const Lay
 
 void ModulePhysics::UpdateParticleActorLayer(physx::PxActor* actor, const LayerMask* LayerMask)
 {
-	if (actor) 
+	if (actor)
 	{
 		physx::PxParticleSystem* pSystem = (physx::PxParticleSystem*)actor;
 
@@ -342,11 +356,11 @@ void ModulePhysics::UpdateActorsGroupFilter(LayerMask* updateLayer)
 
 	for (std::map<physx::PxRigidActor*, GameObject*>::iterator it = actors.begin(); it != actors.end(); ++it)
 	{
-		if ((*it).first != nullptr && (*it).second != nullptr) 
+		if ((*it).first != nullptr && (*it).second != nullptr)
 		{
 			LayerMask layer1 = (LayerMask)(*it).second->layer;
 			LayerMask layer2 = *updateLayer;
-			if (layer1 == layer2) 
+			if (layer1 == layer2)
 			{
 				physx::PxShape* shape;
 				(*it).first->getShapes(&shape, 1);
@@ -356,7 +370,6 @@ void ModulePhysics::UpdateActorsGroupFilter(LayerMask* updateLayer)
 				filterData->word1 = layer_list.at(layer2).LayerGroup;
 
 				shape->setSimulationFilterData(*filterData);
-
 				shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 				shape->setQueryFilterData(*filterData);
 				break;
@@ -369,11 +382,11 @@ void ModulePhysics::UpdateActorsGroupFilter(LayerMask* updateLayer)
 
 	for (std::map<physx::PxActor*, GameObject*>::iterator it = particleActors.begin(); it != particleActors.end(); ++it)
 	{
-		if ((*it).first != nullptr && (*it).second != nullptr) 
+		if ((*it).first != nullptr && (*it).second != nullptr)
 		{
 			LayerMask layer1 = (LayerMask)(*it).second->layer;
 			LayerMask layer2 = *updateLayer;
-			if (layer1 == layer2) 
+			if (layer1 == layer2)
 			{
 				physx::PxParticleSystem* pSystem = (physx::PxParticleSystem*)(*it).first;
 				mScene->removeActor(*pSystem);
@@ -421,8 +434,11 @@ bool ModulePhysics::DeleteActor(physx::PxActor* actor)
 
 void ModulePhysics::DeleteActors(GameObject* go)
 {
-	if (go == nullptr)
+	bool isRoot = false;
+	if (go == nullptr) {
 		go = App->scene_manager->GetRootGO();
+		isRoot = true;
+	}
 
 	if (go->childs.size() > 0)
 	{
@@ -432,7 +448,7 @@ void ModulePhysics::DeleteActors(GameObject* go)
 			DeleteActors((GO));
 		}
 	}
-	
+
 	if (go->GetComponent<ComponentCollider>() != nullptr) {
 		ComponentCollider* col = go->GetComponent<ComponentCollider>();
 		col->Delete();
@@ -441,6 +457,38 @@ void ModulePhysics::DeleteActors(GameObject* go)
 	if (go->GetComponent<ComponentCharacterController>() != nullptr) {
 		go->GetComponent<ComponentCharacterController>()->Delete();
 	}
+
+}
+
+void ModulePhysics::RemoveCookedActors() {
+	/*for (std::map<ResourceMesh*, physx::PxBase*>::iterator it = cooked_meshes.begin(); it != cooked_meshes.end(); ++it)
+	{
+		int i = 0;
+		if ((*it).second->getConcreteType() == physx::PxConcreteType::eCONVEX_MESH) {
+			physx::PxConvexMesh* mesh = (physx::PxConvexMesh*)(*it).second;
+			if (mesh) {
+				i = mesh->getReferenceCount();
+				while (i > 1) {
+					(*it).second->release();
+					i = mesh->getReferenceCount();
+				}
+			}
+		}
+		else if ((*it).second->getConcreteType() == physx::PxConcreteType::eTRIANGLE_MESH_BVH33 || (*it).second->getConcreteType() == physx::PxConcreteType::eTRIANGLE_MESH_BVH34) {
+			physx::PxTriangleMesh* mesh = (physx::PxTriangleMesh*)(*it).second;
+			if (mesh) {
+				i = mesh->getReferenceCount();
+				while (i > 1) {
+					(*it).second->release();
+					i = mesh->getReferenceCount();
+				}
+			}
+		}
+	}*/
+	mCooking->release();
+	mCooking = PxCreateCooking(PX_PHYSICS_VERSION, *mFoundation, physx::PxCookingParams(physx::PxTolerancesScale()));
+	cooked_meshes.clear();
+	cooked_convex.clear();
 }
 
 void ModulePhysics::OverlapSphere(float3 position, float radius, LayerMask layer, std::vector<uint>& objects)
@@ -564,10 +612,10 @@ bool ModulePhysics::Raycast(float3 origin_, float3 direction_, float maxDistance
 	physx::PxVec3 origin(origin_.x, origin_.y, origin_.z);
 	physx::PxVec3 direction(direction_.x, direction_.y, direction_.z);
 	direction.normalize();
-	
+
 	physx::PxRaycastBuffer hit;
 	physx::PxQueryFilterData filterData;
-	
+
 	filterData.data.word0 = App->physics->layer_list.at((int)layer).LayerGroup;
 
 	bool status = mScene->raycast(origin, direction, maxDistance, hit, physx::PxHitFlag::eDEFAULT, filterData) && !(origin - hit.block.position == physx::PxVec3(0.f,0.f,0.f));

@@ -433,18 +433,14 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
 					layer_name = layers->at(n).name.c_str();
 					obj->layer = layers->at(n).layer;
 
-				Broken::ComponentCollider* col = Selected->GetComponent<Broken::ComponentCollider>();
-				Broken::ComponentParticleEmitter* particle = Selected->GetComponent<Broken::ComponentParticleEmitter>();
-
-				if(col)
-					col->UpdateActorLayer((int*)&(*it).layer);
-
-				if (particle)
-					particle->UpdateActorLayer((int*)&(*it).layer);
-					ComponentCollider* col = obj->GetComponent<ComponentCollider>();
+					Broken::ComponentCollider* col = obj->GetComponent<Broken::ComponentCollider>();
+					Broken::ComponentParticleEmitter* particle = obj->GetComponent<Broken::ComponentParticleEmitter>();
 
 					if(col)
 						col->UpdateActorLayer((int*)&layers->at(n).layer);
+
+					if (particle)
+						particle->UpdateActorLayer((int*)&layers->at(n).layer);
 				}
 			}
 			if (is_selected) {

@@ -14,8 +14,6 @@ public:
 	ComponentDynamicRigidBody(GameObject* ContainerGO);
 	virtual ~ComponentDynamicRigidBody();
 
-	void Enable();
-	void Disable();
 	void Update() override;
 
 	inline physx::PxReal GetMass() { return rigidBody->getMass(); }
@@ -74,7 +72,7 @@ public:
 	float linear_damping = 0.f;
 	float angular_damping = 0.f;
 	bool freezePosition_X = false, freezePosition_Y = false, freezePosition_Z = false;
-	bool freezeRotation_X = true, freezeRotation_Y = false, freezeRotation_Z = true;
+	bool freezeRotation_X = false, freezeRotation_Y = false, freezeRotation_Z = false;
 	bool toPlay = false;
 	bool update = false;
 };

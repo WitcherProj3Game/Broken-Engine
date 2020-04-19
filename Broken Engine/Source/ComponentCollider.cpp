@@ -60,10 +60,6 @@ void ComponentCollider::Enable()
 		if (hasBeenDeactivated)
 		{
 			App->physics->mScene->addActor(*GetActor());
-			ComponentDynamicRigidBody* dynamic = GO->GetComponent<ComponentDynamicRigidBody>();
-			if (dynamic) {
-				dynamic->Enable();
-			}
 			hasBeenDeactivated = false;
 		}
 		//GetActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, false);
@@ -135,7 +131,7 @@ void ComponentCollider::DrawComponent()
 		current_mesh = dragged_mesh;
 
 	// --- Render shape ---
-	if (current_mesh && current_mesh->IsInMemory() && current_mesh->vertices && current_mesh->Indices && draw /*&& App->GetAppState() != AppState::PLAY*/)
+	if (current_mesh && current_mesh->IsInMemory() && current_mesh->vertices && current_mesh->Indices && draw && App->GetAppState() != AppState::PLAY)
 	{
 		RenderMeshFlags flags = wire;
 		App->renderer3D->DrawMesh(globalMatrix * float4x4::FromQuat(dragged_rot), current_mesh, (ResourceMaterial*)App->resources->GetResource(App->resources->GetDefaultMaterialUID(), false), nullptr, flags, Color(125,125,125));
@@ -161,7 +157,6 @@ void ComponentCollider::UpdateLocalMatrix() {
 	localMatrix.scaleX = colliderSize.x * originalSize.x;
 	localMatrix.scaleY = colliderSize.y * originalSize.y;
 	localMatrix.scaleZ = colliderSize.z * originalSize.z;
-
 
 	globalMatrix = gt * localMatrix;
 
@@ -189,11 +184,11 @@ void ComponentCollider::UpdateLocalMatrix() {
 		rigidStatic->setGlobalPose(transform); //ON EDITOR
 	else
 	{
-		if ((App->gui->isUsingGuizmo && !App->isGame) || cTransform->updateValues){ //ON EDITOR
-			if(dynamicRB->rigidBody)
-				dynamicRB->rigidBody->setGlobalPose(transform);
+		if ((App->gui->isUsingGuizmo && App->GetAppState() != AppState::PLAY) || cTransform->updateValues){ //ON EDITOR
+
+			dynamicRB->rigidBody->setGlobalPose(transform);
 		}
-		else if (dynamicRB->rigidBody != nullptr) //ON GAME
+		else if (dynamicRB->rigidBody != nullptr && App->GetAppState() == AppState::PLAY) //ON GAME
 		{
 			UpdateTransformByRigidBody(dynamicRB, cTransform);
 		}
@@ -202,7 +197,6 @@ void ComponentCollider::UpdateLocalMatrix() {
 
 void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB, ComponentTransform* cTransform, physx::PxTransform* globalPos) {
 	physx::PxTransform transform;
-
 	if (!RB)
 		return;
 
@@ -211,23 +205,14 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 		RB->rigidBody->setGlobalPose(transform);
 	}
 
+	std::string name = GO->GetName();
 	transform = RB->rigidBody->getGlobalPose();
 	float x = transform.p.x - offset.x;
 
 	bool isFalling = RB->rigidBody->getLinearVelocity().y != 0.0f;
 
-
 	if (isFalling)
-	{
-		physx::PxTransform localTransform;
-
-		localTransform.p.x = transform.p.x - cTransform->GetGlobalPosition().x + cTransform->GetLocalTransform().x;
-		localTransform.p.y = transform.p.y - cTransform->GetGlobalPosition().y + cTransform->GetLocalTransform().y;
-		localTransform.p.z = transform.p.z - cTransform->GetGlobalPosition().z + cTransform->GetLocalTransform().z;
-
-		cTransform->SetPosition(localTransform.p.x - offset.x, localTransform.p.y - offset.y - localMatrix.y, localTransform.p.z - offset.z);
-	}
-
+		cTransform->SetPosition(transform.p.x - offset.x, transform.p.y - offset.y - localMatrix.y, transform.p.z - offset.z);
 
 	cTransform->SetRotation(Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
 	globalMatrix = cTransform->GetGlobalTransform() * localMatrix;
@@ -325,14 +310,6 @@ json ComponentCollider::Save() const
 
 	node["draggedUID"] = std::to_string(dragged_UID);
 
-	node["draggedscalex"] = std::to_string(dragged_scale.x);
-	node["draggedscaley"] = std::to_string(dragged_scale.y);
-	node["draggedscalez"] = std::to_string(dragged_scale.z);
-
-	node["draggedrotx"] = std::to_string(dragged_rot.x);
-	node["draggedroty"] = std::to_string(dragged_rot.y);
-	node["draggedrotz"] = std::to_string(dragged_rot.z);
-
 	node["draw"] = std::to_string(draw);
 
 	if (hasBeenDeactivated)
@@ -398,18 +375,10 @@ void ComponentCollider::Load(json& node)
 
 	std::string draggedUID_ = node["draggedUID"].is_null() ? "0" : node["draggedUID"];
 
-	std::string draggedscalex = node["draggedscalex"].is_null() ? "0" : node["draggedscalex"];
-	std::string draggedscaley = node["draggedscaley"].is_null() ? "0" : node["draggedscaley"];
-	std::string draggedscalez = node["draggedscalez"].is_null() ? "0" : node["draggedscalez"];
-
-	std::string draggedrotx = node["draggedrotx"].is_null() ? "0" : node["draggedrotx"];
-	std::string draggedroty = node["draggedroty"].is_null() ? "0" : node["draggedroty"];
-	std::string draggedrotz = node["draggedrotz"].is_null() ? "0" : node["draggedrotz"];
-
 	std::string draw_ = node["draw"].is_null() ? "0" : node["draw"];
 
 
-	//centerPosition = float3(std::stof(localPositionx), std::stof(localPositiony), std::stof(localPositionz));
+	centerPosition = float3(std::stof(localPositionx), std::stof(localPositiony), std::stof(localPositionz));
 	originalSize = float3(std::stof(originalScalex), std::stof(originalScaley), std::stof(originalScalez));
 	offset = float3(std::stof(offsetx), std::stof(offsety), std::stof(offsetz));
 
@@ -423,17 +392,7 @@ void ComponentCollider::Load(json& node)
 	globalMatrix.z = std::stof(globalMatrixz);
 	globalMatrix.w = std::stof(globalMatrixw);
 
-	dragged_UID = std::atoi(draggedUID_.c_str());
-
-	/*dragged_scale.x = std::stof(draggedscalex);
-	dragged_scale.y = std::stof(draggedscaley);
-	dragged_scale.z = std::stof(draggedscalez);
-
-	dragged_rot.x = std::stof(draggedrotx);
-	dragged_rot.y = std::stof(draggedroty);
-	dragged_rot.z = std::stof(draggedrotz);*/
-
-	//colliderSize = float3(std::stof(scalex), std::stof(scaley), std::stof(scalez));
+	colliderSize = float3(std::stof(scalex), std::stof(scaley), std::stof(scalez));
 
 	radius = std::stof(radius_);
 	height = std::stof(height_);
@@ -444,9 +403,11 @@ void ComponentCollider::Load(json& node)
 
 	tmpScale = float3(std::stof(tmpScalex), std::stof(tmpScaley), std::stof(tmpScalez));
 
-	firstCreation = false;
+	firstCreation = true;
 
 	draw = std::stof(draw_);
+
+	dragged_UID = std::atoi(draggedUID_.c_str());
 
 	toPlay = false;
 
@@ -470,7 +431,7 @@ void ComponentCollider::CreateInspectorNode()
 	ImGui::SameLine();
 	ImGui::Checkbox("Show", &draw);
 
-	if (ImGui::Combo("Type", &colliderType, "NONE\0BOX\0SPHERE\0CAPSULE\0MESH\0\0"))
+	if (ImGui::Combo("Type", &colliderType, "NONE\0BOX\0SPHERE\0CAPSULE\0MESH\0\0")) 
 	{
 		type = (ComponentCollider::COLLIDER_TYPE)colliderType;
 		current_mesh = nullptr;
@@ -482,7 +443,7 @@ void ComponentCollider::CreateInspectorNode()
 		editCollider = true;
 		dragged_UID = 0;
 	}
-
+	
 	if (type != ComponentCollider::COLLIDER_TYPE::MESH && type != ComponentCollider::COLLIDER_TYPE::NONE) {
 		ImGui::Text("Is Trigger");
 		ImGui::SameLine();
@@ -597,6 +558,13 @@ void ComponentCollider::CreateInspectorNode()
 		}
 		case ComponentCollider::COLLIDER_TYPE::MESH:
 		{
+			if (!firstCreation) {
+				if (GO->HasComponent(ComponentType::Mesh))
+					dragged_UID = GO->GetUID();
+				firstCreation = true;
+			}
+
+
 			if (ImGui::Checkbox("Convex", &isConvex)) {
 				editCollider = true;
 				if (dragged_mesh) {
@@ -645,19 +613,11 @@ void ComponentCollider::CreateInspectorNode()
 			if (ImGui::BeginDragDropTarget()) {
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GO"))
 				{
-					uint UID = *(const uint*)payload->Data;
+					uint UID = *(const uint*)payload->Data; 
 					GameObject* go = App->scene_manager->currentScene->GetGOWithUID(UID);
 					if (go->HasComponent(ComponentType::Mesh)) {
 						dragged_UID = UID;
 						editCollider = true;
-
-						if (GO->HasComponent(ComponentType::DynamicRigidBody)) {
-							if (!GO->GetComponent<ComponentDynamicRigidBody>()->is_kinematic && !isConvex) {
-								ENGINE_CONSOLE_LOG("| Cannot Create a Non-Convex Mesh as non-kinematic (See Rigidbody Kinematic)");
-								dragged_UID = 0;
-								editCollider = false;
-							}
-						}
 					}
 				}
 				ImGui::EndDragDropTarget();
@@ -693,15 +653,11 @@ void ComponentCollider::GetMesh() {
 			if (go->HasComponent(ComponentType::Mesh)) {
 				dragged_mesh = go->GetComponent<ComponentMesh>()->resource_mesh;
 				dragged_scale = go->GetComponent<ComponentTransform>()->GetScale();
-				if (!GO->HasComponent(ComponentType::Mesh)) {
-					localMesh = true;
-				}else if (go->GetComponent<ComponentMesh>()->resource_mesh != GO->GetComponent<ComponentMesh>()->resource_mesh) {
-					localMesh = true;
-				}
-				if (localMesh) {
+				if (go != GO) {
 					centerPosition = go->GetComponent<ComponentTransform>()->GetPosition();
 					dragged_rot = go->GetComponent<ComponentTransform>()->GetQuaternionRotation();
 					colliderSize = dragged_scale;
+					localMesh = true;
 				}
 			}
 		}
@@ -776,6 +732,8 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 			boxGeometry = physx::PxBoxGeometry(physx::PxVec3(originalSize.x * scale.x * colliderSize.x * 0.5, originalSize.y * scale.y * colliderSize.y * 0.5, originalSize.z * scale.z * colliderSize.z * 0.5));
 
 			physx::PxTransform position(physx::PxVec3(center.x, center.y, center.z));
+
+			shape = App->physics->mPhysics->createShape(boxGeometry, *App->physics->mMaterial);
 
 			CreateRigidbody(boxGeometry,position);
 
@@ -862,7 +820,7 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 						convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX | physx::PxConvexFlag::eDISABLE_MESH_VALIDATION | physx::PxConvexFlag::eFAST_INERTIA_COMPUTATION;
 						convex_mesh = App->physics->mCooking->createConvexMesh(convexDesc,App->physics->mPhysics->getPhysicsInsertionCallback());
 						///-----------------------------------------------------------------------------------
-
+						
 						App->physics->cooked_convex.insert(std::pair<ResourceMesh*, physx::PxConvexMesh*>(dragged_mesh, nullptr));
 						App->physics->cooked_convex[dragged_mesh] = convex_mesh;
 
@@ -872,6 +830,7 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 						convex_mesh = (physx::PxConvexMesh*)App->physics->cooked_convex[dragged_mesh];
 					}
 					physx::PxConvexMeshGeometry geometry(convex_mesh, mesh_scale);
+					shape = App->physics->mPhysics->createShape(geometry, *App->physics->mMaterial);
 
 					CreateRigidbody(geometry, position);
 				}
@@ -915,7 +874,7 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 						App->physics->mCooking->setParams(params);
 						triangle_mesh = App->physics->mCooking->createTriangleMesh(meshDesc, App->physics->mPhysics->getPhysicsInsertionCallback());
 						///----------------------------------------------------------------------------------------------------------
-
+						
 						App->physics->cooked_meshes.insert(std::pair<ResourceMesh*, physx::PxBase*>(dragged_mesh, nullptr));
 						App->physics->cooked_meshes[dragged_mesh] = triangle_mesh;
 
@@ -927,7 +886,7 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 						//triangle_mesh->acquireReference();
 					}
 					physx::PxTriangleMeshGeometry geometry(triangle_mesh, mesh_scale);
-
+					shape = App->physics->mPhysics->createShape(geometry, *App->physics->mMaterial);
 					CreateRigidbody(geometry, position);
 				}
 
@@ -947,53 +906,49 @@ template <class Geometry>
 void ComponentCollider::CreateRigidbody(Geometry geometry, physx::PxTransform position) {
 	if (!HasDynamicRigidBody(geometry, position))
 	{
-		shape = App->physics->mPhysics->createShape(geometry, *App->physics->mMaterial);
-
-		if(rigidStatic)
+		if (rigidStatic)
 			App->physics->DeleteActor(rigidStatic);
 
 		physx::PxFilterData filterData;
 		filterData.word0 = (1 << GO->layer); // word0 = own ID
 		filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup; // word1 = ID mask to filter pairs that trigger a contact callback;
 
-		physx::PxGeometry geo = (physx::PxGeometry)geometry;
-		if (geo.getType() != physx::PxGeometryType::eCONVEXMESH && geo.getType() != physx::PxGeometryType::eTRIANGLEMESH) {
-			if (isTrigger) {
-				shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);
-				shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, true);
-			}
-			else {
-				shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, false);
-				shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, true);
-			}
+		if (isTrigger) {
+			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);
+			shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, true);
 		}
+		else {
+			shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, false);
+			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, true);
+		}
+
 		shape->setSimulationFilterData(filterData);
 		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 		shape->setQueryFilterData(filterData);
 
 		rigidStatic = PxCreateStatic(*App->physics->mPhysics, position, *shape);
-
+		
 		App->physics->addActor(rigidStatic, GO);
+		
 	}
 }
 
 void ComponentCollider::Delete()
 {
+	if (shape)
+	{
+		shape->release();
+		shape = nullptr;
+	}
 
 	if (GO->GetComponent<ComponentDynamicRigidBody>() != nullptr)
 	{
 		if (GO->GetComponent<ComponentDynamicRigidBody>()->rigidBody != nullptr) {
-			App->physics->DeleteActor(GO->GetComponent<ComponentDynamicRigidBody>()->rigidBody,true);
+			App->physics->DeleteActor(GO->GetComponent<ComponentDynamicRigidBody>()->rigidBody);
 			GO->GetComponent<ComponentDynamicRigidBody>()->rigidBody = nullptr;
-			shape = nullptr;
 		}
 	}
 	if (rigidStatic) {
-		if (shape)
-		{
-			shape->release();
-			shape = nullptr;
-		}
 		App->physics->DeleteActor(rigidStatic);
 		rigidStatic = nullptr;
 	}
@@ -1006,6 +961,7 @@ bool ComponentCollider::HasDynamicRigidBody(Geometry geometry, physx::PxTransfor
 
 	if (dynamicRB != nullptr)
 	{
+
 		float3 position, scale = float3::zero;
 		Quat rot = Quat::identity;
 
@@ -1018,10 +974,8 @@ bool ComponentCollider::HasDynamicRigidBody(Geometry geometry, physx::PxTransfor
 			App->physics->DeleteActor(dynamicRB->rigidBody);
 		}
 
-		dynamicRB->rigidBody = App->physics->mPhysics->createRigidDynamic(transform);
-		shape = physx::PxRigidActorExt::createExclusiveShape(*dynamicRB->rigidBody,geometry, *App->physics->mMaterial);
+		shape = App->physics->mPhysics->createShape(geometry, *App->physics->mMaterial);
 
-		physx::PxGeometry geo = (physx::PxGeometry)geometry;
 		if (isTrigger) {
 			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);
 			shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, true);
@@ -1039,6 +993,7 @@ bool ComponentCollider::HasDynamicRigidBody(Geometry geometry, physx::PxTransfor
 		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 		shape->setQueryFilterData(filterData);
 
+		dynamicRB->rigidBody = PxCreateDynamic(*App->physics->mPhysics,transform, *shape,1.0f);
 		dynamicRB->update = true;
 		dynamicRB->UpdateRBValues();
 

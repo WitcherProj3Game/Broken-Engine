@@ -42,7 +42,7 @@ public:
 
 public:
 	bool update_transform = true;
-	bool updateValues = true;
+	bool updateValues = false;
 private:
 	//void UpdateLocalTransform();
 	void UpdateTRS();

@@ -452,7 +452,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 
-		ImGui::DragFloat("##SPositionX", &emitterPosition.x, 0.05f, 0.0f, 100.0f);
+		ImGui::DragFloat("##SPositionX", &emitterPosition.x, 0.05f);
 
 		ImGui::SameLine();
 
@@ -460,7 +460,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 
-		ImGui::DragFloat("##SPositionY", &emitterPosition.y, 0.05f, 0.0f, 100.0f);
+		ImGui::DragFloat("##SPositionY", &emitterPosition.y, 0.05f);
 
 		ImGui::SameLine();
 
@@ -468,7 +468,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 
-		ImGui::DragFloat("##SPositionZ", &emitterPosition.z , 0.05f, 0.0f, 100.0f);
+		ImGui::DragFloat("##SPositionZ", &emitterPosition.z , 0.05f);
 
 		//Emitter rotation
 		ImGui::Text("Rotation");

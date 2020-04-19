@@ -205,28 +205,6 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 		RB->rigidBody->setGlobalPose(transform);
 	}
 
-	std::string name = GO->GetName();
-	transform = RB->rigidBody->getGlobalPose();
-	float x = transform.p.x - offset.x;
-
-	bool isFalling = RB->rigidBody->getLinearVelocity().y != 0.0f;
-
-	if (isFalling)
-	{
-		//cTransform->SetPosition(transform.p.x - offset.x, transform.p.y - offset.y - localMatrix.y, transform.p.z - offset.z);
-
-		physx::PxTransform localTransform;
-
-		localTransform.p.x = transform.p.x - cTransform->GetGlobalPosition().x + cTransform->GetLocalTransform().x;
-		localTransform.p.y = transform.p.y - cTransform->GetGlobalPosition().y + cTransform->GetLocalTransform().y;
-		localTransform.p.z = transform.p.z - cTransform->GetGlobalPosition().z + cTransform->GetLocalTransform().z;
-
-		cTransform->SetPosition(localTransform.p.x, localTransform.p.y, localTransform.p.z);
-	}
-
-	cTransform->SetRotation(Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
-	globalMatrix = cTransform->GetGlobalTransform() * localMatrix;
-
 	if (App->GetAppState() == AppState::PLAY && !toPlay && !App->time->gamePaused)
 	{
 		float3 pos, scale;
@@ -241,7 +219,31 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 
 		toPlay = true;
 	}
-}
+
+	transform = RB->rigidBody->getGlobalPose();
+
+	bool isFalling = RB->rigidBody->getLinearVelocity().y != 0.0f;
+
+	if (isFalling)
+	{
+		//cTransform->SetPosition(transform.p.x - offset.x, transform.p.y - offset.y - localMatrix.y, transform.p.z - offset.z);
+
+		physx::PxTransform localTransform;
+
+		localTransform.p.x = transform.p.x - cTransform->GetGlobalPosition().x + cTransform->GetPosition().x;
+		localTransform.p.y = transform.p.y - cTransform->GetGlobalPosition().y + cTransform->GetPosition().y;
+		localTransform.p.z = transform.p.z - cTransform->GetGlobalPosition().z + cTransform->GetPosition().z;
+
+		float4x4 trans = float4x4::FromTRS(float3(transform.p.x, transform.p.y, transform.p.z), Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), cTransform->GetGlobalTransform().ExtractScale());;
+
+		cTransform->SetGlobalTransform(trans);
+	}
+
+	cTransform->SetPosition(cTransform->GetLocalTransform().x, cTransform->GetLocalTransform().y, cTransform->GetLocalTransform().z);
+	cTransform->SetRotation(Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
+
+	globalMatrix = cTransform->GetGlobalTransform() * localMatrix;
+} 
 
 json ComponentCollider::Save() const
 {

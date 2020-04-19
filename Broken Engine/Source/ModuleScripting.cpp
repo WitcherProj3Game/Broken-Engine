@@ -763,7 +763,8 @@ update_status ModuleScripting::Update(float realDT) {
 	//MYTODO: Didac PLEAse didac look into this why did you do this?
 	/*if (App->scene_intro->selected_go != nullptr && App->input->GetKey(SDL_SCANCODE_I) == KEY_DOWN)
 		GameObject* returned = GOFunctions::InstantiateGameObject(App->scene_intro->selected_go);*/
-	return UPDATE_CONTINUE;
+
+	return scripting_update;
 }
 
 update_status ModuleScripting::GameUpdate(float gameDT)
@@ -831,7 +832,7 @@ update_status ModuleScripting::GameUpdate(float gameDT)
 
 	previous_AppState = (_AppState)App->GetAppState();
 
-	return game_update;
+	return UPDATE_CONTINUE;
 }
 
 void ModuleScripting::CleanUpInstances() {

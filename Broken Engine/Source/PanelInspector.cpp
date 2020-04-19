@@ -408,8 +408,7 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
 	{
 		if (layer != obj->GetLayer())
 		{
-			layer_name = "---";
-			layer = -1;
+			layer_name = "----";
 			break;
 		}
 	}

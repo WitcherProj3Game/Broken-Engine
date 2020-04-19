@@ -129,10 +129,10 @@ bool ModulePhysics::Init(json& config)
 		layer_list.push_back(Layer{ "Enemy", LayerMask::LAYER_2, true });
 		layer_list.push_back(Layer{ "UI", LayerMask::LAYER_3, true });
 		layer_list.push_back(Layer{ "Ignore Raycast", LayerMask::LAYER_4, true });
-
+	
 		int count = layer_list.size();
 		for (int i = 0; i < 10 - count; ++i) {
-			layer_list.push_back(Layer{"", LayerMask::LAYER_NONE, false });
+			layer_list.push_back(Layer{"", (LayerMask)(count + i), false });
 		}
 
 		for (int i = 0; i < layer_list.size(); ++i) {

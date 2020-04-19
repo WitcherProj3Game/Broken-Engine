@@ -103,7 +103,7 @@ void ComponentCharacterController::Update()
 		controller->setFootPosition(physx::PxExtendedVec3(pos.x, pos.y, pos.z));
 	}
 
-	if (gravity) {
+	if (gravity && App->GetAppState() == AppState::PLAY) {
 		vel.y = App->physics->mScene->getGravity().y;
 		Move();//Affect Gravity Always
 	}
@@ -228,7 +228,7 @@ void ComponentCharacterController::SetVelocity(float velX, float velY, float vel
 void ComponentCharacterController::Move(float minDist)
 {
 	physx::PxFilterData filterData;
-	filterData.word0 = App->physics->layer_list.at((int)GO->layer).LayerGroup; // layers that will collide
+	filterData.word0 = App->physics->layer_list.at((int)GO->layer).LayerGroup; //layers that will collide
 
 	physx::PxControllerFilters controllerFilter;
 	controllerFilter.mFilterData = &filterData;

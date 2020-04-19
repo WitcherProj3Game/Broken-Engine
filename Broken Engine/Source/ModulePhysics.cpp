@@ -213,6 +213,7 @@ bool ModulePhysics::Init(json& config)
 	//-------------------------------------
 
 	cache = mScene->createVolumeCache(32, 8);
+	//PlaneCollider(0, 0, 0);
 
 	return true;
 }
@@ -404,12 +405,14 @@ void ModulePhysics::UpdateActorsGroupFilter(LayerMask* updateLayer)
 	}
 }
 
-bool ModulePhysics::DeleteActor(physx::PxRigidActor* actor)
+bool ModulePhysics::DeleteActor(physx::PxRigidActor* actor, bool dynamic)
 {
 	if (actors.size() > 0 && actor)
 	{
 		if(mScene)
 			mScene->removeActor(*actor);
+		if(dynamic)
+			actor->release();
 
 		actors.erase(actor);
 		return true;
@@ -552,7 +555,7 @@ const Broken::json& ModulePhysics::SaveStatus() const {
 	//maybe we should call SaveStatus on every panel
 	static Broken::json config;
 
-	config["gravity"] = gravity;
+	config["gravity"] = -mScene->getGravity().y;
 	config["staticFriction"] = mMaterial->getStaticFriction();
 	config["dynamicFriction"] = mMaterial->getDynamicFriction();
 	config["restitution"] = mMaterial->getRestitution();

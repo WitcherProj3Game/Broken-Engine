@@ -158,7 +158,6 @@ void ComponentCollider::UpdateLocalMatrix() {
 	localMatrix.scaleY = colliderSize.y * originalSize.y;
 	localMatrix.scaleZ = colliderSize.z * originalSize.z;
 
-
 	globalMatrix = gt * localMatrix;
 
 	//PHYSX DEBUG
@@ -185,11 +184,11 @@ void ComponentCollider::UpdateLocalMatrix() {
 		rigidStatic->setGlobalPose(transform); //ON EDITOR
 	else
 	{
-		if ((App->gui->isUsingGuizmo && !App->isGame) || cTransform->updateValues){ //ON EDITOR
+		if ((App->gui->isUsingGuizmo && App->GetAppState() != AppState::PLAY) || cTransform->updateValues){ //ON EDITOR
 
 			dynamicRB->rigidBody->setGlobalPose(transform);
 		}
-		else if (dynamicRB->rigidBody != nullptr) //ON GAME
+		else if (dynamicRB->rigidBody != nullptr && App->GetAppState() == AppState::PLAY) //ON GAME
 		{
 			UpdateTransformByRigidBody(dynamicRB, cTransform);
 		}
@@ -559,6 +558,13 @@ void ComponentCollider::CreateInspectorNode()
 		}
 		case ComponentCollider::COLLIDER_TYPE::MESH:
 		{
+			if (!firstCreation) {
+				if (GO->HasComponent(ComponentType::Mesh))
+					dragged_UID = GO->GetUID();
+				firstCreation = true;
+			}
+
+
 			if (ImGui::Checkbox("Convex", &isConvex)) {
 				editCollider = true;
 				if (dragged_mesh) {

@@ -6,7 +6,7 @@
     "EditorUI": {
         "About": false,
         "Build": false,
-        "Console": true,
+        "Console": false,
         "Hierarchy": true,
         "Inspector": true,
         "Navigation": false,
@@ -192,7 +192,7 @@
         },
         "count": 10,
         "dynamicFriction": 1.0,
-        "gravity": 9.800000190734863,
+        "gravity": 16.0,
         "restitution": 0.0,
         "staticFriction": 1.0
     },

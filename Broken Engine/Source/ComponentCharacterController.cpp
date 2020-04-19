@@ -37,6 +37,7 @@ ComponentCharacterController::ComponentCharacterController(GameObject* Container
 	capsuleDesc.upDirection = physx::PxVec3(0, 1, 0);
 	capsuleDesc.material = App->physics->mMaterial;
 	capsuleDesc.behaviorCallback = this;
+	capsuleDesc.reportCallback = this;
 
 	desc = &capsuleDesc;
 
@@ -51,6 +52,7 @@ ComponentCharacterController::ComponentCharacterController(GameObject* Container
 	shape->setSimulationFilterData(filterData);
 
 	App->physics->addActor(shape->getActor(), GO);
+	//App->physics->addActor(controller->getActor(),GO);
 
 	initialPosition = capsuleDesc.position;
 
@@ -66,7 +68,7 @@ ComponentCharacterController::~ComponentCharacterController()
 void ComponentCharacterController::Update()
 {
 	vel = physx::PxVec3(0);
-	/*
+	
 	if (App->input->GetKey(SDL_SCANCODE_UP))
 		vel.z = -10.0f;
 
@@ -82,7 +84,7 @@ void ComponentCharacterController::Update()
 		vel.x = -10.0f;
 	else
 		vel.x = 0.0f;
-	*/
+
 
 
 	ComponentTransform* cTransform = GO->GetComponent<ComponentTransform>();
@@ -91,10 +93,6 @@ void ComponentCharacterController::Update()
 	p.x = controller->getActor()->getGlobalPose().p.x;
 	p.y = controller->getActor()->getGlobalPose().p.y;
 	p.z = controller->getActor()->getGlobalPose().p.z;
-	if (App->physics->RaycastGO(p, float3(0,-11,0), 5) != nullptr)
-	{
-		int a = 0;
-	}
 
 	//Move(velocity.x, velocity.z);
 
@@ -266,6 +264,7 @@ json ComponentCharacterController::Save() const
 	node["positionX"] = std::to_string(controller->getPosition().x);
 	node["positionY"] = std::to_string(controller->getPosition().y);
 	node["positionZ"] = std::to_string(controller->getPosition().z);
+	node["draw"] = std::to_string(draw);
 
 	if (controller->getNonWalkableMode() == physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING)
 		node["nonWalkableMode"] = std::to_string(0);
@@ -292,6 +291,7 @@ void ComponentCharacterController::Load(json& node)
 	std::string nonWalkableMode = node["nonWalkableMode"].is_null() ? "0" : node["nonWalkableMode"];
 	std::string firstTime_ = node["firstTime"].is_null() ? "0" : node["firstTime"];
 	std::string gravity_ = node["gravity"].is_null() ? "0" : node["gravity"];
+	std::string draw_ = node["draw"].is_null() ? "0" : node["draw"];
 
 	contactOffset = std::stof(contactOffset_);
 	stepOffset = std::stof(stepOffset_);
@@ -302,6 +302,7 @@ void ComponentCharacterController::Load(json& node)
 	position.y = std::stof(positionY);
 	position.z = std::stof(positionZ);
 	gravity = std::stof(gravity_);
+	draw = std::stof(draw_);
 
 	SetContactOffset(contactOffset);
 	SetStepOffset(stepOffset);
@@ -414,7 +415,6 @@ void ComponentCharacterController::SetHeight(float height)
 
 physx::PxControllerBehaviorFlags ComponentCharacterController::getBehaviorFlags(const physx::PxShape& shape, const physx::PxActor& actor)
 {
-
 	if (shape.getFlags() & physx::PxShapeFlag::eTRIGGER_SHAPE)
 	{
 		GameObject* go = App->physics->actors[(physx::PxRigidActor*) & actor];
@@ -514,4 +514,87 @@ physx::PxControllerBehaviorFlags ComponentCharacterController::getBehaviorFlags(
 physx::PxControllerBehaviorFlags ComponentCharacterController::getBehaviorFlags(const physx::PxObstacle& obstacle)
 {
 	return physx::PxControllerBehaviorFlag::eCCT_CAN_RIDE_ON_OBJECT;
+}
+
+void ComponentCharacterController::onShapeHit(const physx::PxControllerShapeHit& hit)
+{
+	defaultCCTInteraction(hit);
+}
+
+void ComponentCharacterController::defaultCCTInteraction(const physx::PxControllerShapeHit& hit)
+{
+	physx::PxRigidDynamic* actor = nullptr;
+	physx::PxActor* act = nullptr;
+	act = hit.shape->getActor();
+	if (act) {
+		if (act->getConcreteType() == physx::PxConcreteType::eRIGID_DYNAMIC)
+			actor = (physx::PxRigidDynamic*)hit.shape->getActor();
+	}
+	if (actor)
+	{
+		if (actor->getRigidBodyFlags() & physx::PxRigidBodyFlag::eKINEMATIC)
+			return;
+
+		if (0)
+		{
+			const physx::PxVec3 p = actor->getGlobalPose().p + hit.dir * 10.0f;
+
+			physx::PxShape* shape;
+			actor->getShapes(&shape, 1);
+			physx::PxRaycastHit newHit;
+			physx::PxU32 n = physx::PxShapeExt::raycast(*shape, *shape->getActor(), p, -hit.dir, 20.0f, physx::PxHitFlag::ePOSITION, 1, &newHit);
+			if (n)
+			{
+				// We only allow horizontal pushes. Vertical pushes when we stand on dynamic objects creates
+				// useless stress on the solver. It would be possible to enable/disable vertical pushes on
+				// particular objects, if the gameplay requires it.
+				const physx::PxVec3 upVector = hit.controller->getUpDirection();
+				const physx::PxF32 dp = hit.dir.dot(upVector);
+				if (fabsf(dp) < 1e-3f)
+				{
+					const physx::PxTransform globalPose = actor->getGlobalPose();
+					const physx::PxVec3 localPos = globalPose.transformInv(newHit.position);
+					addForceAtLocalPos(*actor, hit.dir * hit.length * 1000.0f, localPos, physx::PxForceMode::eACCELERATION);
+				}
+			}
+		}
+
+		// We only allow horizontal pushes. Vertical pushes when we stand on dynamic objects creates
+		// useless stress on the solver. It would be possible to enable/disable vertical pushes on
+		// particular objects, if the gameplay requires it.
+		const physx::PxVec3 upVector = hit.controller->getUpDirection();
+		const physx::PxF32 dp = hit.dir.dot(upVector);
+		if (fabsf(dp) < 1e-3f)
+		{
+			const physx::PxTransform globalPose = actor->getGlobalPose();
+			const physx::PxVec3 localPos = globalPose.transformInv(toVec3(hit.worldPos));
+			physx::PxActor* act1 = nullptr;
+			physx::PxRigidDynamic* actor1 = nullptr;
+			act1 = hit.shape->getActor();
+			if (act1) {
+				if (act1->getConcreteType() == physx::PxConcreteType::eRIGID_DYNAMIC)
+					actor1 = (physx::PxRigidDynamic*)hit.shape->getActor();
+			}
+			addForceAtLocalPos(*actor, hit.dir* hit.length * 1000, localPos, physx::PxForceMode::eACCELERATION);
+
+		}
+	}
+}
+
+void ComponentCharacterController::addForceAtLocalPos(physx::PxRigidBody& body, const physx::PxVec3& force, const physx::PxVec3& pos, physx::PxForceMode::Enum mode, bool wakeup)
+{
+	//transform pos to world space
+	const physx::PxVec3 globalForcePos = body.getGlobalPose().transform(pos);
+
+	addForceAtPosInternal(body, force, globalForcePos, mode, wakeup);
+}
+
+void ComponentCharacterController::addForceAtPosInternal(physx::PxRigidBody& body, const physx::PxVec3& force, const physx::PxVec3& pos, physx::PxForceMode::Enum mode, bool wakeup)
+{
+	const physx::PxTransform globalPose = body.getGlobalPose();
+	const physx::PxVec3 centerOfMass = globalPose.transform(body.getCMassLocalPose().p);
+
+	const physx::PxVec3 torque = (pos - centerOfMass).cross(force);
+	body.addForce(force, mode, wakeup);
+	body.addTorque(torque, mode, wakeup);
 }

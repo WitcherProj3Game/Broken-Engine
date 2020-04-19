@@ -53,7 +53,7 @@ struct Layer {
 	bool active;
 	std::vector<bool> active_layers;
 	physx::PxU32 LayerGroup;
-	
+
 	void UpdateLayerGroup() {
 		physx::PxU32 ID = 0;
 
@@ -81,7 +81,7 @@ struct BROKEN_API UserIterator : physx::PxVolumeCache::Iterator
 {
 	virtual void processShapes(physx::PxU32 count, const physx::PxActorShape* actorShapePairs);
 
-	LayerMask layer; 
+	LayerMask layer;
 };
 
 struct BROKEN_API FilterCallback : physx::PxQueryFilterCallback {
@@ -128,7 +128,7 @@ public:
 
 	void UpdateActorsGroupFilter(LayerMask* updateLayer);
 
-	bool DeleteActor(physx::PxRigidActor* actor);
+	bool DeleteActor(physx::PxRigidActor* actor, bool dynamic = false); 	
 	bool DeleteActor(physx::PxActor* actor);
 
 	void DeleteActors(GameObject* go = nullptr);

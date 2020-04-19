@@ -13,9 +13,6 @@
 #include "ScriptData.h"
 #include "ResourceScene.h"
 
-// -- Utilities --
-#include "TranslatorUtilities.h"
-
 using namespace Broken;
 ScriptingTransform::ScriptingTransform() {}
 
@@ -43,15 +40,6 @@ luabridge::LuaRef ScriptingTransform::GetPosition(uint gameobject_UUID, lua_Stat
 	table.append(pos.x);
 	table.append(pos.y);
 	table.append(pos.z);
-
-	//This is an example on how to use the new lua customizable tables
-	/*luabridge::LuaRef ScriptGetTable = luabridge::getGlobal(L, "NewVector3");
-	luabridge::LuaRef table(ScriptGetTable());
-
-	CppLuaTranslatorUtilities translator;
-	CppTable vec = translator.GetCppTableFromVec3(pos);
-
-	translator.PassCppTableValuesToLuaTable(vec, table);*/
 
 	return table;
 }

@@ -388,9 +388,9 @@ void ComponentCollider::Load(json& node)
 	std::string draw_ = node["draw"].is_null() ? "0" : node["draw"];
 
 
-	centerPosition = float3(std::stof(localPositionx), std::stof(localPositiony), std::stof(localPositionz));
+	//centerPosition = float3(std::stof(localPositionx), std::stof(localPositiony), std::stof(localPositionz));
 	originalSize = float3(std::stof(originalScalex), std::stof(originalScaley), std::stof(originalScalez));
-	offset = float3(std::stof(offsetx), std::stof(offsety), std::stof(offsetz));
+	//offset = float3(std::stof(offsetx), std::stof(offsety), std::stof(offsetz));
 
 	localMatrix.x = std::stof(localMatrixx);
 	localMatrix.y = std::stof(localMatrixy);
@@ -402,7 +402,7 @@ void ComponentCollider::Load(json& node)
 	globalMatrix.z = std::stof(globalMatrixz);
 	globalMatrix.w = std::stof(globalMatrixw);
 
-	colliderSize = float3(std::stof(scalex), std::stof(scaley), std::stof(scalez));
+	//colliderSize = float3(std::stof(scalex), std::stof(scaley), std::stof(scalez));
 
 	radius = std::stof(radius_);
 	height = std::stof(height_);
@@ -413,7 +413,7 @@ void ComponentCollider::Load(json& node)
 
 	tmpScale = float3(std::stof(tmpScalex), std::stof(tmpScaley), std::stof(tmpScalez));
 
-	firstCreation = true;
+	firstCreation = false;
 
 	draw = std::stof(draw_);
 
@@ -662,7 +662,7 @@ void ComponentCollider::GetMesh() {
 		if (go) {
 			if (go->HasComponent(ComponentType::Mesh)) {
 				dragged_mesh = go->GetComponent<ComponentMesh>()->resource_mesh;
-				dragged_scale = go->GetComponent<ComponentTransform>()->GetScale();
+				dragged_scale = GO->GetComponent<ComponentTransform>()->GetGlobalTransform().GetScale();
 				if (go != GO) {
 					centerPosition = go->GetComponent<ComponentTransform>()->GetPosition();
 					dragged_rot = go->GetComponent<ComponentTransform>()->GetQuaternionRotation();
@@ -791,6 +791,12 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 			break;
 		}
 		case ComponentCollider::COLLIDER_TYPE::MESH: {
+			if (!firstCreation) {
+				if (GO->HasComponent(ComponentType::Mesh)) {
+					dragged_UID = GO->GetUID();
+				}
+				firstCreation = true;
+			}
 			GetMesh();
 			if (dragged_mesh) {
 				physx::PxTransform position(GO->GetAABB().CenterPoint().x, GO->GetAABB().CenterPoint().y, GO->GetAABB().CenterPoint().z);

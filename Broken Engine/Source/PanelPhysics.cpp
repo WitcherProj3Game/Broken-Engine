@@ -209,7 +209,8 @@ void PanelPhysics::CreateLayerList() {
 					for (int j = 0; j < root->childs.size(); ++j) {
 						root->childs.at(j)->UpdateLayer(0,i);
 					}
-					EngineApp->physics->UpdateActorsGroupFilter((LayerMask*)0);
+					LayerMask m = LayerMask::LAYER_0;
+					EngineApp->physics->UpdateActorsGroupFilter(&m);
 				}
 			}
 		}

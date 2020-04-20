@@ -25,14 +25,14 @@ void main()
 		in vec2 v_TexCoords;
 
 		uniform sampler2D text;
-		uniform vec3 textColor;
+		uniform vec4 textColor;
 
 		out vec4 color;
 
 		void main()
 		{
 			vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, v_TexCoords).r);
-			color = vec4(textColor, 1.0) * sampled;
+			color = textColor * sampled;
 		}
 
 		#endif //FRAGMENT_SHADER

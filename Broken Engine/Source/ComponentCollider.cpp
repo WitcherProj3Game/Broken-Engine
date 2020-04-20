@@ -383,9 +383,9 @@ void ComponentCollider::Load(json& node)
 	std::string draw_ = node["draw"].is_null() ? "0" : node["draw"];
 
 
-	//centerPosition = float3(std::stof(localPositionx), std::stof(localPositiony), std::stof(localPositionz));
+	centerPosition = float3(std::stof(localPositionx), std::stof(localPositiony), std::stof(localPositionz));
 	originalSize = float3(std::stof(originalScalex), std::stof(originalScaley), std::stof(originalScalez));
-	//offset = float3(std::stof(offsetx), std::stof(offsety), std::stof(offsetz));
+	offset = float3(std::stof(offsetx), std::stof(offsety), std::stof(offsetz));
 
 	localMatrix.x = std::stof(localMatrixx);
 	localMatrix.y = std::stof(localMatrixy);
@@ -397,7 +397,7 @@ void ComponentCollider::Load(json& node)
 	globalMatrix.z = std::stof(globalMatrixz);
 	globalMatrix.w = std::stof(globalMatrixw);
 
-	//colliderSize = float3(std::stof(scalex), std::stof(scaley), std::stof(scalez));
+	colliderSize = float3(std::stof(scalex), std::stof(scaley), std::stof(scalez));
 
 	radius = std::stof(radius_);
 	height = std::stof(height_);

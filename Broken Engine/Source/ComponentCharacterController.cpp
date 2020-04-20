@@ -260,9 +260,9 @@ json ComponentCharacterController::Save() const
 	node["slopeLimit"] = std::to_string(slopeLimit);
 	node["radius"] = std::to_string(radius);
 	node["height"] = std::to_string(height);
-	node["positionX"] = std::to_string(controller->getPosition().x);
-	node["positionY"] = std::to_string(controller->getPosition().y);
-	node["positionZ"] = std::to_string(controller->getPosition().z);
+	node["positionX"] = std::to_string(controller->getFootPosition().x);
+	node["positionY"] = std::to_string(controller->getFootPosition().y);
+	node["positionZ"] = std::to_string(controller->getFootPosition().z);
 	node["draw"] = std::to_string(draw);
 
 	if (controller->getNonWalkableMode() == physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING)
@@ -321,9 +321,8 @@ void ComponentCharacterController::Load(json& node)
 	}
 
 	physx::PxExtendedVec3 pos = physx::PxExtendedVec3(position.x, position.y, position.z);
-	float offset = radius + height * 0.5f + contactOffset;
-	pos.y -= offset;
-	controller->setPosition(pos);
+	creation = true;
+	controller->setFootPosition(physx::PxExtendedVec3(pos.x, pos.y, pos.z));
 }
 
 void ComponentCharacterController::CreateInspectorNode()

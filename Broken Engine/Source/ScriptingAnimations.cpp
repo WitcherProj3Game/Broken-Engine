@@ -23,18 +23,17 @@ void ScriptingAnimations::StartAnimation(const char* name, float speed, uint gam
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 	ComponentAnimation* anim = nullptr;
 
-	if(go)
-		anim = go->GetComponent<ComponentAnimation>();
-	else
+	if (go) 
 	{
-		ENGINE_CONSOLE_LOG("[Script]: Game Object passed is NULL");
-		return;
-	}
+		anim = go->GetComponent<ComponentAnimation>();
 
-	if (anim)
-		anim->PlayAnimation(name, speed);
+		if (anim)
+			anim->PlayAnimation(name, speed);
+		else
+			ENGINE_CONSOLE_LOG("[Script]: Animation component is NULL");
+	}
 	else
-		ENGINE_CONSOLE_LOG("[Script]: Animation component is NULL");
+		ENGINE_CONSOLE_LOG("[Script]: Game Object passed is NULL");
 }
 
 void ScriptingAnimations::SetCurrentAnimSpeed(float speed, uint gameobject_UUID)

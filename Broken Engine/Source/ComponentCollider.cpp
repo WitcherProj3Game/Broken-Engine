@@ -453,6 +453,7 @@ void ComponentCollider::CreateInspectorNode()
 		dragged_scale = float3::one;
 		dragged_mesh = nullptr;
 		editCollider = true;
+		firstCreation = false;
 		dragged_UID = 0;
 	}
 
@@ -880,7 +881,6 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 					if (!App->physics->mCooking->cookTriangleMesh(meshDesc, writeBuffer)) {
 						return ENGINE_AND_SYSTEM_CONSOLE_LOG("| Could not create Mesh Collider");
 					}
-
 					physx::PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
 					triangle_mesh = App->physics->mPhysics->createTriangleMesh(readBuffer);*/
 					///--------------------------------RUNTIME--------------------------------------------

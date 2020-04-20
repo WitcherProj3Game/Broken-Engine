@@ -18,6 +18,9 @@ public:
 	void SetEmissionRateFromScript(float ms, uint gameobject_UUID);
 	void SetParticlesPerCreationFromScript(int particlesAmount, uint gameobject_UUID);
 
+	void SetOffsetPosition(float x, float y, float z, uint gameobject_UUID);
+	void SetOffsetRotation(float x, float y, float z, uint gameobject_UUID);
+
 	void SetParticleAcceleration(float x, float y, float z, uint gameobject_UUID);
 	void SetParticleVelocityFromScript(float x, float y, float z, uint gameobject_UUID);
 	void SetRandomParticleVelocity(float x, float y, float z, uint gameobject_UUID);

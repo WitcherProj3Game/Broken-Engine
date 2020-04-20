@@ -224,20 +224,16 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 
 	bool isFalling = RB->rigidBody->getLinearVelocity().y != 0.0f;
 
-	if (isFalling)
-	{
-		//cTransform->SetPosition(transform.p.x - offset.x, transform.p.y - offset.y - localMatrix.y, transform.p.z - offset.z);
+	physx::PxTransform localTransform;
 
-		physx::PxTransform localTransform;
+	localTransform.p.x = transform.p.x - cTransform->GetGlobalPosition().x + cTransform->GetPosition().x;
+	localTransform.p.y = transform.p.y - cTransform->GetGlobalPosition().y + cTransform->GetPosition().y;
+	localTransform.p.z = transform.p.z - cTransform->GetGlobalPosition().z + cTransform->GetPosition().z;
 
-		localTransform.p.x = transform.p.x - cTransform->GetGlobalPosition().x + cTransform->GetPosition().x;
-		localTransform.p.y = transform.p.y - cTransform->GetGlobalPosition().y + cTransform->GetPosition().y;
-		localTransform.p.z = transform.p.z - cTransform->GetGlobalPosition().z + cTransform->GetPosition().z;
+	float4x4 trans = float4x4::FromTRS(float3(transform.p.x, transform.p.y, transform.p.z), Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), cTransform->GetGlobalTransform().ExtractScale());;
 
-		float4x4 trans = float4x4::FromTRS(float3(transform.p.x, transform.p.y, transform.p.z), Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), cTransform->GetGlobalTransform().ExtractScale());;
-
-		cTransform->SetGlobalTransform(trans);
-	}
+	cTransform->SetGlobalTransform(trans);
+	
 
 	cTransform->SetPosition(cTransform->GetLocalTransform().x, cTransform->GetLocalTransform().y, cTransform->GetLocalTransform().z);
 	cTransform->SetRotation(Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w));

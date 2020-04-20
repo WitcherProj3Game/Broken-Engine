@@ -21,11 +21,10 @@ ScriptingAnimations::~ScriptingAnimations() {}
 void ScriptingAnimations::StartAnimation(const char* name, float speed, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-	ComponentAnimation* anim = nullptr;
 
 	if (go) 
 	{
-		anim = go->GetComponent<ComponentAnimation>();
+		ComponentAnimation* anim = go->GetComponent<ComponentAnimation>();
 
 		if (anim)
 			anim->PlayAnimation(name, speed);
@@ -39,58 +38,56 @@ void ScriptingAnimations::StartAnimation(const char* name, float speed, uint gam
 void ScriptingAnimations::SetCurrentAnimSpeed(float speed, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-	ComponentAnimation* anim = nullptr;
 
-	if (go)
-		anim = go->GetComponent<ComponentAnimation>();
-	else
+	if (go) 
 	{
-		ENGINE_CONSOLE_LOG("[Script]: Game Object passed is NULL");
-		return;
-	}
+		ComponentAnimation* anim = go->GetComponent<ComponentAnimation>();
 
-	if (anim)
-		anim->SetCurrentAnimationSpeed(speed);
+		if (anim)
+			anim->SetCurrentAnimationSpeed(speed);
+		else
+			ENGINE_CONSOLE_LOG("[Script]: Animation component is NULL");
+	}
 	else
-		ENGINE_CONSOLE_LOG("[Script]: Animation component is NULL");
+		ENGINE_CONSOLE_LOG("[Script]: Game Object passed is NULL");
+
 }
 
 void ScriptingAnimations::SetAnimSpeed(const char* name, float speed, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-	ComponentAnimation* anim = nullptr;
 
-	if (go)
-		anim = go->GetComponent<ComponentAnimation>();
-	else
+	if (go) 
 	{
-		ENGINE_CONSOLE_LOG("[Script]: Game Object passed is NULL");
-		return;
+		ComponentAnimation* anim = go->GetComponent<ComponentAnimation>();
+
+		if (anim)
+			anim->SetAnimationSpeed(name, speed);
+		else
+			ENGINE_CONSOLE_LOG("[Script]: Animation component is NULL");
 	}
-	
-	if (anim)
-		anim->SetAnimationSpeed(name, speed);
 	else
-		ENGINE_CONSOLE_LOG("[Script]: Animation component is NULL");
+		ENGINE_CONSOLE_LOG("[Script]: Game Object passed is NULL");
+	
+
 }
 
 void ScriptingAnimations::SetBlendTime(float value, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-	ComponentAnimation* anim = nullptr;
 
-	if (go)
-		anim = go->GetComponent<ComponentAnimation>();
-	else
-	{
-		ENGINE_CONSOLE_LOG("[Script]: Game Object passed is NULL");
-		return;
+	if (go) {
+		ComponentAnimation* anim = go->GetComponent<ComponentAnimation>();
+
+		if (anim)
+			anim->ChangeBlendTime(value);
+		else
+			ENGINE_CONSOLE_LOG("[Script]: Animation component is NULL");
 	}
-	
-	if (anim)
-		anim->ChangeBlendTime(value);
 	else
-		ENGINE_CONSOLE_LOG("[Script]: Animation component is NULL");
+		ENGINE_CONSOLE_LOG("[Script]: Game Object passed is NULL");
+	
+	
 }
 
 int ScriptingAnimations::CurrentAnimEnded(uint gameobject_UUID)

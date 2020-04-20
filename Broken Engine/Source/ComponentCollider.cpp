@@ -222,10 +222,7 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 
 	transform = RB->rigidBody->getGlobalPose();
 
-	bool isFalling = RB->rigidBody->getLinearVelocity().y != 0.0f;
-
 	physx::PxTransform localTransform;
-
 	localTransform.p.x = transform.p.x - cTransform->GetGlobalPosition().x + cTransform->GetPosition().x;
 	localTransform.p.y = transform.p.y - cTransform->GetGlobalPosition().y + cTransform->GetPosition().y;
 	localTransform.p.z = transform.p.z - cTransform->GetGlobalPosition().z + cTransform->GetPosition().z;

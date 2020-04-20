@@ -139,11 +139,11 @@ void PanelPhysics::CreateLayerFilterGrid() {
 
 			std::string st("##" + layer->name + aux_layer->name);
 
-			if(j == last)
+			if (j == last)
 				ImGui::SameLine(-ImGui::GetCursorPosX() + padding.x + 22.f);
 			else
 				ImGui::SameLine();
-			
+
 			bool b = layer->active_layers[j];
 
 			if (ImGui::Checkbox(st.c_str(), &b)) {
@@ -161,7 +161,7 @@ void PanelPhysics::CreateLayerFilterGrid() {
 	uint count = EngineApp->physics->layer_list.size() - 1;
 	uint c2 = actives - 1;
 	for (int i = count; i >= 0; --i) { //VERTICAL
-		Layer layer = EngineApp->physics->layer_list.at(i); 
+		Layer layer = EngineApp->physics->layer_list.at(i);
 		if (!layer.active)
 			continue;
 

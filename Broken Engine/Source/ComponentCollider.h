@@ -11,7 +11,7 @@ namespace physx
 	class PxTransform;
 	class PxShape;
 	class PxConvexMesh;
-	class PxTriangleMesh; 
+	class PxTriangleMesh;
 	class PxVec3;
 	typedef uint16_t PxU16;
 }
@@ -72,7 +72,7 @@ public:
 
 	float4x4 GetGlobalMatrix() { return globalMatrix; }
 
-	physx::PxRigidActor*					GetActor();
+	physx::PxRigidActor* GetActor();
 	void									UpdateActorLayer(const int* layerMask);
 	void									Delete();
 

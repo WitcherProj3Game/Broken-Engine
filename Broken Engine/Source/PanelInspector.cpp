@@ -29,10 +29,12 @@ using namespace Broken;
 //#include "ResourceTexture.h"
 //#include "ResourceShader.h"
 #include "ComponentScript.h"
+#include "ComponentCollider.h"
+#include "ComponentParticleEmitter.h"
 
 //#include "mmgr/mmgr.h"
 
-PanelInspector::PanelInspector(char * name) : Panel(name)
+PanelInspector::PanelInspector(char* name) : Panel(name)
 {
 }
 
@@ -63,11 +65,11 @@ bool PanelInspector::Draw()
 			CreateGameObjectNode(*Selected);
 
 			// --- Components ---
-			
+
 			std::vector<Broken::Component*>* components = &Selected->GetComponents();
 
 			for (std::vector<Broken::Component*>::const_iterator it = components->begin(); it != components->end(); ++it)
-			{	
+			{
 				if ((*it) == nullptr)
 					continue;
 
@@ -279,7 +281,7 @@ bool PanelInspector::Draw()
 
 // SELECTED TODO: test editing for multiselection
 // OPTIMIZE DEFAULT SHOWN PROPERTIES -> LESS SELECTION ITERATIONS
-void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
+void PanelInspector::CreateGameObjectNode(Broken::GameObject& Selected) const
 {
 	ImGui::BeginChild("child", ImVec2(0, 70), true);
 
@@ -333,9 +335,9 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
 	//[STATIC] Knowing what to display, if all the selected are at the same state, it will display the state, otherwise it will display false
 	// Knowing if inside selection there's a parent with childs
 	// Once both variables are solved it can break the loop search
-	for (int i=0; i < App->selection->GetSelected()->size() && (checkbox_static || !exists_childs);i++)
+	for (int i = 0; i < App->selection->GetSelected()->size() && (checkbox_static || !exists_childs); i++)
 	{
-		if (App->selection->GetSelected()->at(i)->Static == false) 
+		if (App->selection->GetSelected()->at(i)->Static == false)
 			checkbox_static = false;
 
 		if (App->selection->GetSelected()->at(i)->childs.empty() == false)
@@ -346,18 +348,18 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
 
 	if (ImGui::Checkbox("Static", &checkbox_static)) {
 		objectStatic = checkbox_static;
-		
+
 		if (exists_childs)
 			ImGui::OpenPopup("Static gameObject");
 		else
 			for (GameObject* obj : *App->selection->GetSelected())
-				EngineApp->scene_manager->SetStatic(obj, objectStatic,  false);
+				EngineApp->scene_manager->SetStatic(obj, objectStatic, false);
 	}
 
-	ImGui::SetNextWindowSize(ImVec2(400,75));
+	ImGui::SetNextWindowSize(ImVec2(400, 75));
 	if (ImGui::BeginPopup("Static gameObject", ImGuiWindowFlags_NoScrollbar))
 	{
-		
+
 		/* Gets a little bug so I am deleting the first part where displays the action to be done (always showing non-static)
 
 		static std::string text = (objectStatic) ? "You are about to make objects non-static.\nDo you want to edit the children aswell?" :
@@ -406,8 +408,7 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
 	{
 		if (layer != obj->GetLayer())
 		{
-			layer_name = "---";
-			layer = -1;
+			layer_name = "----";
 			break;
 		}
 	}
@@ -431,10 +432,14 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
 					layer_name = layers->at(n).name.c_str();
 					obj->layer = layers->at(n).layer;
 
-					ComponentCollider* col = obj->GetComponent<ComponentCollider>();
+					Broken::ComponentCollider* col = obj->GetComponent<Broken::ComponentCollider>();
+					Broken::ComponentParticleEmitter* particle = obj->GetComponent<Broken::ComponentParticleEmitter>();
 
-					if(col)
+					if (col)
 						col->UpdateActorLayer((int*)&layers->at(n).layer);
+
+					if (particle)
+						particle->UpdateActorLayer((int*)&layers->at(n).layer);
 				}
 			}
 			if (is_selected) {

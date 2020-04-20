@@ -96,21 +96,27 @@ void ScriptingAnimations::SetBlendTime(float value, uint gameobject_UUID)
 
 int ScriptingAnimations::CurrentAnimEnded(uint gameobject_UUID)
 {
+	int ret = 0;
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 	ComponentAnimation* anim = nullptr;
 
-	if (go)
+	if (go) 
+	{
 		anim = go->GetComponent<ComponentAnimation>();
+
+		if (anim)
+			ret = (int)anim->CurrentAnimationEnded();
+		else 
+		{
+			ENGINE_CONSOLE_LOG("[Script]: Animation component is NULL");
+			ret = -1;
+		}
+	}
 	else
 	{
 		ENGINE_CONSOLE_LOG("[Script]: Game Object passed is NULL");
-		return 0;
+		ret = -1;
 	}
 
-	if (anim)
-		return (int)anim->CurrentAnimationEnded();
-	else
-		ENGINE_CONSOLE_LOG("[Script]: Animation component is NULL");
-
-	return 0;
+	return ret;
 }

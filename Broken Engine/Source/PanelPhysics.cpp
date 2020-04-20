@@ -5,11 +5,14 @@
 #include "EngineApplication.h"
 #include "ModuleGui.h"
 #include "ModulePhysics.h"
+#include "ModuleSceneManager.h"
+#include "GameObject.h"
 
 
 #include "PhysX_3.4/Include/PxPhysicsAPI.h"
 
 #include "mmgr/mmgr.h"
+#include "ImporterModel.h"
 
 PanelPhysics::PanelPhysics(char* name) : Panel(name)
 {
@@ -202,6 +205,11 @@ void PanelPhysics::CreateLayerList() {
 				}
 				else {
 					EngineApp->physics->layer_list.at(i).active = false;
+					Broken::GameObject* root = EngineApp->scene_manager->GetRootGO();
+					for (int j = 0; j < root->childs.size(); ++j) {
+						root->childs.at(j)->UpdateLayer(0,i);
+					}
+					EngineApp->physics->UpdateActorsGroupFilter((LayerMask*)0);
 				}
 			}
 		}

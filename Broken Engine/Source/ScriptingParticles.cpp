@@ -125,6 +125,36 @@ void ScriptingParticles::SetParticlesPerCreationFromScript(int particlesAmount, 
 		ENGINE_CONSOLE_LOG("[Script]: GameObject with UUID %d could not be found!", gameobject_UUID);
 }
 
+void ScriptingParticles::SetOffsetPosition(float x, float y, float z, uint gameobject_UUID) 
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
+		if (emitter)
+			emitter->SetOffsetPosition(x,y,z);
+		else
+			ENGINE_CONSOLE_LOG("[Script]: Particle Emmiter component is NULL");
+	}
+	else
+		ENGINE_CONSOLE_LOG("[Script]: GameObject with UUID %d could not be found!", gameobject_UUID);
+}
+
+void ScriptingParticles::SetOffsetRotation(float x, float y, float z, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
+		if (emitter)
+			emitter->SetOffsetRotation(x,y,z);
+		else
+			ENGINE_CONSOLE_LOG("[Script]: Particle Emmiter component is NULL");
+	}
+	else
+		ENGINE_CONSOLE_LOG("[Script]: GameObject with UUID %d could not be found!", gameobject_UUID);
+}
+
 void ScriptingParticles::SetParticleAcceleration(float x, float y, float z, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);

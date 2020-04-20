@@ -486,7 +486,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 
-	if (ImGui::DragFloat("##SRotationX", &rotation.x, 0.05f, 0.0f, 10000.0f))
+	if (ImGui::DragFloat("##SRotationX", &rotation.x, 0.15f, -10000.0f, 10000.0f))
 		rotationUpdated = true;
 
 	ImGui::SameLine();
@@ -495,7 +495,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 
-	if (ImGui::DragFloat("##SRotationY", &rotation.y, 0.05f, 0.0f, 10000.0f))
+	if (ImGui::DragFloat("##SRotationY", &rotation.y, 0.15f, -10000.0f, 10000.0f))
 		rotationUpdated = true;
 
 	ImGui::SameLine();
@@ -504,7 +504,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 
-	if (ImGui::DragFloat("##SRotationZ", &rotation.z, 0.05f, 0.0f, 10000.0f))
+	if (ImGui::DragFloat("##SRotationZ", &rotation.z, 0.15f, -10000.0f, 10000.0f))
 		rotationUpdated = true;
 
 	if (rotationUpdated) {
@@ -870,4 +870,21 @@ void ComponentParticleEmitter::SetParticlesScaleRF(float randomFactor)
 void ComponentParticleEmitter::UpdateActorLayer(const int* layerMask)
 {
 	App->physics->UpdateParticleActorLayer(particleSystem, (LayerMask*)layerMask);
+}
+
+void ComponentParticleEmitter::SetOffsetPosition(float x, float y, float z)
+{
+	emitterPosition = float3(x, y, z);
+}
+
+void ComponentParticleEmitter::SetOffsetRotation(float x, float y, float z)
+{
+	float3 rotation(x, y, z);
+	float3 difference = (rotation- eulerRotation) * DEGTORAD;
+	Quat quatrot = Quat::FromEulerXYZ(difference.x, difference.y, difference.z);
+
+
+	//emitterRotation = emitterRotation * quatrot;
+	emitterRotation = Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD);
+	eulerRotation = rotation;
 }

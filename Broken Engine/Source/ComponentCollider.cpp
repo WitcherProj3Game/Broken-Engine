@@ -158,7 +158,6 @@ void ComponentCollider::UpdateLocalMatrix() {
 	localMatrix.scaleY = colliderSize.y * originalSize.y;
 	localMatrix.scaleZ = colliderSize.z * originalSize.z;
 
-
 	globalMatrix = gt * localMatrix;
 
 	//PHYSX DEBUG
@@ -185,11 +184,11 @@ void ComponentCollider::UpdateLocalMatrix() {
 		rigidStatic->setGlobalPose(transform); //ON EDITOR
 	else
 	{
-		if ((App->gui->isUsingGuizmo && !App->isGame) || cTransform->updateValues) { //ON EDITOR
+		if ((App->gui->isUsingGuizmo && App->GetAppState() != AppState::PLAY) || cTransform->updateValues) { //ON EDITOR
 
 			dynamicRB->rigidBody->setGlobalPose(transform);
 		}
-		else if (dynamicRB->rigidBody != nullptr) //ON GAME
+		else if (dynamicRB->rigidBody != nullptr && App->GetAppState() == AppState::PLAY) //ON GAME
 		{
 			UpdateTransformByRigidBody(dynamicRB, cTransform);
 		}
@@ -206,18 +205,6 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 		RB->rigidBody->setGlobalPose(transform);
 	}
 
-	std::string name = GO->GetName();
-	transform = RB->rigidBody->getGlobalPose();
-	float x = transform.p.x - offset.x;
-
-	bool isFalling = RB->rigidBody->getLinearVelocity().y != 0.0f;
-
-	if (isFalling)
-		cTransform->SetPosition(transform.p.x - offset.x, transform.p.y - offset.y - localMatrix.y, transform.p.z - offset.z);
-
-	cTransform->SetRotation(Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
-	globalMatrix = cTransform->GetGlobalTransform() * localMatrix;
-
 	if (App->GetAppState() == AppState::PLAY && !toPlay && !App->time->gamePaused)
 	{
 		float3 pos, scale;
@@ -232,6 +219,30 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 
 		toPlay = true;
 	}
+
+	transform = RB->rigidBody->getGlobalPose();
+
+	bool isFalling = RB->rigidBody->getLinearVelocity().y != 0.0f;
+
+	if (isFalling)
+	{
+		//cTransform->SetPosition(transform.p.x - offset.x, transform.p.y - offset.y - localMatrix.y, transform.p.z - offset.z);
+
+		physx::PxTransform localTransform;
+
+		localTransform.p.x = transform.p.x - cTransform->GetGlobalPosition().x + cTransform->GetPosition().x;
+		localTransform.p.y = transform.p.y - cTransform->GetGlobalPosition().y + cTransform->GetPosition().y;
+		localTransform.p.z = transform.p.z - cTransform->GetGlobalPosition().z + cTransform->GetPosition().z;
+
+		float4x4 trans = float4x4::FromTRS(float3(transform.p.x, transform.p.y, transform.p.z), Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), cTransform->GetGlobalTransform().ExtractScale());;
+
+		cTransform->SetGlobalTransform(trans);
+	}
+
+	cTransform->SetPosition(cTransform->GetLocalTransform().x, cTransform->GetLocalTransform().y, cTransform->GetLocalTransform().z);
+	cTransform->SetRotation(Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
+
+	globalMatrix = cTransform->GetGlobalTransform() * localMatrix;
 }
 
 json ComponentCollider::Save() const
@@ -379,10 +390,9 @@ void ComponentCollider::Load(json& node)
 	std::string draw_ = node["draw"].is_null() ? "0" : node["draw"];
 
 
-	centerPosition = float3(std::stof(localPositionx), std::stof(localPositiony), std::stof(localPositionz));
-	colliderSize = float3(std::stof(scalex), std::stof(scaley), std::stof(scalez));
-	offset = float3(std::stof(offsetx), std::stof(offsety), std::stof(offsetz));
+	//centerPosition = float3(std::stof(localPositionx), std::stof(localPositiony), std::stof(localPositionz));
 	originalSize = float3(std::stof(originalScalex), std::stof(originalScaley), std::stof(originalScalez));
+	//offset = float3(std::stof(offsetx), std::stof(offsety), std::stof(offsetz));
 
 	localMatrix.x = std::stof(localMatrixx);
 	localMatrix.y = std::stof(localMatrixy);
@@ -394,6 +404,7 @@ void ComponentCollider::Load(json& node)
 	globalMatrix.z = std::stof(globalMatrixz);
 	globalMatrix.w = std::stof(globalMatrixw);
 
+	//colliderSize = float3(std::stof(scalex), std::stof(scaley), std::stof(scalez));
 
 	radius = std::stof(radius_);
 	height = std::stof(height_);
@@ -404,7 +415,7 @@ void ComponentCollider::Load(json& node)
 
 	tmpScale = float3(std::stof(tmpScalex), std::stof(tmpScaley), std::stof(tmpScalez));
 
-	firstCreation = true;
+	firstCreation = false;
 
 	draw = std::stof(draw_);
 
@@ -559,6 +570,13 @@ void ComponentCollider::CreateInspectorNode()
 	}
 	case ComponentCollider::COLLIDER_TYPE::MESH:
 	{
+		if (!firstCreation) {
+			if (GO->HasComponent(ComponentType::Mesh))
+				dragged_UID = GO->GetUID();
+			firstCreation = true;
+		}
+
+
 		if (ImGui::Checkbox("Convex", &isConvex)) {
 			editCollider = true;
 			if (dragged_mesh) {
@@ -646,17 +664,12 @@ void ComponentCollider::GetMesh() {
 		if (go) {
 			if (go->HasComponent(ComponentType::Mesh)) {
 				dragged_mesh = go->GetComponent<ComponentMesh>()->resource_mesh;
-				dragged_scale = go->GetComponent<ComponentTransform>()->GetScale();
+				dragged_scale = GO->GetComponent<ComponentTransform>()->GetGlobalTransform().GetScale();
 				if (go != GO) {
 					centerPosition = go->GetComponent<ComponentTransform>()->GetPosition();
 					dragged_rot = go->GetComponent<ComponentTransform>()->GetQuaternionRotation();
 					colliderSize = dragged_scale;
 					localMesh = true;
-				}
-				else {
-					centerPosition = float3::zero;
-					colliderSize = float3::one;
-					offset = float3::zero;
 				}
 			}
 		}
@@ -780,6 +793,12 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 		break;
 	}
 	case ComponentCollider::COLLIDER_TYPE::MESH: {
+		if (!firstCreation) {
+			if (GO->HasComponent(ComponentType::Mesh)) {
+				dragged_UID = GO->GetUID();
+			}
+			firstCreation = true;
+		}
 		GetMesh();
 		if (dragged_mesh) {
 			physx::PxTransform position(GO->GetAABB().CenterPoint().x, GO->GetAABB().CenterPoint().y, GO->GetAABB().CenterPoint().z);
@@ -861,6 +880,7 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 					if (!App->physics->mCooking->cookTriangleMesh(meshDesc, writeBuffer)) {
 						return ENGINE_AND_SYSTEM_CONSOLE_LOG("| Could not create Mesh Collider");
 					}
+
 					physx::PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
 					triangle_mesh = App->physics->mPhysics->createTriangleMesh(readBuffer);*/
 					///--------------------------------RUNTIME--------------------------------------------

@@ -673,6 +673,9 @@ GameObject* ImporterModel::InstanceOnCurrentScene(const char* model_path, Resour
 				}
 			}
 
+			if (parent)
+				parent->Update(0.0f);
+
 			// --- Now give unique uids to all gos so they are brand new ---
 			for (uint i = 0; i < objects.size(); ++i)
 			{

@@ -305,6 +305,9 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetEmissionRate", &ScriptingParticles::SetEmissionRateFromScript)
 		.addFunction("SetParticlesPerCreation", &ScriptingParticles::SetParticlesPerCreationFromScript)
 
+		.addFunction("SetOffsetPosition", &ScriptingParticles::SetOffsetPosition)
+		.addFunction("SetOffsetRotation", &ScriptingParticles::SetOffsetRotation)
+
 		.addFunction("SetExternalAcceleration", &ScriptingParticles::SetParticleAcceleration)
 		.addFunction("SetParticlesVelocity", &ScriptingParticles::SetParticleVelocityFromScript)
 		.addFunction("SetRandomParticlesVelocity", &ScriptingParticles::SetRandomParticleVelocity)

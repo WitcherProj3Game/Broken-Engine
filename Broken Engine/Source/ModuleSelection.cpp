@@ -59,7 +59,7 @@ bool ModuleSelection::CleanUp()
 }
 update_status ModuleSelection::PreUpdate(float dt)
 {
-	if (App->GetAppState() != AppState::EDITOR) return UPDATE_CONTINUE;
+	//if (App->GetAppState() != AppState::EDITOR) return UPDATE_CONTINUE;
 
 	UpdateRoot();
 

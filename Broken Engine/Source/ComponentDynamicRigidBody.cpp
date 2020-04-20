@@ -14,7 +14,7 @@ using namespace Broken;
 ComponentDynamicRigidBody::ComponentDynamicRigidBody(GameObject* ContainerGO) : Component(ContainerGO, Component::ComponentType::DynamicRigidBody)
 {
 	name = "Dynamic RigidBody";
-	
+
 
 	if (rigidBody != nullptr)
 	{
@@ -227,24 +227,24 @@ void ComponentDynamicRigidBody::CreateInspectorNode()
 
 	if (ImGui::TreeNode("Constraints"))
 	{
-		ImGui::Text("Freeze Position"); ImGui::SameLine(); 
-		if(ImGui::Checkbox("##FPX", &freezePosition_X))
+		ImGui::Text("Freeze Position"); ImGui::SameLine();
+		if (ImGui::Checkbox("##FPX", &freezePosition_X))
 			update = true;
-		ImGui::SameLine(); 
+		ImGui::SameLine();
 		if (ImGui::Checkbox("##FPY", &freezePosition_Y))
 			update = true;
 		ImGui::SameLine();
-		if(ImGui::Checkbox("##FPZ", &freezePosition_Z))
+		if (ImGui::Checkbox("##FPZ", &freezePosition_Z))
 			update = true;
 
-		ImGui::Text("Freeze Rotation"); ImGui::SameLine(); 
-		if(ImGui::Checkbox("##FRX", &freezeRotation_X))
+		ImGui::Text("Freeze Rotation"); ImGui::SameLine();
+		if (ImGui::Checkbox("##FRX", &freezeRotation_X))
 			update = true;
-		ImGui::SameLine(); 
-		if(ImGui::Checkbox("##FRY", &freezeRotation_Y))
+		ImGui::SameLine();
+		if (ImGui::Checkbox("##FRY", &freezeRotation_Y))
 			update = true;
-		ImGui::SameLine(); 
-		if(ImGui::Checkbox("##FRZ", &freezeRotation_Z))
+		ImGui::SameLine();
+		if (ImGui::Checkbox("##FRZ", &freezeRotation_Z))
 			update = true;
 		ImGui::TreePop();
 	}
@@ -268,8 +268,8 @@ void ComponentDynamicRigidBody::setRBValues() {
 		if (linear_vel.x != 0.0f || linear_vel.y != 0.0f || linear_vel.z != 0.0f)
 			SetLinearVelocity(linear_vel);
 
-		if (angular_vel.x != 0.0f || angular_vel.y != 0.0f || angular_vel.z != 0.0f)	
-			SetAngularVelocity(angular_vel);		
+		if (angular_vel.x != 0.0f || angular_vel.y != 0.0f || angular_vel.z != 0.0f)
+			SetAngularVelocity(angular_vel);
 	}
 }
 

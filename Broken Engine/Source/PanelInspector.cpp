@@ -1,38 +1,32 @@
 #include "PanelInspector.h"
 #include "EngineApplication.h"
-#include "Imgui/imgui.h"
+
+// --- Modules ---
 #include "ModuleEditorUI.h"
 #include "ModuleGui.h"
 #include "ModuleSelection.h"
-#include "PanelProject.h"
 #include "ModulePhysics.h"
-#include "ComponentCollider.h"
-
-#include "PhysX_3.4/Include/PxPhysicsAPI.h"
-
-using namespace Broken;
 #include "ModuleSceneManager.h"
-//#include "ModuleRenderer3D.h"
 #include "ModuleResourceManager.h"
-//#include "ModuleGui.h"
 
-//#include "GameObject.h"
-//#include "ComponentTransform.h"
-//#include "ComponentMesh.h"
-//#include "ComponentMeshRenderer.h"
-//#include "ComponentCamera.h"
-
+// -- Panel --
+#include "PanelProject.h"
 #include "PanelShaderEditor.h"
 
-//#include "ResourceMesh.h"
-//#include "ResourceMaterial.h"
-//#include "ResourceTexture.h"
-//#include "ResourceShader.h"
+// -- Components --
 #include "ComponentScript.h"
+#include "ComponentCollider.h"
+#include "ComponentParticleEmitter.h"
+#include "ComponentCollider.h"
+
+// --- Others ---
+#include "Imgui/imgui.h"
+#include "PhysX_3.4/Include/PxPhysicsAPI.h"
+
 
 //#include "mmgr/mmgr.h"
 
-PanelInspector::PanelInspector(char * name) : Panel(name)
+PanelInspector::PanelInspector(char* name) : Panel(name)
 {
 }
 
@@ -63,11 +57,11 @@ bool PanelInspector::Draw()
 			CreateGameObjectNode(*Selected);
 
 			// --- Components ---
-			
+
 			std::vector<Broken::Component*>* components = &Selected->GetComponents();
 
 			for (std::vector<Broken::Component*>::const_iterator it = components->begin(); it != components->end(); ++it)
-			{	
+			{
 				if ((*it) == nullptr)
 					continue;
 
@@ -86,7 +80,7 @@ bool PanelInspector::Draw()
 					}
 					ImGui::SameLine();
 
-					name = (*it)->GetType() != Component::ComponentType::Script ? (*it)->name : (*it)->name + " (Script)";
+					name = (*it)->GetType() != Broken::Component::ComponentType::Script ? (*it)->name : (*it)->name + " (Script)";
 
 					if (ImGui::TreeNodeEx(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
 					{
@@ -279,13 +273,13 @@ bool PanelInspector::Draw()
 
 // SELECTED TODO: test editing for multiselection
 // OPTIMIZE DEFAULT SHOWN PROPERTIES -> LESS SELECTION ITERATIONS
-void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
+void PanelInspector::CreateGameObjectNode(Broken::GameObject& Selected) const
 {
 	ImGui::BeginChild("child", ImVec2(0, 70), true);
 
 	// Changing active state to true if all are selected and to false if at least one is not active
 	bool active = true;
-	for (GameObject* obj : *App->selection->GetSelected())
+	for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 	{
 		if (obj->GetActive() == false) {
 			active = false;
@@ -296,10 +290,10 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
 	if (ImGui::Checkbox("##GOActive", &active))
 	{
 		if (active)
-			for (GameObject* obj : *App->selection->GetSelected())
+			for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 				obj->Enable();
 		else
-			for (GameObject* obj : *App->selection->GetSelected())
+			for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 				obj->Disable();
 	}
 	ImGui::SameLine();
@@ -311,18 +305,18 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
 
 	if (ImGui::InputText("", GOName, 128, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
 
-		for (int i = 0; i < App->selection->GetSelected()->size(); i++)
+		for (int i = 0; i < EngineApp->selection->GetSelected()->size(); i++)
 		{
 			if (i == 0)
 			{
-				App->selection->GetSelected()->at(i)->SetName(GOName);
+				EngineApp->selection->GetSelected()->at(i)->SetName(GOName);
 			}
 			else
 			{
 				number = " (" + std::to_string(i) + ")";
 				number = GOName + number;
 
-				App->selection->GetSelected()->at(i)->SetName(number.c_str());
+				EngineApp->selection->GetSelected()->at(i)->SetName(number.c_str());
 			}
 		}
 
@@ -333,12 +327,12 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
 	//[STATIC] Knowing what to display, if all the selected are at the same state, it will display the state, otherwise it will display false
 	// Knowing if inside selection there's a parent with childs
 	// Once both variables are solved it can break the loop search
-	for (int i=0; i < App->selection->GetSelected()->size() && (checkbox_static || !exists_childs);i++)
+	for (int i = 0; i < EngineApp->selection->GetSelected()->size() && (checkbox_static || !exists_childs); i++)
 	{
-		if (App->selection->GetSelected()->at(i)->Static == false) 
+		if (EngineApp->selection->GetSelected()->at(i)->Static == false)
 			checkbox_static = false;
 
-		if (App->selection->GetSelected()->at(i)->childs.empty() == false)
+		if (EngineApp->selection->GetSelected()->at(i)->childs.empty() == false)
 			exists_childs = true;
 	}
 
@@ -346,18 +340,18 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
 
 	if (ImGui::Checkbox("Static", &checkbox_static)) {
 		objectStatic = checkbox_static;
-		
+
 		if (exists_childs)
 			ImGui::OpenPopup("Static gameObject");
 		else
-			for (GameObject* obj : *App->selection->GetSelected())
-				EngineApp->scene_manager->SetStatic(obj, objectStatic,  false);
+			for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
+				EngineApp->scene_manager->SetStatic(obj, objectStatic, false);
 	}
 
-	ImGui::SetNextWindowSize(ImVec2(400,75));
+	ImGui::SetNextWindowSize(ImVec2(400, 75));
 	if (ImGui::BeginPopup("Static gameObject", ImGuiWindowFlags_NoScrollbar))
 	{
-		
+
 		/* Gets a little bug so I am deleting the first part where displays the action to be done (always showing non-static)
 
 		static std::string text = (objectStatic) ? "You are about to make objects non-static.\nDo you want to edit the children aswell?" :
@@ -367,14 +361,14 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
 
 		ImGui::Indent(130);
 		if (ImGui::Button("Yes")) {
-			for (GameObject* obj : *App->selection->GetSelected())
+			for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 				EngineApp->scene_manager->SetStatic(obj, objectStatic, true);
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::SameLine();
 
 		if (ImGui::Button("No")) {
-			for (GameObject* obj : *App->selection->GetSelected())
+			for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 				EngineApp->scene_manager->SetStatic(obj, objectStatic, false);
 			ImGui::CloseCurrentPopup();
 		}
@@ -394,7 +388,7 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
 		ImGui::EndPopup();
 	}
 
-	std::vector<Layer>* layers = &App->physics->layer_list;
+	std::vector<Layer>* layers = &EngineApp->physics->layer_list;
 
 	static ImGuiComboFlags flags = 0;
 
@@ -402,12 +396,11 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
 	int layer = Selected.GetLayer();
 
 	std::string layer_name = layers->at(layer).name.c_str();
-	for (GameObject* obj : *App->selection->GetSelected())
+	for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 	{
 		if (layer != obj->GetLayer())
 		{
-			layer_name = "---";
-			layer = -1;
+			layer_name = "----";
 			break;
 		}
 	}
@@ -426,15 +419,19 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
 
 			if (ImGui::Selectable(layers->at(n).name.c_str(), is_selected)) {
 				// Changing layer
-				for (GameObject* obj : *App->selection->GetSelected())
+				for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 				{
 					layer_name = layers->at(n).name.c_str();
 					obj->layer = layers->at(n).layer;
 
-					ComponentCollider* col = obj->GetComponent<ComponentCollider>();
+					Broken::ComponentCollider* col = obj->GetComponent<Broken::ComponentCollider>();
+					Broken::ComponentParticleEmitter* particle = obj->GetComponent<Broken::ComponentParticleEmitter>();
 
-					if(col)
+					if (col)
 						col->UpdateActorLayer((int*)&layers->at(n).layer);
+
+					if (particle)
+						particle->UpdateActorLayer((int*)&layers->at(n).layer);
 				}
 			}
 			if (is_selected) {

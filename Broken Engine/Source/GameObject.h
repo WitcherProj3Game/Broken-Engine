@@ -36,6 +36,7 @@ public:
 	bool& GetActive();
 	int GetLayer();
 	bool			IsEnabled() const;
+	void UpdateLayer(int To, int From = -1);
 
 	// --- Components ---
 

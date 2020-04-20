@@ -616,6 +616,20 @@ int GameObject::GetLayer(){
 	return layer;
 }
 
+void GameObject::UpdateLayer(int _To, int _From) {
+	if(_From == layer)
+		layer = _To;
+
+	if (childs.size() > 0)
+	{
+		for (std::vector<GameObject*>::iterator it = childs.begin(); it != childs.end(); ++it)
+		{
+			GameObject* GO = *it;
+			GO->UpdateLayer(_To, _From);
+		}
+	}
+}
+
 bool GameObject::IsEnabled() const {
 	return active;
 }

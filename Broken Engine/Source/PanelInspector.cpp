@@ -1,36 +1,28 @@
 #include "PanelInspector.h"
 #include "EngineApplication.h"
-#include "Imgui/imgui.h"
+
+// --- Modules ---
 #include "ModuleEditorUI.h"
 #include "ModuleGui.h"
 #include "ModuleSelection.h"
-#include "PanelProject.h"
 #include "ModulePhysics.h"
-#include "ComponentCollider.h"
-
-#include "PhysX_3.4/Include/PxPhysicsAPI.h"
-
-using namespace Broken;
 #include "ModuleSceneManager.h"
-//#include "ModuleRenderer3D.h"
 #include "ModuleResourceManager.h"
-//#include "ModuleGui.h"
 
-//#include "GameObject.h"
-//#include "ComponentTransform.h"
-//#include "ComponentMesh.h"
-//#include "ComponentMeshRenderer.h"
-//#include "ComponentCamera.h"
-
+// -- Panel --
+#include "PanelProject.h"
 #include "PanelShaderEditor.h"
 
-//#include "ResourceMesh.h"
-//#include "ResourceMaterial.h"
-//#include "ResourceTexture.h"
-//#include "ResourceShader.h"
+// -- Components --
 #include "ComponentScript.h"
 #include "ComponentCollider.h"
 #include "ComponentParticleEmitter.h"
+#include "ComponentCollider.h"
+
+// --- Others ---
+#include "Imgui/imgui.h"
+#include "PhysX_3.4/Include/PxPhysicsAPI.h"
+
 
 //#include "mmgr/mmgr.h"
 
@@ -88,7 +80,7 @@ bool PanelInspector::Draw()
 					}
 					ImGui::SameLine();
 
-					name = (*it)->GetType() != Component::ComponentType::Script ? (*it)->name : (*it)->name + " (Script)";
+					name = (*it)->GetType() != Broken::Component::ComponentType::Script ? (*it)->name : (*it)->name + " (Script)";
 
 					if (ImGui::TreeNodeEx(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
 					{
@@ -287,7 +279,7 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject& Selected) const
 
 	// Changing active state to true if all are selected and to false if at least one is not active
 	bool active = true;
-	for (GameObject* obj : *App->selection->GetSelected())
+	for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 	{
 		if (obj->GetActive() == false) {
 			active = false;
@@ -298,10 +290,10 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject& Selected) const
 	if (ImGui::Checkbox("##GOActive", &active))
 	{
 		if (active)
-			for (GameObject* obj : *App->selection->GetSelected())
+			for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 				obj->Enable();
 		else
-			for (GameObject* obj : *App->selection->GetSelected())
+			for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 				obj->Disable();
 	}
 	ImGui::SameLine();
@@ -313,18 +305,18 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject& Selected) const
 
 	if (ImGui::InputText("", GOName, 128, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
 
-		for (int i = 0; i < App->selection->GetSelected()->size(); i++)
+		for (int i = 0; i < EngineApp->selection->GetSelected()->size(); i++)
 		{
 			if (i == 0)
 			{
-				App->selection->GetSelected()->at(i)->SetName(GOName);
+				EngineApp->selection->GetSelected()->at(i)->SetName(GOName);
 			}
 			else
 			{
 				number = " (" + std::to_string(i) + ")";
 				number = GOName + number;
 
-				App->selection->GetSelected()->at(i)->SetName(number.c_str());
+				EngineApp->selection->GetSelected()->at(i)->SetName(number.c_str());
 			}
 		}
 
@@ -335,12 +327,12 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject& Selected) const
 	//[STATIC] Knowing what to display, if all the selected are at the same state, it will display the state, otherwise it will display false
 	// Knowing if inside selection there's a parent with childs
 	// Once both variables are solved it can break the loop search
-	for (int i = 0; i < App->selection->GetSelected()->size() && (checkbox_static || !exists_childs); i++)
+	for (int i = 0; i < EngineApp->selection->GetSelected()->size() && (checkbox_static || !exists_childs); i++)
 	{
-		if (App->selection->GetSelected()->at(i)->Static == false)
+		if (EngineApp->selection->GetSelected()->at(i)->Static == false)
 			checkbox_static = false;
 
-		if (App->selection->GetSelected()->at(i)->childs.empty() == false)
+		if (EngineApp->selection->GetSelected()->at(i)->childs.empty() == false)
 			exists_childs = true;
 	}
 
@@ -352,7 +344,7 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject& Selected) const
 		if (exists_childs)
 			ImGui::OpenPopup("Static gameObject");
 		else
-			for (GameObject* obj : *App->selection->GetSelected())
+			for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 				EngineApp->scene_manager->SetStatic(obj, objectStatic, false);
 	}
 
@@ -369,14 +361,14 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject& Selected) const
 
 		ImGui::Indent(130);
 		if (ImGui::Button("Yes")) {
-			for (GameObject* obj : *App->selection->GetSelected())
+			for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 				EngineApp->scene_manager->SetStatic(obj, objectStatic, true);
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::SameLine();
 
 		if (ImGui::Button("No")) {
-			for (GameObject* obj : *App->selection->GetSelected())
+			for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 				EngineApp->scene_manager->SetStatic(obj, objectStatic, false);
 			ImGui::CloseCurrentPopup();
 		}
@@ -396,7 +388,7 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject& Selected) const
 		ImGui::EndPopup();
 	}
 
-	std::vector<Layer>* layers = &App->physics->layer_list;
+	std::vector<Layer>* layers = &EngineApp->physics->layer_list;
 
 	static ImGuiComboFlags flags = 0;
 
@@ -404,7 +396,7 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject& Selected) const
 	int layer = Selected.GetLayer();
 
 	std::string layer_name = layers->at(layer).name.c_str();
-	for (GameObject* obj : *App->selection->GetSelected())
+	for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 	{
 		if (layer != obj->GetLayer())
 		{
@@ -427,7 +419,7 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject& Selected) const
 
 			if (ImGui::Selectable(layers->at(n).name.c_str(), is_selected)) {
 				// Changing layer
-				for (GameObject* obj : *App->selection->GetSelected())
+				for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 				{
 					layer_name = layers->at(n).name.c_str();
 					obj->layer = layers->at(n).layer;

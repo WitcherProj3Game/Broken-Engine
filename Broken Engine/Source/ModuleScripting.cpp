@@ -216,6 +216,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("GetPosition", &ScriptingTransform::GetPosition)
 		.addFunction("Translate", &ScriptingTransform::Translate)
 		.addFunction("SetPosition", &ScriptingTransform::SetPosition)
+		.addFunction("SetScale", &ScriptingTransform::SetScale)
 
 		// Rotation
 		.addFunction("GetRotation", &ScriptingTransform::GetRotation)
@@ -344,6 +345,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetCurrentAnimationSpeed", &ScriptingAnimations::SetCurrentAnimSpeed)
 		.addFunction("SetBlendTime", &ScriptingAnimations::SetBlendTime)
 		.addFunction("CurrentAnimationEnded", &ScriptingAnimations::CurrentAnimEnded)
+		.addFunction("GetCurrentFrame", &ScriptingAnimations::GetCurrentFrame)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------

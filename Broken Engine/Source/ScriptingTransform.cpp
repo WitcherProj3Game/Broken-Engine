@@ -101,6 +101,21 @@ void ScriptingTransform::SetPosition(float x, float y, float z, uint gameobject_
 		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
+void ScriptingTransform::SetScale(float x, float y, float z, uint gameobject_UUID) {
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentTransform* transform = go->GetComponent<ComponentTransform>();
+
+		if (transform)
+			transform->Scale(x, y, z);
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (SetScale) GameObject has no component transform.");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetScale) Could not find GameObject with UUID %d", gameobject_UUID);
+}
+
 void ScriptingTransform::RotateObject(float x, float y, float z, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);

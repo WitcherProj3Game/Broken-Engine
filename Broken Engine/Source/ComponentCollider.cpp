@@ -763,8 +763,6 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 			offset.Mul(scale);
 		}
 
-		UpdateLocalMatrix();
-
 		lastIndex = (int)ComponentCollider::COLLIDER_TYPE::BOX;
 		break;
 	}

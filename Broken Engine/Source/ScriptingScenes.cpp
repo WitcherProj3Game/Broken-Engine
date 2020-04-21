@@ -41,14 +41,9 @@ uint ScriptingScenes::Instantiate(uint resource_UUID, float x, float y, float z,
 		GameObject* go = App->resources->GetImporter<ImporterModel>()->InstanceOnCurrentScene(prefab->GetResourceFile(), nullptr);
 		go->GetComponent<ComponentTransform>()->SetPosition(x, y, z);
 		go->GetComponent<ComponentTransform>()->SetRotation({ alpha, beta, gamma });
-		go->TransformGlobal();
-
 		go->GetComponent<ComponentTransform>()->updateValues = true;
-
-		for (std::vector<GameObject*>::iterator tmp = go->childs.begin(); tmp != go->childs.end(); ++tmp)
-		{
-			(*tmp)->GetComponent<ComponentTransform>()->updateValues = true;
-		}
+		go->TransformGlobal();
+		go->GetComponent<ComponentTransform>()->updateValues = false;
 
 		ret = go->GetUID();
 	}

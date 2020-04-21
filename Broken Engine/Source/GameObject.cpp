@@ -187,6 +187,8 @@ void GameObject::TransformGlobal()
 	for (std::vector<GameObject*>::iterator tmp = childs.begin(); tmp != childs.end(); ++tmp)
 	{
 		(*tmp)->TransformGlobal();
+		if (GetComponent<ComponentTransform>()->updateValues)
+			(*tmp)->GetComponent<ComponentTransform>()->updateValues = true;
 	}
 
 	if (is_been_reparented)

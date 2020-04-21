@@ -42,7 +42,13 @@ uint ScriptingScenes::Instantiate(uint resource_UUID, float x, float y, float z,
 		go->GetComponent<ComponentTransform>()->SetPosition(x, y, z);
 		go->GetComponent<ComponentTransform>()->SetRotation({ alpha, beta, gamma });
 		go->TransformGlobal();
+
 		go->GetComponent<ComponentTransform>()->updateValues = true;
+
+		for (std::vector<GameObject*>::iterator tmp = go->childs.begin(); tmp != go->childs.end(); ++tmp)
+		{
+			(*tmp)->GetComponent<ComponentTransform>()->updateValues = true;
+		}
 
 		ret = go->GetUID();
 	}

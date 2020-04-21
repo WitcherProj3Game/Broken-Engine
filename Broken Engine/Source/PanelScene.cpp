@@ -24,6 +24,7 @@
 // -- Utilities --
 #include "OpenGL.h"
 #include "Imgui/imgui.h"
+#include "Imgui/imgui_internal.h"
 #include "mmgr/mmgr.h"
 
 PanelScene::PanelScene(char* name) : Panel(name)
@@ -108,6 +109,7 @@ bool PanelScene::Draw()
 		{
 			if (ImGui::BeginMenu("DebugDraw"))
 			{
+				ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
 				ImGui::MenuItem("LIGHTING", NULL, &EngineApp->renderer3D->lighting);
 				ImGui::MenuItem("COLOR MATERIAL", NULL, &EngineApp->renderer3D->color_material);
 				ImGui::MenuItem("WIREFRAME", NULL, &EngineApp->renderer3D->wireframe);
@@ -130,7 +132,7 @@ bool PanelScene::Draw()
 					EngineApp->renderer3D->m_Draw_normalMapping_Lit = false;
 					EngineApp->renderer3D->m_Draw_normalMapping = false;
 				}
-
+				ImGui::PopItemFlag();
 				ImGui::EndMenu();
 			}
 			ImGui::EndMenuBar();

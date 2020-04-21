@@ -380,24 +380,6 @@ void ComponentButton::CreateInspectorNode()
 	ImGui::SameLine();
 	ImGui::Checkbox("Visible##2", &collider_visible);
 
-	// Position
-	ImGui::Text("Position:");
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(60);
-	ImGui::DragInt("x##buttoncolliderposition", &collider.x, 0.001f);
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(60);
-	ImGui::DragInt("y##buttoncolliderposition", &collider.y, 0.001f);
-
-	// Size
-	ImGui::Text("Size:    ");
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(60);
-	ImGui::DragInt("x##buttoncollidersize", &collider.w);
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(60);
-	ImGui::DragInt("y##buttoncollidersize", &collider.h);
-
 	// ------------------------------------------
 
 	// Image
@@ -427,6 +409,14 @@ void ComponentButton::CreateInspectorNode()
 			}
 		}
 		ImGui::EndDragDropTarget();
+	}
+	if (ImGui::Button("Delete Texture"))
+	{
+		if (texture)
+		{
+			texture->Release();
+			texture = nullptr;
+		}
 	}
 
 	// Aspect Ratio

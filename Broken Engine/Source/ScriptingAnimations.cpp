@@ -117,7 +117,7 @@ int ScriptingAnimations::CurrentAnimEnded(uint gameobject_UUID)
 	return ret;
 }
 
-float ScriptingAnimations::GetFrame(uint gameobject_UUID) {
+float ScriptingAnimations::GetCurrentFrame(uint gameobject_UUID) {
 	float ret = -1;
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 

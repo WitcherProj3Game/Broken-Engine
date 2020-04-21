@@ -723,6 +723,9 @@
     <ClInclude Include="TranslatorUtilities.h">
       <Filter>Sources\BrokenEngine\Modules\Scripting Functions\SuperTranslator</Filter>
     </ClInclude>
+    <ClInclude Include="AutoCompleteFileGen.h">
+      <Filter>Sources\BrokenEngine\Tools</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MathGeoLib\include\SystemInfo.cpp">
@@ -1232,7 +1235,12 @@
     <ClCompile Include="ResourcePrefab.cpp">
       <Filter>Sources\BrokenEngine\Resources</Filter>
     </ClCompile>
-    <ClCompile Include="TranslatorUtilities.cpp" />
+    <ClCompile Include="TranslatorUtilities.cpp">
+      <Filter>Sources\BrokenEngine\Modules\Scripting Functions\SuperTranslator</Filter>
+    </ClCompile>
+    <ClCompile Include="AutoCompleteFileGen.cpp">
+      <Filter>Sources\BrokenEngine\Tools</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="MathGeoLib\include\Geometry\KDTree.inl">

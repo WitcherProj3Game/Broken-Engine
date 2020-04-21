@@ -1,0 +1,8 @@
+{
+    "Test": {
+        "body": "body test",
+        "description": "description_test",
+        "prefix": "prefix_test",
+        "scope": "scope test"
+    }
+}

@@ -9,6 +9,7 @@
 #include "ModuleSceneManager.h"
 #include "ResourceScene.h"
 #include "ModuleEventManager.h"
+#include "AutoCompleteFileGen.h"
 
 #include "ResourceScript.h"
 #include "ComponentScript.h"
@@ -761,6 +762,9 @@ bool ModuleScripting::Init(json& file) {
 	DeployScriptingGlobals();
 
 	debug_instance = new ScriptInstance;
+
+	AutoCompleteFileGen ac_filegen;
+	ac_filegen.GenerateAutoCompleteFile();
 
 	return true;
 }

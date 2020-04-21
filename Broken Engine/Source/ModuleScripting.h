@@ -63,7 +63,6 @@ public:
 	std::string debug_path = "null";
 
 	bool Debug_Build = false;
-
 private:
 	// L is our Lua Virtual Machine, it's called L because its the common name it receives, so all programers can understand what this var is
 	lua_State* L = nullptr;

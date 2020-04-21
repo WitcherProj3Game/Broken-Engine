@@ -219,7 +219,7 @@ void ComponentText::CreateInspectorNode()
 	ImGui::Checkbox("Visible", &visible);
 	ImGui::Separator();
 
-	ImGui::ColorEdit4("Color", (float*)&color);
+	ImGui::ColorEdit4("Color", (float*)&color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 
 	// Temporary disabled for usability and design consistency
 	/*if (ImGui::DragInt("Font size", &font->size, 1, 1, 200, "%.2f")) {

@@ -109,7 +109,7 @@ void ResourceMaterial::CreateInspectorNode()
 
 	// --- Color ---
 	ImGui::Separator();
-	if(ImGui::ColorEdit4("##AmbientColor", (float*)&m_AmbientColor, ImGuiColorEditFlags_NoInputs)) 
+	if(ImGui::ColorEdit4("##AmbientColor", (float*)&m_AmbientColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar))
 		save_material = true;
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 	ImGui::Text("MatAmbientColor");

@@ -233,7 +233,6 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 	cTransform->SetGlobalTransform(final);
 	cTransform->SetPosition(cTransform->GetLocalTransform().x, cTransform->GetLocalTransform().y, cTransform->GetLocalTransform().z);
 	cTransform->SetRotation(Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
-	//cTransform->UpdateLocalTransform();
 	//globalMatrix = cTransform->GetGlobalTransform();
 }
 

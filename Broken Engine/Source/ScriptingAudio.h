@@ -15,6 +15,7 @@ public:
 	void StopAudioEvent(std::string event);
 	void PauseAudioEvent(std::string event);
 	void ResumeAudioEvent(std::string event);
+	void SetAudioTrigger(std::string trigger);
 
 };
 BE_END_NAMESPACE

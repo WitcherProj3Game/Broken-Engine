@@ -344,3 +344,8 @@ void  ModuleAudio::PauseAllAudioEvents()
 {
 	AK::SoundEngine::Suspend();
 }
+
+void ModuleAudio::SetAudioTrigger(uint wwisegoId, std::string trigger)
+{
+	AK::SoundEngine::PostTrigger(trigger.c_str(), wwisegoId);
+}

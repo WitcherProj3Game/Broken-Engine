@@ -106,3 +106,14 @@ void ScriptingAudio::ResumeAudioEvent(std::string event)
 	else
 		ENGINE_CONSOLE_LOG("[Script]: Sound Emmiter component is NULL");
 }
+
+void ScriptingAudio::SetAudioTrigger(std::string trigger)
+{
+	ComponentAudioSource* sound = App->scripting->current_script->my_component->GetContainerGameObject()->GetComponent<ComponentAudioSource>();
+
+	if (sound)
+	{
+		uint wwisegoid = sound->wwiseGO->id;
+		App->audio->SetAudioTrigger(wwisegoid, trigger);
+	}
+}

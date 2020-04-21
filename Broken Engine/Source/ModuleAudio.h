@@ -50,6 +50,7 @@ public:
 	update_status PostUpdate(float dt);
 	bool CleanUp();
 	void Tests(AkGameObjectID id);
+	void SetAudioTrigger(uint wwisegoId, std::string trigger);
 
 private:
 
@@ -60,6 +61,7 @@ private:
 	void StopAllAudioEvents();
 	void ResumeAllAudioEvents();
 	void PauseAllAudioEvents();
+	
 
 public:
 	AkGameObjectID currentListenerID = 0;

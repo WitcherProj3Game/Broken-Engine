@@ -9,7 +9,7 @@
         "Console": true,
         "Hierarchy": true,
         "Inspector": true,
-        "Navigation": true,
+        "Navigation": false,
         "Physics": true,
         "Project": true,
         "Rendering": false,
@@ -207,6 +207,6 @@
         "resizable": true,
         "sceneX": 480,
         "sceneY": 640,
-        "width": 1440
+        "width": 1920
     }
 }

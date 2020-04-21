@@ -307,9 +307,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	// --- Issue Render orders ---
 	App->scene_manager->DrawScene();
 
-	// --- Draw ---
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 
 	for (std::map<uint, ResourceShader*>::const_iterator it = App->resources->shaders.begin(); it != App->resources->shaders.end(); ++it)
 	{
@@ -328,6 +326,9 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	// --- Selected Object Outlining ---
 	HandleObjectOutlining();
 
+	// --- Draw ---
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// -- Draw particles ---
 	for (int i = 0; i < particleEmitters.size(); ++i)

@@ -1232,7 +1232,9 @@
     <ClCompile Include="ResourcePrefab.cpp">
       <Filter>Sources\BrokenEngine\Resources</Filter>
     </ClCompile>
-    <ClCompile Include="TranslatorUtilities.cpp" />
+    <ClCompile Include="TranslatorUtilities.cpp">
+      <Filter>Sources\BrokenEngine\Tools</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="MathGeoLib\include\Geometry\KDTree.inl">

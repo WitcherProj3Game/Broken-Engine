@@ -116,3 +116,21 @@ int ScriptingAnimations::CurrentAnimEnded(uint gameobject_UUID)
 
 	return ret;
 }
+
+float ScriptingAnimations::GetFrame(uint gameobject_UUID) {
+	float ret = -1;
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentAnimation* anim = go->GetComponent<ComponentAnimation>();
+
+		if (anim)
+			ret = anim->GetCurrentFrame();
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (GetFrame) Animation component is NULL");
+	}
+	else 
+		ENGINE_CONSOLE_LOG("![Script]: (GetFrame) Game Object passed is NULL");
+
+	return ret;
+}

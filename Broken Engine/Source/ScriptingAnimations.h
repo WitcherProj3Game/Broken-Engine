@@ -15,6 +15,7 @@ public:
 	void SetCurrentAnimSpeed(float speed,uint gameobject_UUID);
 	void SetBlendTime(float value, uint gameobject_UUID);
 	int CurrentAnimEnded(uint gameobject_UUID);
+	float GetFrame(uint gameobject_UUID);
 
 };
 BE_END_NAMESPACE

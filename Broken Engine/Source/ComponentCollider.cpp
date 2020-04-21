@@ -220,6 +220,8 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 		toPlay = true;
 	}*/
 	//float4x4 trans = float4x4::FromTRS(float3(transform.p.x, transform.p.y - globalMatrix.scaleY/2, transform.p.z), Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), cTransform->GetGlobalTransform().ExtractScale());	
+	
+	//REVIEW ADD QUATERNION OF PARENT/SCALE (CHECK)
 	transform = RB->rigidBody->getGlobalPose();
 
 	float4x4 new_transform(Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), float3(transform.p.x, transform.p.y, transform.p.z));

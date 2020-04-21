@@ -84,6 +84,7 @@ void ComponentImage::Draw()
 	// --- Color & Texturing ---
 	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), 1.0f, 1.0f, 1.0f, 1.0f);
 	int TextureLocation = glGetUniformLocation(shaderID, "u_UseTextures");
+	glUniform1i(glGetUniformLocation(shaderID, "HasTransparencies"), 1);
 	
 	if (texture)
 	{

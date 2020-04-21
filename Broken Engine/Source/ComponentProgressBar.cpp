@@ -96,6 +96,7 @@ void ComponentProgressBar::DrawPlane(Color color, float _percentage)
 	// --- Draw plane with given texture ---
 	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");
 	glUniform4f(vertexColorLocation, color.r, color.g, color.b, color.a);
+	glUniform1i(glGetUniformLocation(shaderID, "HasTransparencies"), 1);
 
 	int TextureLocation = glGetUniformLocation(shaderID, "u_UseTextures");
 	if (texture)
@@ -211,19 +212,19 @@ void ComponentProgressBar::CreateInspectorNode()
 	ImGui::Text("Position:");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("x##imageposition", &position2D.x, 0.01f);
+	ImGui::DragFloat("x##imageposition", &position2D.x, 0.001f);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("y##imageposition", &position2D.y, 0.01f);
+	ImGui::DragFloat("y##imageposition", &position2D.y, 0.001f);
 
 	// Size Planes
 	ImGui::Text("Bar Size:  ");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("x##imagesize", &size2D.x, 1.0f, 0.0f, INFINITY);
+	ImGui::DragFloat("x##imagesize", &size2D.x, 0.5f, 0.0f, INFINITY);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("y##imagesize", &size2D.y, 1.0f, 0.0f,INFINITY);
+	ImGui::DragFloat("y##imagesize", &size2D.y, 0.5f, 0.0f, INFINITY);
 
 	// Rotation
 	//ImGui::Text("Rotation:");

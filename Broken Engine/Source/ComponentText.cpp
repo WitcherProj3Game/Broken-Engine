@@ -80,7 +80,7 @@ void ComponentText::Draw()
 	GLint projectLoc = glGetUniformLocation(App->renderer3D->textShader->ID, "u_Proj");
 	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
 
-	glUniform3f(glGetUniformLocation(App->renderer3D->textShader->ID, "textColor"), color.r, color.g, color.b);
+	glUniform4f(glGetUniformLocation(App->renderer3D->textShader->ID, "textColor"), color.r, color.g, color.b, color.a);
 	glActiveTexture(GL_TEXTURE0);
 
 	glBindVertexArray(font->VAO);
@@ -219,7 +219,7 @@ void ComponentText::CreateInspectorNode()
 	ImGui::Checkbox("Visible", &visible);
 	ImGui::Separator();
 
-	ImGui::ColorEdit3("Color", (float*)&color);
+	ImGui::ColorEdit4("Color", (float*)&color);
 
 	// Temporary disabled for usability and design consistency
 	/*if (ImGui::DragInt("Font size", &font->size, 1, 1, 200, "%.2f")) {
@@ -242,10 +242,10 @@ void ComponentText::CreateInspectorNode()
 	ImGui::Text("Size:    ");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("x##textsize", &size2D.x, 0.001f);
+	ImGui::DragFloat("x##textsize", &size2D.x, 0.0001f, 0.000f, INFINITY, "%.4f");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("y##textsize", &size2D.y, 0.001f);
+	ImGui::DragFloat("y##textsize", &size2D.y, 0.0001f, 0.000f, INFINITY, "%.4f");
 
 	// Position
 	ImGui::Text("Position:");

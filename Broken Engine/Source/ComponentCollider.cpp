@@ -131,7 +131,7 @@ void ComponentCollider::DrawComponent()
 		current_mesh = dragged_mesh;
 
 	// --- Render shape ---
-	if (current_mesh && current_mesh->IsInMemory() && current_mesh->vertices && current_mesh->Indices /*&& draw && App->GetAppState() != AppState::PLAY*/)
+	if (current_mesh && current_mesh->IsInMemory() && current_mesh->vertices && current_mesh->Indices && draw && App->GetAppState() != AppState::PLAY)
 	{
 		RenderMeshFlags flags = wire;
 		App->renderer3D->DrawMesh(globalMatrix * float4x4::FromQuat(dragged_rot), current_mesh, (ResourceMaterial*)App->resources->GetResource(App->resources->GetDefaultMaterialUID(), false), nullptr, flags, Color(125, 125, 125));
@@ -186,7 +186,7 @@ void ComponentCollider::UpdateLocalMatrix() {
 	{
 		if ((App->gui->isUsingGuizmo && App->GetAppState() != AppState::PLAY) || cTransform->updateValues) { //ON EDITOR
 
-			dynamicRB->rigidBody->setGlobalPose(transform);			
+			dynamicRB->rigidBody->setGlobalPose(transform);
 		}
 		if (dynamicRB->rigidBody != nullptr && App->GetAppState() == AppState::PLAY) //ON GAME
 		{
@@ -219,8 +219,8 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 
 		toPlay = true;
 	}*/
-	//float4x4 trans = float4x4::FromTRS(float3(transform.p.x, transform.p.y - globalMatrix.scaleY/2, transform.p.z), Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), cTransform->GetGlobalTransform().ExtractScale());	
-	
+	//float4x4 trans = float4x4::FromTRS(float3(transform.p.x, transform.p.y - globalMatrix.scaleY/2, transform.p.z), Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), cTransform->GetGlobalTransform().ExtractScale());
+
 	//REVIEW ADD QUATERNION OF PARENT/SCALE (CHECK)
 	transform = RB->rigidBody->getGlobalPose();
 

@@ -101,6 +101,7 @@ void ComponentButton::Draw()
 	// --- Color & Texturing ---
 	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");
 	glUniform4f(vertexColorLocation, color.r, color.g, color.b, color.a);
+	glUniform1i(glGetUniformLocation(shaderID, "HasTransparencies"), 1);
 
 	GameObject* gameObj = GetContainerGameObject();
 
@@ -360,10 +361,10 @@ void ComponentButton::CreateInspectorNode()
 	ImGui::Text("Position:");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("x##buttonposition", &position2D.x, 0.01f);
+	ImGui::DragFloat("x##buttonposition", &position2D.x, 0.001f);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("y##buttonposition", &position2D.y, 0.01f);
+	ImGui::DragFloat("y##buttonposition", &position2D.y, 0.001f);
 
 	// Rotation
 	//ImGui::Text("Rotation:");

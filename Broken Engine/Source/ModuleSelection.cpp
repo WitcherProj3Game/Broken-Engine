@@ -88,7 +88,7 @@ update_status ModuleSelection::PreUpdate(float dt)
 
 update_status ModuleSelection::Update(float dt)
 {
-	if (App->GetAppState() != AppState::EDITOR) return UPDATE_CONTINUE;
+	//if (App->GetAppState() != AppState::EDITOR) return UPDATE_CONTINUE;
 
 	// SELECTED TODO -> stuck at offset
 	if (App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_UP)
@@ -131,7 +131,7 @@ update_status ModuleSelection::Update(float dt)
 }
 update_status ModuleSelection::PostUpdate(float dt)
 {
-	if (App->GetAppState() != AppState::EDITOR) return UPDATE_CONTINUE;
+	//if (App->GetAppState() != AppState::EDITOR) return UPDATE_CONTINUE;
 
 	App->renderer3D->DrawAABB(aabb_selection, { 0.76f, 1, 0.62f,1 });
 

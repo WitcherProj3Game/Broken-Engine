@@ -145,7 +145,8 @@ Resource* ImporterMaterial::Load(const char* path) const
 		}
 
 		if (!file["AmbientColor"].is_null())
-			matColor = float4(file["AmbientColor"]["R"].get<float>(), file["AmbientColor"]["G"].get<float>(), file["AmbientColor"]["B"].get<float>(), file["AmbientColor"]["A"].get<float>());
+			matColor = float4(file["AmbientColor"]["R"].get<float>(), file["AmbientColor"]["G"].get<float>(), file["AmbientColor"]["B"].get<float>(), file["AmbientColor"]["A"].is_null() ? 1.0f : file["AmbientColor"]["A"].get<float>());
+		
 
 		if (!file["MaterialShininess"].is_null())
 			matShine = file["MaterialShininess"].get<float>();

@@ -38,7 +38,8 @@ void ScriptingAudio::SetVolume(float volume)
 
 void ScriptingAudio::PlayAudioEvent(std::string event)
 {
-	ComponentAudioSource* sound = App->scripting->current_script->my_component->GetContainerGameObject()->GetComponent<ComponentAudioSource>();
+	ComponentAudioSource* sound = nullptr;
+	sound = App->scripting->current_script->my_component->GetContainerGameObject()->GetComponent<ComponentAudioSource>();
 
 	uint EventId = App->audio->EventMap[event];
 

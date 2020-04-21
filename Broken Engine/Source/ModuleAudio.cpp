@@ -204,7 +204,7 @@ void ModuleAudio::Tests(AkGameObjectID id)
 
 	AkAuxSendValue reverb;
 	reverb.listenerID = AK_INVALID_GAME_OBJECT;
-	reverb.auxBusID = AK::AUX_BUSSES::REVERB;
+	//reverb.auxBusID = AK::AUX_BUSSES::REVERB;
 	reverb.fControlValue = 1.0f;
 
 	AK::SoundEngine::SetGameObjectAuxSendValues(id, NULL, 0);
@@ -294,7 +294,7 @@ void WwiseGameObject::SetAuxSends()
 {
 	AkAuxSendValue reverb[1];
 	reverb[0].listenerID = AK_INVALID_GAME_OBJECT;
-	reverb[0].auxBusID = AK::AUX_BUSSES::REVERB;
+	//reverb[0].auxBusID = AK::AUX_BUSSES::REVERB;
 	reverb[0].fControlValue = 1.0f;
 
 	AKRESULT ret;

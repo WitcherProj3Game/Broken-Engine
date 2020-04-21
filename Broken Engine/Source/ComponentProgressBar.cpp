@@ -62,7 +62,7 @@ void ComponentProgressBar::DrawPlane(Color color, float _percentage)
 {
 	// --- Frame image with camera ---
 	float nearp = App->renderer3D->active_camera->GetNearPlane();
-	float3 pos = { position2D.x, position2D.y, nearp + 0.026f };
+	float3 pos = { position2D.x / App->gui->sceneWidth, position2D.y / App->gui->sceneHeight, nearp + 0.026f };
 	
 	float size_x = ((size2D.x * _percentage) / 100);
 	float3 size = { size_x / App->gui->sceneWidth, size2D.y / App->gui->sceneHeight, 1.0f };
@@ -212,10 +212,10 @@ void ComponentProgressBar::CreateInspectorNode()
 	ImGui::Text("Position:");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("x##imageposition", &position2D.x, 0.001f);
+	ImGui::DragFloat("x##imageposition", &position2D.x);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("y##imageposition", &position2D.y, 0.001f);
+	ImGui::DragFloat("y##imageposition", &position2D.y);
 
 	// Size Planes
 	ImGui::Text("Bar Size:  ");

@@ -3,6 +3,7 @@
 #include "Application.h"
 #include "ModuleResourceManager.h"
 #include "ModuleUI.h"
+#include "ModuleGui.h"
 #include "ComponentCanvas.h"
 #include "ModuleRenderer3D.h"
 #include "ResourceShader.h"
@@ -52,7 +53,10 @@ void ComponentText::Draw()
 	}
 
 	float nearp = App->renderer3D->active_camera->GetNearPlane();
-	float4x4 transform = transform.FromTRS({ position2D.x, position2D.y, nearp + 0.026f }, Quat::identity, { size2D.x, size2D.y, 1.0f });
+	
+	float3 pos = { position2D.x / App->gui->sceneWidth, position2D.y / App->gui->sceneHeight, nearp + 0.026f };
+	float3 size = { size2D.x / App->gui->sceneWidth, size2D.y / App->gui->sceneHeight, 1.0f };
+	float4x4 transform = transform.FromTRS(pos, Quat::identity, size);
 
 	// Options
 	glDisable(GL_CULL_FACE);
@@ -242,19 +246,19 @@ void ComponentText::CreateInspectorNode()
 	ImGui::Text("Size:    ");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("x##textsize", &size2D.x, 0.0001f, 0.000f, INFINITY, "%.4f");
+	ImGui::DragFloat("x##textsize", &size2D.x, 0.001f, 0.0f, INFINITY);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("y##textsize", &size2D.y, 0.0001f, 0.000f, INFINITY, "%.4f");
+	ImGui::DragFloat("y##textsize", &size2D.y, 0.001f, 0.0f, INFINITY);
 
 	// Position
 	ImGui::Text("Position:");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("x##textposition", &position2D.x, 0.001f);
+	ImGui::DragFloat("x##textposition", &position2D.x, 0.5f);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("y##textposition", &position2D.y, 0.001f);
+	ImGui::DragFloat("y##textposition", &position2D.y, 0.5f);
 
 	// Rotation
 	//ImGui::Text("Rotation:");

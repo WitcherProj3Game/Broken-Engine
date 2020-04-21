@@ -186,7 +186,8 @@ void ComponentCollider::UpdateLocalMatrix() {
 	{
 		if ((App->gui->isUsingGuizmo && App->GetAppState() != AppState::PLAY) || cTransform->updateValues) { //ON EDITOR
 
-			dynamicRB->rigidBody->setGlobalPose(transform);
+			dynamicRB->rigidBody->setGlobalPose(transform); 
+			cTransform->updateValues = false;
 		}
 		if (dynamicRB->rigidBody != nullptr && App->GetAppState() == AppState::PLAY) //ON GAME
 		{
@@ -232,7 +233,7 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 	cTransform->SetGlobalTransform(final);
 	cTransform->SetPosition(cTransform->GetLocalTransform().x, cTransform->GetLocalTransform().y, cTransform->GetLocalTransform().z);
 	cTransform->SetRotation(Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
-
+	//cTransform->UpdateLocalTransform();
 	//globalMatrix = cTransform->GetGlobalTransform();
 }
 

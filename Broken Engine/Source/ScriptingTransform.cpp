@@ -31,7 +31,7 @@ luabridge::LuaRef ScriptingTransform::GetPosition(uint gameobject_UUID, lua_Stat
 
 		if (transform)
 		{
-			pos = transform->GetPosition();
+			pos = transform->GetGlobalPosition();
 		}
 		else
 			ENGINE_CONSOLE_LOG("Object or its transformation component are null");
@@ -87,8 +87,13 @@ void ScriptingTransform::SetPosition(float x, float y, float z, uint gameobject_
 	if (go) {
 		ComponentTransform* transform = go->GetComponent<ComponentTransform>();
 
-		if (transform)
-			transform->SetPosition(x, y, z);
+		if (transform) {
+			float4x4 m = transform->GetGlobalTransform();
+			m.x += x;
+			m.y += y;
+			m.z += z;
+			transform->SetGlobalTransform(m);
+		}
 		else
 			ENGINE_CONSOLE_LOG("Object or its transformation component are null");
 	}

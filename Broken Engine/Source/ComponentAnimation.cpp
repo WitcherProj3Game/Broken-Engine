@@ -190,6 +190,17 @@ void ComponentAnimation::SetCurrentAnimationSpeed(float speed)
 		ENGINE_AND_SYSTEM_CONSOLE_LOG("Current Animation is nullptr!");
 }
 
+float ComponentAnimation::GetCurrentFrame() const {
+	float ret = 0;
+
+	if (playing_animation)
+		ret = Frame;
+	else
+		ENGINE_AND_SYSTEM_CONSOLE_LOG("Current Animation is nullptr!");
+
+	return ret;
+}
+
 bool ComponentAnimation::CurrentAnimationEnded()
 {
 	if (playing_animation)

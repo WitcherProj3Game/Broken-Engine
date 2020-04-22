@@ -21,6 +21,7 @@ public:
 	luabridge::LuaRef GetPosition(uint gameobject_UUID, lua_State* L);
 	void Translate(float x, float y, float z, uint gameobject_UUID);
 	void SetPosition(float x, float y, float z, uint gameobject_UUID);
+	void SetLocalPosition(float x, float y, float z, uint gameobject_UUID);
 	void SetScale(float x, float y, float z, uint gameobject_UUID);
 
 	// Rotation

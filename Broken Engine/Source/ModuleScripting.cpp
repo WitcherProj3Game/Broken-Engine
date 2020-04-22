@@ -216,6 +216,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("GetPosition", &ScriptingTransform::GetPosition)
 		.addFunction("Translate", &ScriptingTransform::Translate)
 		.addFunction("SetPosition", &ScriptingTransform::SetPosition)
+		.addFunction("SetLocalPosition", &ScriptingTransform::SetLocalPosition)
 		.addFunction("SetScale", &ScriptingTransform::SetScale)
 
 		// Rotation

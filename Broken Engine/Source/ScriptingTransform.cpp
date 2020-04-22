@@ -101,6 +101,21 @@ void ScriptingTransform::SetPosition(float x, float y, float z, uint gameobject_
 		ENGINE_CONSOLE_LOG("![Script]: (SetPosition) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
+void ScriptingTransform::SetLocalPosition(float x, float y, float z, uint gameobject_UUID) {
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentTransform* transform = go->GetComponent<ComponentTransform>();
+
+		if (transform)
+			transform->SetPosition(x, y, z);
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (SetLocalPosition) GOs transform component is null");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetLocalPosition) Could not find GameObject with UUID %d", gameobject_UUID);
+}
+
 void ScriptingTransform::SetScale(float x, float y, float z, uint gameobject_UUID) {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 

@@ -89,16 +89,16 @@ void ScriptingTransform::SetPosition(float x, float y, float z, uint gameobject_
 
 		if (transform) {
 			float4x4 m = transform->GetGlobalTransform();
-			m.x += x;
-			m.y += y;
-			m.z += z;
+			m.x = x;
+			m.y = y;
+			m.z = z;
 			transform->SetGlobalTransform(m);
 		}
 		else
-			ENGINE_CONSOLE_LOG("Object or its transformation component are null");
+			ENGINE_CONSOLE_LOG("![Script]: (SetPosition) GOs transform component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetPosition) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 void ScriptingTransform::SetScale(float x, float y, float z, uint gameobject_UUID) {

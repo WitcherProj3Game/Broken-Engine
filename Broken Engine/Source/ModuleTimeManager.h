@@ -35,7 +35,6 @@ public:
 private:
 
 	Timer	Realtime_clock;
-	Timer	Gametime_clock;
 	float	Time_scale = 1.0f;
 
 
@@ -48,6 +47,8 @@ private:
 	int		last_fps;
 	uint	capped_ms;
 	uint	last_frame_ms;
+public:
+	Timer	Gametime_clock;
 };
 BE_END_NAMESPACE
 #endif

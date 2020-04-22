@@ -238,6 +238,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addConstructor<void(*) (void)>()
 
 		.addFunction("FindGameObject", &ScriptingGameobject::FindGameObject)
+		.addFunction("FindChildGameObject", &ScriptingGameobject::FindChildGameObject)
 		.addFunction("GetMyUID", &ScriptingGameobject::GetMyUID)
 		.addFunction("GetParent", &ScriptingGameobject::GetScriptGOParent)
 		.addFunction("GetGameObjectParent", &ScriptingGameobject::GetGOParentFromUID)

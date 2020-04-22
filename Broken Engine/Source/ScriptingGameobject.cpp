@@ -34,6 +34,27 @@ uint ScriptingGameobject::FindGameObject(const char* go_name)
 	return ret;
 }
 
+uint ScriptingGameobject::FindChildGameObject(const char* go_name)
+{
+	uint ret = 0;
+
+	GameObject* go = App->scripting->current_script->my_component->GetContainerGameObject();
+
+	if (go != nullptr)
+	{
+		for (int i = 0; go->childs.size(); ++i) {
+			if (!strcmp(go->childs.at(i)->GetName(),go_name)) {
+				return go->childs.at(i)->GetUID();
+			}
+		}
+	}
+	else
+	{
+		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Gameobject %s was not found! 0 will be returned", go_name);
+	}
+	return ret;
+}
+
 uint ScriptingGameobject::GetMyUID()
 {
 	uint ret = 0;

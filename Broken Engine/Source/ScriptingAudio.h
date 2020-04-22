@@ -11,10 +11,15 @@ public:
 
 public:
 	void SetVolume(float volume, uint UID);
-	void PlayAudioEvent(std::string event, uint UID);
-	void StopAudioEvent(std::string event, uint UID);
-	void PauseAudioEvent(std::string event, uint UID);
-	void ResumeAudioEvent(std::string event,uint UID);
+	void PlayAudioEventGO(std::string event, uint UID);
+	void StopAudioEventGO(std::string event, uint UID);
+	void PauseAudioEventGO(std::string event, uint UID);
+	void ResumeAudioEventGO(std::string event,uint UID);
+
+	void PlayAudioEvent(std::string event);
+	void StopAudioEvent(std::string event);
+	void PauseAudioEvent(std::string event);
+	void ResumeAudioEvent(std::string event);
 
 };
 BE_END_NAMESPACE

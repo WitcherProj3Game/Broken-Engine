@@ -28,10 +28,10 @@ void ScriptingLighting::SetIntensity(float intensity, uint gameobject_UUID)
 		if (light)
 			light->SetLightIntensity(intensity);
 		else
-			ENGINE_CONSOLE_LOG("Light Component is null");
+			ENGINE_CONSOLE_LOG("![Script]: (SetIntensity) Light Component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetIntensity) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 void ScriptingLighting::SetDistanceMultiplier(float distMult, uint gameobject_UUID)
@@ -43,17 +43,17 @@ void ScriptingLighting::SetDistanceMultiplier(float distMult, uint gameobject_UU
 		if (light)
 			light->SetLightDistanceMultiplier(distMult);
 		else
-			ENGINE_CONSOLE_LOG("Light Component is null");
+			ENGINE_CONSOLE_LOG("![Script]: (SetDistanceMultiplier) Light Component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetDistanceMultiplier) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 void ScriptingLighting::SetType(int type, uint gameobject_UUID)
 {
 	if (type <= -1 || type >= 3)
 	{
-		ENGINE_CONSOLE_LOG("Error! Light Type Parameter Invalid!");
+		ENGINE_CONSOLE_LOG("![Script]: (SetType) Error! Light Type Parameter Invalid!");
 		return;
 	}
 
@@ -64,10 +64,10 @@ void ScriptingLighting::SetType(int type, uint gameobject_UUID)
 		if (light)
 			light->SetLightType((LightType)type);
 		else
-			ENGINE_CONSOLE_LOG("Light Component is null");
+			ENGINE_CONSOLE_LOG("![Script]: (SetType) Light Component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetType) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 void ScriptingLighting::SetColor(float r, float g, float b, uint gameobject_UUID)
@@ -79,10 +79,10 @@ void ScriptingLighting::SetColor(float r, float g, float b, uint gameobject_UUID
 		if (light)
 			light->SetLightColor(float3(r, g, b));
 		else
-			ENGINE_CONSOLE_LOG("Light Component is null");
+			ENGINE_CONSOLE_LOG("![Script]: (SetColor) Light Component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetColor) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 void ScriptingLighting::SetAttenuation(float K, float L, float Q, uint gameobject_UUID)
@@ -94,10 +94,10 @@ void ScriptingLighting::SetAttenuation(float K, float L, float Q, uint gameobjec
 		if (light)
 			light->SetLightAttenuationFactors(K, L, Q);
 		else
-			ENGINE_CONSOLE_LOG("Light Component is null");
+			ENGINE_CONSOLE_LOG("![Script]: (SetAttenuation) Light Component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetAttenuation) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 void ScriptingLighting::SetCutoff(float innerCutoff, float outerCutoff, uint gameobject_UUID)
@@ -109,45 +109,49 @@ void ScriptingLighting::SetCutoff(float innerCutoff, float outerCutoff, uint gam
 		if (light)
 			return light->SetLightInOutCutoff(innerCutoff, outerCutoff);
 		else
-			ENGINE_CONSOLE_LOG("Light Component is null");
+			ENGINE_CONSOLE_LOG("![Script]: (SetCutoff) Light Component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetCutoff) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 // --- Getters ---
 float ScriptingLighting::GetIntensity(uint gameobject_UUID) const
 {
+	float ret = 0.0f;
+
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 	if (go)
 	{
 		ComponentLight* light = go->GetComponent<ComponentLight>();
 		if (light)
-			return light->GetLightIntensity();
+			ret = light->GetLightIntensity();
 		else
-			ENGINE_CONSOLE_LOG("Light Component is null");
+			ENGINE_CONSOLE_LOG("![Script]: (GetIntensity) Light Component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (GetIntensity) Could not find GameObject with UUID %d", gameobject_UUID);
 
-	return 0.0;
+	return ret;
 }
 
 float ScriptingLighting::GetDistanceMultiplier(uint gameobject_UUID) const
 {
+	float ret = 0.0f;
+
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 	if (go)
 	{
 		ComponentLight* light = go->GetComponent<ComponentLight>();
 		if (light)
-			return light->GetLightDistanceMultiplier();
+			ret = light->GetLightDistanceMultiplier();
 		else
-			ENGINE_CONSOLE_LOG("Light Component is null");
+			ENGINE_CONSOLE_LOG("![Script]: (GetDistanceMultiplier) Light Component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (GetDistanceMultiplier) Could not find GameObject with UUID %d", gameobject_UUID);
 
-	return 0.0;
+	return ret;
 }
 
 int ScriptingLighting::GetType(uint gameobject_UUID) const
@@ -162,13 +166,13 @@ int ScriptingLighting::GetType(uint gameobject_UUID) const
 		{
 			ret = (int)light->GetLightType();
 			if(ret <= -1 || ret >= 3)
-				ENGINE_CONSOLE_LOG("WARNING! Light Type Invalid");
+				ENGINE_CONSOLE_LOG("![Script]: (GetType) WARNING! Light Type Invalid");
 		}
 		else
-			ENGINE_CONSOLE_LOG("Light Component is null");
+			ENGINE_CONSOLE_LOG("![Script]: (GetType) Light Component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (GetType) Could not find GameObject with UUID %d", gameobject_UUID);
 
 	return ret;
 }
@@ -184,10 +188,10 @@ luabridge::LuaRef ScriptingLighting::GetColor(uint gameobject_UUID, lua_State* L
 		if (light)
 			color = light->GetLightColor();
 		else
-			ENGINE_CONSOLE_LOG("Light Component is null");
+			ENGINE_CONSOLE_LOG("![Script]: (GetColor) Light Component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (GetColor) Could not find GameObject with UUID %d", gameobject_UUID);
 
 	luabridge::LuaRef table = luabridge::newTable(L);
 	table.append(color.x);
@@ -208,10 +212,10 @@ luabridge::LuaRef ScriptingLighting::GetAttenuation(uint gameobject_UUID, lua_St
 		if (light)
 			att = light->GetLightAttenuationKLQ();
 		else
-			ENGINE_CONSOLE_LOG("Light Component is null");
+			ENGINE_CONSOLE_LOG("![Script]: (GetAttenuation) Light Component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (GetAttenuation) Could not find GameObject with UUID %d", gameobject_UUID);
 
 	luabridge::LuaRef table = luabridge::newTable(L);
 	table.append(att.x);
@@ -232,10 +236,10 @@ luabridge::LuaRef ScriptingLighting::GetCutoff(uint gameobject_UUID, lua_State* 
 		if (light)
 			cutoff = light->GetLightInOutCutoff();
 		else
-			ENGINE_CONSOLE_LOG("Light Component is null");
+			ENGINE_CONSOLE_LOG("![Script]: (GetCutoff) Light Component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (GetCutoff) Could not find GameObject with UUID %d", gameobject_UUID);
 
 	luabridge::LuaRef table = luabridge::newTable(L);
 	table.append(cutoff.x);

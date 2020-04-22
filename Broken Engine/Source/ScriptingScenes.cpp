@@ -10,6 +10,8 @@
 #include "ResourcePrefab.h"
 #include "ResourceModel.h"
 #include "ComponentTransform.h"
+#include "ModuleTimeManager.h"
+#include "ModulePhysics.h"
 
 using namespace Broken;
 ScriptingScenes::ScriptingScenes() {}
@@ -19,9 +21,10 @@ ScriptingScenes::~ScriptingScenes() {}
 void ScriptingScenes::LoadSceneFromScript(uint scene_UUID)
 {
 	ResourceScene* scene = (ResourceScene*)App->resources->GetResource(scene_UUID, false);
-	App->GetAppState() = Broken::AppState::PAUSE;
+	App->time->Gametime_clock.Stop();
 	App->scene_manager->SetActiveScene(scene);
-	App->GetAppState() = Broken::AppState::PLAY;
+	App->physics->physAccumulatedTime = 0.0f;//Reset Physics
+	App->time->Gametime_clock.Start();
 }
 
 void ScriptingScenes::QuitGame()

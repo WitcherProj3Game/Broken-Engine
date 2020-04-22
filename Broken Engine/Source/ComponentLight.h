@@ -34,13 +34,14 @@ public:
 public:
 
 	// --- Getters --
-	inline const float3 GetLightDirection()			const			{ return m_Direction; }
-	inline const float3 GetLightColor()				const			{ return m_Color; }
-	inline const float3 GetLightAttenuationKLQ()	const			{ return m_AttenuationKLQFactors; }
-	inline const float2 GetLightInOutCutoff()		const			{ return m_InOutCutoffDegrees; }
-	inline const float  GetLightIntensity()			const			{ return m_Intensity; }
+	inline const float3 GetLightDirection()				const			{ return m_Direction; }
+	inline const float3 GetLightColor()					const			{ return m_Color; }
+	inline const float3 GetLightAttenuationKLQ()		const			{ return m_AttenuationKLQFactors; }
+	inline const float2 GetLightInOutCutoff()			const			{ return m_InOutCutoffDegrees; }
+	inline const float  GetLightIntensity()				const			{ return m_Intensity; }
+	inline const float  GetLightDistanceMultiplier()	const			{ return m_DistanceMultiplier; }
 			
-	inline const LightType GetLightType()			const			{ return m_LightType; }
+	inline const LightType GetLightType()				const			{ return m_LightType; }
 
 	// -- Setters ---
 	void SetLightDirection(float3 dir)								{ m_Direction = dir; }
@@ -55,6 +56,7 @@ public:
 	void SetLightInOutCutoff(float innerCutoff, float outerCutoff)	{ m_InOutCutoffDegrees = float2(innerCutoff, outerCutoff); }
 
 	void SetLightIntensity(float intensity)							{ m_Intensity = intensity; }
+	void SetLightDistanceMultiplier(float distMulti)				{ m_DistanceMultiplier = distMulti; }
 
 	void SetLightType(LightType type)								{ if (type != LightType::NONE && (uint)type < (uint)LightType::MAX_LIGHT_TYPES) m_LightType = type; }
 
@@ -72,6 +74,7 @@ private:
 	float2 m_InOutCutoffDegrees = float2(12.5f, 45.0f);
 
 	float m_Intensity = 0.5f;
+	float m_DistanceMultiplier = 1.0f;
 
 	// --- Others ---
 	LightType m_LightType = LightType::NONE;

@@ -91,6 +91,7 @@ struct BrokenLight
 	vec3 color;
 
 	float intensity;
+	float distanceMultiplier;
 
 	vec3 attenuationKLQ;
 	vec2 InOutCutoff;
@@ -147,7 +148,8 @@ vec3 CalculatePointlight(BrokenLight light, vec3 normal, vec3 viewDir)
 	//	direction = v_TBN * normalize(direction);
 
 	//Attenuation Calculation
-	float d = length(light.pos - v_FragPos);
+	float dMult = 1/light.distanceMultiplier;
+	float d = length(light.pos - v_FragPos) * dMult;
 	float lightAttenuation = 1.0/(light.attenuationKLQ.x + light.attenuationKLQ.y * d + light.attenuationKLQ.z *(d * d));
 
 	//Result

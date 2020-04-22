@@ -24,6 +24,7 @@
 #include "ScriptingInterface.h"
 #include "ScriptingScenes.h"
 #include "ScriptingNavigation.h"
+#include "ScriptingLighting.h"
 #include "ScriptVar.h"
 #include <iterator>
 
@@ -135,6 +136,10 @@ bool ModuleScripting::JustCompile(std::string absolute_path) {
 		.endClass()
 
 		.beginClass <ScriptingParticles>("Particles")
+		.addConstructor<void(*) (void)>()
+		.endClass()
+
+		.beginClass <ScriptingLighting>("Lighting")
 		.addConstructor<void(*) (void)>()
 		.endClass()
 
@@ -321,6 +326,27 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 
 		.addFunction("SetParticlesScale", &ScriptingParticles::SetParticleScaleFromScript)
 		.addFunction("SetRandomParticlesScale", &ScriptingParticles::SetRandomParticleScale)
+		.endClass()
+
+		// ----------------------------------------------------------------------------------
+		// LIGHTING
+		// ----------------------------------------------------------------------------------
+		.beginClass <ScriptingLighting>("Lighting")
+		.addConstructor<void(*) (void)>()
+
+		.addFunction("GetLightColor", &ScriptingLighting::GetColor)
+		.addFunction("GetLightAttenuation", &ScriptingLighting::GetAttenuation)
+		.addFunction("GetLightCutoff", &ScriptingLighting::GetCutoff)
+		.addFunction("GetLightType", &ScriptingLighting::GetType)
+		.addFunction("GetLightIntensity", &ScriptingLighting::GetIntensity)
+		.addFunction("GetDistMultiplier", &ScriptingLighting::GetDistanceMultiplier)
+
+		.addFunction("SetLightIntensity", &ScriptingLighting::SetIntensity)
+		.addFunction("SetLightType", &ScriptingLighting::SetType)
+		.addFunction("SetLightColor", &ScriptingLighting::SetColor)
+		.addFunction("SetLightAttenuation", &ScriptingLighting::SetAttenuation)
+		.addFunction("SetLightCutoff", &ScriptingLighting::SetCutoff)
+		.addFunction("SetDistMultiplier", &ScriptingLighting::SetDistanceMultiplier)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------

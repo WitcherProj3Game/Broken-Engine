@@ -723,6 +723,9 @@
     <ClInclude Include="TranslatorUtilities.h">
       <Filter>Sources\BrokenEngine\Modules\Scripting Functions\SuperTranslator</Filter>
     </ClInclude>
+    <ClInclude Include="ScriptingLighting.h">
+      <Filter>Sources\BrokenEngine\Modules\Scripting Functions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MathGeoLib\include\SystemInfo.cpp">
@@ -1234,6 +1237,9 @@
     </ClCompile>
     <ClCompile Include="TranslatorUtilities.cpp">
       <Filter>Sources\BrokenEngine\Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptingLighting.cpp">
+      <Filter>Sources\BrokenEngine\Modules\Scripting Functions</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

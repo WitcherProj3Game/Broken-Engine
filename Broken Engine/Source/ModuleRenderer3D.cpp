@@ -391,12 +391,22 @@ bool ModuleRenderer3D::CleanUp()
 void ModuleRenderer3D::LoadStatus(const json& file)
 {
 	m_GammaCorrection = file["Renderer3D"]["GammaCorrection"].is_null() ? 1.0f : file["Renderer3D"]["GammaCorrection"].get<float>();
+
+	float ambR = file["Renderer3D"]["SceneAmbientColor"]["R"].is_null() ? 1.0f : file["Renderer3D"]["SceneAmbientColor"]["R"].get<float>();
+	float ambG = file["Renderer3D"]["SceneAmbientColor"]["G"].is_null() ? 1.0f : file["Renderer3D"]["SceneAmbientColor"]["G"].get<float>();
+	float ambB = file["Renderer3D"]["SceneAmbientColor"]["B"].is_null() ? 1.0f : file["Renderer3D"]["SceneAmbientColor"]["B"].get<float>();
+	m_AmbientColor = float3(ambR, ambG, ambB);
 }
 
 const json& ModuleRenderer3D::SaveStatus() const
 {
 	static json m_config;
+
 	m_config["GammaCorrection"] = m_GammaCorrection;
+	m_config["SceneAmbientColor"]["R"] = m_AmbientColor.x;
+	m_config["SceneAmbientColor"]["G"] = m_AmbientColor.y;
+	m_config["SceneAmbientColor"]["B"] = m_AmbientColor.z;
+
 	return m_config;
 }
 
@@ -809,8 +819,9 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
 		glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit"), (int)m_Draw_normalMapping_Lit);
 		glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit_Adv"), (int)m_Draw_normalMapping_Lit_Adv);
 
-		// --- Gamma Correction Value ---
+		// --- Gamma Correction & Ambient Color Values ---
 		glUniform1f(glGetUniformLocation(shader, "u_GammaCorrection"), m_GammaCorrection);
+		glUniform4f(glGetUniformLocation(shader, "u_AmbientColor"), m_AmbientColor.x, m_AmbientColor.y, m_AmbientColor.z, 1.0f);
 
 		// --- Set Textures usage to 0 ---
 		//glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 0);

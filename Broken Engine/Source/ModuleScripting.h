@@ -15,6 +15,7 @@ struct ScriptFunc;
 enum _AppState;
 class BROKEN_API ModuleScripting : public Module {
 	friend class ScriptingElements;
+	friend class AutoCompleteFileGen;
 public:
 	ModuleScripting(bool start_enabled = true);
 	~ModuleScripting();

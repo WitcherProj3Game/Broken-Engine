@@ -24,8 +24,22 @@ public:
 	~AutoCompleteFileGen();
 
 public: //Function
+	void EmplaceSystemFunctions();
+	void EmplaceTransformFunctions();
+	void EmplaceGameObjectFunctions();
+	void EmplaceCameraFunctions();
+	void EmplacePhysicsFunctions();
+	void EmplaceParticlesFunctions();
+	void EmplaceAudioFunctions();
+	void EmplaceAnimationFunctions();
+	void EmplaceUserInterfaceFunctions();
+	void EmplaceSceneFunctions();
+	void EmplaceNavigationFunctions();
+	void EmplaceScriptingInputsFunctions();
+
 
 	void GenerateAutoCompleteFile();
+	void GetAllFunctions();
 
 
 public: //Variables

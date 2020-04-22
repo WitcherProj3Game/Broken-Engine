@@ -446,6 +446,10 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 			ENGINE_CONSOLE_LOG("%s", error.data());
 			cannot_start = true;
 		}
+
+		//Testing the autogeneration of the Autocomplete file
+		AutoCompleteFileGen ac_filegen;
+		ac_filegen.GenerateAutoCompleteFile();
 	}
 }
 
@@ -762,9 +766,6 @@ bool ModuleScripting::Init(json& file) {
 	DeployScriptingGlobals();
 
 	debug_instance = new ScriptInstance;
-
-	AutoCompleteFileGen ac_filegen;
-	ac_filegen.GenerateAutoCompleteFile();
 
 	return true;
 }

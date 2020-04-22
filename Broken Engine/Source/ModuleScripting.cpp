@@ -237,6 +237,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("GetGameObjectParent", &ScriptingGameobject::GetGOParentFromUID)
 		.addFunction("DestroyGameObject", &ScriptingGameobject::DestroyGOFromScript)
 		.addFunction("SetActiveGameObject", &ScriptingGameobject::SetActiveGameObject)
+		.addFunction("IsActiveGameObject", &ScriptingGameobject::IsActiveGameObject)
 
 		.addFunction("GetMyLayer", &ScriptingGameobject::GetMyLayer)
 		.addFunction("GetLayerByID", &ScriptingGameobject::GetLayerByID)

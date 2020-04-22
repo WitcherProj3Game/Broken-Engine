@@ -98,6 +98,17 @@ void ScriptingGameobject::SetActiveGameObject(bool active, uint gameobject_UUID)
 	else
 		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Gameobject with %d UUID does not exist!", gameobject_UUID);
 }
+bool ScriptingGameobject::IsActiveGameObject(uint gameobject_UUID) {
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	bool ret = false;
+
+	if (go)
+		ret = go->GetActive();
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (IsActiveGameObject): Gameobject with %d UUID does not exist!", gameobject_UUID);
+
+	return ret;
+}
 uint ScriptingGameobject::GetComponentFromGO(const char* component_name, uint gameobject_UUID)
 {
 	uint ret = 0;

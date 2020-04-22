@@ -58,6 +58,28 @@ uint ScriptingGameobject::FindChildGameObject(const char* go_name)
 	return ret;
 }
 
+uint ScriptingGameobject::FindChildGameObjectFromGO(const char* go_name, uint gameobject_UUID) {
+	uint ret = 0;
+
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go != nullptr) {
+		for (int i = 0; go->childs.size(); ++i) {
+			if (!strcmp(go->childs.at(i)->GetName(), go_name)) {
+				ret = go->childs.at(i)->GetUID();
+				break;
+			}
+		}
+
+		if (ret == 0)
+			ENGINE_CONSOLE_LOG("![Script]: (FindChildGameObjectFromGO) Gameobject %s was not found in GO with UID %d! 0 will be returned", go_name, gameobject_UUID);
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (FindChildGameObjectFromGO) Gameobject with UID %d does not exist!", gameobject_UUID);
+
+	return ret;
+}
+
 uint ScriptingGameobject::GetMyUID()
 {
 	uint ret = 0;

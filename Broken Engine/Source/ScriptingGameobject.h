@@ -19,6 +19,7 @@ public:
 	// GameObject-related functions
 	uint FindGameObject(const char* go_name);
 	uint FindChildGameObject(const char* go_name);
+	uint FindChildGameObjectFromGO(const char* go_name, uint gameobject_UUID);
 	uint GetMyUID();
 	uint GetScriptGOParent();
 	uint GetGOParentFromUID(uint gameobject_UUID);

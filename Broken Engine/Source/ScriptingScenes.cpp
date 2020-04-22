@@ -19,7 +19,9 @@ ScriptingScenes::~ScriptingScenes() {}
 void ScriptingScenes::LoadSceneFromScript(uint scene_UUID)
 {
 	ResourceScene* scene = (ResourceScene*)App->resources->GetResource(scene_UUID, false);
+	App->GetAppState() = Broken::AppState::PAUSE;
 	App->scene_manager->SetActiveScene(scene);
+	App->GetAppState() = Broken::AppState::PLAY;
 }
 
 void ScriptingScenes::QuitGame()

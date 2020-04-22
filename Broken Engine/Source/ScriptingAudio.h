@@ -10,11 +10,11 @@ public:
 	~ScriptingAudio();
 
 public:
-	void SetVolume(float volume);
-	void PlayAudioEvent(std::string event);
-	void StopAudioEvent(std::string event);
-	void PauseAudioEvent(std::string event);
-	void ResumeAudioEvent(std::string event);
+	void SetVolume(float volume, uint UID);
+	void PlayAudioEvent(std::string event, uint UID);
+	void StopAudioEvent(std::string event, uint UID);
+	void PauseAudioEvent(std::string event, uint UID);
+	void ResumeAudioEvent(std::string event,uint UID);
 
 };
 BE_END_NAMESPACE

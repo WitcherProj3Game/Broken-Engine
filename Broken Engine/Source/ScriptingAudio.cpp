@@ -6,6 +6,7 @@
 #include "ModuleScripting.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleAudio.h"
+#include "ModuleSceneManager.h"
 
 // -- Components --
 #include "GameObject.h"
@@ -15,6 +16,8 @@
 #include "ComponentAnimation.h"
 #include "ComponentCamera.h"
 #include "ComponentAudioSource.h"
+#include "ResourceScene.h"
+
 
 
 #include "../Game/Assets/Sounds/Wwise_IDs.h"
@@ -26,9 +29,12 @@ ScriptingAudio::ScriptingAudio() {}
 
 ScriptingAudio::~ScriptingAudio() {}
 
-void ScriptingAudio::SetVolume(float volume)
+void ScriptingAudio::SetVolume(float volume, uint UID)
 {
-	ComponentAudioSource* sound = App->scripting->current_script->my_component->GetContainerGameObject()->GetComponent<ComponentAudioSource>();
+	GameObject* GO = App->scene_manager->currentScene->GetGOWithUID(UID);
+	ComponentAudioSource* sound = nullptr;
+	if (GO)
+		sound = GO->GetComponent<ComponentAudioSource>();
 
 	if (sound)
 		sound->SetVolume(volume);
@@ -36,18 +42,17 @@ void ScriptingAudio::SetVolume(float volume)
 		ENGINE_CONSOLE_LOG("[Script]: Sound Emmiter component is NULL");
 }
 
-void ScriptingAudio::PlayAudioEvent(std::string event)
+void ScriptingAudio::PlayAudioEvent(std::string event, uint UID)
 {
+	GameObject* GO = App->scene_manager->currentScene->GetGOWithUID(UID);
 	ComponentAudioSource* sound = nullptr;
-	sound = App->scripting->current_script->my_component->GetContainerGameObject()->GetComponent<ComponentAudioSource>();
-
+	if (GO)
+		sound = GO->GetComponent<ComponentAudioSource>();
 	uint EventId = App->audio->EventMap[event];
-
-
-	sound->SetID(EventId);
 
 	if (sound)
 	{
+		sound->SetID(EventId);
 		sound->wwiseGO->PlayEvent(EventId);
 		sound->isPlaying = true;
 	}
@@ -55,16 +60,17 @@ void ScriptingAudio::PlayAudioEvent(std::string event)
 		ENGINE_CONSOLE_LOG("[Script]: Sound Emmiter component is NULL");
 }
 
-void ScriptingAudio::StopAudioEvent(std::string event)
+void ScriptingAudio::StopAudioEvent(std::string event, uint UID)
 {
-	ComponentAudioSource* sound = App->scripting->current_script->my_component->GetContainerGameObject()->GetComponent<ComponentAudioSource>();
-
+	GameObject* GO = App->scene_manager->currentScene->GetGOWithUID(UID);
+	ComponentAudioSource* sound = nullptr;
+	if (GO)
+		sound = GO->GetComponent<ComponentAudioSource>();
 	uint EventId = App->audio->EventMap[event];
-
-	sound->SetID(EventId);
 
 	if (sound)
 	{
+		sound->SetID(EventId);
 		sound->wwiseGO->StopEvent(EventId);
 		sound->isPlaying = false;
 	}
@@ -72,16 +78,17 @@ void ScriptingAudio::StopAudioEvent(std::string event)
 		ENGINE_CONSOLE_LOG("[Script]: Sound Emmiter component is NULL");
 }
 
-void ScriptingAudio::PauseAudioEvent(std::string event)
+void ScriptingAudio::PauseAudioEvent(std::string event, uint UID)
 {
-	ComponentAudioSource* sound = App->scripting->current_script->my_component->GetContainerGameObject()->GetComponent<ComponentAudioSource>();
-
+	GameObject* GO = App->scene_manager->currentScene->GetGOWithUID(UID);
+	ComponentAudioSource* sound = nullptr;
+	if (GO)
+		sound = GO->GetComponent<ComponentAudioSource>();
 	uint EventId = App->audio->EventMap[event];
-
-	sound->SetID(EventId);
 
 	if (sound)
 	{
+		sound->SetID(EventId);
 		sound->wwiseGO->PauseEvent(EventId);
 		sound->isPlaying = false;
 		sound->isPaused = true;
@@ -90,16 +97,18 @@ void ScriptingAudio::PauseAudioEvent(std::string event)
 		ENGINE_CONSOLE_LOG("[Script]: Sound Emmiter component is NULL");
 }
 
-void ScriptingAudio::ResumeAudioEvent(std::string event)
+void ScriptingAudio::ResumeAudioEvent(std::string event,uint UID)
 {
-	ComponentAudioSource* sound = App->scripting->current_script->my_component->GetContainerGameObject()->GetComponent<ComponentAudioSource>();
+	GameObject* GO = App->scene_manager->currentScene->GetGOWithUID(UID);
+	ComponentAudioSource* sound = nullptr;
+	if(GO)
+		sound = GO->GetComponent<ComponentAudioSource>();
 
 	uint EventId = App->audio->EventMap[event];
 
-	sound->SetID(EventId);
-
 	if (sound)
 	{
+		sound->SetID(EventId);
 		sound->wwiseGO->ResumeEvent(EventId);
 		sound->isPlaying = true;
 		sound->isPaused = false;

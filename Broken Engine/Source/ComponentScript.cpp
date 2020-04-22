@@ -3,6 +3,8 @@
 #include "ModuleResourceManager.h"
 #include "ModuleScripting.h"
 #include "ModuleFileSystem.h"
+#include "ModuleSceneManager.h"
+#include "ResourceScene.h"
 #include "ResourceScript.h"
 #include "GameObject.h"
 #include "Imgui/imgui.h"
@@ -83,6 +85,19 @@ void ComponentScript::CreateInspectorNode() {
 							script_variables[i].changed_value = true;
 						}
 					}
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GO"))
+					{
+						uint UID = *(const uint*)payload->Data;
+						GameObject* Go = App->scene_manager->currentScene->GetGOWithUID(UID);
+						if ( Go != nullptr)
+						{
+							script_variables[i].editor_value.as_double = UID;
+							script_variables[i].object_name = Go->GetName();
+							script_variables[i].display_object_name = true;
+							script_variables[i].changed_value = true;
+						}
+					}
+					ImGui::EndDragDropTarget();
 
 					ImGui::EndDragDropTarget();
 				}

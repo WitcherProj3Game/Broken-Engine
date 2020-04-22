@@ -65,6 +65,7 @@ in mat3 v_TBN;
 
 //Uniforms
 uniform float u_GammaCorrection = 1.0;
+uniform vec4 u_AmbientColor = vec4(1.0);
 
 uniform float u_Shininess = 1.5;
 uniform int u_UseTextures = 0;
@@ -236,11 +237,13 @@ void main()
 
 	if(u_DrawNormalMapping_Lit == 0 && u_DrawNormalMapping_Lit_Adv == 0)
 	{
+		vec3 finalColor = u_AmbientColor.rgb * v_Color.rgb;
+
 		//Resulting Color
 		if(u_UseTextures == 0 || (HasTransparencies == 0 && u_UseTextures == 1 && texture(u_AlbedoTexture, v_TexCoord).a < 0.1))
-			out_color = vec4(colorResult + v_Color.rgb, alpha);
+			out_color = vec4(colorResult + finalColor, alpha);
 		else if(u_UseTextures == 1)
-			out_color = vec4(colorResult + v_Color.rgb * texture(u_AlbedoTexture, v_TexCoord).rgb, alpha);
+			out_color = vec4(colorResult + finalColor * texture(u_AlbedoTexture, v_TexCoord).rgb, alpha);
 
 		out_color = pow(out_color, vec4(vec3(1.0/u_GammaCorrection), 1.0));
 	}

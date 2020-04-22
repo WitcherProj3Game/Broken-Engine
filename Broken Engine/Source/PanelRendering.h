@@ -2,6 +2,7 @@
 #define __PANEL_RENDERING_H__
 
 #include "Panel.h"
+#include "Math.h"
 
 class PanelRendering : public Panel
 {
@@ -15,6 +16,7 @@ public:
 private:
 
 	float m_GammaCorretionValue = 1.0f;
+	float3 m_AmbientColorValue = float3::one;
 };
 
 #endif

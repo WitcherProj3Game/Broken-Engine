@@ -44,14 +44,17 @@ uint ScriptingGameobject::FindChildGameObject(const char* go_name)
 	{
 		for (int i = 0; go->childs.size(); ++i) {
 			if (!strcmp(go->childs.at(i)->GetName(),go_name)) {
-				return go->childs.at(i)->GetUID();
+				ret = go->childs.at(i)->GetUID();
+				break;
 			}
 		}
+
+		if (ret == 0)
+			ENGINE_CONSOLE_LOG("![Script]: (FindChildGameObject) Gameobject %s was not found! 0 will be returned", go_name);
 	}
 	else
-	{
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Gameobject %s was not found! 0 will be returned", go_name);
-	}
+		ENGINE_CONSOLE_LOG("![Script]: (FindChildGameObject) Gameobject %s was not found! 0 will be returned", go_name);
+	
 	return ret;
 }
 

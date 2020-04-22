@@ -325,7 +325,7 @@ json ComponentLight::Save() const
 
 	node["Intensity"] = std::to_string(m_Intensity);
 	node["LightType"] = std::to_string((int)m_LightType);
-
+	node["DistanceMultiplier"] = std::to_string(m_DistanceMultiplier);
 
 	return node;
 }
@@ -352,6 +352,7 @@ void ComponentLight::Load(json& node)
 	std::string str_outCut = node["OuterCutoff"].is_null() ? "45" : node["OuterCutoff"];
 
 	std::string str_intensity = node["Intensity"].is_null() ? "0.5" : node["Intensity"];
+	std::string str_distMult = node["DistanceMultiplier"].is_null() ? "1.0" : node["DistanceMultiplier"];
 	std::string str_LType = node["LightType"].is_null() ? "1" : node["LightType"];
 
 	// --- Pass Strings to the needed Data Type
@@ -363,4 +364,5 @@ void ComponentLight::Load(json& node)
 
 	m_Intensity = std::stof(str_intensity);
 	m_LightType = (LightType)(std::stoi(str_LType));
+	m_DistanceMultiplier = std::stof(str_distMult);
 }

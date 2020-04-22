@@ -251,7 +251,7 @@ void ComponentLight::CreateInspectorNode()
 	ImGui::Text("Intensity");
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 	ImGui::SetNextItemWidth(300.0f);
-	ImGui::SliderFloat("", &m_Intensity, 0.0f, 2.0f);
+	ImGui::SliderFloat("", &m_Intensity, 0.0f, INFINITY);
 	ImGui::NewLine();
 
 	if (m_LightType == LightType::SPOTLIGHT)

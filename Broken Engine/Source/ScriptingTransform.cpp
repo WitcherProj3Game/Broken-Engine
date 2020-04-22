@@ -88,11 +88,8 @@ void ScriptingTransform::SetPosition(float x, float y, float z, uint gameobject_
 		ComponentTransform* transform = go->GetComponent<ComponentTransform>();
 
 		if (transform) {
-			float4x4 m = transform->GetGlobalTransform();
-			m.x = x;
-			m.y = y;
-			m.z = z;
-			transform->SetGlobalTransform(m);
+			transform->SetGlobalPosition(x, y, z);
+			go->TransformGlobal();
 		}
 		else
 			ENGINE_CONSOLE_LOG("![Script]: (SetPosition) GOs transform component is null");
@@ -107,8 +104,10 @@ void ScriptingTransform::SetLocalPosition(float x, float y, float z, uint gameob
 	if (go) {
 		ComponentTransform* transform = go->GetComponent<ComponentTransform>();
 
-		if (transform)
+		if (transform) {
 			transform->SetPosition(x, y, z);
+			go->TransformGlobal();
+		}
 		else
 			ENGINE_CONSOLE_LOG("![Script]: (SetLocalPosition) GOs transform component is null");
 	}
@@ -165,6 +164,7 @@ void ScriptingTransform::RotateObject(float x, float y, float z, uint gameobject
 			float3 rot = transform->GetRotation();
 			rot += float3(x, y, z);
 			transform->SetRotation(rot);
+			go->TransformGlobal();
 		}
 		else
 			ENGINE_CONSOLE_LOG("Object or its transformation component are null");
@@ -180,8 +180,10 @@ void ScriptingTransform::SetObjectRotation(float x, float y, float z, uint gameo
 	if (go) {
 		ComponentTransform* transform = go->GetComponent<ComponentTransform>();
 
-		if (transform)
+		if (transform) {
 			transform->SetRotation({ x, y, z });
+			go->TransformGlobal();
+		}
 		else
 			ENGINE_CONSOLE_LOG("Object or its transformation component are null");
 	}

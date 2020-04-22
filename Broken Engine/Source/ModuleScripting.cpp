@@ -334,6 +334,11 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("StopAudioEvent", &ScriptingAudio::StopAudioEvent)
 		.addFunction("PauseAudioEvent", &ScriptingAudio::PauseAudioEvent)
 		.addFunction("ResumeAudioEvent", &ScriptingAudio::ResumeAudioEvent)
+		.addFunction("SetVolume", &ScriptingAudio::SetVolume)
+		.addFunction("PlayAudioEventGO", &ScriptingAudio::PlayAudioEventGO)
+		.addFunction("StopAudioEventGO", &ScriptingAudio::StopAudioEventGO)
+		.addFunction("PauseAudioEventGO", &ScriptingAudio::PauseAudioEventGO)
+		.addFunction("ResumeAudioEventGO", &ScriptingAudio::ResumeAudioEventGO)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------

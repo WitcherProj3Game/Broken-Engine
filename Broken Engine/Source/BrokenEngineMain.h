@@ -14,6 +14,9 @@
 #pragma comment( lib, "SDL/libx86/SDL2.lib" )
 #pragma comment( lib, "SDL/libx86/SDL2main.lib" )
 
+#include "Optick/optick.h"
+#pragma comment(lib, "Optick/libx86/OptickCore.lib")
+
 //#include "mmgr/mmgr.h"
 
 ////Trick to tell AMD and NVIDIA drivers to use the most powerful GPU instead of a lower-performance (such as integrated) GPU

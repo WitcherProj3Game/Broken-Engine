@@ -76,6 +76,8 @@ int main(int argc, char** argv) {
 
 		case MAIN_UPDATE:
 		{
+			OPTICK_FRAME("Main Thread");
+
 			int update_return = Broken::App->Update();
 
 			if (update_return == UPDATE_ERROR) {

@@ -15,8 +15,12 @@
 #pragma comment( lib, "SDL/libx86/SDL2main.lib" )
 
 #include "Optick/optick.h"
-#pragma comment(lib, "Optick/libx86/OptickCore.lib")
 
+#ifdef _DEBUG
+#pragma comment(lib, "Optick/libx86/debug/OptickCore.lib")
+#else
+#pragma comment(lib, "Optick/libx86/release/OptickCore.lib")
+#endif
 //#include "mmgr/mmgr.h"
 
 ////Trick to tell AMD and NVIDIA drivers to use the most powerful GPU instead of a lower-performance (such as integrated) GPU
@@ -106,6 +110,8 @@ int main(int argc, char** argv) {
 		}
 	}
 	EX_ENGINE_AND_SYSTEM_CONSOLE_LOG("Exiting app %s...\n", mainApp->GetAppName());
+
+	OPTICK_SHUTDOWN();
 
 	delete mainApp;
 	return main_return;

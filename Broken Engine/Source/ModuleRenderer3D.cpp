@@ -244,6 +244,9 @@ bool ModuleRenderer3D::Init(json& file)
 // PreUpdate: clear buffer
 update_status ModuleRenderer3D::PreUpdate(float dt)
 {
+	OPTICK_EVENT();
+	OPTICK_CATEGORY("Renderer PreUpdate", Optick::Category::Rendering);
+
 	// --- Update OpenGL Capabilities ---
 	UpdateGLCapabilities();
 
@@ -269,6 +272,8 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 // PostUpdate present buffer to screen
 update_status ModuleRenderer3D::PostUpdate(float dt)
 {
+	OPTICK_EVENT();
+
 	// --- Set Shader Matrices ---
 	GLint viewLoc = glGetUniformLocation(defaultShader->ID, "u_View");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLViewMatrix().ptr());

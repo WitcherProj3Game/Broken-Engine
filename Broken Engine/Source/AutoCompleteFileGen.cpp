@@ -19,7 +19,7 @@ AutoCompleteFileGen::~AutoCompleteFileGen()
 
 void AutoCompleteFileGen::EmplaceAnimationFunctions()
 {
-	std::string source = "Animations.lua";
+	std::string source = "Animations";
 
 	SerializedFunction PlayAnimation("PlayAnimation", source.c_str());
 	SerializedFunction SetAnimationSpeed("SetAnimationSpeed", source.c_str());
@@ -38,7 +38,7 @@ void AutoCompleteFileGen::EmplaceAnimationFunctions()
 
 void AutoCompleteFileGen::EmplaceUserInterfaceFunctions()
 {
-	std::string source = "UserInterface.lua";
+	std::string source = "UserInterface";
 
 	SerializedFunction MakeElementVisible("MakeElementVisible", source.c_str());
 	SerializedFunction MakeElementInvisible("MakeElementInvisible", source.c_str());
@@ -77,7 +77,7 @@ void AutoCompleteFileGen::EmplaceSceneFunctions()
 
 void AutoCompleteFileGen::EmplaceNavigationFunctions()
 {
-	std::string source = "Navigation.lua";
+	std::string source = "Navigation";
 
 	SerializedFunction AllAreas("AllAreas", source.c_str());
 	SerializedFunction GetAreaFromName("GetAreaFromName", source.c_str());
@@ -96,7 +96,7 @@ void AutoCompleteFileGen::EmplaceNavigationFunctions()
 
 void AutoCompleteFileGen::EmplaceScriptingInputsFunctions()
 {
-	std::string source = "Input.lua";
+	std::string source = "Input";
 
 	SerializedFunction KeyDown("KeyDown", source.c_str());
 	SerializedFunction KeyUp("KeyUp", source.c_str());
@@ -160,7 +160,7 @@ void AutoCompleteFileGen::EmplaceScriptingInputsFunctions()
 
 void AutoCompleteFileGen::EmplaceSystemFunctions()
 {
-	std::string source = "System.lua";
+	std::string source = "System";
 
 	SerializedFunction LOG("LOG", source.c_str());
 	SerializedFunction RealDT("RealDT", source.c_str());
@@ -218,19 +218,23 @@ void AutoCompleteFileGen::EmplaceTransformFunctions()
 
 void AutoCompleteFileGen::EmplaceGameObjectFunctions()
 {
-	std::string source = "GameObject.lua";
+	std::string source = "GameObject";
 
 	SerializedFunction FindGameObject("FindGameObject", source.c_str());
+	FindGameObject.description = "Returns the UID of the GameObject if it is found in the scene. This function searches using strings, only recomended to be called on Awake or Start since it consumes a lot of resources.";
 	SerializedFunction GetMyUID("GetMyUID", source.c_str());
+	GetMyUID.description = "Returns the UID of the gameObject that contains the script and that currently running the Awake, Start or Update functions.";
 	SerializedFunction GetParent("GetParent", source.c_str());
 	SerializedFunction GetGameObjectParent("GetGameObjectParent", source.c_str());
 	SerializedFunction DestroyGameObject("DestroyGameObject", source.c_str());
+	DestroyGameObject.description = "Deletes the gameObject with the passedUID.";
 	SerializedFunction SetActiveGameObject("SetActiveGameObject", source.c_str());
 
 	SerializedFunction GetMyLayer("GetMyLayer", source.c_str());
 	SerializedFunction GetLayerByID("GetLayerByID", source.c_str());
 	SerializedFunction GetComponent("GetComponent", source.c_str());
 	SerializedFunction GetScript("GetScript", source.c_str());
+	GetScript.description = "Returns a reference to another script. The script returned is the one placed inside the gameObject with the UID you pass. ";
 
 
 	//PushBack all functions
@@ -249,7 +253,7 @@ void AutoCompleteFileGen::EmplaceGameObjectFunctions()
 
 void AutoCompleteFileGen::EmplaceCameraFunctions()
 {
-	std::string source = "Camera.lua";
+	std::string source = "Camera";
 
 	SerializedFunction GetPositionInFrustum("GetPositionInFrustum", source.c_str());
 	SerializedFunction GetFrustumPlanesIntersection("GetFrustumPlanesIntersection", source.c_str());
@@ -265,7 +269,7 @@ void AutoCompleteFileGen::EmplaceCameraFunctions()
 
 void AutoCompleteFileGen::EmplacePhysicsFunctions()
 {
-	std::string source = "Physics.lua";
+	std::string source = "Physics";
 
 	SerializedFunction GetAngularVelocity("GetAngularVelocity", source.c_str());
 	SerializedFunction SetAngularVelocity("SetAngularVelocity", source.c_str());
@@ -327,7 +331,7 @@ void AutoCompleteFileGen::EmplacePhysicsFunctions()
 
 void AutoCompleteFileGen::EmplaceParticlesFunctions()
 {
-	std::string source = "Particles.lua";
+	std::string source = "Particles";
 
 	SerializedFunction ActivateParticlesEmission("ActivateParticlesEmission", source.c_str());
 	SerializedFunction DeactivateParticlesEmission("DeactivateParticlesEmission", source.c_str());
@@ -377,7 +381,7 @@ void AutoCompleteFileGen::EmplaceParticlesFunctions()
 
 void AutoCompleteFileGen::EmplaceAudioFunctions()
 {
-	std::string source = "Audio.lua";
+	std::string source = "Audio";
 
 	SerializedFunction SetVolume("SetVolume", source.c_str());
 	SerializedFunction PlayAudioEvent("PlayAudioEvent", source.c_str());
@@ -416,13 +420,15 @@ void AutoCompleteFileGen::GenerateAutoCompleteFile()
 
 	//Iterate all functions into the .json file
 	std::string body;
+	std::string extended_description;
 	for (std::vector<SerializedFunction>::iterator it = engine_functions.begin(); it != engine_functions.end(); ++it)
 	{
 		body = (*it).name + "()";
 		file[(*it).name.c_str()]["body"] = body.c_str();
 		file[(*it).name.c_str()]["scope"] = (*it).scope.c_str();
 		file[(*it).name.c_str()]["prefix"] = (*it).name.c_str();
-		file[(*it).name.c_str()]["description"] = (*it).description.c_str();
+		extended_description = (*it).description+ "Function belongs to: Scripting." + (*it).scope;
+		file[(*it).name.c_str()]["description"] = extended_description.c_str();
 	}
 
 	// --- Serialize JSON to string ---

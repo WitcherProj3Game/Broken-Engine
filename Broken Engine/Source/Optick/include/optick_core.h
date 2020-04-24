@@ -84,7 +84,6 @@ struct ScopeHeader
 	uint32 boardNumber;
 	int32 threadNumber;
 	int32 fiberNumber;
-	FrameType::Type type;
 
 	ScopeHeader();
 };
@@ -116,11 +115,6 @@ struct ScopeData
 		header.event.start = std::min(data.start, header.event.start);
 		header.event.finish = std::max(data.finish, header.event.finish);
 		AddEvent(data);
-
-		header.type = FrameType::NONE;
-		for (int i = 0; i < FrameType::COUNT; ++i)
-			if (GetFrameDescription((FrameType::Type)i) == data.description)
-				header.type = (FrameType::Type)i;
 	}
 
 	void ResetHeader();
@@ -494,8 +488,6 @@ class Core
 
 	CaptureSettings settings;
 
-	uint32 forcedMainThreadIndex;
-
 	void UpdateEvents();
 	bool UpdateState();
 
@@ -516,7 +508,7 @@ class Core
 
 	void CleanupThreadsAndFibers();
 
-	void DumpBoard(uint32 mode, EventTime timeSlice);
+	void DumpBoard(uint32 mode, EventTime timeSlice, uint32 mainThreadIndex);
 
 	void GenerateCommonSummary();
 public:
@@ -627,9 +619,6 @@ public:
 	// Frame Flip functions
 	static uint32_t BeginFrame(FrameType::Type frame, int64_t timestamp, uint64_t threadID) { return Get().BeginUpdateFrame(frame, timestamp, threadID); }
 	static uint32_t EndFrame(FrameType::Type frame, int64_t timestamp, uint64_t threadID) { return Get().EndUpdateFrame(frame, timestamp, threadID); }
-
-	// Initialize Main ThreadID
-	void SetMainThreadID(uint64_t threadID);
 
 	// NOT Thread Safe singleton (performance)
 	static Core& Get();

@@ -1000,13 +1000,20 @@ void Core::DumpFrames(uint32 mode)
 
 	DumpProgress("Collecting Frame Events...");
 
+
+	ThreadID mainThreadID = Platform::GetThreadID();
+	uint32 mainThreadIndex = 0;
+	for (size_t i = 0; i < threads.size(); ++i)
+		if (threads[i]->description.threadID == mainThreadID)
+			mainThreadIndex = (uint32)i;
+
 	std::array<EventTime, FrameType::COUNT> timeSlice;
 	for (int i = 0; i < FrameType::COUNT; ++i)
 	{
 		timeSlice[i] = CalculateRange(frames[i]);
 	} 
 
-	DumpBoard(mode, timeSlice[FrameType::CPU]);
+	DumpBoard(mode, timeSlice[FrameType::CPU], mainThreadIndex);
 
 	{
 		DumpProgress("Serializing Frames");
@@ -1090,8 +1097,6 @@ void Core::DumpFrames(uint32 mode)
 		Server::Get().Send(DataResponse::CallstackPack, callstacksStream);
 	}
 
-	forcedMainThreadIndex = (uint32)-1;
-
 	Server::Get().SendFinish();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1145,7 +1150,7 @@ void Core::CleanupThreadsAndFibers()
 	}
 }
 
-void Core::DumpBoard(uint32 mode, EventTime timeSlice)
+void Core::DumpBoard(uint32 mode, EventTime timeSlice, uint32 mainThreadIndex)
 {
 	OutputDataStream boardStream;
 
@@ -1156,7 +1161,7 @@ void Core::DumpBoard(uint32 mode, EventTime timeSlice)
 	boardStream << timeSlice;
 	boardStream << threads;
 	boardStream << fibers;
-	boardStream << forcedMainThreadIndex;
+	boardStream << mainThreadIndex;
 	boardStream << EventDescriptionBoard::Get();
 	boardStream << (uint32)0; // Tags
 	boardStream << (uint32)0; // Run
@@ -1188,7 +1193,6 @@ Core::Core()
 	, stateCallback(nullptr)
 	, currentState(State::DUMP_CAPTURE)
 	, pendingState(State::DUMP_CAPTURE)
-	, forcedMainThreadIndex((uint32)-1)
 	, currentMode(Mode::OFF)
 	, previousMode(Mode::OFF)
 	, symbolEngine(nullptr)
@@ -1281,7 +1285,7 @@ uint32_t Core::BeginUpdateFrame(FrameType::Type frameType, int64_t timestamp, ui
 	return ++frames[frameType].m_FrameNumber;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-uint32_t Core::EndUpdateFrame(FrameType::Type frameType, int64_t timestamp, uint64_t /*threadID*/)
+uint32_t Core::EndUpdateFrame(FrameType::Type frameType, int64_t timestamp, uint64_t threadID)
 {
 	std::lock_guard<std::recursive_mutex> lock(coreLock);
 
@@ -1290,6 +1294,8 @@ uint32_t Core::EndUpdateFrame(FrameType::Type frameType, int64_t timestamp, uint
 		if (FrameData* lastFrame = frames[frameType].m_Frames.Back())
 		{
 			lastFrame->finish = timestamp;
+			(void)threadID;
+			OPTICK_ASSERT(lastFrame->threadID == threadID, "ThreadID mismatch");
 		}
 	}
 
@@ -1569,27 +1575,6 @@ bool Core::SetSettings(const CaptureSettings& captureSettings)
 	return false;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Core::SetMainThreadID(uint64_t threadID)
-{
-	std::lock_guard<std::recursive_mutex> lock(threadsLock);
-
-	if (threadID == INVALID_THREAD_ID)
-	{
-		forcedMainThreadIndex = (uint32)-1;
-	}
-	else
-	{
-		for (size_t i = 0; i < threads.size(); ++i)
-		{
-			ThreadEntry* entry = threads[i];
-			if (entry->description.threadID == threadID)
-			{
-				forcedMainThreadIndex = (uint32)i;
-			}
-		}
-	}
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 const EventDescription* Core::GetFrameDescription(FrameType::Type frame) const
 {
 	return frames[frame].m_Description;
@@ -1628,7 +1613,7 @@ OPTICK_THREAD_LOCAL EventStorage* Core::storage = nullptr;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ScopeHeader::ScopeHeader() : boardNumber(0), threadNumber(0), fiberNumber(0), type(FrameType::NONE)
+ScopeHeader::ScopeHeader() : boardNumber(0), threadNumber(0), fiberNumber(0)
 {
 	event.start = EventTime::INVALID_TIMESTAMP;
 	event.finish = EventTime::INVALID_TIMESTAMP;
@@ -1636,7 +1621,7 @@ ScopeHeader::ScopeHeader() : boardNumber(0), threadNumber(0), fiberNumber(0), ty
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 OutputDataStream& operator<<(OutputDataStream& stream, const ScopeHeader& header)
 {
-	return stream << header.boardNumber << header.threadNumber << header.fiberNumber << header.event << header.type;
+	return stream << header.boardNumber << header.threadNumber << header.fiberNumber << header.event;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 OutputDataStream& operator<<(OutputDataStream& stream, const ScopeData& ob)
@@ -1706,12 +1691,12 @@ OPTICK_API void Update()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 OPTICK_API uint32_t BeginFrame(Optick::FrameType::Type frameType, int64_t timestamp, uint64_t threadID)
 {
-	return Core::BeginFrame(frameType, timestamp != EventTime::INVALID_TIMESTAMP ? timestamp : Optick::GetHighPrecisionTime(), threadID != INVALID_THREAD_ID ? threadID : Platform::GetThreadID());
+	return Core::BeginFrame(frameType, timestamp != EventTime::INVALID_TIMESTAMP ? timestamp : Optick::GetHighPrecisionTime(), threadID);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 OPTICK_API uint32_t EndFrame(Optick::FrameType::Type frameType, int64_t timestamp, uint64_t threadID)
 {
-	return Core::EndFrame(frameType, timestamp != EventTime::INVALID_TIMESTAMP ? timestamp : Optick::GetHighPrecisionTime(), threadID != INVALID_THREAD_ID ? threadID : Platform::GetThreadID());
+	return Core::EndFrame(frameType, timestamp != EventTime::INVALID_TIMESTAMP ? timestamp : Optick::GetHighPrecisionTime(), threadID);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 OPTICK_API bool IsActive(Mode::Type mode /*= Mode::INSTRUMENTATION_EVENTS*/)
@@ -1806,7 +1791,6 @@ OPTICK_API bool StartCapture(Mode::Type mode /*= Mode::DEFAULT*/, int samplingFr
 	if (force)
 	{
 		core.Update();
-		core.SetMainThreadID(Platform::GetThreadID());
 		core.BeginFrame(FrameType::CPU, GetHighPrecisionTime(), Platform::GetThreadID());
 	}
 	

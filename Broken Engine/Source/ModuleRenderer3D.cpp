@@ -37,7 +37,7 @@
 
 #include "OpenGL.h"
 #include "Math.h"
-#include "Optick/optick.h"
+#include "Optick/include/optick.h"
 
 #pragma comment (lib, "glu32.lib")    /* link OpenGL Utility lib     */
 #pragma comment (lib, "opengl32.lib") /* link Microsoft OpenGL lib   */
@@ -324,6 +324,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	// --- Draw Grid ---
 	if (display_grid)
 		DrawGrid();
+
 
 	DrawRenderMeshes();
 	DrawRenderLines();

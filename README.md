@@ -15,7 +15,7 @@ In Addition:
 - PhysFS
 - PhysX 3.4.2 
 - Recast Navigation
-- Optick v_1.3
+- Optick 1.3.0
 
 
 ## HOW TO USE

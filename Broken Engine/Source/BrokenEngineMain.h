@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
 
 		case MAIN_UPDATE:
 		{
-			OPTICK_FRAME("Main Thread");
+			OPTICK_FRAME("Main Thread"); // We put it here so it does not parent our worker threads.
 
 			int update_return = Broken::App->Update();
 
@@ -96,6 +96,8 @@ int main(int argc, char** argv) {
 		break;
 
 		case MAIN_FINISH:
+			OPTICK_FRAME("Main Thread"); // In case we want to log whatever takes longest to CleanUp(?)
+
 
 			EX_ENGINE_AND_SYSTEM_CONSOLE_LOG("-------------- Application CleanUp --------------");
 			if (mainApp->CleanUp() == false) {

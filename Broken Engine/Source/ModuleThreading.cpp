@@ -1,4 +1,5 @@
 #include "ModuleThreading.h"
+#include "Optick/include/optick.h"
 #include "mmgr/nommgr.h"
 
 
@@ -16,9 +17,10 @@ bool ModuleThreading::Init(json& file) {
 }
 
 bool ModuleThreading::Start() {
-	for (int i = 0; i < concurrentThreads; i++) {
+	for (int i = 0; i < concurrentThreads - 1; i++) {
 		threadStatus.push_back(false);
 		threadVector.push_back(std::thread(&ModuleThreading::ProcessTasks, this, i, std::ref(stopPool)));
+		threadNames.push_back("Worker thread " + std::to_string(i + 1));
 	}
 
 	ENGINE_AND_SYSTEM_CONSOLE_LOG("Created %d threads.", concurrentThreads - 1);
@@ -43,6 +45,9 @@ bool ModuleThreading::CleanUp() {
 	if (!poolTerminated)
 		ShutdownPool();
 
+	threadNames.clear();
+	threadStatus.clear();
+	threadVector.clear();
 	return true;
 }
 
@@ -73,6 +78,7 @@ void ModuleThreading::ShutdownPool() {
 }
 
 void ModuleThreading::ProcessTasks(int threadID, std::atomic<bool>& stop) {
+	OPTICK_THREAD(threadNames[threadID].c_str());
 	while (true) {
 		{
 			std::lock_guard<std::mutex> lk(threadPoolMutex);
@@ -97,7 +103,7 @@ void ModuleThreading::ProcessTasks(int threadID, std::atomic<bool>& stop) {
 			Task = tasksQueue.front();
 			tasksQueue.pop();
 		}
-
+		OPTICK_EVENT("Processing a task");
 		Task();
 	}
 }
@@ -108,6 +114,7 @@ void ModuleThreading::FinishProcessing() {
 		tQueueMutex.lock();
 		//If our task queue is empty we check that our thread pool has finished processing
 		if (tasksQueue.empty()) {
+			OPTICK_CATEGORY("Waiting for threads", Optick::Category::Wait);
 			tQueueMutex.unlock();
 			std::unique_lock<std::mutex> threadPoolLock(threadPoolMutex);
 
@@ -119,6 +126,8 @@ void ModuleThreading::FinishProcessing() {
 		}
 		//Otherwise we process a task ourselves
 		else {
+			OPTICK_EVENT("Processing a task");
+
 			//ENGINE_CONSOLE_LOG("Processing a task on main thread");
 			std::function<void()> Task;
 			Task = tasksQueue.front();

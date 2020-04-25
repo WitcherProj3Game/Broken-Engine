@@ -80,7 +80,8 @@ void ComponentCircularBar::DrawCircle(Color color, bool axis, float _percentage)
 	//float4x4 transform = transform.FromTRS(position, App->renderer3D->active_camera->GetOpenGLViewMatrix().RotatePart(), float3(new_size * 0.01f, 1.0f));
 
 	// --- Set Uniforms ---
-	uint shaderID = App->renderer3D->defaultShader->ID;
+	uint shaderID = App->renderer3D->UI_Shader->ID;
+	//uint shaderID = App->renderer3D->defaultShader->ID;
 	glUseProgram(shaderID);
 
 	GLint modelLoc = glGetUniformLocation(shaderID, "u_Model");

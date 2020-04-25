@@ -73,7 +73,8 @@ void ComponentProgressBar::DrawPlane(Color color, float _percentage)
 	//	float3(float2((size2D.x * _percentage) / 100, size2D.y) * 0.01f, 1.0f));
 
 	// --- Set Uniforms ---
-	uint shaderID = App->renderer3D->defaultShader->ID;
+	uint shaderID = App->renderer3D->UI_Shader->ID;
+	//uint shaderID = App->renderer3D->defaultShader->ID;
 	glUseProgram(shaderID);
 
 	GLint modelLoc = glGetUniformLocation(shaderID, "u_Model");

@@ -1589,6 +1589,69 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	SkyboxShader->LoadToMemory();
 	IShader->Save(SkyboxShader);
 
+
+	const char* vertexUIShader =
+		R"(#version 440 core
+			#define VERTEX_SHADER
+			#ifdef VERTEX_SHADER
+			layout(location = 0) in vec3 a_Position;
+			layout(location = 1) in vec3 a_Normal;
+			layout(location = 2) in vec3 a_Color;
+			layout(location = 3) in vec2 a_TexCoord;
+			uniform mat4 u_Model;
+			uniform mat4 u_View;
+			uniform mat4 u_Proj;
+			uniform vec4 u_Color = vec4(1.0);
+			out vec2 v_TexCoord;
+			out vec4 v_Color;
+			void main()
+			{
+				v_Color = u_Color;
+				v_TexCoord = a_TexCoord;
+				gl_Position = u_Proj * u_View * u_Model * vec4(a_Position, 1.0);
+			}
+			#endif //VERTEX_SHADER)";
+
+	const char* fragmentUIShader =
+		R"(#version 440 core
+			#define FRAGMENT_SHADER
+			#ifdef FRAGMENT_SHADER			
+			out vec4 out_color;
+			in vec2 v_TexCoord;
+			in vec4 v_Color;
+			uniform int u_UseTextures = 0;
+			uniform int HasTransparencies = 0;
+			uniform sampler2D u_AlbedoTexture;			
+			void main()
+			{
+				float alpha = 1.0;
+				if (HasTransparencies == 1)
+				{
+					if (u_UseTextures == 0)
+						alpha = v_Color.a;
+					else
+						alpha = texture(u_AlbedoTexture, v_TexCoord).a * v_Color.a;
+				}
+			
+				if (alpha < 0.004)
+					discard;			
+			
+				if (u_UseTextures == 0 || (u_UseTextures == 1 && HasTransparencies == 0 && texture(u_AlbedoTexture, v_TexCoord).a < 0.1))
+					out_color = vec4(v_Color.rgb, alpha);
+				else if (u_UseTextures == 1)
+					out_color = vec4(v_Color.rgb * texture(u_AlbedoTexture, v_TexCoord).rgb, alpha);
+			}
+			#endif //FRAGMENT_SHADER)";
+
+
+	UI_Shader = (ResourceShader*)App->resources->CreateResourceGivenUID(Resource::ResourceType::SHADER, "Assets/Shaders/UIShader.glsl", 16);
+	UI_Shader->vShaderCode = vertexUIShader;
+	UI_Shader->fShaderCode = fragmentUIShader;
+	UI_Shader->ReloadAndCompileShader();
+	UI_Shader->SetName("UI Shader");
+	UI_Shader->LoadToMemory();
+	IShader->Save(UI_Shader);
+
 	defaultShader->use();
 }
 

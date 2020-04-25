@@ -49,7 +49,7 @@ void ComponentText::Draw()
 {
 	if (font == nullptr)
 	{
-		ENGINE_AND_SYSTEM_CONSOLE_LOG("No font available in text component");
+		ENGINE_AND_SYSTEM_CONSOLE_LOG("!No font available in text component");
 		return;
 	}
 

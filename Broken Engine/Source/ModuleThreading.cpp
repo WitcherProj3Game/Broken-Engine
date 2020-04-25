@@ -119,7 +119,7 @@ void ModuleThreading::FinishProcessing() {
 			std::unique_lock<std::mutex> threadPoolLock(threadPoolMutex);
 
 			bool threadsProcessing = false;
-			for (int i = 0; i < concurrentThreads && !threadsProcessing; ++i)
+			for (int i = 0; i < threadVector.size() && !threadsProcessing; ++i)
 				threadsProcessing = threadsProcessing || threadStatus[i];
 
 			processing = threadsProcessing;

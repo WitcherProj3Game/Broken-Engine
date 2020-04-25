@@ -102,7 +102,7 @@ void ComponentButton::Draw()
 	// --- Color & Texturing ---
 	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");
 	glUniform4f(vertexColorLocation, color.r, color.g, color.b, color.a);
-	glUniform1i(glGetUniformLocation(shaderID, "HasTransparencies"), 1);
+	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);
 
 	GameObject* gameObj = GetContainerGameObject();
 

@@ -5,16 +5,14 @@
 
 //Layout Daya
 layout (location = 0) in vec3 a_Position;
-layout (location = 1) in vec3 a_Normal;
-layout (location = 2) in vec3 a_Color;
 layout (location = 3) in vec2 a_TexCoord;
 
 //Uniforms
-uniform mat4 u_Model; //model_matrix
-uniform mat4 u_View; //view
-uniform mat4 u_Proj; //projection
+uniform mat4 u_Model;
+uniform mat4 u_View;
+uniform mat4 u_Proj;
 
-uniform vec4 u_Color = vec4(1.0); //Color
+uniform vec4 u_Color = vec4(1.0);
 
 //Varyings
 out vec2 v_TexCoord;
@@ -42,7 +40,7 @@ in vec4 v_Color;
 
 //Uniforms
 uniform int u_UseTextures = 0;
-uniform int HasTransparencies = 0;
+uniform int u_HasTransparencies = 0;
 uniform sampler2D u_AlbedoTexture;
 
 //------------------------------------------------------------------------------------------------------------------
@@ -51,7 +49,7 @@ void main()
 {
 	// Transparency
 	float alpha = 1.0;
-	if(HasTransparencies == 1)
+	if(u_HasTransparencies == 1)
 	{
 		if(u_UseTextures == 0)
 			alpha = v_Color.a;
@@ -64,7 +62,7 @@ void main()
 
 
 	//Resulting Color
-	if(u_UseTextures == 0 || (u_UseTextures == 1 && HasTransparencies == 0 && texture(u_AlbedoTexture, v_TexCoord).a < 0.1))
+	if(u_UseTextures == 0 || (u_UseTextures == 1 && u_HasTransparencies == 0 && texture(u_AlbedoTexture, v_TexCoord).a < 0.1))
 		out_color = vec4(v_Color.rgb, alpha);
 	else if(u_UseTextures == 1)
 		out_color = vec4(v_Color.rgb * texture(u_AlbedoTexture, v_TexCoord).rgb, alpha);

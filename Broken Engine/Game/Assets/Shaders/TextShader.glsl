@@ -20,19 +20,19 @@ void main()
 #endif //VERTEX_SHADER
 
 #define FRAGMENT_SHADER
-		#ifdef FRAGMENT_SHADER
+#ifdef FRAGMENT_SHADER
 
-		in vec2 v_TexCoords;
+	in vec2 v_TexCoords;
 
-		uniform sampler2D text;
-		uniform vec4 textColor;
+	uniform sampler2D text;
+	uniform vec4 textColor;
 
-		out vec4 color;
+	out vec4 color;
 
-		void main()
-		{
-			vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, v_TexCoords).r);
-			color = textColor * sampled;
-		}
+	void main()
+	{
+		vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, v_TexCoords).r);
+		color = textColor * sampled;
+	}
 
-		#endif //FRAGMENT_SHADER
+#endif //FRAGMENT_SHADER

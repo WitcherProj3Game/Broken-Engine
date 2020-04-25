@@ -810,7 +810,7 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
 		glUseProgram(shader);
 
 		// --- Transparency Uniform ---
-		glUniform1i(glGetUniformLocation(shader, "HasTransparencies"), (int)mesh->mat->has_transparencies);
+		glUniform1i(glGetUniformLocation(shader, "u_HasTransparencies"), (int)mesh->mat->has_transparencies);
 
 		if (!mesh->mat->has_culling)
 			glDisable(GL_CULL_FACE);
@@ -1620,12 +1620,12 @@ void ModuleRenderer3D::CreateDefaultShaders()
 			in vec2 v_TexCoord;
 			in vec4 v_Color;
 			uniform int u_UseTextures = 0;
-			uniform int HasTransparencies = 0;
+			uniform int u_HasTransparencies = 0;
 			uniform sampler2D u_AlbedoTexture;			
 			void main()
 			{
 				float alpha = 1.0;
-				if (HasTransparencies == 1)
+				if (u_HasTransparencies == 1)
 				{
 					if (u_UseTextures == 0)
 						alpha = v_Color.a;
@@ -1636,7 +1636,7 @@ void ModuleRenderer3D::CreateDefaultShaders()
 				if (alpha < 0.004)
 					discard;			
 			
-				if (u_UseTextures == 0 || (u_UseTextures == 1 && HasTransparencies == 0 && texture(u_AlbedoTexture, v_TexCoord).a < 0.1))
+				if (u_UseTextures == 0 || (u_UseTextures == 1 && u_HasTransparencies == 0 && texture(u_AlbedoTexture, v_TexCoord).a < 0.1))
 					out_color = vec4(v_Color.rgb, alpha);
 				else if (u_UseTextures == 1)
 					out_color = vec4(v_Color.rgb * texture(u_AlbedoTexture, v_TexCoord).rgb, alpha);

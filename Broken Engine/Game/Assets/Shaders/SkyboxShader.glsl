@@ -28,7 +28,7 @@ out vec4 color;
 
 void main()
 {
-	vec4 tex_color = texture(skybox, TexCoords); //u_GammaCorrection 
+	vec4 tex_color = texture(skybox, TexCoords);
 	color = pow(tex_color, vec4(vec3(1.0/u_GammaCorrection), 1.0));
 } 
 #endif //FRAGMENT_SHADER 

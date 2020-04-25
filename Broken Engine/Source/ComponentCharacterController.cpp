@@ -89,42 +89,46 @@ void ComponentCharacterController::Update()
 	ComponentTransform* cTransform = GO->GetComponent<ComponentTransform>();
 
 	float3 p;
-	p.x = controller->getActor()->getGlobalPose().p.x;
-	p.y = controller->getActor()->getGlobalPose().p.y;
-	p.z = controller->getActor()->getGlobalPose().p.z;
-
-	//Move(velocity.x, velocity.z);
-
-
-	if (cTransform->updateValues || App->gui->isUsingGuizmo)
+	if (controller != nullptr)
 	{
-		float3 pos = cTransform->GetGlobalPosition();
-		controller->setFootPosition(physx::PxExtendedVec3(pos.x, pos.y, pos.z));
-	}
-
-	if (gravity && App->GetAppState() == AppState::PLAY) {
-		vel.y = App->physics->mScene->getGravity().y;
-		Move();//Affect Gravity Always
-	}
+		p.x = controller->getActor()->getGlobalPose().p.x;
+		p.y = controller->getActor()->getGlobalPose().p.y;
+		p.z = controller->getActor()->getGlobalPose().p.z;
 
 
-	physx::PxExtendedVec3 cctPosition = controller->getFootPosition();
-	float3 cctPos(cctPosition.x, cctPosition.y, cctPosition.z);
+		//Move(velocity.x, velocity.z);
 
-	if (!creation)
-	{
-		float offset = radius + height * 0.5f + contactOffset;
-		cctPos.y += offset;
-		controller->setFootPosition(physx::PxExtendedVec3(controller->getFootPosition().x, controller->getFootPosition().y + offset, controller->getFootPosition().z));
-		creation = true;
-	}
 
-	GO->GetComponent<ComponentTransform>()->SetPosition((float3)cctPos);
+		if (cTransform->updateValues || App->gui->isUsingGuizmo)
+		{
+			float3 pos = cTransform->GetGlobalPosition();
+			controller->setFootPosition(physx::PxExtendedVec3(pos.x, pos.y, pos.z));
+		}
 
-	if (to_delete)
-	{
-		Delete();
-		this->GetContainerGameObject()->RemoveComponent(this);
+		if (gravity && App->GetAppState() == AppState::PLAY) {
+			vel.y = App->physics->mScene->getGravity().y;
+			Move();//Affect Gravity Always
+		}
+
+
+		physx::PxExtendedVec3 cctPosition = controller->getFootPosition();
+		float3 cctPos(cctPosition.x, cctPosition.y, cctPosition.z);
+
+		if (!creation)
+		{
+			float offset = radius + height * 0.5f + contactOffset;
+			cctPos.y += offset;
+			controller->setFootPosition(physx::PxExtendedVec3(controller->getFootPosition().x, controller->getFootPosition().y + offset, controller->getFootPosition().z));
+			creation = true;
+		}
+
+		GO->GetComponent<ComponentTransform>()->SetPosition((float3)cctPos);
+
+		if (to_delete)
+		{
+			Delete();
+			this->GetContainerGameObject()->RemoveComponent(this);
+		}
 	}
 }
 

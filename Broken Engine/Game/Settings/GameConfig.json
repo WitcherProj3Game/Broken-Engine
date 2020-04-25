@@ -1,19 +1,204 @@
 {
     "Application": {
         "Organization": "CITM - UPC",
-        "Title": "Broken Game"
+        "Title": "TWTOD"
     },
-    "GUI": null,
-    "Input": null,
+    "Camera3D": {
+        "MainCamera": "Camera"
+    },
+    "Physics": {
+        "Layer0": {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": true,
+            "6": true,
+            "7": true,
+            "8": true,
+            "9": true,
+            "Active": true,
+            "Group": 1023,
+            "GroupSize": 10,
+            "Layer": 0,
+            "Name": "Default"
+        },
+        "Layer1": {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": true,
+            "5": true,
+            "6": true,
+            "7": true,
+            "8": true,
+            "9": true,
+            "Active": true,
+            "Group": 1009,
+            "GroupSize": 10,
+            "Layer": 1,
+            "Name": "Player"
+        },
+        "Layer2": {
+            "0": true,
+            "1": false,
+            "2": false,
+            "3": true,
+            "4": false,
+            "5": true,
+            "6": true,
+            "7": true,
+            "8": true,
+            "9": true,
+            "Active": true,
+            "Group": 1001,
+            "GroupSize": 10,
+            "Layer": 2,
+            "Name": "Enemy"
+        },
+        "Layer3": {
+            "0": true,
+            "1": false,
+            "2": true,
+            "3": false,
+            "4": false,
+            "5": true,
+            "6": true,
+            "7": true,
+            "8": true,
+            "9": true,
+            "Active": true,
+            "Group": 997,
+            "GroupSize": 10,
+            "Layer": 3,
+            "Name": "UI"
+        },
+        "Layer4": {
+            "0": true,
+            "1": true,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": true,
+            "6": true,
+            "7": true,
+            "8": true,
+            "9": true,
+            "Active": true,
+            "Group": 995,
+            "GroupSize": 10,
+            "Layer": 4,
+            "Name": "Enemy_Attack"
+        },
+        "Layer5": {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": true,
+            "6": true,
+            "7": true,
+            "8": true,
+            "9": true,
+            "Active": false,
+            "Group": 1023,
+            "GroupSize": 10,
+            "Layer": 5,
+            "Name": ""
+        },
+        "Layer6": {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": true,
+            "6": true,
+            "7": true,
+            "8": true,
+            "9": true,
+            "Active": false,
+            "Group": 1023,
+            "GroupSize": 10,
+            "Layer": 6,
+            "Name": ""
+        },
+        "Layer7": {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": true,
+            "6": true,
+            "7": true,
+            "8": true,
+            "9": true,
+            "Active": false,
+            "Group": 1023,
+            "GroupSize": 10,
+            "Layer": 7,
+            "Name": ""
+        },
+        "Layer8": {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": true,
+            "6": true,
+            "7": true,
+            "8": true,
+            "9": true,
+            "Active": false,
+            "Group": 1023,
+            "GroupSize": 10,
+            "Layer": 8,
+            "Name": ""
+        },
+        "Layer9": {
+            "0": true,
+            "1": true,
+            "2": true,
+            "3": true,
+            "4": true,
+            "5": true,
+            "6": true,
+            "7": true,
+            "8": true,
+            "9": true,
+            "Active": false,
+            "Group": 1023,
+            "GroupSize": 10,
+            "Layer": 9,
+            "Name": ""
+        },
+        "count": 10,
+        "dynamicFriction": 1.0,
+        "gravity": 9.800000190734863,
+        "restitution": 0.0,
+        "staticFriction": 1.0
+    },
     "Renderer3D": {
-        "VSync": true
+        "GammaCorrection": 1.8650000095367432,
+        "SceneAmbientColor": {
+            "B": 0.6243031620979309,
+            "G": 0.6243031620979309,
+            "R": 0.6243094205856323
+        }
+    },
+    "SceneManager": {
+        "MainScene": "Untitled scene 1.scene"
+    },
+    "Scripting": {
+        "LUA_Debug_Game": false
     },
     "Window": {
-        "borderless": false,
-        "fullscreen": false,
-        "fullscreenDesktop": false,
-        "height": 720,
-        "resizable": true,
-        "width": 1024
+        "sceneX": 1314.1800537109375,
+        "sceneY": 668.7000122070313
     }
 }

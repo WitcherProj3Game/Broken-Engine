@@ -41,12 +41,20 @@ in vec4 v_Color;
 //Uniforms
 uniform int u_UseTextures = 0;
 uniform int u_HasTransparencies = 0;
+uniform int u_IsText = 0;
 uniform sampler2D u_AlbedoTexture;
 
 //------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------
 void main()
 {
+	if(u_IsText == 1)
+	{
+		vec4 sampled = vec4(1.0, 1.0, 1.0, texture(u_AlbedoTexture, v_TexCoord).r);
+		out_color = v_Color * sampled;
+		return;
+	}
+
 	// Transparency
 	float alpha = 1.0;
 	if(u_HasTransparencies == 1)

@@ -47,8 +47,9 @@ void ComponentText::Update()
 
 void ComponentText::Draw()
 {
-	if (font == nullptr) {
-		//WARNING LOG("No font available in text component");
+	if (font == nullptr)
+	{
+		ENGINE_AND_SYSTEM_CONSOLE_LOG("No font available in text component");
 		return;
 	}
 
@@ -64,14 +65,8 @@ void ComponentText::Draw()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// --- Set Uniforms ---
-	glUseProgram(App->renderer3D->textShader->ID);
-
-	GLint modelLoc = glGetUniformLocation(App->renderer3D->textShader->ID, "u_Model");
-	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, transform.Transposed().ptr());
-
-	GLint viewLoc = glGetUniformLocation(App->renderer3D->textShader->ID, "u_View");
-	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLViewMatrix().ptr());
-
+	uint shaderID = App->renderer3D->UI_Shader->ID;
+	glUseProgram(shaderID);
 
 	// right handed projection matrix
 	float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
@@ -81,11 +76,13 @@ void ComponentText::Draw()
 		0.0f, 0.0f, 0.0f, -1.0f,
 		0.0f, 0.0f, nearp, 0.0f);
 
-	GLint projectLoc = glGetUniformLocation(App->renderer3D->textShader->ID, "u_Proj");
-	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
-
-	glUniform4f(glGetUniformLocation(App->renderer3D->textShader->ID, "textColor"), color.r, color.g, color.b, color.a);
-	glActiveTexture(GL_TEXTURE0);
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_Model"), 1, GL_FALSE, transform.Transposed().ptr());
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_View"), 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLViewMatrix().ptr());
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_Proj"), 1, GL_FALSE, proj_RH.ptr());
+	
+	glUniform1i(glGetUniformLocation(shaderID, "u_IsText"), 1);
+	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), color.r, color.g, color.b, color.a);
+	glActiveTexture(GL_TEXTURE0);	
 
 	glBindVertexArray(font->VAO);
 
@@ -115,24 +112,27 @@ void ComponentText::Draw()
 			{ xpos + w, ypos,       0.0, 1.0, 1.0 },
 			{ xpos + w, ypos + h,   0.0, 1.0, 0.0 }
 		};
+		
 		// Render glyph texture over quad
 		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+
 		// Update content of VBO memory
 		glBindBuffer(GL_ARRAY_BUFFER, font->VBO);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // Be sure to use glBufferSubData and not glBufferData
-
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 		// Render quad
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
 		x += (ch.Advance >> 6) * size2D.x; // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
 	}
+
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
-
+	glUniform1i(glGetUniformLocation(shaderID, "u_IsText"), 0);
 	glUseProgram(App->renderer3D->defaultShader->ID);
-
 }
+
 
 json ComponentText::Save() const
 {

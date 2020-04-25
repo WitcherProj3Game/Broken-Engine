@@ -115,6 +115,7 @@ void ComponentText::Draw()
 		
 		// Render glyph texture over quad
 		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+		glUniform1i(glGetUniformLocation(shaderID, "u_AlbedoTexture"), 0);
 
 		// Update content of VBO memory
 		glBindBuffer(GL_ARRAY_BUFFER, font->VBO);

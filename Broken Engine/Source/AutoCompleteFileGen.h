@@ -14,8 +14,13 @@ struct BROKEN_API SerializedFunction
 	std::string scope = "source.lua";
 	std::string name = "none";
 
+	std::vector<std::string> variables;
+
 	SerializedFunction(const char* name, const char* scope): name(name), scope(scope){}
 };
+
+
+//Having a code reflection library that we can tweak and customize would be  teh perfect approach
 
 class BROKEN_API AutoCompleteFileGen 
 {

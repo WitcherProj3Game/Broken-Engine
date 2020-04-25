@@ -1,698 +1,710 @@
 {
     "ActivateParticlesEmission": {
-        "body": "ActivateParticlesEmission()",
-        "description": "Description not available",
+        "body": "ActivateParticlesEmission($0gameObject_UID)",
+        "description": "Scripting.Particles \\\nDescription not available",
         "prefix": "ActivateParticlesEmission",
-        "scope": "Particles.lua"
+        "scope": "Particles"
     },
     "AddForce": {
-        "body": "AddForce()",
-        "description": "Description not available",
+        "body": "AddForce($0forceX, $1forceY, $2forceZ, $3force_mode, $4gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "AddForce",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "AddTorque": {
-        "body": "AddTorque()",
-        "description": "Description not available",
+        "body": "AddTorque($0forceX, $1forceY, $2forceZ, $3force_mode, $4gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "AddTorque",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "AllAreas": {
         "body": "AllAreas()",
-        "description": "Description not available",
+        "description": "Scripting.Navigation \\\nDescription not available",
         "prefix": "AllAreas",
-        "scope": "Navigation.lua"
+        "scope": "Navigation"
     },
     "CalculatePath": {
-        "body": "CalculatePath()",
-        "description": "Description not available",
+        "body": "CalculatePath($0origin_x, $1origin_y, $2origin_z, $3dest_x, $4dest_y, $5dest_z, $6areaMask)",
+        "description": "Scripting.Navigation \\\nDescription not available",
         "prefix": "CalculatePath",
-        "scope": "Navigation.lua"
+        "scope": "Navigation"
     },
     "CompareDoubles": {
-        "body": "CompareDoubles()",
-        "description": "Description not available",
+        "body": "CompareDoubles($0double_a, $1double_b)",
+        "description": "Scripting.System \\\nDescription not available",
         "prefix": "CompareDoubles",
-        "scope": "System.lua"
+        "scope": "System"
     },
     "CompareFloats": {
-        "body": "CompareFloats()",
-        "description": "Description not available",
+        "body": "CompareFloats($0float_a, $1float_b)",
+        "description": "Scripting.System \\\nDescription not available",
         "prefix": "CompareFloats",
-        "scope": "System.lua"
+        "scope": "System"
     },
     "CurrentAnimationEnded": {
-        "body": "CurrentAnimationEnded()",
-        "description": "Description not available",
+        "body": "CurrentAnimationEnded($0gameObject_UID)",
+        "description": "Scripting.Animations \\\nDescription not available",
         "prefix": "CurrentAnimationEnded",
-        "scope": "Animations.lua"
+        "scope": "Animations"
     },
     "DT": {
         "body": "DT()",
-        "description": "Description not available",
+        "description": "Scripting.System \\\nDescription not available",
         "prefix": "DT",
-        "scope": "System.lua"
+        "scope": "System"
     },
     "DeactivateParticlesEmission": {
-        "body": "DeactivateParticlesEmission()",
-        "description": "Description not available",
+        "body": "DeactivateParticlesEmission($0gameObject_UID)",
+        "description": "Scripting.Particles \\\nDescription not available",
         "prefix": "DeactivateParticlesEmission",
-        "scope": "Particles.lua"
+        "scope": "Particles"
     },
     "DestroyGameObject": {
-        "body": "DestroyGameObject()",
-        "description": "Description not available",
+        "body": "DestroyGameObject($0gameObject_UID)",
+        "description": "Scripting.GameObject \\\nDeletes the gameObject with the passedUID.",
         "prefix": "DestroyGameObject",
-        "scope": "GameObject.lua"
+        "scope": "GameObject"
     },
     "FindGameObject": {
-        "body": "FindGameObject()",
-        "description": "Description not available",
+        "body": "FindGameObject($0gameobject_name)",
+        "description": "Scripting.GameObject \\\nReturns the UID of the GameObject if it is found in the scene. This function searches using strings, only recomended to be called on Awake or Start since it consumes a lot of resources.",
         "prefix": "FindGameObject",
-        "scope": "GameObject.lua"
+        "scope": "GameObject"
     },
     "GameTime": {
         "body": "GameTime()",
-        "description": "Description not available",
+        "description": "Scripting.System \\\nDescription not available",
         "prefix": "GameTime",
-        "scope": "System.lua"
+        "scope": "System"
     },
     "GetAngularVelocity": {
-        "body": "GetAngularVelocity()",
-        "description": "Description not available",
+        "body": "GetAngularVelocity($0gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "GetAngularVelocity",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "GetAreaCost": {
-        "body": "GetAreaCost()",
-        "description": "Description not available",
+        "body": "GetAreaCost($0areaIndex)",
+        "description": "Scripting.Navigation \\\nDescription not available",
         "prefix": "GetAreaCost",
-        "scope": "Navigation.lua"
+        "scope": "Navigation"
     },
     "GetAreaFromName": {
-        "body": "GetAreaFromName()",
-        "description": "Description not available",
+        "body": "GetAreaFromName($0name)",
+        "description": "Scripting.Navigation \\\nDescription not available",
         "prefix": "GetAreaFromName",
-        "scope": "Navigation.lua"
+        "scope": "Navigation"
     },
     "GetAxisRealValue": {
-        "body": "GetAxisRealValue()",
-        "description": "Description not available",
+        "body": "GetAxisRealValue($0player_num, $1joy_axis)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "GetAxisRealValue",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "GetAxisState": {
-        "body": "GetAxisState()",
-        "description": "Description not available",
+        "body": "GetAxisState($0state_name)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "GetAxisState",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "GetAxisValue": {
-        "body": "GetAxisValue()",
-        "description": "Description not available",
+        "body": "GetAxisValue($0player_num, $1joy_axis, $2threshold)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "GetAxisValue",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "GetCharacterPosition": {
-        "body": "GetCharacterPosition()",
-        "description": "Description not available",
+        "body": "GetCharacterPosition($0gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "GetCharacterPosition",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "GetCharacterUpDirection": {
-        "body": "GetCharacterUpDirection()",
-        "description": "Description not available",
+        "body": "GetCharacterUpDirection($0gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "GetCharacterUpDirection",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "GetComponent": {
-        "body": "GetComponent()",
-        "description": "Description not available",
+        "body": "GetComponent($0component_name, $1gameObject_UID)",
+        "description": "Scripting.GameObject \\\nDescription not available",
         "prefix": "GetComponent",
-        "scope": "GameObject.lua"
+        "scope": "GameObject"
     },
     "GetControllerAxis": {
-        "body": "GetControllerAxis()",
-        "description": "Description not available",
+        "body": "GetControllerAxis($0axis_name)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "GetControllerAxis",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "GetControllerButton": {
-        "body": "GetControllerButton()",
-        "description": "Description not available",
+        "body": "GetControllerButton($0button)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "GetControllerButton",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "GetDebuggingPath": {
         "body": "GetDebuggingPath()",
-        "description": "Description not available",
+        "description": "Scripting.System \\\nDescription not available",
         "prefix": "GetDebuggingPath",
-        "scope": "System.lua"
+        "scope": "System"
     },
     "GetFrustumPlanesIntersection": {
-        "body": "GetFrustumPlanesIntersection()",
-        "description": "Description not available",
+        "body": "GetFrustumPlanesIntersection($0x, $1y, $2z, $3FOV_ratio)",
+        "description": "Scripting.Camera \\\nDescription not available",
         "prefix": "GetFrustumPlanesIntersection",
-        "scope": "Camera.lua"
+        "scope": "Camera"
     },
     "GetGameObjectParent": {
-        "body": "GetGameObjectParent()",
-        "description": "Description not available",
+        "body": "GetGameObjectParent($0gameObject_UID)",
+        "description": "Scripting.GameObject \\\nDescription not available",
         "prefix": "GetGameObjectParent",
-        "scope": "GameObject.lua"
+        "scope": "GameObject"
     },
     "GetGamepadButtonState": {
-        "body": "GetGamepadButtonState()",
-        "description": "Description not available",
+        "body": "GetGamepadButtonState($0state)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "GetGamepadButtonState",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "GetLayerByID": {
-        "body": "GetLayerByID()",
-        "description": "Description not available",
+        "body": "GetLayerByID($0UID)",
+        "description": "Scripting.GameObject \\\nDescription not available",
         "prefix": "GetLayerByID",
-        "scope": "GameObject.lua"
+        "scope": "GameObject"
     },
     "GetLinearVelocity": {
-        "body": "GetLinearVelocity()",
-        "description": "Description not available",
+        "body": "GetLinearVelocity($0gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "GetLinearVelocity",
-        "scope": "Physics.lua"
+        "scope": "Physics"
+    },
+    "GetMass": {
+        "body": "GetMass($0gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
+        "prefix": "GetMass",
+        "scope": "Physics"
     },
     "GetMouseButton": {
-        "body": "GetMouseButton()",
-        "description": "Description not available",
+        "body": "GetMouseButton($0button)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "GetMouseButton",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "GetMyLayer": {
         "body": "GetMyLayer()",
-        "description": "Description not available",
+        "description": "Scripting.GameObject \\\nDescription not available",
         "prefix": "GetMyLayer",
-        "scope": "GameObject.lua"
+        "scope": "GameObject"
     },
     "GetMyUID": {
         "body": "GetMyUID()",
-        "description": "Description not available",
+        "description": "Scripting.GameObject \\\nReturns the UID of the gameObject that contains the script and that currently running the Awake, Start or Update functions.",
         "prefix": "GetMyUID",
-        "scope": "GameObject.lua"
+        "scope": "GameObject"
     },
     "GetParent": {
         "body": "GetParent()",
-        "description": "Description not available",
+        "description": "Scripting.GameObject \\\nDescription not available",
         "prefix": "GetParent",
-        "scope": "GameObject.lua"
+        "scope": "GameObject"
     },
     "GetPosition": {
-        "body": "GetPosition()",
-        "description": "Description not available",
+        "body": "GetPosition($0gameObject_UID)",
+        "description": "Scripting.Transform \\\nDescription not available",
         "prefix": "GetPosition",
         "scope": "Transform"
     },
     "GetPositionInFrustum": {
-        "body": "GetPositionInFrustum()",
-        "description": "Description not available",
+        "body": "GetPositionInFrustum($0x, $1y, $2z, $3FOV_ratio1, $4FOV_ratio2)",
+        "description": "Scripting.Camera \\\nDescription not available",
         "prefix": "GetPositionInFrustum",
-        "scope": "Camera.lua"
+        "scope": "Camera"
     },
     "GetRotation": {
-        "body": "GetRotation()",
-        "description": "Description not available",
+        "body": "GetRotation($0gameObject_UID)",
+        "description": "Scripting.Transform \\\nDescription not available",
         "prefix": "GetRotation",
         "scope": "Transform"
     },
     "GetScript": {
         "body": "GetScript()",
-        "description": "Description not available",
+        "description": "Scripting.GameObject \\\nReturns a reference to another script. The script returned is the one placed inside the gameObject with the UID you pass. ",
         "prefix": "GetScript",
-        "scope": "GameObject.lua"
+        "scope": "GameObject"
     },
     "Instantiate": {
-        "body": "Instantiate()",
-        "description": "Description not available",
+        "body": "Instantiate($0resource_UID, $1x, $2y, $3z, $4rot_x, $5rot_y, $6rot_z)",
+        "description": "Scripting.Scene.lua \\\nDescription not available",
         "prefix": "Instantiate",
         "scope": "Scene.lua"
     },
     "IsGamepadButton": {
-        "body": "IsGamepadButton()",
-        "description": "Description not available",
+        "body": "IsGamepadButton($0player_num, $1button, $2button_state)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "IsGamepadButton",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "IsJoystickAxis": {
-        "body": "IsJoystickAxis()",
-        "description": "Description not available",
+        "body": "IsJoystickAxis($0player_num, $1joy_axis, $2axis_state)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "IsJoystickAxis",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "IsTriggerState": {
-        "body": "IsTriggerState()",
-        "description": "Description not available",
+        "body": "IsTriggerState($0player_num, $1trigger, $2button_state)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "IsTriggerState",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "KeyDown": {
-        "body": "KeyDown()",
-        "description": "Description not available",
+        "body": "KeyDown($0key)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "KeyDown",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "KeyIdle": {
-        "body": "KeyIdle()",
-        "description": "Description not available",
+        "body": "KeyIdle($0key)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "KeyIdle",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "KeyRepeat": {
-        "body": "KeyRepeat()",
-        "description": "Description not available",
+        "body": "KeyRepeat($0key)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "KeyRepeat",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "KeyUp": {
-        "body": "KeyUp()",
-        "description": "Description not available",
+        "body": "KeyUp($0key)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "KeyUp",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "LOG": {
-        "body": "LOG()",
-        "description": "Description not available",
+        "body": "LOG($0string)",
+        "description": "Scripting.System \\\nDescription not available",
         "prefix": "LOG",
-        "scope": "System.lua"
+        "scope": "System"
     },
     "LoadScene": {
-        "body": "LoadScene()",
-        "description": "Description not available",
+        "body": "LoadScene($0scene_UID)",
+        "description": "Scripting.Scene.lua \\\nDescription not available",
         "prefix": "LoadScene",
         "scope": "Scene.lua"
     },
     "LookAt": {
-        "body": "LookAt()",
-        "description": "Description not available",
+        "body": "LookAt($0spotX, $1spotY, $2spotZ, $3gameObject_UID)",
+        "description": "Scripting.Transform \\\nDescription not available",
         "prefix": "LookAt",
         "scope": "Transform"
     },
     "MakeElementInvisible": {
-        "body": "MakeElementInvisible()",
-        "description": "Description not available",
+        "body": "MakeElementInvisible($0comp_type, $1gameObject_UID)",
+        "description": "Scripting.UserInterface \\\nDescription not available",
         "prefix": "MakeElementInvisible",
-        "scope": "UserInterface.lua"
+        "scope": "UserInterface"
     },
     "MakeElementVisible": {
-        "body": "MakeElementVisible()",
-        "description": "Description not available",
+        "body": "MakeElementVisible($0comp_type, $1gameObject_UID)",
+        "description": "Scripting.UserInterface \\\nDescription not available",
         "prefix": "MakeElementVisible",
-        "scope": "UserInterface.lua"
+        "scope": "UserInterface"
     },
     "MouseButtonDown": {
-        "body": "MouseButtonDown()",
-        "description": "Description not available",
+        "body": "MouseButtonDown($0button)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "MouseButtonDown",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "MouseButtonIdle": {
-        "body": "MouseButtonIdle()",
-        "description": "Description not available",
+        "body": "MouseButtonIdle($0button)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "MouseButtonIdle",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "MouseButtonRepeat": {
-        "body": "MouseButtonRepeat()",
-        "description": "Description not available",
+        "body": "MouseButtonRepeat($0button)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "MouseButtonRepeat",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "MouseButtonState": {
-        "body": "MouseButtonState()",
-        "description": "Description not available",
+        "body": "MouseButtonState($0button)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "MouseButtonState",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "MouseButtonUp": {
-        "body": "MouseButtonUp()",
-        "description": "Description not available",
+        "body": "MouseButtonUp($0button)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "MouseButtonUp",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "Move": {
-        "body": "Move()",
-        "description": "Description not available",
+        "body": "Move($0vel_x, $1vel_z, $2gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "Move",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "OnCollisionEnter": {
-        "body": "OnCollisionEnter()",
-        "description": "Description not available",
+        "body": "OnCollisionEnter($0gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "OnCollisionEnter",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "OnCollisionExit": {
-        "body": "OnCollisionExit()",
-        "description": "Description not available",
+        "body": "OnCollisionExit($0gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "OnCollisionExit",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "OnCollisionStay": {
-        "body": "OnCollisionStay()",
-        "description": "Description not available",
+        "body": "OnCollisionStay($0gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "OnCollisionStay",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "OnTriggerEnter": {
-        "body": "OnTriggerEnter()",
-        "description": "Description not available",
+        "body": "OnTriggerEnter($0gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "OnTriggerEnter",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "OnTriggerExit": {
-        "body": "OnTriggerExit()",
-        "description": "Description not available",
+        "body": "OnTriggerExit($0gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "OnTriggerExit",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "OnTriggerStay": {
-        "body": "OnTriggerStay()",
-        "description": "Description not available",
+        "body": "OnTriggerStay($0gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "OnTriggerStay",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "OverlapSphere": {
-        "body": "OverlapSphere()",
-        "description": "Description not available",
+        "body": "OverlapSphere($0pos_x, $1pos_y, $2pos_z, $3radius, $4layer)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "OverlapSphere",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "PauseAudioEvent": {
-        "body": "PauseAudioEvent()",
-        "description": "Description not available",
+        "body": "PauseAudioEvent($0event)",
+        "description": "Scripting.Audio \\\nDescription not available",
         "prefix": "PauseAudioEvent",
-        "scope": "Audio.lua"
+        "scope": "Audio"
     },
     "PauseGame": {
         "body": "PauseGame()",
-        "description": "Description not available",
+        "description": "Scripting.System \\\nDescription not available",
         "prefix": "PauseGame",
-        "scope": "System.lua"
+        "scope": "System"
     },
     "PlayAnimation": {
-        "body": "PlayAnimation()",
-        "description": "Description not available",
+        "body": "PlayAnimation($0name, $1speed, $2gameObject_UID)",
+        "description": "Scripting.Animations \\\nDescription not available",
         "prefix": "PlayAnimation",
-        "scope": "Animations.lua"
+        "scope": "Animations"
     },
     "PlayAudioEvent": {
-        "body": "PlayAudioEvent()",
-        "description": "Description not available",
+        "body": "PlayAudioEvent($0event)",
+        "description": "Scripting.Audio \\\nDescription not available",
         "prefix": "PlayAudioEvent",
-        "scope": "Audio.lua"
+        "scope": "Audio"
     },
     "PlayParticleEmitter": {
-        "body": "PlayParticleEmitter()",
-        "description": "Description not available",
+        "body": "PlayParticleEmitter($0gameObject_UID, $1gameObject_UID)",
+        "description": "Scripting.Particles \\\nDescription not available",
         "prefix": "PlayParticleEmitter",
-        "scope": "Particles.lua"
+        "scope": "Particles"
     },
     "QuitGame": {
         "body": "QuitGame()",
-        "description": "Description not available",
+        "description": "Scripting.Scene.lua \\\nDescription not available",
         "prefix": "QuitGame",
         "scope": "Scene.lua"
     },
     "RandomNumber": {
         "body": "RandomNumber()",
-        "description": "Description not available",
+        "description": "Scripting.System \\\nDescription not available",
         "prefix": "RandomNumber",
-        "scope": "System.lua"
+        "scope": "System"
     },
     "RandomNumberInRange": {
-        "body": "RandomNumberInRange()",
-        "description": "Description not available",
+        "body": "RandomNumberInRange($0min, $1max)",
+        "description": "Scripting.System \\\nDescription not available",
         "prefix": "RandomNumberInRange",
-        "scope": "System.lua"
+        "scope": "System"
     },
     "RandomNumberList": {
-        "body": "RandomNumberList()",
-        "description": "Description not available",
+        "body": "RandomNumberList($0listSize, $1min, $2max)",
+        "description": "Scripting.System \\\nDescription not available",
         "prefix": "RandomNumberList",
-        "scope": "System.lua"
+        "scope": "System"
     },
     "Raycast": {
-        "body": "Raycast()",
-        "description": "Description not available",
+        "body": "Raycast($0origin_x, $1origin_y, $2origin_z, $3direction_x, $4direction_y, $5direction_z_z, $6maxDistance, $7layer, $8bool_hitTriggers)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "Raycast",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "RealDT": {
         "body": "RealDT()",
-        "description": "Description not available",
+        "description": "Scripting.System \\\nDescription not available",
         "prefix": "RealDT",
-        "scope": "System.lua"
+        "scope": "System"
     },
     "ResumeAudioEvent": {
-        "body": "ResumeAudioEvent()",
-        "description": "Description not available",
+        "body": "ResumeAudioEvent($0event)",
+        "description": "Scripting.Audio \\\nDescription not available",
         "prefix": "ResumeAudioEvent",
-        "scope": "Audio.lua"
+        "scope": "Audio"
     },
     "ResumeGame": {
         "body": "ResumeGame()",
-        "description": "Description not available",
+        "description": "Scripting.System \\\nDescription not available",
         "prefix": "ResumeGame",
-        "scope": "System.lua"
+        "scope": "System"
     },
     "RotateObject": {
-        "body": "RotateObject()",
-        "description": "Description not available",
+        "body": "RotateObject($0x, $1y, $2z, $3gameObject_UID)",
+        "description": "Scripting.Transform \\\nDescription not available",
         "prefix": "RotateObject",
         "scope": "Transform"
     },
     "ScreenToWorld": {
-        "body": "ScreenToWorld()",
-        "description": "Description not available",
+        "body": "ScreenToWorld($0x, $1y, $2distance)",
+        "description": "Scripting.Camera \\\nDescription not available",
         "prefix": "ScreenToWorld",
-        "scope": "Camera.lua"
+        "scope": "Camera"
     },
     "SetActiveGameObject": {
-        "body": "SetActiveGameObject()",
-        "description": "Description not available",
+        "body": "SetActiveGameObject($0bool_active, $1gameObject_UID)",
+        "description": "Scripting.GameObject \\\nDescription not available",
         "prefix": "SetActiveGameObject",
-        "scope": "GameObject.lua"
+        "scope": "GameObject"
     },
     "SetAngularVelocity": {
-        "body": "SetAngularVelocity()",
-        "description": "Description not available",
+        "body": "SetAngularVelocity($0x, $1y, $2z, $3gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "SetAngularVelocity",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "SetAnimationSpeed": {
-        "body": "SetAnimationSpeed()",
-        "description": "Description not available",
+        "body": "SetAnimationSpeed($0name, $1speed, $2gameObject_UID)",
+        "description": "Scripting.Animations \\\nDescription not available",
         "prefix": "SetAnimationSpeed",
-        "scope": "Animations.lua"
+        "scope": "Animations"
     },
     "SetAreaCost": {
-        "body": "SetAreaCost()",
-        "description": "Description not available",
+        "body": "SetAreaCost($0areaIndex)",
+        "description": "Scripting.Navigation \\\nDescription not available",
         "prefix": "SetAreaCost",
-        "scope": "Navigation.lua"
+        "scope": "Navigation"
     },
     "SetBlendTime": {
-        "body": "SetBlendTime()",
-        "description": "Description not available",
+        "body": "SetBlendTime($0blend_value, $1gameObject_UID)",
+        "description": "Scripting.Animations \\\nDescription not available",
         "prefix": "SetBlendTime",
-        "scope": "Animations.lua"
+        "scope": "Animations"
     },
     "SetCharacterPosition": {
-        "body": "SetCharacterPosition()",
-        "description": "Description not available",
+        "body": "SetCharacterPosition($0x, $1y, $2z, $3gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "SetCharacterPosition",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "SetCharacterUpDirection": {
-        "body": "SetCharacterUpDirection()",
-        "description": "Description not available",
+        "body": "SetCharacterUpDirection($0rot_x, $1rot_y, $2rot_z, $3gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "SetCharacterUpDirection",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "SetCurrentAnimationSpeed": {
-        "body": "SetCurrentAnimationSpeed()",
-        "description": "Description not available",
+        "body": "SetCurrentAnimationSpeed($0speed, $1gameObject_UID)",
+        "description": "Scripting.Animations \\\nDescription not available",
         "prefix": "SetCurrentAnimationSpeed",
-        "scope": "Animations.lua"
+        "scope": "Animations"
     },
     "SetEmissionRate": {
-        "body": "SetEmissionRate()",
-        "description": "Description not available",
+        "body": "SetEmissionRate($0ms, $1gameObject_UID)",
+        "description": "Scripting.Particles \\\nDescription not available",
         "prefix": "SetEmissionRate",
-        "scope": "Particles.lua"
+        "scope": "Particles"
     },
     "SetExternalAcceleration": {
-        "body": "SetExternalAcceleration()",
-        "description": "Description not available",
+        "body": "SetExternalAcceleration($0x, $1y, $2z, $3gameObject_UID)",
+        "description": "Scripting.Particles \\\nDescription not available",
         "prefix": "SetExternalAcceleration",
-        "scope": "Particles.lua"
+        "scope": "Particles"
     },
     "SetKinematic": {
-        "body": "SetKinematic()",
-        "description": "Description not available",
+        "body": "SetKinematic($0bool_enable, $1gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "SetKinematic",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "SetLinearVelocity": {
-        "body": "SetLinearVelocity()",
-        "description": "Description not available",
+        "body": "SetLinearVelocity($0x, $1y, $2z, $3gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "SetLinearVelocity",
-        "scope": "Physics.lua"
+        "scope": "Physics"
+    },
+    "SetMass": {
+        "body": "SetMass($0mass, $1gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
+        "prefix": "SetMass",
+        "scope": "Physics"
     },
     "SetObjectRotation": {
-        "body": "SetObjectRotation()",
-        "description": "Description not available",
+        "body": "SetObjectRotation($0x, $1y, $2z, $3gameObject_UID)",
+        "description": "Scripting.Transform \\\nDescription not available",
         "prefix": "SetObjectRotation",
         "scope": "Transform"
     },
     "SetOffsetPosition": {
-        "body": "SetOffsetPosition()",
-        "description": "Description not available",
+        "body": "SetOffsetPosition($0x, $1y, $2z, $3gameObject_UID)",
+        "description": "Scripting.Particles \\\nDescription not available",
         "prefix": "SetOffsetPosition",
-        "scope": "Particles.lua"
+        "scope": "Particles"
     },
     "SetOffsetRotation": {
-        "body": "SetOffsetRotation()",
-        "description": "Description not available",
+        "body": "SetOffsetRotation($0x, $1y, $2z, $3gameObject_UID)",
+        "description": "Scripting.Particles \\\nDescription not available",
         "prefix": "SetOffsetRotation",
-        "scope": "Particles.lua"
+        "scope": "Particles"
     },
     "SetParticlesDuration": {
-        "body": "SetParticlesDuration()",
-        "description": "Description not available",
+        "body": "SetParticlesDuration($0duration, $1gameObject_UID)",
+        "description": "Scripting.Particles \\\nDescription not available",
         "prefix": "SetParticlesDuration",
-        "scope": "Particles.lua"
+        "scope": "Particles"
     },
     "SetParticlesLifeTime": {
-        "body": "SetParticlesLifeTime()",
-        "description": "Description not available",
+        "body": "SetParticlesLifeTime($0ms, $1gameObject_UID)",
+        "description": "Scripting.Particles \\\nDescription not available",
         "prefix": "SetParticlesLifeTime",
-        "scope": "Particles.lua"
+        "scope": "Particles"
     },
     "SetParticlesLooping": {
-        "body": "SetParticlesLooping()",
-        "description": "Description not available",
+        "body": "SetParticlesLooping($0bool_active, $1gameObject_UID)",
+        "description": "Scripting.Particles \\\nDescription not available",
         "prefix": "SetParticlesLooping",
-        "scope": "Particles.lua"
+        "scope": "Particles"
     },
     "SetParticlesPerCreation": {
-        "body": "SetParticlesPerCreation()",
-        "description": "Description not available",
+        "body": "SetParticlesPerCreation($0particles_amount, $1gameObject_UID)",
+        "description": "Scripting.Particles \\\nDescription not available",
         "prefix": "SetParticlesPerCreation",
-        "scope": "Particles.lua"
+        "scope": "Particles"
     },
     "SetParticlesScale": {
-        "body": "SetParticlesScale()",
-        "description": "Description not available",
+        "body": "SetParticlesScale($0x, $1y, $2gameObject_UID)",
+        "description": "Scripting.Particles \\\nDescription not available",
         "prefix": "SetParticlesScale",
-        "scope": "Particles.lua"
+        "scope": "Particles"
     },
     "SetParticlesVelocity": {
-        "body": "SetParticlesVelocity()",
-        "description": "Description not available",
+        "body": "SetParticlesVelocity($0x, $1y, $2z, $3gameObject_UID)",
+        "description": "Scripting.Particles \\\nDescription not available",
         "prefix": "SetParticlesVelocity",
-        "scope": "Particles.lua"
+        "scope": "Particles"
     },
     "SetPosition": {
-        "body": "SetPosition()",
-        "description": "Description not available",
+        "body": "SetPosition($0x, $1y, $2z, $3gameObject_UID)",
+        "description": "Scripting.Transform \\\nDescription not available",
         "prefix": "SetPosition",
         "scope": "Transform"
     },
     "SetRandomParticlesScale": {
-        "body": "SetRandomParticlesScale()",
-        "description": "Description not available",
+        "body": "SetRandomParticlesScale($0randomFactor, $1gameObject_UID)",
+        "description": "Scripting.Particles \\\nDescription not available",
         "prefix": "SetRandomParticlesScale",
-        "scope": "Particles.lua"
+        "scope": "Particles"
     },
     "SetRandomParticlesVelocity": {
-        "body": "SetRandomParticlesVelocity()",
-        "description": "Description not available",
+        "body": "SetRandomParticlesVelocity($0x, $1y, $2z, $3gameObject_UID)",
+        "description": "Scripting.Particles \\\nDescription not available",
         "prefix": "SetRandomParticlesVelocity",
-        "scope": "Particles.lua"
+        "scope": "Particles"
     },
     "SetText": {
-        "body": "SetText()",
-        "description": "Description not available",
+        "body": "SetText($0UI_Text, $1gameObject_UID)",
+        "description": "Scripting.UserInterface \\\nDescription not available",
         "prefix": "SetText",
-        "scope": "UserInterface.lua"
+        "scope": "UserInterface"
     },
     "SetTextAndNumber": {
-        "body": "SetTextAndNumber()",
-        "description": "Description not available",
+        "body": "SetTextAndNumber($0UI_text, $1number, $2gameObject_UID)",
+        "description": "Scripting.UserInterface \\\nDescription not available",
         "prefix": "SetTextAndNumber",
-        "scope": "UserInterface.lua"
+        "scope": "UserInterface"
     },
     "SetTextNumber": {
-        "body": "SetTextNumber()",
-        "description": "Description not available",
+        "body": "SetTextNumber($0number, $1gameObject_UID)",
+        "description": "Scripting.UserInterface \\\nDescription not available",
         "prefix": "SetTextNumber",
-        "scope": "UserInterface.lua"
+        "scope": "UserInterface"
     },
     "SetUIBarPercentage": {
-        "body": "SetUIBarPercentage()",
-        "description": "Description not available",
+        "body": "SetUIBarPercentage($0percentage, $1gameObject_UID)",
+        "description": "Scripting.UserInterface \\\nDescription not available",
         "prefix": "SetUIBarPercentage",
-        "scope": "UserInterface.lua"
+        "scope": "UserInterface"
     },
     "SetUICircularBarPercentage": {
-        "body": "SetUICircularBarPercentage()",
-        "description": "Description not available",
+        "body": "SetUICircularBarPercentage($0percentage, $1gameObject_UID)",
+        "description": "Scripting.UserInterface \\\nDescription not available",
         "prefix": "SetUICircularBarPercentage",
-        "scope": "UserInterface.lua"
+        "scope": "UserInterface"
     },
     "SetVolume": {
-        "body": "SetVolume()",
-        "description": "Description not available",
+        "body": "SetVolume($0volume)",
+        "description": "Scripting.Audio \\\nDescription not available",
         "prefix": "SetVolume",
-        "scope": "Audio.lua"
+        "scope": "Audio"
     },
     "ShakeController": {
-        "body": "ShakeController()",
-        "description": "Description not available",
+        "body": "ShakeController($0player_num, $1intensity, $2milliseconds)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "ShakeController",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "StopAudioEvent": {
-        "body": "StopAudioEvent()",
-        "description": "Description not available",
+        "body": "StopAudioEvent($0event)",
+        "description": "Scripting.Audio \\\nDescription not available",
         "prefix": "StopAudioEvent",
-        "scope": "Audio.lua"
+        "scope": "Audio"
     },
     "StopControllerShake": {
-        "body": "StopControllerShake()",
-        "description": "Description not available",
+        "body": "StopControllerShake($0player_num)",
+        "description": "Scripting.Input \\\nDescription not available",
         "prefix": "StopControllerShake",
-        "scope": "Input.lua"
+        "scope": "Input"
     },
     "StopParticleEmitter": {
         "body": "StopParticleEmitter()",
-        "description": "Description not available",
+        "description": "Scripting.Particles \\\nDescription not available",
         "prefix": "StopParticleEmitter",
-        "scope": "Particles.lua"
+        "scope": "Particles"
     },
     "Translate": {
-        "body": "Translate()",
-        "description": "Description not available",
+        "body": "Translate($0x, $1y, $2z, $3gameObject_UID)",
+        "description": "Scripting.Transform \\\nDescription not available",
         "prefix": "Translate",
         "scope": "Transform"
     },
     "UseGravity": {
-        "body": "UseGravity()",
-        "description": "Description not available",
+        "body": "UseGravity($0bool_enable, $1gameObject_UID)",
+        "description": "Scripting.Physics \\\nDescription not available",
         "prefix": "UseGravity",
-        "scope": "Physics.lua"
+        "scope": "Physics"
     },
     "WorldToScreen": {
-        "body": "WorldToScreen()",
-        "description": "Description not available",
+        "body": "WorldToScreen($0x, $1y, $2z)",
+        "description": "Scripting.Camera \\\nDescription not available",
         "prefix": "WorldToScreen",
-        "scope": "Camera.lua"
+        "scope": "Camera"
     }
 }

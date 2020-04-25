@@ -99,10 +99,10 @@ private:
 
 	//Colors
 	bool colorGradient = false;
-	float4 particlesColor = float4::one;
-	float4 particlesColor2 = float4::one;
-	float4 particleColorVariation = float4::one;
+	std::vector<float4> colors;
+	std::vector<float4> gradients;
 
+	uint colorDuration = 0;
 	float spawnClock = 0.0f;
 };
 BE_END_NAMESPACE

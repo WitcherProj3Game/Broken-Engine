@@ -45,6 +45,10 @@ ComponentParticleEmitter::ComponentParticleEmitter(GameObject* ContainerGO) :Com
 	texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
 
 	App->renderer3D->particleEmitters.push_back(this);
+
+	//White color to begin
+	float4 whiteColor(1, 1, 1, 1);
+	colors.push_back(whiteColor);
 }
 
 ComponentParticleEmitter::~ComponentParticleEmitter()
@@ -110,6 +114,8 @@ void ComponentParticleEmitter::Disable()
 
 void ComponentParticleEmitter::UpdateParticles(float dt)
 {
+	int currentPlayTime = App->time->GetGameplayTimePassed() * 1000;
+
 	// Create particle depending on the time
 	if (emisionActive && App->GetAppState() == AppState::PLAY && !App->time->gamePaused) {
 		if (App->time->GetGameplayTimePassed() * 1000 - spawnClock > emisionRate)
@@ -160,8 +166,17 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				particles[i]->scale.x += scaleOverTime * dt;
 				particles[i]->scale.y += scaleOverTime * dt;
 
-				if (colorGradient)
-					particles[i]->color += particleColorVariation * dt * 1000;
+				if (colorGradient && gradients.size() > 0)
+				{
+					particles[i]->color += gradients[particles[i]->currentGradient] * dt * 1000;
+					
+					if ((currentPlayTime - particles[i]->gradientTimer > colorDuration) && (particles[i]->currentGradient < gradients.size()-1))
+					{
+						particles[i]->currentGradient++;
+						particles[i]->gradientTimer = currentPlayTime;
+					}
+
+				}
 
 				if (particles[i]->scale.x < 0)
 					particles[i]->scale.x = 0;
@@ -266,20 +281,6 @@ json ComponentParticleEmitter::Save() const
 
 	node["particlesLifeTime"] = std::to_string(particlesLifeTime);
 
-	node["ColorR"] = std::to_string(particlesColor.x);
-	node["ColorG"] = std::to_string(particlesColor.y);
-	node["ColorB"] = std::to_string(particlesColor.z);
-	node["ColorA"] = std::to_string(particlesColor.w);
-
-	node["Color2R"] = std::to_string(particlesColor2.x);
-	node["Color2G"] = std::to_string(particlesColor2.y);
-	node["Color2B"] = std::to_string(particlesColor2.z);
-	node["Color2A"] = std::to_string(particlesColor2.w);
-
-	node["ColorVariationR"] = std::to_string(particleColorVariation.x);
-	node["ColorVariationG"] = std::to_string(particleColorVariation.y);
-	node["ColorVariationB"] = std::to_string(particleColorVariation.z);
-	node["ColorVariationA"] = std::to_string(particleColorVariation.w);
 
 	node["GradientColor"] = colorGradient;
 
@@ -339,21 +340,6 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string LParticlesSize = node["particlesSize"].is_null() ? "0" : node["particlesSize"];
 
 	std::string LDuration = node["Duration"].is_null() ? "0" : node["Duration"];
-
-	std::string LColorR = node["ColorR"].is_null() ? "0" : node["ColorR"];
-	std::string LColorG = node["ColorG"].is_null() ? "0" : node["ColorG"];
-	std::string LColorB = node["ColorB"].is_null() ? "0" : node["ColorB"];
-	std::string LColorA = node["ColorA"].is_null() ? "0" : node["ColorA"];
-
-	std::string LColor2R = node["Color2R"].is_null() ? "0" : node["Color2R"];
-	std::string LColor2G = node["Color2G"].is_null() ? "0" : node["Color2G"];
-	std::string LColor2B = node["Color2B"].is_null() ? "0" : node["Color2B"];
-	std::string LColor2A = node["Color2A"].is_null() ? "0" : node["Color2A"];
-
-	std::string LColorVariationR = node["ColorVariationR"].is_null() ? "0" : node["ColorVariationR"];
-	std::string LColorVariationG = node["ColorVariationG"].is_null() ? "0" : node["ColorVariationG"];
-	std::string LColorVariationB = node["ColorVariationB"].is_null() ? "0" : node["ColorVariationB"];
-	std::string LColorVariationA = node["ColorVariationA"].is_null() ? "0" : node["ColorVariationA"];
 
 	std::string LParticlesScaleX = node["particlesScaleX"].is_null() ? "1" : node["particlesScaleX"];
 	std::string LParticlesScaleY = node["particlesScaleY"].is_null() ? "1" : node["particlesScaleY"];
@@ -417,10 +403,6 @@ void ComponentParticleEmitter::Load(json& node)
 	velocityRandomFactor.z = std::stof(LvelocityRandomFactorz);
 
 	particlesLifeTime = std::stof(LparticlesLifeTime);
-
-	particlesColor = float4(std::stof(LColorR), std::stof(LColorG), std::stof(LColorB), std::stof(LColorA));
-	particlesColor2 = float4(std::stof(LColor2R), std::stof(LColor2G), std::stof(LColor2B), std::stof(LColor2A));
-	particleColorVariation = float4(std::stof(LColorVariationR), std::stof(LColorVariationG), std::stof(LColorVariationB), std::stof(LColorVariationA));
 
 	duration = std::stoi(LDuration);
 
@@ -511,8 +493,6 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		float3 difference = (rotation - eulerRotation) * DEGTORAD;
 		Quat quatrot = Quat::FromEulerXYZ(difference.x, difference.y, difference.z);
 
-
-		//emitterRotation = emitterRotation * quatrot;
 		emitterRotation = Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD);
 		eulerRotation = rotation;
 	}
@@ -584,8 +564,8 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	//Particles lifetime
 	ImGui::Text("Particles lifetime (ms)");
 	if (ImGui::DragInt("##SParticlesLifetime", &particlesLifeTime, 3.0f, 0.0f, 10000.0f))
-		if (colorGradient)
-			particleColorVariation = (particlesColor2 - particlesColor) / (particlesLifeTime);
+		/*if (colorGradient)
+			particleColorVariation = (particlesColor2 - particlesColor) / (particlesLifeTime);*/
 
 	ImGui::Separator();
 
@@ -697,23 +677,47 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::Checkbox("Color gradient", &colorGradient);
 
 		if (colorGradient) {
-			bool colorsChanged = false;
-			if (ImGui::ColorEdit4("##PEParticle Color", (float*)&particlesColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar))
-				colorsChanged = true;
-			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
-			ImGui::Text("Color");
+			for (int i = 0; i < colors.size(); ++i)
+			{
+				std::string label = "##PEParticle Color";
+				label.append(std::to_string(i));
+				if (ImGui::ColorEdit4(label.data(), (float*)&colors[i], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar))
+				{
+					//Update gradients if we have to
+					if (colors.size() > 1)
+					{
+						if (i == 0) //If we change the first color, only 1 gradient is affected
+						{
+							gradients[0] = (colors[1] - colors[0]) / colorDuration;
+						}
+						else if (i == colors.size() - 1) //If we changed the last color, only 1 gradient is affected
+						{
+							gradients[i - 1] = (colors[i] - colors[i - 1]) / colorDuration;
+						}
+						else //Else, 2 gradients are afected
+						{
+							gradients[i-1] = (colors[i] - colors[i - 1]) / colorDuration;
+							gradients[i] = (colors[i + 1] - colors[i]) / colorDuration;
+						}
+					}
+				}
+				ImGui::SameLine();
+				ImGui::Button("x");
+			}
 
-			if (ImGui::ColorEdit4("##PEParticle Color2", (float*)&particlesColor2, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar))
-				colorsChanged = true;
-			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
-			ImGui::Text("Color2");
+			if (ImGui::Button("Add color"))
+			{
+				uint index = colors.size() - 1;
+				colors.push_back(colors[index]); //Start the new color with tha same the last one had
+				colorDuration = particlesLifeTime/ colors.size();
 
-			if (colorsChanged)
-				particleColorVariation = (particlesColor2 - particlesColor) / (particlesLifeTime);
-
+				//Update the gradients
+				float4 newGradient = (colors[index+1] - colors[index])/ colorDuration;
+				gradients.push_back(newGradient);
+			}
 		}
 		else {
-			ImGui::ColorEdit4("##PEParticle Color", (float*)&particlesColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+			ImGui::ColorEdit4("##PEParticle Color", (float*)&colors[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 			ImGui::Text("Color");
 		}
@@ -780,8 +784,10 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 
 			particles[index[i]]->lifeTime = particlesLifeTime;
 			particles[index[i]]->spawnTime = spawnClock;
-			particles[index[i]]->color = particlesColor;
+			particles[index[i]]->color = colors[0];
 			particles[index[i]]->texture = texture;
+			particles[index[i]]->gradientTimer = spawnClock;
+			particles[index[i]]->currentGradient = 0;
 
 			//Set scale
 			float randomScaleValue = GetRandomValue(1, particlesScaleRandomFactor);
@@ -852,8 +858,8 @@ void ComponentParticleEmitter::SetLifeTime(int ms)
 {
 	particlesLifeTime = ms;
 
-	if (colorGradient)
-		particleColorVariation = (particlesColor2 - particlesColor) / (particlesLifeTime);
+	/*if (colorGradient)
+		particleColorVariation = (particlesColor2 - particlesColor) / (particlesLifeTime);*/
 }
 
 void ComponentParticleEmitter::SetParticlesScale(float x, float y)

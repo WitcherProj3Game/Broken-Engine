@@ -163,8 +163,8 @@ public:
 	ResourceShader* linepointShader = nullptr;
 	ResourceShader* OutlineShader = nullptr;
 	ResourceShader* ZDrawerShader = nullptr;
-	ResourceShader* textShader = nullptr;
 	ResourceShader* screenShader = nullptr;
+	ResourceShader* UI_Shader = nullptr;
 
 	ResourceShader* SkyboxShader = nullptr;
 

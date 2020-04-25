@@ -810,7 +810,7 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
 		glUseProgram(shader);
 
 		// --- Transparency Uniform ---
-		glUniform1i(glGetUniformLocation(shader, "HasTransparencies"), (int)mesh->mat->has_transparencies);
+		glUniform1i(glGetUniformLocation(shader, "u_HasTransparencies"), (int)mesh->mat->has_transparencies);
 
 		if (!mesh->mat->has_culling)
 			glDisable(GL_CULL_FACE);
@@ -1298,7 +1298,6 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	IShader->Save(OutlineShader);
 
 	// --- Creating point/line drawing shaders ---
-
 	const char* linePointVertShaderSrc =
 		"#version 440 core \n"
 		"#define VERTEX_SHADER \n"
@@ -1338,7 +1337,6 @@ void ModuleRenderer3D::CreateDefaultShaders()
 
 
 	// --- Creating z buffer shader drawer ---
-
 	const char* zdrawervertex =
 		R"(#version 440 core
 		#define VERTEX_SHADER
@@ -1396,62 +1394,7 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	ZDrawerShader->LoadToMemory();
 	IShader->Save(ZDrawerShader);
 
-
-	// --- Creating text rendering shaders ---
-
-	const char* textVertShaderSrc =
-		R"(#version 440 core
-		#define VERTEX_SHADER
-		#ifdef VERTEX_SHADER
-
-		layout (location = 0) in vec3 a_Position;
-		layout (location = 1) in vec2 a_TexCoords;
-
-		uniform mat4 u_Model;
-		uniform mat4 u_View;
-		uniform mat4 u_Proj;
-
-		out vec2 v_TexCoords;
-
-		void main()
-		{
-			gl_Position = u_Proj * u_View * u_Model * vec4 (a_Position, 1.0f);
-			v_TexCoords = a_TexCoords;
-		}
-
-		#endif //VERTEX_SHADER)";
-
-	const char* textFragShaderSrc =
-		R"(#version 440 core
-		#define FRAGMENT_SHADER
-		#ifdef FRAGMENT_SHADER
-
-		in vec2 v_TexCoords;
-
-		uniform sampler2D text;
-		uniform vec3 textColor;
-
-		out vec4 color;
-
-		void main()
-		{
-			vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, v_TexCoords).r);
-			color = vec4(textColor, 1.0) * sampled;
-		}
-
-		#endif //FRAGMENT_SHADER)";
-
-	textShader = (ResourceShader*)App->resources->CreateResourceGivenUID(Resource::ResourceType::SHADER, "Assets/Shaders/TextShader.glsl", 11);
-	textShader->vShaderCode = textVertShaderSrc;
-	textShader->fShaderCode = textFragShaderSrc;
-	textShader->ReloadAndCompileShader();
-	textShader->SetName("TextShader");
-	textShader->LoadToMemory();
-	IShader->Save(textShader);
-
-
 	// --- Creating Default Vertex and Fragment Shaders ---
-
 	const char* vertexShaderSource =
 		R"(#version 440 core
 		#define VERTEX_SHADER
@@ -1508,7 +1451,6 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	IShader->Save(defaultShader);
 
 	// ---Creating screen shader ---
-
 	const char* vertexScreenShader =
 		R"(#version 440 core
 		#define VERTEX_SHADER
@@ -1588,6 +1530,69 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	SkyboxShader->SetName("SkyboxShader");
 	SkyboxShader->LoadToMemory();
 	IShader->Save(SkyboxShader);
+
+	// --- Creating UI shader ---
+	const char* vertexUIShader =
+		R"(#version 440 core
+			#define VERTEX_SHADER
+			#ifdef VERTEX_SHADER
+			layout(location = 0) in vec3 a_Position;
+			layout(location = 1) in vec3 a_Normal;
+			layout(location = 2) in vec3 a_Color;
+			layout(location = 3) in vec2 a_TexCoord;
+			uniform mat4 u_Model;
+			uniform mat4 u_View;
+			uniform mat4 u_Proj;
+			uniform vec4 u_Color = vec4(1.0);
+			out vec2 v_TexCoord;
+			out vec4 v_Color;
+			void main()
+			{
+				v_Color = u_Color;
+				v_TexCoord = a_TexCoord;
+				gl_Position = u_Proj * u_View * u_Model * vec4(a_Position, 1.0);
+			}
+			#endif //VERTEX_SHADER)";
+
+	const char* fragmentUIShader =
+		R"(#version 440 core
+			#define FRAGMENT_SHADER
+			#ifdef FRAGMENT_SHADER			
+			out vec4 out_color;
+			in vec2 v_TexCoord;
+			in vec4 v_Color;
+			uniform int u_UseTextures = 0;
+			uniform int u_HasTransparencies = 0;
+			uniform sampler2D u_AlbedoTexture;			
+			void main()
+			{
+				float alpha = 1.0;
+				if (u_HasTransparencies == 1)
+				{
+					if (u_UseTextures == 0)
+						alpha = v_Color.a;
+					else
+						alpha = texture(u_AlbedoTexture, v_TexCoord).a * v_Color.a;
+				}
+			
+				if (alpha < 0.004)
+					discard;			
+			
+				if (u_UseTextures == 0 || (u_UseTextures == 1 && u_HasTransparencies == 0 && texture(u_AlbedoTexture, v_TexCoord).a < 0.1))
+					out_color = vec4(v_Color.rgb, alpha);
+				else if (u_UseTextures == 1)
+					out_color = vec4(v_Color.rgb * texture(u_AlbedoTexture, v_TexCoord).rgb, alpha);
+			}
+			#endif //FRAGMENT_SHADER)";
+
+
+	UI_Shader = (ResourceShader*)App->resources->CreateResourceGivenUID(Resource::ResourceType::SHADER, "Assets/Shaders/UIShader.glsl", 16);
+	UI_Shader->vShaderCode = vertexUIShader;
+	UI_Shader->fShaderCode = fragmentUIShader;
+	UI_Shader->ReloadAndCompileShader();
+	UI_Shader->SetName("UI Shader");
+	UI_Shader->LoadToMemory();
+	IShader->Save(UI_Shader);
 
 	defaultShader->use();
 }

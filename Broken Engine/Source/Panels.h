@@ -5,6 +5,7 @@
 #include "PanelAbout.h"
 #include "PanelConsole.h"
 #include "PanelInspector.h"
+#include "PanelRendering.h"
 #include "PanelHierarchy.h"
 #include "PanelScene.h"
 #include "PanelToolbar.h"
@@ -13,5 +14,6 @@
 #include "PanelResources.h"
 #include "PanelPhysics.h"
 #include "PanelBuild.h"
+#include "PanelNavigation.h"
 
 #endif // __PANELS_H__

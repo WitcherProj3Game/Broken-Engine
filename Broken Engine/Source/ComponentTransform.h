@@ -1,8 +1,8 @@
 #ifndef __COMPONENT_TRANSFORM_H__
 #define __COMPONENT_TRANSFORM_H__
 
-#include "Math.h"
 #include "Component.h"
+#include "Math.h"
 
 BE_BEGIN_NAMESPACE
 
@@ -23,7 +23,9 @@ public:
 
 	// --- Setters ---
 	void			SetPosition(float3 new_pos);
-	void			SetPosition(float x, float y, float z);
+	void			SetPosition(float x, float y, float z);	
+	void			SetGlobalPosition(float3 new_pos);
+	void			SetGlobalPosition(float x, float y, float z);
 	void			SetRotation(float3 euler_angles);
 	void			SetRotation(Quat quat);
 	void			Scale(float x, float y, float z);
@@ -41,7 +43,7 @@ public:
 	static inline Component::ComponentType GetType() { return Component::ComponentType::Transform; };
 
 public:
-	bool update_transform = false;
+	bool update_transform = true;
 	bool updateValues = false;
 private:
 	//void UpdateLocalTransform();

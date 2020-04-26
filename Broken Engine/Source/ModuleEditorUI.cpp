@@ -1,13 +1,34 @@
 #include "ModuleEditorUI.h"
 #include "EngineApplication.h"
-#include "Panels.h"
+
+// -- Imgui --
 #include "Imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
 #include "Imgui/imgui_internal.h"
 #include "Imgui/ImGuizmo/ImGuizmo.h"
 #pragma comment( lib, "SDL/libx86/SDL2.lib" )
-//#include "mmgr/mmgr.h"
+
+// -- Modules --
+#include "ModuleGui.h"
+#include "ModuleSceneManager.h"
+
+// -- Components --
+#include "GameObject.h"
+#include "ComponentTransform.h"
+#include "ComponentCamera.h"
+#include "ComponentCanvas.h"
+#include "ComponentImage.h"
+#include "ComponentText.h"
+#include "ComponentProgressbar.h"
+#include "ComponentLight.h"
+
+// -- Utilities --
+#include "EngineLog.h"
+#include "Panels.h"
+
+#include "Optick/include/optick.h"
+#include "mmgr/mmgr.h"
 
 ModuleEditorUI::ModuleEditorUI(bool start_enabled) : Module(start_enabled) {
 	name = "EditorUI";
@@ -33,6 +54,9 @@ bool ModuleEditorUI::Init(Broken::json& file) {
 	panelInspector = new PanelInspector("Inspector");
 	panels.push_back(panelInspector);
 
+	panelRendering = new PanelRendering("Rendering");
+	panels.push_back(panelRendering);
+
 	panelHierarchy = new PanelHierarchy("Hierarchy");
 	panels.push_back(panelHierarchy);
 
@@ -57,6 +81,9 @@ bool ModuleEditorUI::Init(Broken::json& file) {
 	panelPhysics = new PanelPhysics("Physics");
 	panels.push_back(panelPhysics);
 
+	panelNavigation = new PanelNavigation("Navigation");
+	panels.push_back(panelNavigation);
+
 	LoadStatus(file);
 
 	return true;
@@ -67,7 +94,10 @@ bool ModuleEditorUI::Start() {
 	return true;
 }
 
-update_status ModuleEditorUI::Update(float dt) {
+update_status ModuleEditorUI::Update(float dt)
+{
+	OPTICK_CATEGORY("Editor UI Update", Optick::Category::UI);
+
 	//// --- Create Main Menu Bar ---
 	ImGui::SetCurrentContext(EngineApp->gui->getImgUICtx());
 	if (ImGui::BeginMainMenuBar()) {
@@ -118,6 +148,9 @@ update_status ModuleEditorUI::Update(float dt) {
 				if (ImGui::MenuItem("Cube"))
 					EngineApp->scene_manager->LoadCube();
 
+				if (ImGui::MenuItem("Disk"))
+					EngineApp->scene_manager->LoadDisk();
+
 				if (ImGui::MenuItem("Cylinder"))
 					EngineApp->scene_manager->LoadCylinder()->GetComponent<Broken::ComponentTransform>()->SetRotation({ -90, 0, 0 });
 
@@ -141,31 +174,74 @@ update_status ModuleEditorUI::Update(float dt) {
 
 				ImGui::EndMenu();
 			}
-			if (ImGui::BeginMenu("UI Elements")) {
-				if (ImGui::MenuItem("Canvas")) {
+			if (ImGui::BeginMenu("UI Elements")) 
+			{
+				if (ImGui::MenuItem("Canvas")) 
+				{
 					Broken::GameObject* canvas_go = EngineApp->scene_manager->CreateEmptyGameObject();
 					Broken::ComponentCanvas* camera = (Broken::ComponentCanvas*)canvas_go->AddComponent(Broken::Component::ComponentType::Canvas);
 				}
-				if (ImGui::MenuItem("Image")) {
+				if (ImGui::MenuItem("Image")) 
+				{
 					Broken::GameObject* image_go = EngineApp->scene_manager->CreateEmptyGameObject();
 					Broken::ComponentImage* image = (Broken::ComponentImage*)image_go->AddComponent(Broken::Component::ComponentType::Image);
 				}
-				if (ImGui::MenuItem("Text")) {
+				if (ImGui::MenuItem("Text")) 
+				{
 					Broken::GameObject* text_go = EngineApp->scene_manager->CreateEmptyGameObject();
 					Broken::ComponentText* text = (Broken::ComponentText*)text_go->AddComponent(Broken::Component::ComponentType::Text);
 				}
-				if (ImGui::MenuItem("Button", false, false, false)) {
+				if (ImGui::MenuItem("Button")) 
+				{
 					Broken::GameObject* button_go = EngineApp->scene_manager->CreateEmptyGameObject();
 					Broken::ComponentText* button = (Broken::ComponentText*)button_go->AddComponent(Broken::Component::ComponentType::Button);
 				}
-				if (ImGui::MenuItem("Checkbox", false, false, false)) {
+				//if (ImGui::MenuItem("Checkbox")) 
+				//{
+				//}
+				//if (ImGui::MenuItem("Input Text")) 
+				//{
+				//}
+				if (ImGui::MenuItem("Progress Bar"))
+				{
+					Broken::GameObject* bar_go = EngineApp->scene_manager->CreateEmptyGameObject();
+					Broken::ComponentProgressBar* bar = (Broken::ComponentProgressBar*)bar_go->AddComponent(Broken::Component::ComponentType::ProgressBar);
 				}
-				if (ImGui::MenuItem("Input Text", false, false, false)) {
+				if (ImGui::MenuItem("Circular Bar"))
+				{
+					Broken::GameObject* cbar_go = EngineApp->scene_manager->CreateEmptyGameObject();
+					Broken::ComponentProgressBar* cbar = (Broken::ComponentProgressBar*)cbar_go->AddComponent(Broken::Component::ComponentType::CircularBar);
 				}
-				if (ImGui::MenuItem("Progress Bar", false, false, false)) {
-				}
+
 				ImGui::EndMenu();
 			}
+
+			if (ImGui::BeginMenu("Lights"))
+			{
+				if (ImGui::MenuItem("Directional"))
+				{
+					Broken::GameObject* lightGObj = EngineApp->scene_manager->CreateEmptyGameObject();
+					Broken::ComponentLight* light = (Broken::ComponentLight*)lightGObj->AddComponent(Broken::Component::ComponentType::Light);
+					light->SetLightType(Broken::LightType::DIRECTIONAL);
+				}
+
+				if (ImGui::MenuItem("Pointlight"))
+				{
+					Broken::GameObject* lightGObj = EngineApp->scene_manager->CreateEmptyGameObject();
+					Broken::ComponentLight* light = (Broken::ComponentLight*)lightGObj->AddComponent(Broken::Component::ComponentType::Light);
+					light->SetLightType(Broken::LightType::POINTLIGHT);
+				}
+
+				if (ImGui::MenuItem("Spotlight"))
+				{
+					Broken::GameObject* lightGObj = EngineApp->scene_manager->CreateEmptyGameObject();
+					Broken::ComponentLight* light = (Broken::ComponentLight*)lightGObj->AddComponent(Broken::Component::ComponentType::Light);
+					light->SetLightType(Broken::LightType::SPOTLIGHT);
+				}
+
+				ImGui::EndMenu();
+			}
+
 			ImGui::EndMenu();
 		}
 
@@ -180,6 +256,10 @@ update_status ModuleEditorUI::Update(float dt) {
 
 			if (ImGui::MenuItem("Inspector")) {
 				panelInspector->OnOff();
+			}
+
+			if (ImGui::MenuItem("Rendering")) {
+				panelRendering->OnOff();
 			}
 
 			if (ImGui::MenuItem("Hierarchy")) {
@@ -210,6 +290,10 @@ update_status ModuleEditorUI::Update(float dt) {
 				panelConsole->OnOff();
 			}
 
+			if (ImGui::MenuItem("Navigation")) {
+				panelNavigation->OnOff();
+			}
+
 			ImGui::EndMenu();
 		}
 
@@ -234,6 +318,13 @@ update_status ModuleEditorUI::Update(float dt) {
 				panelAbout->OnOff();
 			}
 
+			if(ImGui::MenuItem("DoGame"))
+				EngineApp->gui->RequestBrowser("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+			if (ImGui::MenuItem("DoFrozenGame"))
+				EngineApp->gui->RequestBrowser("https://www.youtube.com/watch?v=L0MK7qz13bU&feature=youtu.be&t=126");
+			if (ImGui::MenuItem("I Want to Commit Suicide"))
+				EngineApp->gui->RequestBrowser("https://drive.google.com/file/d/1alYVc1pEzjF6crE49_FW5FYaiuwmZ2yN/view?usp=sharing");
+
 			ImGui::EndMenu();
 		}
 
@@ -249,7 +340,9 @@ update_status ModuleEditorUI::Update(float dt) {
 	return UPDATE_CONTINUE;
 }
 
-update_status ModuleEditorUI::PostUpdate(float dt) {
+update_status ModuleEditorUI::PostUpdate(float dt)
+{
+	OPTICK_CATEGORY("Editor UI PostUpdate", Optick::Category::UI);
 	ImGui::SetCurrentContext(EngineApp->gui->getImgUICtx());
 	for (uint i = 0; i < panels.size(); ++i) {
 	if (panels[i]->IsEnabled())
@@ -266,6 +359,7 @@ bool ModuleEditorUI::CleanUp() {
 	panelAbout = nullptr;
 	panelConsole = nullptr;
 	panelInspector = nullptr;
+	panelRendering = nullptr;
 	panelHierarchy = nullptr;
 	panelScene = nullptr;
 	panelToolbar = nullptr;
@@ -278,23 +372,25 @@ bool ModuleEditorUI::CleanUp() {
 	return true;
 }
 
-void ModuleEditorUI::SaveStatus(Broken::json& file) const {
+const Broken::json& ModuleEditorUI::SaveStatus() const {
 	//MYTODO: Added exception for Build because Build should never be enabled at start
 	//maybe we should call SaveStatus on every panel
+	static Broken::json config;
 	for (uint i = 0; i < panels.size(); ++i) {
 		if (panels[i]->GetName() == "Build")
-			file["GUI"][panels[i]->GetName()] = false;
+			config[panels[i]->GetName()] = false;
 		else
-			file["GUI"][panels[i]->GetName()] = panels[i]->IsEnabled();
-	}
+			config[panels[i]->GetName()] = panels[i]->IsEnabled();
+	} 
+	return config;
 };
 
 void ModuleEditorUI::LoadStatus(const Broken::json& file) {
 
 	for (uint i = 0; i < panels.size(); ++i) {
 
-		if (file["GUI"].find(panels[i]->GetName()) != file["GUI"].end()) {
-			panels[i]->SetOnOff(file["GUI"][panels[i]->GetName()]);
+		if (file[name].find(panels[i]->GetName()) != file[name].end()) {
+			panels[i]->SetOnOff(file[name][panels[i]->GetName()]);
 		}
 		else
 			EX_ENGINE_AND_SYSTEM_CONSOLE_LOG("|[error]: Could not find sub-node %s in GUI JSON Node, please check JSON EditorConfig", panels[i]->GetName());

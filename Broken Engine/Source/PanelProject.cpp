@@ -1,15 +1,41 @@
 #include "PanelProject.h"
+
+// -- Modules --
 #include "EngineApplication.h"
 #include "ModuleEditorUI.h"
-//#include "ModuleFileSystem.h"
-//#include "ModuleResourceManager.h"
-//#include "ModuleEventManager.h"
-//#include "ModuleGui.h"
+#include "ModuleEventManager.h"
+#include "ModuleGui.h"
+#include "ModuleResourceManager.h"
+#include "ModuleSceneManager.h"
+#include "ModuleFileSystem.h"
+#include "ModuleRenderer3D.h"
+#include "ModuleInput.h"
 
-//#include "ResourceFolder.h"
-//#include "ResourceModel.h"
+// -- Resources --
+#include "ResourceScene.h"
+#include "ResourceModel.h"
+#include "ResourceFolder.h"
+#include "ResourcePrefab.h"
+#include "ResourceShader.h"
+
+// -- Importers --
+#include "ImporterMeta.h"
+#include "ImporterPrefab.h"
+#include "ImporterFolder.h"
+#include "ImporterMaterial.h"
+#include "ImporterShader.h"
+#include "ImporterScene.h"
+#include "ImporterScript.h"
+
+// -- Components --
+#include "GameObject.h"
+
+// -- Utilities --
+#include "Imgui/imgui.h"
 #include <memory>
-#include "mmgr/nommgr.h"
+#include <iostream>
+#include <fstream>
+#include "mmgr/mmgr.h"
 
 // --- Event Manager Callbacks ---
 void PanelProject::ONGameObjectSelected(const Broken::Event& e)
@@ -25,7 +51,7 @@ void PanelProject::ONResourceDestroyed(const Broken::Event& e)
 
 // -------------------------------
 
-PanelProject::PanelProject(char * name) : Broken::Panel(name)
+PanelProject::PanelProject(char * name) : Panel(name)
 {
 	// --- Add Event Listeners ---
 	EngineApp->event_manager->AddListener(Broken::Event::EventType::GameObject_selected, ONGameObjectSelected);
@@ -54,7 +80,6 @@ bool PanelProject::Draw()
 	// --- Draw project panel, Unity style ---
 	if (ImGui::Begin(name, &enabled, projectFlags))
 	{
-
 		CreateResourceHandlingPopup();
 
 		if (ImGui::BeginMenuBar())
@@ -77,6 +102,78 @@ bool PanelProject::Draw()
 
 			DrawFolder(EngineApp->resources->getCurrentDirectory());
 
+			ImGui::SetCursorScreenPos(ImVec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y));
+
+			ImGui::InvisibleButton("##Drop Go", { ImGui::GetWindowWidth(), ImGui::GetWindowHeight() });
+
+			// --- Drop a prefab instance, create another prefab ---
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GO"))
+				{
+					uint UID = *(const uint*)payload->Data;
+
+					Broken::GameObject* go = EngineApp->scene_manager->currentScene->GetGOWithUID(UID);
+
+					// --- Block move if go is prefab child ---
+					go->is_prefab_instance = true;
+					
+					//ENGINE_CONSOLE_LOG("Created original prefab from: %s ...", go->GetName().c_str());
+
+					// --- Build original new name ---
+					std::string model_name;
+
+					if (go->model)
+					{
+						model_name = go->model->GetName();
+					}
+					else
+						model_name = go->GetName();
+
+					model_name = model_name.substr(0, model_name.find("."));
+					model_name.append(" (");
+					std::string currdirectory = currentDirectory->GetResourceFile();
+					std::string resource_name;
+					uint instance = 0;
+
+					resource_name = currdirectory + model_name + std::to_string(instance) + std::string(").prefab");
+
+					while (EngineApp->fs->Exists(resource_name.c_str()))
+					{
+						instance++;
+						resource_name = currdirectory + model_name + std::to_string(instance) + std::string(").prefab");
+					}
+
+					Broken::ResourcePrefab* new_prefab = (Broken::ResourcePrefab*)EngineApp->resources->CreateResource(Broken::Resource::ResourceType::PREFAB, resource_name.c_str());
+
+					if(go->model)
+						new_prefab->model = go->model;
+
+					new_prefab->parentgo = go;
+
+					// --- Create new preview icon ---
+					std::vector <Broken::GameObject*> prefab_gos;
+					GatherGameObjects(new_prefab->parentgo, prefab_gos);
+					uint texID = 0;
+					new_prefab->previewTexPath = EngineApp->renderer3D->RenderSceneToTexture(prefab_gos, texID);
+					new_prefab->SetPreviewTexID(texID);
+
+					EngineApp->resources->AddResourceToFolder(new_prefab);
+
+					// --- Create meta ---
+					Broken::ImporterMeta* IMeta = EngineApp->resources->GetImporter<Broken::ImporterMeta>();
+					Broken::ResourceMeta* meta = (Broken::ResourceMeta*)EngineApp->resources->CreateResourceGivenUID(Broken::Resource::ResourceType::META, resource_name.c_str(), new_prefab->GetUID());
+
+					if (meta)
+						IMeta->Save(meta);
+
+					Broken::ImporterPrefab* IPrefab = EngineApp->resources->GetImporter<Broken::ImporterPrefab>();
+					IPrefab->Save((Broken::ResourcePrefab*)new_prefab);
+					
+				}
+				ImGui::EndDragDropTarget();
+			}
+			
 			ImGui::SetCursorScreenPos(ImVec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y + ImGui::GetWindowHeight() - 58));
 
 
@@ -117,6 +214,9 @@ bool PanelProject::Draw()
 
 void PanelProject::CreateResourceHandlingPopup()
 {
+	// --- Delete resource ---
+	if (selected && !selected->has_parent && EngineApp->input->GetKey(SDL_SCANCODE_DELETE) == Broken::KEY_DOWN)
+		delete_selected = true;
 	//ImGui::SetCurrentContext(EngineApp->gui->getImgUICtx());
 	// Call the more complete ShowExampleMenuFile which we use in various places of this demo
 	if (ImGui::IsMouseClicked(1) && ImGui::IsWindowHovered(ImGuiHoveredFlags_::ImGuiHoveredFlags_ChildWindows))
@@ -127,6 +227,7 @@ void PanelProject::CreateResourceHandlingPopup()
 		//ImGui::MenuItem("(dummy menu)", NULL, false, false);
 		//if (ImGui::MenuItem("New")) {}
 		//if (ImGui::MenuItem("Open", "Ctrl+O")) {}
+
 
 		if (ImGui::BeginMenu("Create"))
 		{
@@ -171,24 +272,31 @@ void PanelProject::CreateResourceHandlingPopup()
 				IMat->Save((Broken::ResourceMaterial*)new_material);
 			}
 
-			if (ImGui::MenuItem("Script"))
+			if (ImGui::MenuItem("Shader"))
 			{
 				std::string resource_name;
-				resource_name = *(EngineApp->resources->GetNewUniqueName(Broken::Resource::ResourceType::SCRIPT));
+				resource_name = *(EngineApp->resources->GetNewUniqueName(Broken::Resource::ResourceType::SHADER));
 
-				Broken::Resource* new_script = EngineApp->resources->CreateResource(Broken::Resource::ResourceType::SCRIPT, std::string(currentDirectory->GetResourceFile()).append(resource_name).c_str());
-				Broken::ImporterScript* IScript = EngineApp->resources->GetImporter<Broken::ImporterScript>();
+				Broken::Resource* new_shader = EngineApp->resources->CreateResource(Broken::Resource::ResourceType::SHADER, std::string(currentDirectory->GetResourceFile()).append(resource_name).c_str());
+				Broken::ImporterShader* IShader = EngineApp->resources->GetImporter<Broken::ImporterShader>();
+				Broken::ResourceShader* shader = (Broken::ResourceShader*)new_shader;
+				shader->ReloadAndCompileShader();
 
-				EngineApp->resources->AddResourceToFolder(new_script);
+				EngineApp->resources->AddResourceToFolder(new_shader);
 
 				// --- Create meta ---
 				Broken::ImporterMeta* IMeta = EngineApp->resources->GetImporter<Broken::ImporterMeta>();
-				Broken::ResourceMeta* meta = (Broken::ResourceMeta*)EngineApp->resources->CreateResourceGivenUID(Broken::Resource::ResourceType::META, new_script->GetResourceFile(), new_script->GetUID());
+				Broken::ResourceMeta* meta = (Broken::ResourceMeta*)EngineApp->resources->CreateResourceGivenUID(Broken::Resource::ResourceType::META, new_shader->GetOriginalFile(), new_shader->GetUID());
 
 				if (meta)
 					IMeta->Save(meta);
 
-				IScript->Save((Broken::ResourceScript*)new_script);
+				IShader->Save((Broken::ResourceShader*)new_shader);
+			}
+
+			if (ImGui::MenuItem("Script"))
+			{
+				createScript = true;
 			}
 
 			if (ImGui::MenuItem("Scene"))
@@ -211,20 +319,98 @@ void PanelProject::CreateResourceHandlingPopup()
 				IScene->SaveSceneToFile((Broken::ResourceScene*)new_scene);
 			}
 
-			//if (ImGui::BeginMenu("More.."))
-			//{
-			//	ImGui::MenuItem("Hello");
-			//	ImGui::MenuItem("Sailor");
-			//	if (ImGui::BeginMenu("Recurse.."))
-			//	{
-			//		ShowExampleMenuFile();
-			//		ImGui::EndMenu();
-			//	}
-			//	ImGui::EndMenu();
-			//}
 			ImGui::EndMenu();
 		}
+		if (selected && !selected->has_parent)
+		{
+			if (ImGui::MenuItem("Delete"))
+				delete_selected = true;		
+		}
+		ImGui::EndPopup();
+	}
 
+	if (delete_selected)
+		ImGui::OpenPopup("Delete Selected Asset?");
+
+	if (ImGui::BeginPopupModal("Delete Selected Asset?", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("You are about to delete the selected asset. There is no going back!");
+
+		if (ImGui::Button("Delete", ImVec2(300, 0)))
+		{
+			EngineApp->resources->ForceDelete(GetSelected());
+			SetSelected(nullptr);
+			delete_selected = false;
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Cancel", ImVec2(300, 0)))
+		{
+			delete_selected = false;
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+
+	if (createScript)
+		ImGui::OpenPopup("Create new script");
+
+	if (ImGui::BeginPopupModal("Create new script", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+
+		static char script_name[50] = "NewScript";
+		if (ImGui::InputText("Script name", script_name, 50, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll)) {
+			
+			Broken::Resource* new_script = EngineApp->resources->CreateResource(Broken::Resource::ResourceType::SCRIPT, std::string(currentDirectory->GetResourceFile()).append(script_name).append(".lua").c_str());
+			Broken::ImporterScript* IScript = EngineApp->resources->GetImporter<Broken::ImporterScript>();
+
+			EngineApp->resources->AddResourceToFolder(new_script);
+
+			// --- Create meta ---
+			Broken::ImporterMeta* IMeta = EngineApp->resources->GetImporter<Broken::ImporterMeta>();
+			Broken::ResourceMeta* meta = (Broken::ResourceMeta*)EngineApp->resources->CreateResourceGivenUID(Broken::Resource::ResourceType::META, new_script->GetResourceFile(), new_script->GetUID());
+
+			if (meta)
+				IMeta->Save(meta);
+
+			IScript->Save((Broken::ResourceScript*)new_script);
+
+			// Initializate script
+			std::string full_path = new_script->GetResourceFile();
+			std::string s_name = script_name;
+
+			std::ofstream file;
+			file.open(full_path);
+			file << "function GetTable" + s_name + "()\n";
+			file << "local lua_table = {}\n";
+			file << "lua_table.System = Scripting.System()\n\n";
+
+			file << "function lua_table:Awake()\n";
+			file << "end\n\n";
+
+			file << "function lua_table:Start()\n";
+			file << "end\n\n";
+
+			file << "function lua_table:Update()\n";
+			file << "end\n\n";
+
+			file << "return lua_table\n";
+			file << "end";
+			file.close();
+
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SetItemDefaultFocus();
+		ImGui::NewLine();
+		ImGui::Separator();
+
+		if (ImGui::Button("Close", ImVec2(300, 0)))
+			ImGui::CloseCurrentPopup();
+
+		createScript = false;
 		ImGui::EndPopup();
 	}
 }
@@ -242,6 +428,11 @@ void PanelProject::SetSelected(Broken::Resource* new_selected)
 	}
 	else
 		selected_uid = 0;
+}
+
+Broken::Resource* PanelProject::GetSelected()
+{
+	return selected;
 }
 
 //const Broken::Resource* PanelProject::GetcurrentDirectory() const
@@ -449,18 +640,7 @@ void PanelProject::DrawFile(Broken::Resource* resource, uint i, uint row, ImVec2
 	else
 		ImGui::Image((ImTextureID)resource->GetPreviewTexID(), ImVec2(imageSize_px, imageSize_px), ImVec2(0, 1), ImVec2(1, 0), color);
 
-	// --- Handle selection ---
-	if (selected && selected->GetUID() == resource->GetUID()
-		&& wasclicked && ImGui::IsMouseReleased(0))
-	{
-		if (ImGui::IsItemHovered())
-		{
-			SetSelected(resource);
-			wasclicked = false;
-		}
-		else
-			SetSelected(nullptr);
-	}
+
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
 
@@ -474,18 +654,57 @@ void PanelProject::DrawFile(Broken::Resource* resource, uint i, uint row, ImVec2
 		ImGui::Image((ImTextureID)resource->GetPreviewTexID(), ImVec2(imageSize_px, imageSize_px), ImVec2(0, 1), ImVec2(1, 0));
 		ImGui::EndDragDropSource();
 	}
+	// --- Handle selection ---
+	if (selected_uid == resource->GetUID() && wasclicked && ImGui::IsMouseReleased(0))
+	{
+		if (ImGui::IsItemHovered())
+		{
+			SetSelected(resource);
+			wasclicked = false;
+		}
+		else
+			SetSelected(nullptr);
+	}
 
 	// --- Handle selection ---
 	if (ImGui::IsItemClicked())
 	{
-		selected = resource;
+		selected_uid = resource->GetUID();
+		//selected = resource;
 		wasclicked = true;
 	}
-	// --- IF resource is a scene, load it on double click! ---
+
+	// --- Handle resource double click ---
 	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
 	{
+		// If it is a scene, load it
 		if (resource->GetType() == Broken::Resource::ResourceType::SCENE)
 			EngineApp->scene_manager->SetActiveScene((Broken::ResourceScene*)resource);
+		// Open resources and files with default program
+		else {
+			// Construct absolute path for ShellExecute function
+			std::string abs_path = EngineApp->fs->GetBasePath();
+
+			std::size_t d_pos = 0;
+			d_pos = abs_path.find("Debug");
+			std::size_t r_pos = 0;
+			r_pos = abs_path.find("Release");
+
+			if (d_pos != 4294967295)  // If we are in DEBUG
+			{
+				abs_path = abs_path.substr(0, d_pos);
+				abs_path += "Game/";
+			}
+			else if (r_pos != 4294967295) // If we are in RELEASE
+			{
+				abs_path = abs_path.substr(0, r_pos);
+				abs_path += "Game/";
+			}
+
+			abs_path += resource->GetOriginalFile();
+			EngineApp->fs->NormalizePath(abs_path);
+			EngineApp->gui->RequestBrowser(abs_path.c_str());
+		}
 	}
 
 	//if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete), false))
@@ -530,6 +749,16 @@ void PanelProject::RecursiveDirectoryDraw(Broken::ResourceFolder* directory)
 			RecursiveDirectoryDraw(*it);
 			ImGui::TreePop();
 		}
+	}
+}
+
+void PanelProject::GatherGameObjects(Broken::GameObject* go, std::vector<Broken::GameObject*>& gos_vec)
+{
+	gos_vec.push_back(go);
+
+	for (uint i = 0; i < go->childs.size(); ++i)
+	{
+		GatherGameObjects(go->childs[i], gos_vec);
 	}
 }
 

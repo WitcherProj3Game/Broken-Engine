@@ -5,13 +5,16 @@
 #include "ModuleResourceManager.h"
 #include "Importer.h"
 
+#include "Optick/include/optick.h"
 
 #include "mmgr/mmgr.h"
 
 #define MAX_KEYS 300
 using namespace Broken;
 
-ModuleInput::ModuleInput(bool start_enabled) : Module(start_enabled) {
+ModuleInput::ModuleInput(bool start_enabled) : Module(start_enabled) 
+{
+	name = "Input";
 	keyboard = new KEY_STATE[MAX_KEYS];
 	memset(keyboard, KEY_IDLE, sizeof(KEY_STATE) * MAX_KEYS);
 	memset(mouse_buttons, KEY_IDLE, sizeof(KEY_STATE) * MAX_MOUSE_BUTTONS);
@@ -74,9 +77,11 @@ bool ModuleInput::Init(json& file) {
 }
 
 // Called every draw update
-update_status ModuleInput::PreUpdate(float dt) {
-	SDL_PumpEvents();
+update_status ModuleInput::PreUpdate(float dt) 
+{
+	OPTICK_CATEGORY("Input PreUpdate", Optick::Category::Input);
 
+	SDL_PumpEvents();
 	const Uint8* keys = SDL_GetKeyboardState(NULL);
 
 	for (int i = 0; i < MAX_KEYS; ++i) {
@@ -367,44 +372,56 @@ bool ModuleInput::CleanUp() {
 
 GP_BUTTON_STATE ModuleInput::GetTriggerState(PLAYER p, int id) const
 {
-	if (id == SDL_CONTROLLER_AXIS_TRIGGERLEFT || SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+	GP_BUTTON_STATE ret = BUTTON_IDLE;
+
+	if (id == SDL_CONTROLLER_AXIS_TRIGGERLEFT || id == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
 	{
 		if (controllers[(int)p].id_ptr != nullptr)
-			return controllers[(int)p].triggers_state[(id - (int)SDL_CONTROLLER_AXIS_TRIGGERLEFT)];
+			ret = controllers[(int)p].triggers_state[(id - (int)SDL_CONTROLLER_AXIS_TRIGGERLEFT)];
 	}
-	else
-		return BUTTON_IDLE;
+
+	return ret;
 }
 
 GP_AXIS_STATE ModuleInput::GetLRAxisState(PLAYER p, int id) const
 {
+	GP_AXIS_STATE ret = GP_AXIS_STATE::AXIS_IDLE;
+
 	if (IN_RANGE(id, (int)SDL_CONTROLLER_AXIS_LEFTX, (int)SDL_CONTROLLER_AXIS_RIGHTY))
 	{
 		if (controllers[(int)p].id_ptr != nullptr)
 		{
-			return controllers[(int)p].multidirection_axis_state[id - (int)SDL_CONTROLLER_AXIS_LEFTX];
+			ret = controllers[(int)p].multidirection_axis_state[id - (int)SDL_CONTROLLER_AXIS_LEFTX];
 		}
 	}
-	else
-		return GP_AXIS_STATE::AXIS_IDLE;
+
+	return ret;
 }
 
 GP_BUTTON_STATE ModuleInput::GetButton(PLAYER p, BUTTON_BIND id) const
 {
-	if (controllers[(int)p].id_ptr != nullptr && controllers[(int)p].binded_buttons[(int)id].bindType == SDL_CONTROLLER_BINDTYPE_BUTTON)
-		return controllers[(int)p].buttons[controllers[(int)p].binded_buttons[(int)id].value.button];
-	else if (controllers[(int)p].id_ptr != nullptr && controllers[(int)p].binded_buttons[(int)id].bindType == SDL_CONTROLLER_BINDTYPE_HAT)
-		return controllers[(int)p].buttons[controllers[(int)p].binded_buttons[(int)id].value.button];
-	else if (controllers[(int)p].id_ptr != nullptr && controllers[(int)p].binded_buttons[(int)id].bindType == SDL_CONTROLLER_BINDTYPE_AXIS)
+	GP_BUTTON_STATE ret = BUTTON_IDLE;
+	if (controllers[(int)p].id_ptr != nullptr) 
 	{
-		if (controllers[(int)p].binded_buttons[(int)id].value.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT ||
-			controllers[(int)p].binded_buttons[(int)id].value.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+		switch (controllers[(int)p].binded_buttons[(int)id].bindType) 
 		{
-			return GetTriggerState(p, controllers[(int)p].binded_buttons[(int)id].value.axis);
+		case SDL_CONTROLLER_BINDTYPE_BUTTON: // We let it fall to the next statement because it has the same return value
+		case SDL_CONTROLLER_BINDTYPE_HAT:
+			ret = controllers[(int)p].buttons[controllers[(int)p].binded_buttons[(int)id].value.button];
+			break;
+
+		case SDL_CONTROLLER_BINDTYPE_AXIS:
+			if (controllers[(int)p].binded_buttons[(int)id].value.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT ||
+				controllers[(int)p].binded_buttons[(int)id].value.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+				ret = GetTriggerState(p, controllers[(int)p].binded_buttons[(int)id].value.axis);
+			break;
+
+		default:
+			break;
 		}
 	}
-	else
-		return BUTTON_IDLE;
+	
+	return ret;
 }
 
 void ModuleInput::BindButton(PLAYER p, BUTTON_BIND bind, int button_to_bind, int bind_type)

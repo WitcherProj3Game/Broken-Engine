@@ -1,9 +1,14 @@
 #ifndef __PANEL_INSPECTOR_H__
 #define __PANEL_INSPECTOR_H__
 
-#include "BrokenEngine.h"
+#include "Panel.h"
 
-class PanelInspector : public Broken::Panel
+namespace Broken
+{
+	class GameObject;
+}
+
+class PanelInspector : public Panel
 {
 public:
 
@@ -11,6 +16,8 @@ public:
 	~PanelInspector();
 
 	bool Draw();
+
+
 
 	bool Startup = true;
 

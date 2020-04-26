@@ -3,18 +3,19 @@
 
 #define FPS_TRACKER_SIZE 100
 
-#include "BrokenEngine.h"
+
 #include <vector>
+#include "Panel.h"
 
 
-class PanelSettings : public Broken::Panel
+class PanelSettings : public Panel
 {
 public:
 
 	PanelSettings(char* name);
 	~PanelSettings();
 
-	void AddFPS(float fps, float ms);
+	void AddFPS(const float& fps, const float& ms);
 	bool Draw();
 
 private:

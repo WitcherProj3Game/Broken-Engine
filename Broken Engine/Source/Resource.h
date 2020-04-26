@@ -14,16 +14,19 @@ public:
 		FOLDER,
 		SCENE,
 		MODEL,
+		PREFAB,
 		MATERIAL,
 		SHADER,
 		MESH,
 		BONE,
 		ANIMATION,
+		ANIMATOR,
 		TEXTURE,
-		SHADER_OBJECT,
 		SCRIPT,
 		META,
-		UNKNOWN,
+		FONT,
+		NAVMESH,
+		UNKNOWN
 	};
 	enum class ResourceNotificationType {
 		Overwrite,
@@ -31,7 +34,6 @@ public:
 	};
 
 
-	Resource(ResourceType type);
 	Resource(ResourceType type, uint UID, const char* source_file);
 	virtual ~Resource();
 
@@ -49,6 +51,7 @@ public:
 	void SetResourceFile(const char* new_path); // for temporal scene 
 	void SetUID(uint UID);
 	void SetName(const char* name);
+	void SetPreviewTexID(uint ID);
 
 	bool IsInMemory() const;
 	bool LoadToMemory();
@@ -60,6 +63,7 @@ public:
 
 	virtual void OnOverwrite() = 0;
 	virtual void OnDelete() = 0;
+	virtual void CreateInspectorNode() {};
 
 	// to encapsulate model childs in panelproject
 	bool has_parent = false;
@@ -68,6 +72,7 @@ protected:
 	virtual bool LoadInMemory() = 0;
 	virtual void FreeMemory() = 0;
 	virtual void Repath() {};
+
 
 
 protected:

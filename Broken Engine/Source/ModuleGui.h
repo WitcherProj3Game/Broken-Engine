@@ -2,28 +2,18 @@
 #define __MODULE_GUI_H__
 
 #include "Module.h"
-#include "Panel.h"
 #include "BrokenCore.h"
 
 #include <vector>
 struct ImGuiContext;
-//
-//class PanelSettings;
-//class PanelAbout;
-//class PanelConsole;
-//class PanelInspector;
-//class PanelHierarchy;
-//class PanelScene;
-//class PanelToolbar;
-//class PanelProject;
-//class PanelShaderEditor;
-//class PanelResources;
+struct ImDrawList;
+
 
 typedef void* (*be_imguialloc)(size_t sz, void* user_data);
 typedef void (*be_imguifree)(void* ptr, void* user_data);
 
 BE_BEGIN_NAMESPACE
-class Panel;
+class ResourcePrefab;
 
 class BROKEN_API ModuleGui : public Module
 {
@@ -42,16 +32,8 @@ public:
 	void Draw() const;
 	void DockSpace() const;
 	void RequestBrowser(const char * url) const;
-	void AddPanel(Panel* npanel);
 
 	ImGuiContext* getImgUICtx() const;
-
-
-	void LogFPS(float fps, float ms);
-
-	void SaveStatus(json &file) const override;
-	void LoadStatus(const json & file) override;
-
 	void HandleInput(SDL_Event* event) const;
 
 	bool IsKeyboardCaptured() const;
@@ -63,28 +45,31 @@ public:
 	be_imguifree GetImGuiFree() const;
 
 public:
+	bool openPrefab = false;
+	bool editingPrefab = false;
+	ResourcePrefab* prefab = nullptr;
 
-	/*PanelSettings*	panelSettings = nullptr;
-	PanelAbout*			panelAbout = nullptr;
-	PanelConsole*		panelConsole = nullptr;
-	PanelInspector*		panelInspector = nullptr;
-	PanelHierarchy*		panelHierarchy = nullptr;
-	PanelScene*			panelScene = nullptr;
-	PanelBuild*			panelBuild = nullptr;
-	PanelToolbar*       panelToolbar = nullptr;
-	PanelProject*		panelProject = nullptr;
-	PanelShaderEditor*  panelShaderEditor = nullptr;
-	PanelResources*		panelResources = nullptr;*/
-	//PanelResources*		panelResources = nullptr;
-	//PanelPhysics*		panelPhysics = nullptr;
-	//PanelGame*			panelGame = nullptr;
-	
-	uint materialTexID = 0;
+
 	uint folderTexID = 0;
 	uint defaultfileTexID = 0;
+	uint materialTexID = 0;
 	uint prefabTexID = 0;
 	uint playbuttonTexID = 0;
 	uint sceneTexID = 0;
+	uint animatorTexID = 0;
+	uint navmeshTexID = 0;
+	uint shaderTexID = 0;
+	uint scriptTexID = 0;
+	uint meshTexID = 0;
+	uint boneTexID = 0;
+	uint animationTexID = 0;
+	// --- Toolbar icons
+	uint translateTexID = 0;
+	uint rotateTexID = 0;
+	uint scaleTexID = 0;
+	uint toolbarPlayTexID = 0;
+	uint toolbarPauseTexID = 0;
+	uint toolbarStepTexID = 0;
 
 	bool isSceneHovered = false;
 
@@ -96,13 +81,13 @@ public:
 
 	bool isUsingGuizmo = false;
 
+	ImDrawList* draw_list;
+
 private:
 
 	bool capture_keyboard = false;
 	bool capture_mouse = false;
 	ImGuiContext* ctx = nullptr;
-
-	std::vector<Panel*> panels;
 };
 
 BE_END_NAMESPACE

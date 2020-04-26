@@ -13,8 +13,11 @@ public:
 
 	void Start();
 	void Stop();
+	void Resume();
 
 	Uint32 Read();
+
+	const bool IsRunning() const { return running; }
 
 private:
 

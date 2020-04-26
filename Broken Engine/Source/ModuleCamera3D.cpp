@@ -16,6 +16,9 @@
 #include "ModuleSceneManager.h"
 #include "ModuleRenderer3D.h"
 
+#include "ModuleSelection.h"
+
+#include "Optick/include/optick.h"
 
 #include "mmgr/mmgr.h"
 
@@ -23,6 +26,7 @@ using namespace Broken;
 
 ModuleCamera3D::ModuleCamera3D(bool start_enabled) : Module(start_enabled) {
 	camera = new ComponentCamera(nullptr);
+	name = "Camera3D";
 }
 
 ModuleCamera3D::~ModuleCamera3D() {
@@ -44,7 +48,8 @@ bool ModuleCamera3D::Start() {
 	reference = camera->frustum.Pos();
 	camera->Look({ 0.0f, 0.0f, 0.0f });
 	FrameObject({ 0.0f, 0.0f, 0.0f });
-
+	camera->SetCameraValues(m_CustomDefaultCameraValues);
+	listener = new ComponentAudioListener(nullptr, reference);
 	return ret;
 }
 
@@ -53,11 +58,12 @@ bool ModuleCamera3D::CleanUp() {
 	ENGINE_CONSOLE_LOG("Cleaning camera");
 
 	delete camera;
+	delete listener;
 
 	return true;
 }
 
-void ModuleCamera3D::LoadStatus(const json& file) 
+void ModuleCamera3D::LoadStatus(const json& file)
 {
 	//#ifdef BE_GAME_BUILD
 	//if (file["Camera3D"].find("ActiveCamera") != file["Camera3D"].end()) {
@@ -71,8 +77,10 @@ void ModuleCamera3D::LoadStatus(const json& file)
 }
 
 // -----------------------------------------------------------------
-update_status ModuleCamera3D::Update(float dt) 
+update_status ModuleCamera3D::Update(float dt)
 {
+	OPTICK_CATEGORY("Engine Camera Update", Optick::Category::Camera);
+
 	if (App->GetAppState() == AppState::EDITOR && App->gui->isSceneHovered) {
 		m_CameraSpeedDeltaTime = m_CameraSpeed * dt;
 		m_ScrollSpeedDeltaTime = m_ScrollSpeed * dt;
@@ -85,8 +93,9 @@ update_status ModuleCamera3D::Update(float dt)
 	return UPDATE_CONTINUE;
 }
 
-void ModuleCamera3D::UpdateCamera() {
-	if (App->GetAppState() == AppState::EDITOR && App->gui->isSceneHovered) 
+void ModuleCamera3D::UpdateCamera()
+{
+	if (App->GetAppState() == AppState::EDITOR && App->gui->isSceneHovered)
 	{
 		float3 newPos(0, 0, 0);
 
@@ -124,10 +133,7 @@ void ModuleCamera3D::UpdateCamera() {
 
 		// --- Frame object ---
 		if (App->input->GetKey(SDL_SCANCODE_F) == KEY_DOWN) {
-			if (GameObject* GO = App->scene_manager->GetSelectedGameObject())
-				FrameObject(GO);
-			else
-				FrameObject(float3(0.0f));
+			FrameObject(App->selection->root);
 		}
 
 		//App->scene_manager->CreateGrid(camera->frustum.Pos().Length()); // rip adaptive grid
@@ -157,7 +163,12 @@ void ModuleCamera3D::OnMouseClick(const float mouse_x, const float mouse_y) {
 	//ENGINE_CONSOLE_LOG("mouse_Y: %f", normalized_y);
 
 	LineSegment ray = App->renderer3D->active_camera->frustum.UnProjectLineSegment(normalized_x, normalized_y);
+
+	ray.b = ray.a + (ray.Dir()*camera->GetFarPlane()*2);
+
 	last_ray = ray;
+
+	App->selection->SceneRectangleSelect({ ray.a });
 
 	if (App->input->GetKey(SDL_SCANCODE_LALT) == KEY_IDLE)
 		App->scene_manager->SelectFromRay(ray);
@@ -169,7 +180,9 @@ void ModuleCamera3D::FrameObject(GameObject* GO) {
 		ComponentMesh* mesh = GO->GetComponent<ComponentMesh>();
 
 		if (transform)
-			FrameObject(transform->GetGlobalPosition());
+			FrameObject(transform->GetPosition());
+			// Changed to local position because always is focusing on selection and uses only local values
+			//FrameObject(transform->GetGlobalPosition());
 
 		if (mesh && mesh->resource_mesh)
 		{
@@ -179,7 +192,7 @@ void ModuleCamera3D::FrameObject(GameObject* GO) {
 			reference.y = center.y;
 			reference.z = center.z;
 
-			float3 Movement = camera->frustum.Front() * (10.0f * mesh->GetAABB().HalfDiagonal().Length());
+			float3 Movement = camera->frustum.Front() * (2 * GO->GetAABB().Diagonal().Length());
 
 			if (Movement.IsFinite())
 				camera->frustum.SetPos(reference - Movement);

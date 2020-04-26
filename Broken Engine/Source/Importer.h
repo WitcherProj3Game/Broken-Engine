@@ -12,15 +12,19 @@ public:
 		Folder,
 		Scene,
 		Model,
+		Prefab,
 		Material,
 		Shader,
 		Mesh,
 		Bone,
 		Animation,
+		Animator,
 		Texture,
 		Shader_Object,
 		Script,
 		Meta,
+		Font,
+		NavMesh,
 		Unknown
 	};
 

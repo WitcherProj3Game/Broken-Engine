@@ -1,8 +1,9 @@
 #ifndef __MODULEEDITORUI_H__
 #define __MODULEEDITORUI_H__
 
-#include "BrokenEngine.h"
+#include "Module.h"
 
+class Panel;
 class PanelSettings;
 class PanelAbout;
 class PanelConsole;
@@ -15,7 +16,8 @@ class PanelShaderEditor;
 class PanelResources;
 class PanelBuild;
 class PanelPhysics;
-
+class PanelNavigation;
+class PanelRendering;
 
 
 class ModuleEditorUI : public Broken::Module
@@ -31,7 +33,7 @@ public:
 	bool CleanUp() override;
 
 
-	void SaveStatus(Broken::json& file) const override;
+	const Broken::json& SaveStatus() const override;
 	void LoadStatus(const Broken::json& file) override;
 
 public:
@@ -48,9 +50,11 @@ public:
 	PanelResources*		panelResources = nullptr;
 	PanelBuild*			panelBuild = nullptr;
 	PanelPhysics*		panelPhysics = nullptr;
+	PanelNavigation*	panelNavigation = nullptr;
+	PanelRendering*		panelRendering = nullptr;
 
 private:
-	std::vector<Broken::Panel*> panels;
+	std::vector<Panel*> panels;
 	bool show_demo_window = false;
 
 };

@@ -1,13 +1,24 @@
 #ifndef __PANEL_PROJECT_H__
 #define __PANEL_PROJECT_H__
 
-#include "BrokenEngine.h"
+#include "Panel.h"
+
 #include <string>
 #include <vector>
-#include "Imgui/imgui.h"
 
+namespace Broken
+{
+	class GameObject;
+	class Resource;
+	class ResourceFolder;
+	struct Event;
+}
 
-class PanelProject : public Broken::Panel
+typedef unsigned int uint;
+struct ImVec4;
+struct ImVec2;
+
+class PanelProject : public Panel
 {
 public:
 
@@ -16,14 +27,17 @@ public:
 
 	bool Draw();
 	void SetSelected(Broken::Resource* new_selected);
+	Broken::Resource* GetSelected();
 	//const Broken::Resource* GetcurrentDirectory() const;
+	void GatherGameObjects(Broken::GameObject* go, std::vector<Broken::GameObject*>& gos_vec);
 
 private:
+
 	static void ONGameObjectSelected(const Broken::Event& e);
 	static void ONResourceDestroyed(const Broken::Event& e);
 	void CreateResourceHandlingPopup();
-
 private:
+	bool delete_selected = false;
 	bool wasclicked = false;
 	uint imageSize_px = 48;
 	uint item_spacingX_px = 20;
@@ -39,6 +53,8 @@ private:
 	void LimitText( std::string& text);
 
 	void RecursiveDirectoryDraw(Broken::ResourceFolder* directory);
+
+	bool createScript = false;
 };
 
 #endif

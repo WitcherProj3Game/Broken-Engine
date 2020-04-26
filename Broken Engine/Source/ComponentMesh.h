@@ -2,17 +2,26 @@
 #define __COMPONENT_MESH_H__
 
 #include "Component.h"
-#include "ResourceMesh.h"
+
+namespace math
+{
+	class AABB;
+}
 
 BE_BEGIN_NAMESPACE
 class ComponentBone;
+class ResourceMesh;
+
 
 class BROKEN_API ComponentMesh : public Component {
 public:
 
 	ComponentMesh(GameObject* ContainerGO);
 	virtual ~ComponentMesh();
-	const AABB& GetAABB() const;
+
+	void Update() override;
+
+	const math::AABB& GetAABB() const;
 
 	// --- Save & Load ---
 	json Save() const override;

@@ -2,11 +2,11 @@
 #define __COMPONENT_BONE_H__
 
 #include "Component.h"
-#include "ResourceBone.h"
-//#include "Math.h"
+#include "Math.h"
 
 BE_BEGIN_NAMESPACE
 class GameObject;
+class ResourceBone;
 
 class BROKEN_API ComponentBone : public Component
 {
@@ -14,7 +14,8 @@ public:
 	ComponentBone(GameObject* gameObject = nullptr);
 	virtual ~ComponentBone();
 
-	void DebugDrawBones();
+	void Update() override;
+	void DrawComponent() override;
 
 	float4x4 GetBoneTransform() const;
 	float4x4 GetSkeletonTransform();

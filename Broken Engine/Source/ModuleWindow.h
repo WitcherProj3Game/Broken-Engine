@@ -2,7 +2,6 @@
 #define __MODULEWINDOW_H__
 
 #include "Module.h"
-#include "SDL/include/SDL.h"
 #include "BrokenCore.h"
 
 
@@ -50,15 +49,15 @@ public:
 	bool isMouseFocused() const;
 
 	// --- Save/Load ----
-	void SaveStatus(json& file) const override;
+	const json& SaveStatus() const override;
 	void LoadStatus(const json& file) override;
 
 public:
 	//The window we'll be rendering to
-	SDL_Window* window;
+	class SDL_Window* window;
 
 	//The surface contained by the window
-	SDL_Surface* screen_surface;
+	class SDL_Surface* screen_surface;
 
 private:
 

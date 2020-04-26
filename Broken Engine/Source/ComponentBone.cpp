@@ -1,16 +1,23 @@
-#include "Application.h"
 #include "ComponentBone.h"
-#include "ComponentTransform.h"
-#include "ComponentAnimation.h"
+
+// -- Modules --
+#include "Application.h"
 #include "ModuleResourceManager.h"
 #include "ModuleFileSystem.h"
 #include "ModuleCamera3D.h"
-#include "ComponentCamera.h"
 #include "ModuleRenderer3D.h"
-#include "ResourceShader.h"
 #include "ModuleSceneManager.h"
 
+// -- Resources --
+#include "ResourceShader.h"
+#include "ResourceBone.h"
+
+// -- Components --
 #include "GameObject.h"
+#include "ComponentCamera.h"
+#include "ComponentTransform.h"
+#include "ComponentAnimation.h"
+
 #include "Imgui/imgui.h"
 #include "OpenGL.h"
 
@@ -18,7 +25,7 @@ using namespace Broken;
 
 ComponentBone::ComponentBone(GameObject* ContainerGO) : Component(ContainerGO, Component::ComponentType::Bone)
 {
-
+	name = "Bone";
 }
 
 ComponentBone::~ComponentBone()
@@ -30,9 +37,14 @@ ComponentBone::~ComponentBone()
 	}
 }
 
-void ComponentBone::DebugDrawBones()
+void ComponentBone::Update()
 {
+	if (to_delete)
+		this->GetContainerGameObject()->RemoveComponent(this);
+}
 
+void ComponentBone::DrawComponent()
+{
 	if (GO->parent != nullptr && GO->parent->GetComponent<ComponentBone>() != nullptr && GO->GetAnimGO(GetHipBone()->GO)
 		&& GO->GetAnimGO(GetHipBone()->GO)->GetComponent<ComponentAnimation>()->draw_bones)
 	{
@@ -41,17 +53,7 @@ void ComponentBone::DebugDrawBones()
 		float3 child_pos = float3(child_matrix.At(0, 3), child_matrix.At(1, 3), child_matrix.At(2, 3));
 		float3 parent_pos = float3(parent_matrix.At(0, 3), parent_matrix.At(1, 3), parent_matrix.At(2, 3));
 
-		glLineWidth(5.0f);
-		glBegin(GL_LINES);
-
-		glColor4f(1.0, 1.0, 0.0, 1.0);
-
-		glVertex3f(child_pos.x, child_pos.y, child_pos.z);
-		glVertex3f(parent_pos.x, parent_pos.y, parent_pos.z);
-
-
-		glEnd();
-		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		App->renderer3D->DrawLine(child_matrix, child_pos, parent_pos, White);
 	}
 	
 }
@@ -82,6 +84,8 @@ ComponentBone* ComponentBone::GetHipBone()
 json ComponentBone::Save() const
 {
 	json node;
+	node["Active"] = this->active;
+
 	node["Resources"]["ResourceBone"];
 
 	// --- Store path to component file ---
@@ -94,6 +98,8 @@ json ComponentBone::Save() const
 
 void ComponentBone::Load(json& node)
 {
+	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
+
 	std::string path = node["Resources"]["ResourceBone"].is_null() ? "0" : node["Resources"]["ResourceBone"];
 	App->fs->SplitFilePath(path.c_str(), nullptr, &path);
 	path = path.substr(0, path.find_last_of("."));
@@ -130,21 +136,10 @@ void ComponentBone::ONResourceEvent(uint UID, Resource::ResourceNotificationType
 
 void ComponentBone::CreateInspectorNode()
 {
-	ImGui::Checkbox("##Bone", &GetActive());
-	ImGui::SameLine();
 
-	if (ImGui::TreeNode("Bone"))
+	if (res_bone)
 	{
-		ImGui::Text("Im a component bone :D");
-		
-		if (res_bone)
-		{
-			ImGui::Text("ResourceBone linked");
-			ImGui::Text("Name: %s", res_bone->GetName());
-		}
-			
-
-
-		ImGui::TreePop();
+		ImGui::Text("Name: %s", res_bone->GetName());
 	}
+
 }

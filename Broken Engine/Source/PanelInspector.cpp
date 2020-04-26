@@ -1,29 +1,32 @@
 #include "PanelInspector.h"
-#include "Imgui/imgui.h"
-
 #include "EngineApplication.h"
-//#include "ModuleSceneManager.h"
-//#include "ModuleRenderer3D.h"
-//#include "ModuleResourceManager.h"
-//#include "ModuleGui.h"
 
-//#include "GameObject.h"
-//#include "ComponentTransform.h"
-//#include "ComponentMesh.h"
-//#include "ComponentMeshRenderer.h"
-//#include "ComponentCamera.h"
+// --- Modules ---
+#include "ModuleEditorUI.h"
+#include "ModuleGui.h"
+#include "ModuleSelection.h"
+#include "ModulePhysics.h"
+#include "ModuleSceneManager.h"
+#include "ModuleResourceManager.h"
 
+// -- Panel --
+#include "PanelProject.h"
 #include "PanelShaderEditor.h"
 
-//#include "ResourceMesh.h"
-//#include "ResourceMaterial.h"
-//#include "ResourceTexture.h"
-//#include "ResourceShader.h"
-//#include "ComponentScript.h"
+// -- Components --
+#include "ComponentScript.h"
+#include "ComponentCollider.h"
+#include "ComponentParticleEmitter.h"
+#include "ComponentCollider.h"
+
+// --- Others ---
+#include "Imgui/imgui.h"
+#include "PhysX_3.4/Include/PxPhysicsAPI.h"
+
 
 //#include "mmgr/mmgr.h"
 
-PanelInspector::PanelInspector(char * name) : Panel(name)
+PanelInspector::PanelInspector(char* name) : Panel(name)
 {
 }
 
@@ -40,177 +43,407 @@ bool PanelInspector::Draw()
 
 	if (ImGui::Begin(name, &enabled, settingsFlags))
 	{
-		Broken::GameObject* Selected = EngineApp->scene_manager->GetSelectedGameObject();
+		// SELECTED TODO
+		// Displaying the minimum common inspector of the selection
+		//Broken::GameObject* Selected = EngineApp->selection->GetSelected()->size() <= 1 ? EngineApp->selection->GetLastSelected() : EngineApp->selection->root;
 
-		if (Selected == nullptr)
+		Broken::GameObject* Selected = EngineApp->selection->GetLastSelected();
+		const std::vector<Broken::GameObject*>* GosSelected = EngineApp->selection->GetSelected();
+		Broken::Resource* SelectedRes = EngineApp->editorui->panelProject->GetSelected();
+
+		if (Selected != nullptr)
 		{
-			ImGui::End();
-			return false;
-		}
+			// --- Game Object ---
+			CreateGameObjectNode(*Selected);
 
-		// --- Game Object ---
-		CreateGameObjectNode(*Selected);
+			// --- Components ---
 
-		// --- Components ---
+			std::vector<Broken::Component*>* components = &Selected->GetComponents();
 
-		std::vector<Broken::Component*>* components = &Selected->GetComponents();
-
-		for (std::vector<Broken::Component*>::const_iterator it = components->begin(); it != components->end(); ++it)
-		{
-			if (Startup)
-				ImGui::SetNextItemOpen(true);
-
-			(*it)->CreateInspectorNode();
-			ImGui::NewLine();
-			ImGui::Separator();
-		}
-
-		static ImGuiComboFlags flags = 0;
-
-		const char* items[] = { "Default", "Mesh", "Mesh Renderer", "Dynamic RigidBody", "Collider", "Audio Source", "Particle Emitter", "UI Canvas", "UI Image", "UI Text", "UI Button" };
-		static const char* item_current = items[0];
-
-		ImGui::NewLine();
-
-		// --- Add component ---
-		if (ImGui::BeginCombo("##Components Combo", "Add Component", flags)) // The second parameter is the label previewed before opening the combo.
-		{
-			for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+			for (std::vector<Broken::Component*>::const_iterator it = components->begin(); it != components->end(); ++it)
 			{
-				bool is_selected = (item_current == items[n]);
-				if (ImGui::Selectable(items[n], is_selected))
-					item_current = items[n];
-				if (is_selected)
-					ImGui::SetItemDefaultFocus();   // Set the initial focus when opening the combo (scrolling + for keyboard navigation support in the upcoming navigation branch)
-			}
-			ImGui::EndCombo();
-		}
+				if ((*it) == nullptr)
+					continue;
 
-		// --- Handle drag & drop ---
-		if (ImGui::BeginDragDropTarget())
-		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("resource"))
-			{
-				uint UID = *(const uint*)payload->Data;
-				Broken::Resource* resource = EngineApp->resources->GetResource(UID, false);
+				if (Startup)
+					ImGui::SetNextItemOpen(true);
 
-				// MYTODO: Instance resource here, put it on scene (depending on resource)
-				if (resource && resource->GetType() == Broken::Resource::ResourceType::SCRIPT)
+				if (*it)
 				{
-					resource = EngineApp->resources->GetResource(UID);
-					Broken::ComponentScript* script = (Broken::ComponentScript*)Selected->AddComponent(Broken::Component::ComponentType::Script);
-					script->AssignScript((Broken::ResourceScript*)resource);
+					std::string name = "##Active";
+					if (ImGui::Checkbox((name + (*it)->name).c_str(), &(*it)->GetActive()))
+					{
+						if ((*it)->IsEnabled())
+							(*it)->Enable();
+						else
+							(*it)->Disable();
+					}
+					ImGui::SameLine();
 
+					name = (*it)->GetType() != Broken::Component::ComponentType::Script ? (*it)->name : (*it)->name + " (Script)";
+
+					if (ImGui::TreeNodeEx(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+					{
+						// Creating component options menu (...)
+						ImGui::SameLine();
+						if (ImGui::SmallButton("..."))
+							ImGui::OpenPopup("Component options");
+
+						if (ImGui::BeginPopup("Component options"))
+						{
+							bool dummy = false;
+							if (ImGui::MenuItem("Delete component"))
+							{
+								(*it)->to_delete = true;
+							}
+							if (ImGui::MenuItem("Copy values"))
+							{
+								EngineApp->selection->CopyComponentValues((*it));
+							}
+							if (ImGui::MenuItem("Paste values", EngineApp->selection->component_name.c_str(), &dummy, EngineApp->selection->ComponentCanBePasted()))
+							{
+								EngineApp->selection->PasteComponentValues((*it));
+							}
+							if (ImGui::MenuItem("Paste values to all selected", EngineApp->selection->component_name.c_str(), &dummy, EngineApp->selection->ComponentCanBePasted()))
+							{
+								EngineApp->selection->PasteComponentValuesToSelected();
+							}
+							if (ImGui::BeginMenu("Delete component to all selected"))
+							{
+								if (ImGui::MenuItem("Confirm delete"))
+								{
+									EngineApp->selection->DeleteComponentToSelected();
+
+								}
+								ImGui::EndMenu();
+							}
+							ImGui::EndPopup();
+						}
+
+						(*it)->CreateInspectorNode();
+
+						ImGui::TreePop();
+					}
+				}
+
+				ImGui::NewLine();
+				ImGui::Separator();
+			}
+
+			static ImGuiComboFlags flags = 0;
+
+			const char* items[] = { "Default", "Dynamic RigidBody", "Collider", "Character Controller", "Audio Source", "Particle Emitter", "UI Canvas", "UI Image", "UI Text", "UI Button" };
+			static const char* item_current = items[0];
+
+			ImGui::NewLine();
+
+			// --- Add component ---
+			if (ImGui::BeginCombo("##Components Combo", "Add Component", flags)) // The second parameter is the label previewed before opening the combo.
+			{
+				for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+				{
+					bool is_selected = (item_current == items[n]);
+					if (ImGui::Selectable(items[n], is_selected))
+						item_current = items[n];
+					if (is_selected)
+						ImGui::SetItemDefaultFocus();   // Set the initial focus when opening the combo (scrolling + for keyboard navigation support in the upcoming navigation branch)
+				}
+				ImGui::EndCombo();
+			}
+
+			// --- Handle drag & drop ---
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("resource"))
+				{
+					uint UID = *(const uint*)payload->Data;
+					Broken::Resource* resource = EngineApp->resources->GetResource(UID, false);
+
+					// MYTODO: Instance resource here, put it on scene (depending on resource)
+					if (resource && resource->GetType() == Broken::Resource::ResourceType::SCRIPT)
+					{
+						resource = EngineApp->resources->GetResource(UID);
+
+						for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
+						{
+							Broken::ComponentScript* script = (Broken::ComponentScript*)obj->AddComponent(Broken::Component::ComponentType::Script);
+							script->AssignScript((Broken::ResourceScript*)resource);
+						}
+
+					}
+				}
+
+				ImGui::EndDragDropTarget();
+			}
+
+			// --- Add here temporal conditions to know which component to add ---
+
+			// MYTODO: Note currently you can not add the same type of component to a go (to be changed)
+
+			Broken::Component::ComponentType type = Broken::Component::ComponentType::Unknown;
+
+			if (item_current == "Mesh")
+			{
+				type = Broken::Component::ComponentType::Mesh;
+			}
+
+			else if (item_current == "Mesh Renderer")
+			{
+				type = Broken::Component::ComponentType::MeshRenderer;
+			}
+
+			else if (item_current == "UI Canvas")
+			{
+				type = Broken::Component::ComponentType::Canvas;
+			}
+
+			else if (item_current == "UI Image")
+			{
+				type = Broken::Component::ComponentType::Image;
+			}
+
+			else if (item_current == "UI Text")
+			{
+				type = Broken::Component::ComponentType::Text;
+			}
+
+			else if (item_current == "UI Button")
+			{
+				type = Broken::Component::ComponentType::Button;
+			}
+
+			else if (item_current == "Dynamic RigidBody")
+			{
+				type = Broken::Component::ComponentType::DynamicRigidBody;
+			}
+
+			else if (item_current == "Collider")
+			{
+				type = Broken::Component::ComponentType::Collider;
+			}
+			else if (item_current == "Character Controller")
+			{
+				type = Broken::Component::ComponentType::CharacterController;
+			}
+			else if (item_current == "Particle Emitter")
+			{
+				type = Broken::Component::ComponentType::ParticleEmitter;
+			}
+			else if (item_current == "Audio Source")
+			{
+				type = Broken::Component::ComponentType::AudioSource;
+			}
+
+			if (type != Broken::Component::ComponentType::Unknown)
+			{
+				for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
+				{
+					obj->AddComponent(type);
 				}
 			}
+			item_current = items[0];
 
-			ImGui::EndDragDropTarget();
+			if (Startup)
+				Startup = false;
 		}
 
-		// --- Add here temporal conditions to know which component to add ---
-
-		// MYTODO: Note currently you can not add the same type of component to a go (to be changed)
-
-		if (item_current == "Mesh")
+		// --- Display Resource Information ---
+		else if (SelectedRes)
 		{
-			Selected->AddComponent(Broken::Component::ComponentType::Mesh);
+			ImGui::BeginChild("res", ImVec2(0, 35), true);
+
+			ImGui::Text(SelectedRes->GetName());
+
+			ImGui::EndChild();
+
+			ImGui::BeginChild("resdata", ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight()), false);
+
+			SelectedRes->CreateInspectorNode();
+
+			ImGui::EndChild();
 		}
-
-		if (item_current == "Mesh Renderer")
-		{
-			Selected->AddComponent(Broken::Component::ComponentType::MeshRenderer);
-		}
-
-		if (item_current == "UI Canvas")
-		{
-			Selected->AddComponent(Broken::Component::ComponentType::Canvas);
-		}
-
-		if (item_current == "UI Image")
-		{
-			Selected->AddComponent(Broken::Component::ComponentType::Image);
-		}
-
-		if (item_current == "UI Text")
-		{
-			Selected->AddComponent(Broken::Component::ComponentType::Text);
-		}
-
-		if (item_current == "UI Button")
-		{
-			Selected->AddComponent(Broken::Component::ComponentType::Button);
-		}
-
-		if (item_current == "Dynamic RigidBody")
-		{
-			Selected->AddComponent(Broken::Component::ComponentType::DynamicRigidBody);
-		}
-
-		if (item_current == "Collider")
-		{
-			Selected->AddComponent(Broken::Component::ComponentType::Collider);
-		}
-		if (item_current == "Particle Emitter")
-		{
-			Selected->AddComponent(Broken::Component::ComponentType::ParticleEmitter);
-		}
-		if (item_current == "Audio Source")
-		{
-			Selected->AddComponent(Broken::Component::ComponentType::AudioSource);
-		}
-
-		item_current = items[0];
-		// MYTODO: move this to the component itself
-
-		// --- Material ---
-		//if (Selected->GetComponent<ComponentMaterial>())
-		//{
-		//	CreateMaterialNode(*Selected);
-		//	ImGui::Separator();
-		//}
-
-		// --- Camera ---
-		//if (Selected->GetComponent<ComponentCamera>())
-		//{
-		//	CreateCameraNode(*Selected);
-		//	ImGui::Separator();
-		//}
-
-
-
-		if (Startup)
-			Startup = false;
 	}
-	ImGui::End();
 
+	ImGui::End();
 
 	return true;
 }
 
-void PanelInspector::CreateGameObjectNode(Broken::GameObject & Selected) const
-{
-	ImGui::BeginChild("child", ImVec2(0, 35), true);
 
-	if (ImGui::Checkbox("##GOActive", &Selected.GetActive()))
+
+// SELECTED TODO: test editing for multiselection
+// OPTIMIZE DEFAULT SHOWN PROPERTIES -> LESS SELECTION ITERATIONS
+void PanelInspector::CreateGameObjectNode(Broken::GameObject& Selected) const
+{
+	ImGui::BeginChild("child", ImVec2(0, 70), true);
+
+	// Changing active state to true if all are selected and to false if at least one is not active
+	bool active = true;
+	for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 	{
-		if (Selected.GetActive())
-			Selected.Enable();
+		if (obj->GetActive() == false) {
+			active = false;
+			break;
+		}
+	}
+
+	if (ImGui::Checkbox("##GOActive", &active))
+	{
+		if (active)
+			for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
+				obj->Enable();
 		else
-			Selected.Disable();
+			for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
+				obj->Disable();
+	}
+	ImGui::SameLine();
+
+	// --- Game Object Name Setter ---
+	static char GOName[128] = "";
+	static std::string number = "";
+	strcpy_s(GOName, 128, Selected.GetName());
+
+	if (ImGui::InputText("", GOName, 128, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
+
+		for (int i = 0; i < EngineApp->selection->GetSelected()->size(); i++)
+		{
+			if (i == 0)
+			{
+				EngineApp->selection->GetSelected()->at(i)->SetName(GOName);
+			}
+			else
+			{
+				number = " (" + std::to_string(i) + ")";
+				number = GOName + number;
+
+				EngineApp->selection->GetSelected()->at(i)->SetName(number.c_str());
+			}
+		}
+
+
+	static bool objectStatic = true;
+	bool checkbox_static = true;
+	bool exists_childs = false;
+	//[STATIC] Knowing what to display, if all the selected are at the same state, it will display the state, otherwise it will display false
+	// Knowing if inside selection there's a parent with childs
+	// Once both variables are solved it can break the loop search
+	for (int i = 0; i < EngineApp->selection->GetSelected()->size() && (checkbox_static || !exists_childs); i++)
+	{
+		if (EngineApp->selection->GetSelected()->at(i)->Static == false)
+			checkbox_static = false;
+
+		if (EngineApp->selection->GetSelected()->at(i)->childs.empty() == false)
+			exists_childs = true;
 	}
 
 	ImGui::SameLine();
 
-	// --- Game Object Name Setter ---
-	static char GOName[100] = "";
-	strcpy_s(GOName, 100, Selected.GetName());
-	if (ImGui::InputText("", GOName, 100, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
-		Selected.SetName(GOName);
+	if (ImGui::Checkbox("Static", &checkbox_static)) {
+		objectStatic = checkbox_static;
 
+		if (exists_childs)
+			ImGui::OpenPopup("Static gameObject");
+		else
+			for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
+				EngineApp->scene_manager->SetStatic(obj, objectStatic, false);
+	}
+
+	ImGui::SetNextWindowSize(ImVec2(400, 75));
+	if (ImGui::BeginPopup("Static gameObject", ImGuiWindowFlags_NoScrollbar))
+	{
+
+		/* Gets a little bug so I am deleting the first part where displays the action to be done (always showing non-static)
+
+		static std::string text = (objectStatic) ? "You are about to make objects non-static.\nDo you want to edit the children aswell?" :
+			"You are about to make this objects static.\nDo you want to edit the children aswell?";*/
+
+		ImGui::Text("Do you want to edit the children aswell?");
+
+		ImGui::Indent(130);
+		if (ImGui::Button("Yes")) {
+			for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
+				EngineApp->scene_manager->SetStatic(obj, objectStatic, true);
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine();
+
+		if (ImGui::Button("No")) {
+			for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
+				EngineApp->scene_manager->SetStatic(obj, objectStatic, false);
+			ImGui::CloseCurrentPopup();
+		}
+
+		/*ImGui::Indent(30);
+		ImGui::Text("You are about to make this object non-static.");
+		ImGui::Spacing();
+
+		ImGui::Unindent(10);
+		ImGui::Text("Do you want its children to be non-static aswell?");
+
+		ImGui::Spacing();*/
+
+
+
+
+		ImGui::EndPopup();
+	}
+
+	std::vector<Layer>* layers = &EngineApp->physics->layer_list;
+
+	static ImGuiComboFlags flags = 0;
+
+	//int layer = App->selection->GetLastSelected()->GetLayer();
+	int layer = Selected.GetLayer();
+
+	std::string layer_name = layers->at(layer).name.c_str();
+	for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
+	{
+		if (layer != obj->GetLayer())
+		{
+			layer_name = "----";
+			break;
+		}
+	}
+
+	//const char* item_current = layers->at(Selected.layer).name.c_str();
+	ImGui::Text("Layer: ");
 	ImGui::SameLine();
+	if (ImGui::BeginCombo("##Layer:", layer_name.c_str(), flags))
+	{
+		for (int n = 0; n < layers->size(); n++)
+		{
+			if (!layers->at(n).active)
+				continue;
 
-	if(ImGui::Checkbox("Static", &Selected.Static))
-	EngineApp->scene_manager->SetStatic(&Selected);
+			bool is_selected = (layer_name == layers->at(n).name.c_str());
+
+			if (ImGui::Selectable(layers->at(n).name.c_str(), is_selected)) {
+				// Changing layer
+				for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
+				{
+					layer_name = layers->at(n).name.c_str();
+					obj->layer = layers->at(n).layer;
+
+					Broken::ComponentCollider* col = obj->GetComponent<Broken::ComponentCollider>();
+					Broken::ComponentParticleEmitter* particle = obj->GetComponent<Broken::ComponentParticleEmitter>();
+
+					if (col)
+						col->UpdateActorLayer((int*)&layers->at(n).layer);
+
+					if (particle)
+						particle->UpdateActorLayer((int*)&layers->at(n).layer);
+				}
+			}
+			if (is_selected) {
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+	else {
+		//Selected.layer = layers->at(Selected.layer >> 1).layer;
+		//UpdateFilter
+	}
 
 	ImGui::EndChild();
 }

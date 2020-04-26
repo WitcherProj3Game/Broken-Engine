@@ -40,7 +40,6 @@
 
 BE_BEGIN_NAMESPACE
 /// Log functions
-
 void LogCompilationFirstMessage();
 void EngineConsoleLog(const char file[], int line, const char* format, ...);
 void SystemConsoleLog(const char file[], int line, const char* format, ...);
@@ -109,6 +108,7 @@ typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef unsigned __int64 uint64;
 typedef unsigned __int32 uint32;
+typedef unsigned __int16 uint16;
 // -------------------------------------------------------------------------------
 
 
@@ -147,15 +147,22 @@ template <class VALUE_TYPE> void SWAP(VALUE_TYPE& a, VALUE_TYPE& b)
 #define LIBRARY_FOLDER "Library/"
 #define TEXTURES_FOLDER "Library/Textures/"
 #define MESHES_FOLDER "Library/Meshes/"
-#define BONES_FOLDER "Library/Bones/"
-#define ANIMATIONS_FOLDER "Library/Animations/"
 #define SCENES_FOLDER "Assets/Scenes/"
 #define MODELS_FOLDER "Library/Models/"
 #define SHADERS_FOLDER "Library/Shaders/"
 #define SHADERS_ASSETS_FOLDER "Assets/Shaders/"
-#define SOUNDS_FOLDER "Assets/Sounds/"
+#define IMAGES_ASSETS_FOLDER "Assets/Images/"
 #define SCRIPTS_FOLDER "Library/Scripts/"
+#define SOUNDS_FOLDER "Assets/Sounds/"
+#define ANIMATIONS_FOLDER "Library/Animations/"
+#define ANIMATOR_FOLDER "Library/Animator/"
+#define BONES_FOLDER "Library/Bones/"
+#define FONTS_FOLDER "Assets/Fonts/"
+#define NAVMESH_FOLDER "Assets/NavMeshes/"
+#define BUILDS_FOLDER "Builds/"
 #define GAME_EXE "BEG.exe"
+#define LUA_GLOBALS "Lua_Globals/"
+#define LUA_DEBUG "Lua_Debug/"
 
 #define SCREEN_SIZE 1
 #define MAX_BUF_SIZE 4096

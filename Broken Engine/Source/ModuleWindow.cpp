@@ -3,6 +3,7 @@
 #include "ModuleWindow.h"
 #include "ModuleRenderer3D.h"
 
+#include "SDL/include/SDL.h"
 
 #pragma comment( lib, "SDL/libx86/SDL2.lib" )
 #include "mmgr/mmgr.h"
@@ -10,6 +11,7 @@
 using namespace Broken;
 
 ModuleWindow::ModuleWindow(bool start_enabled) : Module(start_enabled) {
+	name = "Window";
 	window = NULL;
 	screen_surface = NULL;
 }
@@ -30,6 +32,8 @@ bool ModuleWindow::Init(json& file) {
 	else {
 		ENGINE_AND_SYSTEM_CONSOLE_LOG("SDL_Init Video success");
 
+		LoadStatus(file);
+
 		// --- Get Display Data ---
 		SDL_DisplayMode display;
 		SDL_GetCurrentDisplayMode(0, &display);
@@ -39,6 +43,7 @@ bool ModuleWindow::Init(json& file) {
 		// --- Assign Display Specific values to code vars ---
 		screen_width = uint(display.w * 0.75f);
 		screen_height = uint(display.h * 0.75f);
+
 		RefreshRate = display.refresh_rate;
 		Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
 
@@ -172,12 +177,30 @@ void ModuleWindow::GetWinMaxMinSize(uint& min_width, uint& min_height, uint& max
 	}
 }
 
-void ModuleWindow::SaveStatus(json& file) const {
+const json& ModuleWindow::SaveStatus() const
+{
+	
+	static json m_config;
+
+	m_config["borderless"] = borderless;
+	m_config["fullscreen"] = fullscreen;
+	m_config["fullscreenDesktop"] = fullscreen_desktop;
+	m_config["resizable"] = resizable;
+	m_config["height"] = screen_height;
+	m_config["width"] = screen_width;
+	m_config["height"] = screen_height;
+	m_config["width"] = screen_width;
+	m_config["sceneY"] = 640;
+	m_config["sceneX"] = 480;
+
+	return m_config;
 
 }
 
-void ModuleWindow::LoadStatus(const json& file) {
-
+void ModuleWindow::LoadStatus(const json& file)
+{
+	screen_width = file["Window"]["sceneX"].is_null() ? 640 : file["Window"]["sceneX"].get<uint>();
+	screen_height = file["Window"]["sceneY"].is_null() ? 480 : file["Window"]["sceneY"].get<uint>();
 }
 
 void ModuleWindow::SetFullscreen(bool value) {

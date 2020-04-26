@@ -22,14 +22,17 @@ public:
 		CheckBox,
 		InputText,
 		ProgressBar,
+		CircularBar,
 		Script,
 		Bone,
 		Animation,
 		DynamicRigidBody,
 		Collider,
+		CharacterController,
 		ParticleEmitter,
 		AudioSource,
 		AudioListener,
+		Light,
 		Unknown
 	};
 
@@ -45,9 +48,11 @@ public:
 	GameObject* GetContainerGameObject() const;
 	bool& GetActive();
 	bool IsEnabled() const;
-
+	uint GetUID() const { return UID; };
+	void SetUID(uint new_UID) { UID = new_UID; };
 
 	virtual void Update() {};
+	virtual void DrawComponent() {};
 
 	// --- Save & Load ---
 	virtual json Save() const = 0;
@@ -55,12 +60,17 @@ public:
 	virtual void ONResourceEvent(uint UID, Resource::ResourceNotificationType type) {};
 	virtual void CreateInspectorNode() = 0;
 
+	//std::string GetName() { return name; }
+
+	bool to_delete = false;
+	std::string name = "Component";
 protected:
 
 	bool active = false;
-	GameObject* GO = nullptr;
 
+	GameObject* GO = nullptr;
 	ComponentType type = ComponentType::Unknown;
+	uint UID = 0;
 };
 
 BE_END_NAMESPACE

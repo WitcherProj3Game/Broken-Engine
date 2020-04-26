@@ -4,6 +4,10 @@
 #include "ModuleSceneManager.h"
 #include "ModulePhysics.h"
 #include "ModuleFileSystem.h"
+#include "GameObject.h"
+#include "ComponentCollider.h"
+#include "ComponentCharacterController.h"
+#include "ModuleScripting.h"
 
 #include "ResourceScene.h"
 
@@ -37,6 +41,9 @@ void ModuleTimeManager::PrepareUpdate() {
 	switch (App->GetAppState())
 	{
 		case AppState::TO_PLAY:
+			if (App->isGame == false || App->scripting->Debug_Build == true)
+				App->scripting->CompileDebugging();
+
 			App->GetAppState() = AppState::PLAY;
 
 			// --- Create temporal directory/scene ---
@@ -44,28 +51,39 @@ void ModuleTimeManager::PrepareUpdate() {
 			App->scene_manager->currentScene->CopyInto(App->scene_manager->temporalScene);
 			App->scene_manager->SaveScene(App->scene_manager->temporalScene);
 
+
 			ENGINE_CONSOLE_LOG("APP STATE PLAY");
 			break;
 
 		case AppState::PLAY:
-			//App->scene_manager->SetSelectedGameObject(nullptr);
-			game_dt *= Time_scale;
-			gametime_passed += game_dt;
+			if (gamePaused)
+			{
+				time -= realtime_dt;
+				game_dt = 0.0f;
+			}
+			else
+			{
+				//App->scene_manager->SetSelectedGameObject(nullptr);
+				game_dt *= Time_scale;
+				gametime_passed += game_dt;
+			}
+
 			break;
 
-	case AppState::TO_PAUSE:
-		App->GetAppState() = AppState::PAUSE;
-		ENGINE_CONSOLE_LOG("APP STATE PAUSE");
+		case AppState::TO_PAUSE:
+			App->GetAppState() = AppState::PAUSE;
+			ENGINE_CONSOLE_LOG("APP STATE PAUSE");
 
 		break;
 
-	case AppState::PAUSE:
-		time -= realtime_dt;
-		game_dt = 0.0f;
-		break;
+		case AppState::PAUSE:
+			time -= realtime_dt;
+			game_dt = 0.0f;
+			break;
 
 		case AppState::TO_EDITOR:
-			App->physics->DeleteActors();
+			if (App->isGame == false || App->scripting->Debug_Build == true)
+				App->scripting->StopDebugging();
 
 			App->scene_manager->SetActiveScene(App->scene_manager->currentScene);
 
@@ -75,7 +93,7 @@ void ModuleTimeManager::PrepareUpdate() {
 			App->fs->Remove(App->scene_manager->temporalScene->GetResourceFile());
 			App->fs->Remove(std::string(App->scene_manager->temporalScene->GetResourceFile()).append(".meta").c_str());
 			App->fs->Remove("Temp/");
-
+			gamePaused = false;
 			App->GetAppState() = AppState::EDITOR;
 
 			ENGINE_CONSOLE_LOG("APP STATE EDITOR");
@@ -110,9 +128,6 @@ void ModuleTimeManager::FinishUpdate() {
 	// --- Cap fps ---
 	if (capped_ms > 0 && (last_frame_ms < capped_ms))
 		SDL_Delay(capped_ms - last_frame_ms);
-
-	// --- Send data to GUI-PanelSettings Historiograms
-	App->gui->LogFPS((float)last_fps, (float)last_frame_ms);
 }
 
 uint ModuleTimeManager::GetMaxFramerate() const {
@@ -129,6 +144,14 @@ float ModuleTimeManager::GetTimeScale() const {
 float ModuleTimeManager::GetGameplayTimePassed() const
 {
 	return gametime_passed;
+}
+
+uint ModuleTimeManager::GetLastFrameMs() const {
+	return last_frame_ms;
+}
+
+float ModuleTimeManager::GetFPS() const {
+	return last_fps;
 }
 
 void ModuleTimeManager::SetMaxFramerate(uint maxFramerate)

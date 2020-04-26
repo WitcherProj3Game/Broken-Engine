@@ -4,13 +4,15 @@
 #include "Module.h"
 #include "Resource.h"
 #include "Importer.h"
+#include "PerfTimer.h"
 
 class PanelBuild;
 class PanelResources;
 
 BE_BEGIN_NAMESPACE
 
-class ResourceFolder;
+#define RESOURCE_SAVE_TIME 1000
+
 class ResourceFolder;
 class ResourceScene;
 class ResourceModel;
@@ -19,10 +21,13 @@ class ResourceShader;
 class ResourceMesh;
 class ResourceBone;
 class ResourceAnimation;
+class ResourceAnimator;
 class ResourceTexture;
-class ResourceShaderObject;
 class ResourceMeta;
 class ResourceScript;
+class ResourceFont;
+class ResourceNavMesh;
+class ResourcePrefab;
 
 class BROKEN_API ModuleResourceManager : public Module {
 	friend class ImporterTexture;
@@ -31,13 +36,22 @@ class BROKEN_API ModuleResourceManager : public Module {
 	friend class ImporterMesh;
 	friend class ImporterBone;
 	friend class ImporterAnimation;
+	friend class ImporterAnimator;
 	friend class ImporterMaterial;
 	friend class ImporterScene;
 	friend class ImporterFolder;
 	friend class ImporterScript;
+	friend class ImporterFont;
+	friend class ImporterNavMesh;
+	friend class ImporterShader;
+	friend class ImporterPrefab;
 	friend class PanelResources;
 	friend class PanelBuild;
 	friend class ComponentMeshRenderer;
+	friend class ResourceMaterial;
+	friend class ModuleSceneManager;
+	friend class ModuleRenderer3D;
+	friend class ScriptingScenes;
 public:
 
 	// --- Basic ---
@@ -59,24 +73,25 @@ public:
 	Resource* ImportFolder(Importer::ImportData& IData);
 	Resource* ImportScene(Importer::ImportData& IData);
 	Resource* ImportModel(Importer::ImportData& IData);
+	Resource* ImportPrefab(Importer::ImportData& IData);
 	Resource* ImportMaterial(Importer::ImportData& IData);
-	Resource* ImportShaderProgram(Importer::ImportData& IData);
 	Resource* ImportMesh(Importer::ImportData& IData);
-	//
 	Resource* ImportBone(Importer::ImportData& IData);
 	Resource* ImportAnimation(Importer::ImportData& IData);
-	//
+	Resource* ImportAnimator(Importer::ImportData& IData);
 	Resource* ImportTexture(Importer::ImportData& IData);
-	Resource* ImportShaderObject(Importer::ImportData& IData);
+	Resource* ImportShader(Importer::ImportData& IData);
 	Resource* ImportScript(Importer::ImportData& IData);
 	Resource* ImportMeta(Importer::ImportData& IData);
+	Resource* ImportFont(Importer::ImportData& IData);
+	Resource* ImportNavMesh(Importer::ImportData& IData);
 
 	void HandleFsChanges();
 	void RetrieveFilesAndDirectories(const char* directory, std::map<std::string, std::vector<std::string>>& ret);
 
 	// For consistency, use this only on resource manager/importers 
 	template<typename TImporter>
-	TImporter* GetImporter() {
+	TImporter* GetImporter() const{
 		for (uint i = 0; i < importers.size(); ++i) {
 			if (importers[i]->GetType() == TImporter::GetType()) {
 				return ((TImporter*)(importers[i]));
@@ -87,7 +102,7 @@ public:
 	}
 
 	// --- Resource Handling ---
-	Resource* GetResource(uint UID, bool loadinmemory = true);
+	Resource* GetResource(uint UID, bool loadinmemory = true); 
 	void AddResourceToFolder(Resource* resource);
 	void RemoveResourceFromFolder(Resource* resource);
 	Resource* CreateResource(Resource::ResourceType type, const char* source_file);
@@ -95,8 +110,9 @@ public:
 	Resource::ResourceType GetResourceTypeFromPath(const char* path);
 	bool IsFileImported(const char* file);
 	std::shared_ptr<std::string> GetNewUniqueName(Resource::ResourceType type);
-
 	void ONResourceDestroyed(Resource* resource);
+	void ForceDelete(Resource* resource); // to prevent problems with different heaps, related to exe - dll relationship
+	void DeferSave(Resource* resource);
 
 	//MYTODO For editor panel to set currentDirectory
 	void setCurrentDirectory(ResourceFolder* dir);
@@ -106,6 +122,13 @@ public:
 	ResourceFolder* GetAssetsFolder();
 	uint GetFileFormatVersion();
 	uint GetDefaultMaterialUID();
+
+private:
+	void SaveResource(Resource* resource) const;
+
+public:
+	// OSCAR TODO try to make it private
+	ResourceFont* DefaultFont = nullptr;
 private:
 
 	// --- Available importers ---
@@ -118,26 +141,29 @@ private:
 	ResourceFolder* AssetsFolder = nullptr;
 	ResourceMaterial* DefaultMaterial = nullptr;
 
-	//MYTODO Temporary public for resource panel
 	// --- Available resources ---
 	std::map<uint, ResourceFolder*> folders;
 	std::map<uint, ResourceScene*> scenes;
 	std::map<uint, ResourceModel*> models;
+	std::map<uint, ResourcePrefab*> prefabs;
 	std::map<uint, ResourceMaterial*> materials;
 	std::map<uint, ResourceShader*> shaders;
 	std::map<uint, ResourceMesh*> meshes;
 	std::map<uint, ResourceBone*> bones;
 	std::map<uint, ResourceAnimation*> animations;
+	std::map<uint, ResourceAnimator*> anim_info;
 	std::map<uint, ResourceTexture*> textures;
-	std::map<uint, ResourceShaderObject*> shader_objects;
 	std::map<uint, ResourceScript*> scripts;
 	std::map<uint, ResourceMeta*> metas;
+	std::map<uint, ResourceFont*> fonts;
+	std::map<uint, ResourceNavMesh*> navmeshes;
+
+	//Saving resources
+	std::map<Resource*, bool> resources_to_save;
+	PerfTimer save_timer;
 
 	//MYTODO Separate things needed for editor from things necessary (reading assets already imported)
 	ResourceFolder* currentDirectory;
-
-
-
 };
 BE_END_NAMESPACE
 #endif

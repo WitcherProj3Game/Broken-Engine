@@ -3,6 +3,7 @@
 #include "GameObject.h"
 #include "Imgui/imgui.h"
 #include "Math.h"
+#include "ModuleSceneManager.h"
 
 #include "mmgr/mmgr.h"
 
@@ -10,6 +11,7 @@
 using namespace Broken;
 
 ComponentTransform::ComponentTransform(GameObject* ContainerGO) : Component(ContainerGO, Component::ComponentType::Transform) {
+	name = "Transform";
 }
 
 ComponentTransform::~ComponentTransform() {
@@ -55,6 +57,18 @@ void ComponentTransform::SetPosition(float3 new_position)
 void ComponentTransform::SetPosition(float x, float y, float z)
 {
 	position = float3(x, y, z);
+	UpdateLocalTransform();
+}
+
+void ComponentTransform::SetGlobalPosition(float3 new_pos) {
+	float3 parent_position = GO->parent->GetComponent<ComponentTransform>()->GetPosition();
+	position = new_pos - parent_position;
+	UpdateLocalTransform();
+}
+
+void ComponentTransform::SetGlobalPosition(float x, float y, float z) {
+	float3 parent_position = GO->parent->GetComponent<ComponentTransform>()->GetPosition();
+	position = float3(x,y,z) - parent_position;
 	UpdateLocalTransform();
 }
 
@@ -113,14 +127,19 @@ void ComponentTransform::UpdateLocalTransform() {
 }
 
 void ComponentTransform::OnUpdateTransform(const float4x4& ParentGlobal) {
+
 	Global_transform = ParentGlobal * Local_transform;
 	UpdateTRS();
-
+	GO->UpdateAABB();
+	if (GO->Static)
+		App->scene_manager->update_tree = true;
 	update_transform = false;
 }
 
 json ComponentTransform::Save() const {
 	json node;
+
+	node["layer"] = std::to_string(GO->layer);
 
 	node["positionx"] = std::to_string(position.x);
 	node["positiony"] = std::to_string(position.y);
@@ -140,6 +159,7 @@ json ComponentTransform::Save() const {
 
 void ComponentTransform::Load(json& node)
 {
+	std::string layer = node["layer"].is_null() ? "0" : node["layer"];
 	std::string posx = node["positionx"].is_null() ? "0" : node["positionx"];
 	std::string posy = node["positiony"].is_null() ? "0" : node["positiony"];
 	std::string posz = node["positionz"].is_null() ? "0" : node["positionz"];
@@ -153,7 +173,10 @@ void ComponentTransform::Load(json& node)
 	std::string scaley = node["scaley"].is_null() ? "0" : node["scaley"];
 	std::string scalez = node["scalez"].is_null() ? "0" : node["scalez"];
 
+	GO->layer = std::stof(layer);
+
 	float3 pos = float3(std::stof(posx), std::stof(posy), std::stof(posz));
+
 	SetPosition(pos);
 	SetQuatRotation(Quat(std::stof(rotx), std::stof(roty), std::stof(rotz), std::stof(rotw)));
 	Scale(std::stof(scalex), std::stof(scaley), std::stof(scalez));
@@ -257,7 +280,6 @@ void ComponentTransform::CreateInspectorNode()
 		if (!GetRotation().Equals(rotation))
 			SetRotation(rotation);
 	}
-
 }
 
 void ComponentTransform::UpdateTRS() {

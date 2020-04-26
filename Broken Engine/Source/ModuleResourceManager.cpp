@@ -1,15 +1,20 @@
 #include "ModuleResourceManager.h"
+
+// -- Modules --
 #include "Application.h"
 #include "ModuleFileSystem.h"
 #include "ModuleGui.h"
 #include "ModuleTextures.h"
 #include "ModuleSceneManager.h"
-
+#include "ModuleRenderer3D.h"
+#include "ModuleThreading.h"
 
 #include "Importers.h"
 #include "Resources.h"
 
 #include "PanelProject.h"
+
+#include "Optick/include/optick.h"
 
 #include "Assimp/include/cimport.h"
 
@@ -26,6 +31,7 @@ void MyAssimpCallback(const char* msg, char* userData)
 
 ModuleResourceManager::ModuleResourceManager(bool start_enabled)
 {
+	name = "Resource Manager";
 }
 
 ModuleResourceManager::~ModuleResourceManager()
@@ -44,14 +50,18 @@ bool ModuleResourceManager::Init(json& file)
 	importers.push_back(new ImporterFolder());
 	importers.push_back(new ImporterScene());
 	importers.push_back(new ImporterModel());
+	importers.push_back(new ImporterPrefab());
 	importers.push_back(new ImporterMaterial());
 	importers.push_back(new ImporterShader());
 	importers.push_back(new ImporterMesh());
 	importers.push_back(new ImporterBone());
 	importers.push_back(new ImporterAnimation());
+	importers.push_back(new ImporterAnimator());
 	importers.push_back(new ImporterTexture());
 	importers.push_back(new ImporterScript);
 	importers.push_back(new ImporterMeta());
+	importers.push_back(new ImporterFont());
+	importers.push_back(new ImporterNavMesh());
 
 	return true;
 }
@@ -61,21 +71,57 @@ bool ModuleResourceManager::Start()
 	// --- Import all resources in Assets at startup ---
 	App->gui->CreateIcons();
 
+	// --- Set engine's basic shaders ---
+	App->renderer3D->CreateDefaultShaders();
+
+	// --- Create default material ---
+	DefaultMaterial = (ResourceMaterial*)CreateResource(Resource::ResourceType::MATERIAL, "DefaultMaterial");
+
+	// --- Create primitives ---
+	App->scene_manager->cube = (ResourceMesh*)App->resources->CreateResourceGivenUID(Resource::ResourceType::MESH, "DefaultCube", 2);
+	App->scene_manager->sphere = (ResourceMesh*)App->resources->CreateResourceGivenUID(Resource::ResourceType::MESH, "DefaultSphere", 3);
+	App->scene_manager->capsule = (ResourceMesh*)App->resources->CreateResourceGivenUID(Resource::ResourceType::MESH, "DefaultCapsule", 4);
+	App->scene_manager->plane = (ResourceMesh*)App->resources->CreateResourceGivenUID(Resource::ResourceType::MESH, "DefaultPlane", 5);
+	App->scene_manager->cylinder = (ResourceMesh*)App->resources->CreateResourceGivenUID(Resource::ResourceType::MESH, "DefaultCylinder", 6);
+	App->scene_manager->disk = (ResourceMesh*)App->resources->CreateResourceGivenUID(Resource::ResourceType::MESH, "DefaultDisk", 13);
+
+	App->scene_manager->CreateCube(1, 1, 1, App->scene_manager->cube);
+	App->scene_manager->CreateSphere(1.0f, 25, 25, App->scene_manager->sphere);
+	App->scene_manager->CreateCapsule(1, 1, App->scene_manager->capsule);
+	App->scene_manager->CreatePlane(1, 1, 1, App->scene_manager->plane);
+	App->scene_manager->CreateCylinder(1, 1, App->scene_manager->cylinder);
+	App->scene_manager->CreateDisk(1, App->scene_manager->disk);
+
+	App->scene_manager->cube->LoadToMemory();
+	App->scene_manager->sphere->LoadToMemory();
+	App->scene_manager->capsule->LoadToMemory();
+	App->scene_manager->plane->LoadToMemory();
+	App->scene_manager->cylinder->LoadToMemory();
+	App->scene_manager->disk->LoadToMemory();
+
 	// --- Create default scene ---
 	App->scene_manager->defaultScene = (ResourceScene*)App->resources->CreateResourceGivenUID(Resource::ResourceType::SCENE, "Assets/Scenes/DefaultScene.scene", 1);
 	App->scene_manager->currentScene = App->scene_manager->defaultScene;
 
-	// --- Create default material ---
-	DefaultMaterial = (ResourceMaterial*)CreateResource(Resource::ResourceType::MATERIAL, "DefaultMaterial");
-	DefaultMaterial->resource_diffuse = (ResourceTexture*)CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
-	DefaultMaterial->resource_diffuse->SetTextureID(App->textures->GetDefaultTextureID());
+
+	// --- Create default font ---
+	DefaultFont = (ResourceFont*)CreateResourceGivenUID(Resource::ResourceType::FONT, "Assets/Fonts/arial.ttf",7);
+	DefaultFont->Init();
 
 	// --- Add file filters, so we only search for relevant files ---
 	filters.push_back("fbx");
+	filters.push_back("prefab");
 	filters.push_back("mat");
 	filters.push_back("png");
+	filters.push_back("jpg");
 	filters.push_back("lua");
 	filters.push_back("scene");
+	filters.push_back("ttf");
+	filters.push_back("otf");
+	filters.push_back("animator");
+	filters.push_back("navmesh");
+	filters.push_back("glsl");
+
 
 	// --- Import files and folders ---
 	AssetsFolder = SearchAssets(nullptr, ASSETS_FOLDER, filters);
@@ -171,9 +217,9 @@ ResourceFolder* ModuleResourceManager::SearchAssets(ResourceFolder* parent, cons
 // --- Identify resource by file extension, call relevant importer, prepare everything for its use ---
 Resource* ModuleResourceManager::ImportAssets(Importer::ImportData& IData)
 {
-	BROKEN_ASSERT(static_cast<int>(Resource::ResourceType::UNKNOWN) == 13, "Resource Import Switch needs to be updated");
+	static_assert(static_cast<int>(Resource::ResourceType::UNKNOWN) == 15, "Resource Import Switch needs to be updated");
 
-	// --- Only standalone resources go through import here, mesh and material are imported through model's importer ---
+	// --- Only standalone resources go through import here, mesh and some materials are imported through model's importer ---
 
 	// --- Identify resource type by file extension ---
 	Resource::ResourceType type = GetResourceTypeFromPath(IData.path);
@@ -196,12 +242,16 @@ Resource* ModuleResourceManager::ImportAssets(Importer::ImportData& IData)
 		resource = ImportModel(IData);
 		break;
 
+	case Resource::ResourceType::PREFAB:
+		resource = ImportPrefab(IData);
+		break;
+
 	case Resource::ResourceType::MATERIAL:
 		resource = ImportMaterial(IData);
 		break;
 
 	case Resource::ResourceType::SHADER:
-		resource = ImportShaderProgram(IData);
+		resource = ImportShader(IData);
 		break;
 
 	case Resource::ResourceType::TEXTURE:
@@ -220,20 +270,29 @@ Resource* ModuleResourceManager::ImportAssets(Importer::ImportData& IData)
 		resource = ImportAnimation(IData);
 		break;
 
-	case Resource::ResourceType::SHADER_OBJECT:
-		resource = ImportShaderObject(IData);
+	case Resource::ResourceType::ANIMATOR:
+		resource = ImportAnimator(IData);
 		break;
 
 	case Resource::ResourceType::META:
 		resource = ImportMeta(IData);
 		break;
 
+	case Resource::ResourceType::FONT:
+		resource = ImportFont(IData);
+		break;
+
 	case Resource::ResourceType::SCRIPT:
-		resource = ImportScript(IData); //MYTODO: D�dac I assume I must create a new Importer to handle scripts importing
+		resource = ImportScript(IData); //MYTODO: Dídac I assume I must create a new Importer to handle scripts importing
+		break;
+
+	case Resource::ResourceType::NAVMESH:
+		resource = ImportNavMesh(IData);
 		break;
 
 	case Resource::ResourceType::UNKNOWN:
 		break;
+
 	default:
 		ENGINE_CONSOLE_LOG("![Warning]: Detected unsupported file type on: %s", IData.path);
 		break;
@@ -335,6 +394,26 @@ Resource* ModuleResourceManager::ImportModel(Importer::ImportData& IData)
 	return model;
 }
 
+Resource* ModuleResourceManager::ImportPrefab(Importer::ImportData& IData)
+{
+	Resource* prefab = nullptr;
+	ImporterPrefab* IPrefab = GetImporter<ImporterPrefab>();
+
+	// --- If the resource is already in library, load from there ---
+	if (IsFileImported(IData.path))
+	{
+		prefab = IPrefab->Load(IData.path);
+		//Loadfromlib
+	}
+
+	// --- Else call relevant importer ---
+	else
+		prefab = IPrefab->Import(IData);
+
+
+	return prefab;
+}
+
 Resource* ModuleResourceManager::ImportMaterial(Importer::ImportData& IData)
 {
 	ImporterMaterial* IMat = GetImporter<ImporterMaterial>();
@@ -346,23 +425,6 @@ Resource* ModuleResourceManager::ImportMaterial(Importer::ImportData& IData)
 		material = IMat->Load(IData.path);
 
 	return material;
-}
-
-Resource* ModuleResourceManager::ImportShaderProgram(Importer::ImportData& IData)
-{
-	ResourceShaderProgram* shader = nullptr;
-
-	// --- If the resource is already in library, load from there ---
-	if (IsFileImported(IData.path))
-	{
-		//Loadfromlib
-	}
-
-	// --- Else call relevant importer ---
-	else
-		// Import
-
-	return shader;
 }
 
 Resource* ModuleResourceManager::ImportMesh(Importer::ImportData& IData)
@@ -408,6 +470,34 @@ Resource* ModuleResourceManager::ImportAnimation(Importer::ImportData& IData)
 	return anim;
 }
 
+Resource* ModuleResourceManager::ImportAnimator(Importer::ImportData& IData)
+{
+	Resource* animator = nullptr;
+	ImporterAnimator* IAnim = GetImporter<ImporterAnimator>();
+
+	// --- Load the animator directly from the lib (only declaration)---
+	if (IData.path && IAnim)
+	{
+		// --- If the resource is already in library, load from there ---
+		if (IsFileImported(IData.path))
+			animator = IAnim->Load(IData.path);
+
+		// --- Else call relevant importer ---
+		else
+		{
+			std::string new_path = IData.path;
+
+			if (IData.dropped)
+				new_path = DuplicateIntoGivenFolder(IData.path, currentDirectory->GetResourceFile());
+
+			IData.path = new_path.c_str();
+			animator = IAnim->Import(IData);
+		}
+	}
+
+	return animator;
+}
+
 Resource* ModuleResourceManager::ImportTexture(Importer::ImportData& IData)
 {
 	Resource* texture = nullptr;
@@ -432,21 +522,28 @@ Resource* ModuleResourceManager::ImportTexture(Importer::ImportData& IData)
 	return texture;
 }
 
-Resource* ModuleResourceManager::ImportShaderObject(Importer::ImportData& IData)
+Resource* ModuleResourceManager::ImportShader(Importer::ImportData& IData)
 {
-	ResourceShaderObject* shader_object = nullptr;
+	Resource* shader = nullptr;
+	ImporterShader* IShader = GetImporter<ImporterShader>();
 
 	// --- If the resource is already in library, load from there ---
 	if (IsFileImported(IData.path))
-	{
-		//Loadfromlib
-	}
+		shader = IShader->Load(IData.path);
 
 	// --- Else call relevant importer ---
 	else
-		// Import
+	{
+		std::string new_path = IData.path;
 
-	return shader_object;
+		if (IData.dropped)
+			new_path = DuplicateIntoGivenFolder(IData.path, currentDirectory->GetResourceFile());
+
+		IData.path = new_path.c_str();
+		shader = IShader->Import(IData);
+	}
+
+	return shader;
 }
 
 Resource* ModuleResourceManager::ImportScript(Importer::ImportData& IData)
@@ -460,11 +557,12 @@ Resource* ModuleResourceManager::ImportScript(Importer::ImportData& IData)
 		script = IScr->Load(IData.path);
 
 	// --- Else call relevant importer ---
-	else {
+	else
+	{
 		std::string new_path = IData.path;
 
 		if (IData.dropped)
-			new_path = DuplicateIntoGivenFolder(IData.path, App->resources->getCurrentDirectory()->GetResourceFile());
+			new_path = DuplicateIntoGivenFolder(IData.path, getCurrentDirectory()->GetResourceFile());
 
 		IData.path = new_path.c_str();
 		script = IScr->Import(IData);
@@ -490,6 +588,36 @@ Resource* ModuleResourceManager::ImportMeta(Importer::ImportData& IData)
 
 
 	return resource;
+}
+
+Resource* ModuleResourceManager::ImportFont(Importer::ImportData& IData)
+{
+	Resource* font = nullptr;
+
+	ImporterFont* IFont = GetImporter<ImporterFont>();
+
+	if (IsFileImported(IData.path))
+		font = IFont->Load(IData.path);
+	else
+	{
+		font = IFont->Import(IData);
+	}
+
+	return font;
+}
+
+Resource* ModuleResourceManager::ImportNavMesh(Importer::ImportData& IData) {
+	Resource* navmesh = nullptr;
+
+	ImporterNavMesh* INavMesh = GetImporter<ImporterNavMesh>();
+
+	if (IsFileImported(IData.path))
+		navmesh = INavMesh->Load(IData.path);
+	else {
+		navmesh = INavMesh->Import(IData);
+	}
+
+	return navmesh;
 }
 
 void ModuleResourceManager::HandleFsChanges()
@@ -721,21 +849,24 @@ Resource* ModuleResourceManager::GetResource(uint UID, bool loadinmemory) // loa
 {
 	Resource* resource = nullptr;
 
-	BROKEN_ASSERT(static_cast<int>(Resource::ResourceType::UNKNOWN) == 13, "Resource Get Switch needs to be updated");
+	static_assert(static_cast<int>(Resource::ResourceType::UNKNOWN) == 15, "Resource Get Switch needs to be updated");
 
 	// To clarify: resource = condition ? value to be assigned if true : value to be assigned if false
 
 	resource = folders.find(UID) == folders.end() ? resource : (*folders.find(UID)).second;
 	resource = resource ? resource : (scenes.find(UID) == scenes.end() ? resource : (*scenes.find(UID)).second);
 	resource = resource ? resource : (models.find(UID) == models.end() ? resource : (*models.find(UID)).second);
+	resource = resource ? resource : (prefabs.find(UID) == prefabs.end() ? resource : (*prefabs.find(UID)).second);
 	resource = resource ? resource : (materials.find(UID) == materials.end() ? resource : (*materials.find(UID)).second);
 	resource = resource ? resource : (shaders.find(UID) == shaders.end() ? resource : (*shaders.find(UID)).second);
 	resource = resource ? resource : (meshes.find(UID) == meshes.end() ? resource : (*meshes.find(UID)).second);
 	resource = resource ? resource : (bones.find(UID) == bones.end() ? resource : (*bones.find(UID)).second);
 	resource = resource ? resource : (animations.find(UID) == animations.end() ? resource : (*animations.find(UID)).second);
+	resource = resource ? resource : (anim_info.find(UID) == anim_info.end() ? resource : (*anim_info.find(UID)).second);
 	resource = resource ? resource : (textures.find(UID) == textures.end() ? resource : (*textures.find(UID)).second);
-	resource = resource ? resource : (shader_objects.find(UID) == shader_objects.end() ? resource : (*shader_objects.find(UID)).second);
 	resource = resource ? resource : (scripts.find(UID) == scripts.end() ? resource : (*scripts.find(UID)).second);
+	resource = resource ? resource : (fonts.find(UID) == fonts.end() ? resource : (*fonts.find(UID)).second);
+	resource = resource ? resource : (navmeshes.find(UID) == navmeshes.end() ? resource : (*navmeshes.find(UID)).second);
 
 	if (resource && loadinmemory)
 		resource->LoadToMemory();
@@ -746,11 +877,11 @@ Resource* ModuleResourceManager::GetResource(uint UID, bool loadinmemory) // loa
 	return resource;
 }
 
-Resource * ModuleResourceManager::CreateResource(Resource::ResourceType type, const char* source_file)
+Resource* ModuleResourceManager::CreateResource(Resource::ResourceType type, const char* source_file)
 {
 	// Note you CANNOT create a meta resource through this function, use CreateResourceGivenUID instead
 
-	BROKEN_ASSERT(static_cast<int>(Resource::ResourceType::UNKNOWN) == 13, "Resource Creation Switch needs to be updated");
+	static_assert(static_cast<int>(Resource::ResourceType::UNKNOWN) == 15, "Resource Creation Switch needs to be updated");
 
 	Resource* resource = nullptr;
 
@@ -769,6 +900,11 @@ Resource * ModuleResourceManager::CreateResource(Resource::ResourceType type, co
 	case Resource::ResourceType::MODEL:
 		resource = (Resource*)new ResourceModel(App->GetRandom().Int(), source_file);
 		models[resource->GetUID()] = (ResourceModel*)resource;
+		break;
+
+	case Resource::ResourceType::PREFAB:
+		resource = (Resource*)new ResourcePrefab(App->GetRandom().Int(), source_file);
+		prefabs[resource->GetUID()] = (ResourcePrefab*)resource;
 		break;
 
 	case Resource::ResourceType::MATERIAL:
@@ -796,20 +932,29 @@ Resource * ModuleResourceManager::CreateResource(Resource::ResourceType type, co
 		animations[resource->GetUID()] = (ResourceAnimation*)resource;
 		break;
 
+	case Resource::ResourceType::ANIMATOR:
+		resource = (Resource*)new ResourceAnimator(App->GetRandom().Int(), source_file);
+		anim_info[resource->GetUID()] = (ResourceAnimator*)resource;
+		break;
+
 	case Resource::ResourceType::TEXTURE:
 		resource = (Resource*)new ResourceTexture(App->GetRandom().Int(), source_file);
 		textures[resource->GetUID()] = (ResourceTexture*)resource;
 		break;
 
-	case Resource::ResourceType::SHADER_OBJECT:
-		resource = (Resource*)new ResourceShaderObject(App->GetRandom().Int(), source_file);
-		shader_objects[resource->GetUID()] = (ResourceShaderObject*)resource;
-		break;
-
 	case Resource::ResourceType::SCRIPT:
-		//MYTODO: D�dac fill code following Aitor's Guidelines
 		resource = (Resource*)new ResourceScript(App->GetRandom().Int(), source_file);
 		scripts[resource->GetUID()] = (ResourceScript*)resource;
+		break;
+
+	case Resource::ResourceType::FONT:
+		resource = (Resource*)new ResourceFont(App->GetRandom().Int(), source_file);
+		fonts[resource->GetUID()] = (ResourceFont*)resource;
+		break;
+
+	case Resource::ResourceType::NAVMESH:
+		resource = (Resource*) new ResourceNavMesh(App->GetRandom().Int(), source_file);
+		navmeshes[resource->GetUID()] = (ResourceNavMesh*)resource;
 		break;
 
 	case Resource::ResourceType::UNKNOWN:
@@ -828,7 +973,7 @@ Resource* ModuleResourceManager::CreateResourceGivenUID(Resource::ResourceType t
 {
 	Resource* resource = nullptr;
 
-	BROKEN_ASSERT(static_cast<int>(Resource::ResourceType::UNKNOWN) == 13, "Resource Creation Switch needs to be updated");
+	static_assert(static_cast<int>(Resource::ResourceType::UNKNOWN) == 15, "Resource Creation Switch needs to be updated");
 
 
 	switch (type)
@@ -846,6 +991,11 @@ Resource* ModuleResourceManager::CreateResourceGivenUID(Resource::ResourceType t
 	case Resource::ResourceType::MODEL:
 		resource = (Resource*)new ResourceModel(UID, source_file);
 		models[resource->GetUID()] = (ResourceModel*)resource;
+		break;
+
+	case Resource::ResourceType::PREFAB:
+		resource = (Resource*)new ResourcePrefab(UID, source_file);
+		prefabs[resource->GetUID()] = (ResourcePrefab*)resource;
 		break;
 
 	case Resource::ResourceType::MATERIAL:
@@ -873,14 +1023,14 @@ Resource* ModuleResourceManager::CreateResourceGivenUID(Resource::ResourceType t
 		animations[resource->GetUID()] = (ResourceAnimation*)resource;
 		break;
 
+	case Resource::ResourceType::ANIMATOR:
+		resource = (Resource*)new ResourceAnimator(UID, source_file);
+		anim_info[resource->GetUID()] = (ResourceAnimator*)resource;
+		break;
+
 	case Resource::ResourceType::TEXTURE:
 		resource = (Resource*)new ResourceTexture(UID, source_file);
 		textures[resource->GetUID()] = (ResourceTexture*)resource;
-		break;
-
-	case Resource::ResourceType::SHADER_OBJECT:
-		resource = (Resource*)new ResourceShaderObject(UID, source_file);
-		shader_objects[resource->GetUID()] = (ResourceShaderObject*)resource;
 		break;
 
 	case Resource::ResourceType::META:
@@ -899,6 +1049,15 @@ Resource* ModuleResourceManager::CreateResourceGivenUID(Resource::ResourceType t
 		scripts[resource->GetUID()] = (ResourceScript*)resource;
 		break;
 
+	case Resource::ResourceType::FONT:
+		resource = (Resource*)new ResourceFont(UID, source_file);
+		fonts[resource->GetUID()] = (ResourceFont*)resource;
+		break;
+	
+	case Resource::ResourceType::NAVMESH:
+		resource = (Resource*)new ResourceNavMesh(UID, source_file);
+		navmeshes[resource->GetUID()] = (ResourceNavMesh*)resource;
+		break;
 
 	case Resource::ResourceType::UNKNOWN:
 		ENGINE_CONSOLE_LOG("![Warning]: Detected unsupported resource type");
@@ -915,7 +1074,7 @@ Resource* ModuleResourceManager::CreateResourceGivenUID(Resource::ResourceType t
 
 Resource::ResourceType ModuleResourceManager::GetResourceTypeFromPath(const char* path)
 {
-	BROKEN_ASSERT(static_cast<int>(Resource::ResourceType::UNKNOWN) == 13, "Resource Switch needs to be updated");
+	static_assert(static_cast<int>(Resource::ResourceType::UNKNOWN) == 15, "Resource Switch needs to be updated");
 
 	std::string extension = "";
 	App->fs->SplitFilePath(path, nullptr, nullptr, &extension);
@@ -926,15 +1085,18 @@ Resource::ResourceType ModuleResourceManager::GetResourceTypeFromPath(const char
 	type = extension == "" ? Resource::ResourceType::FOLDER : type;
 	type = type == Resource::ResourceType::UNKNOWN ? (extension == "scene" ? Resource::ResourceType::SCENE : type) : type;
 	type = type == Resource::ResourceType::UNKNOWN ? (extension == "fbx" || extension == "model" ? Resource::ResourceType::MODEL : type) : type;
+	type = type == Resource::ResourceType::UNKNOWN ? (extension == "prefab" ? Resource::ResourceType::PREFAB : type) : type;
 	type = type == Resource::ResourceType::UNKNOWN ? (extension == "mat" ? Resource::ResourceType::MATERIAL : type) : type;
-	type = type == Resource::ResourceType::UNKNOWN ? (extension == "shader" ? Resource::ResourceType::SHADER : type) : type;
+	type = type == Resource::ResourceType::UNKNOWN ? (extension == "glsl" ? Resource::ResourceType::SHADER : type) : type;
 	type = type == Resource::ResourceType::UNKNOWN ? (extension == "dds" || extension == "png" || extension == "jpg" ? Resource::ResourceType::TEXTURE : type) : type;
 	type = type == Resource::ResourceType::UNKNOWN ? (extension == "mesh"  ? Resource::ResourceType::MESH : type) : type;
 	type = type == Resource::ResourceType::UNKNOWN ? (extension == "bone" ? Resource::ResourceType::BONE : type) : type;
 	type = type == Resource::ResourceType::UNKNOWN ? (extension == "anim" ? Resource::ResourceType::ANIMATION : type) : type;
-	type = type == Resource::ResourceType::UNKNOWN ? (extension == "vertex" || extension == "fragment" ? Resource::ResourceType::SHADER_OBJECT : type) : type;
+	type = type == Resource::ResourceType::UNKNOWN ? (extension == "animator" ? Resource::ResourceType::ANIMATOR : type) : type;
 	type = type == Resource::ResourceType::UNKNOWN ? (extension == "lua" ? Resource::ResourceType::SCRIPT : type) : type;
 	type = type == Resource::ResourceType::UNKNOWN ? (extension == "meta" ? Resource::ResourceType::META : type) : type;
+	type = type == Resource::ResourceType::UNKNOWN ? (extension == "ttf" || extension == "otf" ? Resource::ResourceType::FONT : type) : type;
+	type = type == Resource::ResourceType::UNKNOWN ? (extension == "navmesh" ? Resource::ResourceType::NAVMESH : type) : type;
 
 	return type;
 }
@@ -954,10 +1116,25 @@ uint ModuleResourceManager::GetDefaultMaterialUID()
 	return DefaultMaterial->GetUID();
 }
 
+void ModuleResourceManager::SaveResource(Resource* resource) const {
+	Resource::ResourceType type = resource->GetType();
+	switch (type) {
+	case Resource::ResourceType::MATERIAL:
+		GetImporter<ImporterMaterial>()->Save((ResourceMaterial*)resource);
+		break;
+	default:
+		ENGINE_CONSOLE_LOG("!Defer saving unsupported resource.");
+	}
+}
+
 void ModuleResourceManager::AddResourceToFolder(Resource* resource)
 {
 	if (resource)
 	{
+		// --- Manage exceptions ---
+		if (resource->GetUID() == App->renderer3D->defaultShader->GetUID())
+			return;
+
 		std::string directory;
 		std::string original_file;
 
@@ -1010,8 +1187,13 @@ void ModuleResourceManager::RemoveResourceFromFolder(Resource* resource)
 			// CAREFUL when comparing strings, not putting {} below the if resulted in erroneous behaviour
 			std::string path = resource->GetOriginalFile();
 			directory = App->fs->GetDirectoryFromPath(path);
+
+			if(directory.size() > 0)
 			directory.pop_back();
+
 			original_file = (*it).second->GetOriginalFile();
+
+			if (original_file.size() > 0)
 			original_file.pop_back();
 
 			if (directory == original_file)
@@ -1096,6 +1278,22 @@ std::shared_ptr<std::string> ModuleResourceManager::GetNewUniqueName(Resource::R
 		unique_name.append(".mat");
 		break;
 
+	case Resource::ResourceType::SHADER:
+		unique_name = "New shader" + std::to_string(shaders.size());
+
+		for (std::map<uint, ResourceShader*>::iterator it = shaders.begin(); it != shaders.end(); ++it)
+		{
+			if ((*it).second->GetName() == unique_name)
+			{
+				instance++;
+				unique_name = "New shader" + std::to_string(shaders.size() + instance);
+				it = shaders.begin();
+			}
+		}
+
+		unique_name.append(".glsl");
+		break;
+
 
 	case Resource::ResourceType::SCRIPT:
 		unique_name = "New script " + std::to_string(scripts.size());
@@ -1124,7 +1322,7 @@ std::shared_ptr<std::string> ModuleResourceManager::GetNewUniqueName(Resource::R
 
 void ModuleResourceManager::ONResourceDestroyed(Resource* resource)
 {
-	BROKEN_ASSERT(static_cast<int>(Resource::ResourceType::UNKNOWN) == 13, "Resource Destruction Switch needs to be updated");
+	static_assert(static_cast<int>(Resource::ResourceType::UNKNOWN) == 15, "Resource Destruction Switch needs to be updated");
 
 	switch (resource->GetType())
 	{
@@ -1140,27 +1338,31 @@ void ModuleResourceManager::ONResourceDestroyed(Resource* resource)
 		models.erase(resource->GetUID());
 		break;
 
+	case Resource::ResourceType::PREFAB:
+		prefabs.erase(resource->GetUID());
+		break;
+
 	case Resource::ResourceType::MATERIAL:
 		materials.erase(resource->GetUID());
 
-		// --- Tell parent model, if any ---
-		if (resource->has_parent)
-		{
-			for (std::map<uint, ResourceModel*>::iterator it = models.begin(); it != models.end(); ++it)
-			{
-				std::vector<Resource*>* model_resources = (*it).second->GetResources();
+		//// --- Tell parent model, if any ---
+		//if (resource->has_parent)
+		//{
+		//	for (std::map<uint, ResourceModel*>::iterator it = models.begin(); it != models.end(); ++it)
+		//	{
+		//		std::vector<Resource*>* model_resources = (*it).second->GetResources();
 
-				for (std::vector<Resource*>::iterator res = model_resources->begin(); res != model_resources->end(); ++res)
-				{
-					if ((*res)->GetUID() == resource->GetUID())
-					{
-						(*it).second->RemoveResource(resource);
-						break;
-					}
-				}
+		//		for (std::vector<Resource*>::iterator res = model_resources->begin(); res != model_resources->end(); ++res)
+		//		{
+		//			if ((*res)->GetUID() == resource->GetUID())
+		//			{
+		//				(*it).second->RemoveResource(resource);
+		//				break;
+		//			}
+		//		}
 
-			}
-		}
+		//	}
+		//}
 		break;
 
 	case Resource::ResourceType::SHADER:
@@ -1179,24 +1381,38 @@ void ModuleResourceManager::ONResourceDestroyed(Resource* resource)
 		animations.erase(resource->GetUID());
 		break;
 
+	case Resource::ResourceType::ANIMATOR:
+		anim_info.erase(resource->GetUID());
+		break;
+
 	case Resource::ResourceType::TEXTURE:
 		textures.erase(resource->GetUID());
 
 		// --- Tell mats ---
 		for (std::map<uint, ResourceMaterial*>::iterator it = materials.begin(); it != materials.end(); ++it)
 		{
-			if ((*it).second->resource_diffuse && (*it).second->resource_diffuse->GetUID() == resource->GetUID())
-				(*it).second->resource_diffuse = nullptr;
+			if ((*it).second->m_DiffuseResTexture && (*it).second->m_DiffuseResTexture->GetUID() == resource->GetUID())
+				(*it).second->m_DiffuseResTexture = nullptr;
+
+			if ((*it).second->m_SpecularResTexture && (*it).second->m_SpecularResTexture->GetUID() == resource->GetUID())
+				(*it).second->m_SpecularResTexture = nullptr;
+
+			if ((*it).second->m_NormalResTexture && (*it).second->m_NormalResTexture->GetUID() == resource->GetUID())
+				(*it).second->m_NormalResTexture = nullptr;
 		}
 
 		break;
 
-	case Resource::ResourceType::SHADER_OBJECT:
-		shader_objects.erase(resource->GetUID());
-		break;
-
 	case Resource::ResourceType::SCRIPT:
 		scripts.erase(resource->GetUID());
+		break;
+
+	case Resource::ResourceType::FONT:
+		fonts.erase(resource->GetUID());
+		break;
+
+	case Resource::ResourceType::NAVMESH:
+		navmeshes.erase(resource->GetUID());
 		break;
 
 	case Resource::ResourceType::META:
@@ -1214,6 +1430,18 @@ void ModuleResourceManager::ONResourceDestroyed(Resource* resource)
 
 }
 
+void ModuleResourceManager::ForceDelete(Resource* resource)
+{
+	resource->OnDelete();
+
+	if(resource->GetUID() != App->scene_manager->defaultScene->GetUID())
+		delete resource;
+}
+
+void ModuleResourceManager::DeferSave(Resource* resource) {
+	resources_to_save[resource] = true;
+}
+
 void ModuleResourceManager::setCurrentDirectory(ResourceFolder* dir) {
 	currentDirectory = dir;
 }
@@ -1226,122 +1454,158 @@ ResourceFolder* ModuleResourceManager::getCurrentDirectory() const {
 
 update_status ModuleResourceManager::Update(float dt)
 {
+	OPTICK_CATEGORY("Resource Manager Update", Optick::Category::Streaming);
+
+	// --- We check defer saves and if they are not still being used (bool is false) we save them ---
+	if (save_timer.ReadMs() >= RESOURCE_SAVE_TIME) {
+		for (std::map<Resource*, bool>::iterator it = resources_to_save.begin(); it != resources_to_save.end();) {
+			if ((*it).second) {
+				(*it).second = false;
+				it++;
+			}
+			else {
+				App->threading->ADDTASK(this, ModuleResourceManager::SaveResource, (*it).first);
+				it = resources_to_save.erase(it);
+			}
+		}
+		App->threading->FinishProcessing();
+		save_timer.Start();
+	}
+
 	return UPDATE_CONTINUE;
 }
 
 bool ModuleResourceManager::CleanUp()
 {
-	BROKEN_ASSERT(static_cast<int>(Resource::ResourceType::UNKNOWN) == 13, "Resource Clean Up needs to be updated");
+	static_assert(static_cast<int>(Resource::ResourceType::UNKNOWN) == 15, "Resource Clean Up needs to be updated");
+
+	// --- We finish all defer saves ---
+	for (std::map<Resource*, bool>::iterator it = resources_to_save.begin(); it != resources_to_save.end(); ++it) 
+		App->threading->ADDTASK(this, ModuleResourceManager::SaveResource, (*it).first);
+
+	App->threading->FinishProcessing();
+	resources_to_save.clear();
 
 	// --- Delete resources ---
-	for (std::map<uint, ResourceFolder*>::iterator it = folders.begin(); it != folders.end();)
+	for (std::map<uint, ResourceFolder*>::iterator it = folders.begin(); it != folders.end(); it++)
 	{
 		it->second->FreeMemory();
 		delete it->second;
-		it = folders.erase(it);
 	}
 
 	folders.clear();
 
-	for (std::map<uint, ResourceScene*>::iterator it = scenes.begin(); it != scenes.end();)
+	for (std::map<uint, ResourceScene*>::iterator it = scenes.begin(); it != scenes.end(); it++)
 	{
 		//it->second->FreeMemory();
 		// We do not call free memory since scene's game objects have already been deleted (we have dangling pointers in scene's maps now!)
 		delete it->second;
-		it = scenes.erase(it);
 	}
 
 	scenes.clear();
 
-	for (std::map<uint, ResourceModel*>::iterator it = models.begin(); it != models.end();)
+	for (std::map<uint, ResourceModel*>::iterator it = models.begin(); it != models.end(); it++)
 	{
 		it->second->FreeMemory();
 		delete it->second;
-		it = models.erase(it);
 	}
 
 	models.clear();
 
-	for (std::map<uint, ResourceMaterial*>::iterator it = materials.begin(); it != materials.end();)
+	for (std::map<uint, ResourcePrefab*>::iterator it = prefabs.begin(); it != prefabs.end(); it++)
 	{
 		it->second->FreeMemory();
 		delete it->second;
-		it = materials.erase(it);
+	}
+
+	prefabs.clear();
+
+	for (std::map<uint, ResourceMaterial*>::iterator it = materials.begin(); it != materials.end(); it++)
+	{
+		it->second->FreeMemory();
+		delete it->second;
 	}
 
 	materials.clear();
 
-	for (std::map<uint, ResourceShader*>::iterator it = shaders.begin(); it != shaders.end();)
+	for (std::map<uint, ResourceShader*>::iterator it = shaders.begin(); it != shaders.end(); it++)
 	{
 		it->second->FreeMemory();
 		delete it->second;
-		it = shaders.erase(it);
 	}
 
 	shaders.clear();
 
-	for (std::map<uint, ResourceMesh*>::iterator it = meshes.begin(); it != meshes.end();)
+	for (std::map<uint, ResourceMesh*>::iterator it = meshes.begin(); it != meshes.end(); it++)
 	{
 		it->second->FreeMemory();
 		delete it->second;
-		it = meshes.erase(it);
 	}
 
 	meshes.clear();
 
-	for (std::map<uint, ResourceBone*>::iterator it = bones.begin(); it != bones.end();)
+	for (std::map<uint, ResourceBone*>::iterator it = bones.begin(); it != bones.end(); it++)
 	{
 		it->second->FreeMemory();
 		delete it->second;
-		it = bones.erase(it);
 	}
 
 	bones.clear();
 
-	for (std::map<uint, ResourceAnimation*>::iterator it = animations.begin(); it != animations.end();)
+	for (std::map<uint, ResourceAnimation*>::iterator it = animations.begin(); it != animations.end(); it++)
 	{
 		it->second->FreeMemory();
 		delete it->second;
-		it = animations.erase(it);
 	}
 
 	animations.clear();
 
-	for (std::map<uint, ResourceTexture*>::iterator it = textures.begin(); it != textures.end();)
+	for (std::map<uint, ResourceAnimator*>::iterator it = anim_info.begin(); it != anim_info.end(); it++)
 	{
 		it->second->FreeMemory();
 		delete it->second;
-		it = textures.erase(it);
+	}
+
+	anim_info.clear();
+
+	for (std::map<uint, ResourceTexture*>::iterator it = textures.begin(); it != textures.end(); it++)
+	{
+		it->second->FreeMemory();
+		delete it->second;
 	}
 
 	textures.clear();
 
-	for (std::map<uint, ResourceShaderObject*>::iterator it = shader_objects.begin(); it != shader_objects.end();)
+	for (std::map<uint, ResourceScript*>::iterator it = scripts.begin(); it != scripts.end(); it++)
 	{
 		it->second->FreeMemory();
 		delete it->second;
-		it = shader_objects.erase(it);
-	}
-
-	shader_objects.clear();
-
-	for (std::map<uint, ResourceScript*>::iterator it = scripts.begin(); it != scripts.end();)
-	{
-		it->second->FreeMemory();
-		delete it->second;
-		it = scripts.erase(it);
 	}
 
 	scripts.clear();
 
-	for (std::map<uint, ResourceMeta*>::iterator it = metas.begin(); it != metas.end();)
+	for (std::map<uint, ResourceMeta*>::iterator it = metas.begin(); it != metas.end(); it++)
 	{
 		it->second->FreeMemory();
 		delete it->second;
-		it = metas.erase(it);
 	}
 
 	metas.clear();
+
+	for (std::map<uint, ResourceFont*>::iterator it = fonts.begin(); it != fonts.end(); it++)
+	{
+		it->second->FreeMemory();
+		delete it->second;
+	}
+
+	fonts.clear();
+
+	for (std::map<uint, ResourceNavMesh*>::iterator it = navmeshes.begin(); it != navmeshes.end(); it++) {
+		it->second->FreeMemory();
+		delete it->second;
+	}
+
+	navmeshes.clear();
 
 	// --- Delete importers ---
 	for (uint i = 0; i < importers.size(); ++i)
@@ -1356,4 +1620,3 @@ bool ModuleResourceManager::CleanUp()
 
 	return true;
 }
-

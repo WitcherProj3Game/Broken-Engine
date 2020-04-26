@@ -2,7 +2,7 @@
 #define __ComponentAudioListener__H__
 
 #include "Component.h"
-#include "Wwise/AK/SoundEngine/Common/AkTypes.h"
+#include "Math.h"
 
 BE_BEGIN_NAMESPACE
 
@@ -12,6 +12,7 @@ class BROKEN_API ComponentAudioListener : public Component
 {
 public:
 	ComponentAudioListener(GameObject* ContainerGO);
+	ComponentAudioListener(GameObject* ContainerGO, float3 reference);
 	virtual ~ComponentAudioListener();
 
 	void CreateInspectorNode() override;
@@ -23,10 +24,10 @@ public:
 	static inline Component::ComponentType GetType() { return Component::ComponentType::AudioListener; };
 
 private:
-
+	bool isEditorCam = false;
 	WwiseGameObject* wwiseGO = nullptr;
-	AkGameObjectID id = 0;
+	unsigned __int64 id = 0;
 };
 
 BE_END_NAMESPACE
-#endif __ComponentAudioListener__H__
+#endif //__ComponentAudioListener__H__

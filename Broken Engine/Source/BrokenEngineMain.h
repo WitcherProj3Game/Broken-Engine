@@ -4,15 +4,24 @@
 #include <stdlib.h>
 //#include "BrokenCore.h"
 #include "Application.h"
+#include "EngineLog.h"
 
 
 #define NOMINMAX
 #include <Windows.h>
 
 #include "SDL/include/SDL.h"
+#include "Optick/include/optick.h"
+
 #pragma comment( lib, "SDL/libx86/SDL2.lib" )
 #pragma comment( lib, "SDL/libx86/SDL2main.lib" )
 
+
+//#ifdef _DEBUG
+//#pragma comment(lib, "Optick/libx86/debugx86/OptickCore.lib")
+//#else
+//#pragma comment(lib, "Optick/libx86/releasex86/OptickCore.lib")
+//#endif
 //#include "mmgr/mmgr.h"
 
 ////Trick to tell AMD and NVIDIA drivers to use the most powerful GPU instead of a lower-performance (such as integrated) GPU
@@ -72,6 +81,8 @@ int main(int argc, char** argv) {
 
 		case MAIN_UPDATE:
 		{
+			OPTICK_FRAME("Main Thread"); // We put it here so it does not parent our worker threads.
+
 			int update_return = Broken::App->Update();
 
 			if (update_return == UPDATE_ERROR) {
@@ -85,6 +96,8 @@ int main(int argc, char** argv) {
 		break;
 
 		case MAIN_FINISH:
+			OPTICK_FRAME("Main Thread"); // In case we want to log whatever takes longest to CleanUp(?)
+
 
 			EX_ENGINE_AND_SYSTEM_CONSOLE_LOG("-------------- Application CleanUp --------------");
 			if (mainApp->CleanUp() == false) {
@@ -100,6 +113,8 @@ int main(int argc, char** argv) {
 		}
 	}
 	EX_ENGINE_AND_SYSTEM_CONSOLE_LOG("Exiting app %s...\n", mainApp->GetAppName());
+
+	OPTICK_SHUTDOWN();
 
 	delete mainApp;
 	return main_return;

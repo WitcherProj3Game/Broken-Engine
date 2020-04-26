@@ -4,6 +4,7 @@
 #include "ModuleFileSystem.h"
 #include "ModuleResourceManager.h"
 
+#include "Optick/include/optick.h"
 
 #include "PhysFS/include/physfs.h"
 #include "Assimp/include/cfileio.h"
@@ -61,8 +62,8 @@ bool ModuleFileSystem::Init(json& file) {
 	// Make sure standard paths exist
 	const char* dirs[] = {
 		SETTINGS_FOLDER, ASSETS_FOLDER, LIBRARY_FOLDER, MODELS_FOLDER,
-		MESHES_FOLDER, BONES_FOLDER, ANIMATIONS_FOLDER, TEXTURES_FOLDER,
-		SCENES_FOLDER, SHADERS_FOLDER, SCRIPTS_FOLDER
+		MESHES_FOLDER, BONES_FOLDER, ANIMATIONS_FOLDER, ANIMATOR_FOLDER, TEXTURES_FOLDER,
+		SCENES_FOLDER, SHADERS_FOLDER, SCRIPTS_FOLDER, SHADERS_ASSETS_FOLDER, NAVMESH_FOLDER, IMAGES_ASSETS_FOLDER
 	};
 
 	for (uint i = 0; i < sizeof(dirs) / sizeof(const char*); ++i) {
@@ -84,12 +85,17 @@ bool ModuleFileSystem::Init(json& file) {
 
 	SDL_free(write_path);
 
+	for (int i = 0; i < MAX_RETURNED_ARRAYS; ++i)
+		returned_arrays[i] = nullptr;
+
 	return ret;
 }
 
 update_status ModuleFileSystem::PreUpdate(float dt) {
+	
+	OPTICK_CATEGORY("File System PreUpdate", Optick::Category::IO);
+	
 	// Wait for notification.
-
 	dwWaitStatus = WaitForMultipleObjects(1, dwChangeHandles,
 		FALSE, 0);
 
@@ -142,9 +148,11 @@ update_status ModuleFileSystem::PreUpdate(float dt) {
 bool ModuleFileSystem::CleanUp() {
 	//LOG("Freeing File System subsystem");
 	//We cleanup all the arrays not deleted
-	for (std::vector<std::vector<std::string>*>::iterator it = returned_arrays.begin(); it != returned_arrays.end(); ++it) 	
-		delete *it;
-	returned_arrays.clear();
+	for (int i = 0; i < MAX_RETURNED_ARRAYS; ++i) {
+		if (returned_arrays[i] != nullptr)
+			delete returned_arrays[i];
+		returned_arrays[i] = nullptr;
+	}
 
 	return true;
 }
@@ -189,6 +197,23 @@ std::string ModuleFileSystem::GetDirectoryFromPath(std::string& path) {
 	return directory;
 }
 
+std::string ModuleFileSystem::GetNameFromPath(std::string path, bool withExtension)
+{
+	std::string full_name;
+
+	App->fs->NormalizePath(path);
+	full_name = path.substr(path.find_last_of("//") + 1);
+
+	if (withExtension)
+		return full_name;
+	else {
+		std::string::size_type const p(full_name.find_last_of('.'));
+		std::string file_name = full_name.substr(0, p);
+
+		return file_name;
+	}
+}
+
 void ModuleFileSystem::DiscoverFiles(const char* directory, std::vector<std::string>& file_list) const {
 	char** rc = PHYSFS_enumerateFiles(directory);
 	char** i;
@@ -204,24 +229,22 @@ void ModuleFileSystem::DiscoverFiles(const char* directory, std::vector<std::str
 	PHYSFS_freeList(rc);
 }
 
-const std::vector<std::string>* ModuleFileSystem::ExDiscoverFiles(const char* directory) {
+const std::vector<std::string>& ModuleFileSystem::ExDiscoverFiles(const char* directory) {
 	char** rc = PHYSFS_enumerateFiles(directory);
 	char** i;
-
 	std::string dir(directory);
-	std::vector<std::string>* file_list = new std::vector<std::string>;
+	string_vec* file_list = new string_vec();
 
 	for (i = rc; *i != nullptr; i++) {
 		if (!PHYSFS_isDirectory((dir + *i).c_str())) {
-			(*file_list).push_back(*i);
+			file_list->push_back(*i);
 		}
 	}
 
-	//(*file_list).push_back(nullptr);
-
 	PHYSFS_freeList(rc);
-	returned_arrays.push_back(file_list);
-	return file_list;
+
+	AddToReturnedArrays(file_list);
+	return *file_list;
 }
 
 void ModuleFileSystem::DiscoverDirectories(const char* directory, std::vector<std::string>& dirs) const {
@@ -239,24 +262,22 @@ void ModuleFileSystem::DiscoverDirectories(const char* directory, std::vector<st
 	PHYSFS_freeList(rc);
 }
 
-const std::vector<std::string>* ModuleFileSystem::ExDiscoverDirectories(const char* directory) {
+const std::vector<std::string>& ModuleFileSystem::ExDiscoverDirectories(const char* directory) {
 	char** rc = PHYSFS_enumerateFiles(directory);
 	char** i;
 
 	std::string dir(directory);
-	std::vector<std::string>* dir_list = new std::vector<std::string>;
+	string_vec* dir_list = new string_vec();
 
 	for (i = rc; *i != nullptr; i++) {
 		if (PHYSFS_isDirectory((dir + *i).c_str())) {
-			(*dir_list).push_back(*i);
+			dir_list->push_back(*i);
 		}
 	}
 
-	//(*dir_list).push_back(nullptr);
-
 	PHYSFS_freeList(rc);
-	returned_arrays.push_back(dir_list);
-	return dir_list;
+	AddToReturnedArrays(dir_list);
+	return *dir_list;
 }
 
 void ModuleFileSystem::DiscoverFilesAndDirectories(const char* directory, std::vector<std::string>& file_list, std::vector<std::string>& dir_list) const {
@@ -326,6 +347,48 @@ bool ModuleFileSystem::Copy(const char* source, const char* destination) {
 	return ret;
 }
 
+void ModuleFileSystem::CopyDirectoryandContents(const char* source, const char* destination, bool recursive) {
+	if (PHYSFS_exists(destination)) {
+		if (!PHYSFS_isDirectory)
+			return;
+	}
+	else {
+		PHYSFS_mkdir(destination);
+	}
+
+	std::string src_dir = source;
+	src_dir += '/';
+	std::string dst_dir = destination;
+	dst_dir += '/';
+
+	char buf[8192];
+
+	char** rc = PHYSFS_enumerateFiles(source);
+
+	PHYSFS_sint32 size;
+	for (char** i = rc; *i != nullptr; i++) {
+		if (PHYSFS_isDirectory((src_dir + *i).c_str())) {
+			if (recursive)
+				CopyDirectoryandContents((src_dir + *i).c_str(), (dst_dir + *i).c_str(), recursive);
+		}
+		else {
+			PHYSFS_file* src = PHYSFS_openRead((src_dir + *i).c_str());
+			PHYSFS_file* dst = PHYSFS_openWrite((dst_dir + *i).c_str());
+			memset(buf, 0, 8192);
+
+			if (src && dst) {
+				while (size = (PHYSFS_sint32)PHYSFS_read(src, buf, 1, 8192))
+					PHYSFS_write(dst, buf, 1, size);
+
+				PHYSFS_close(src);
+				PHYSFS_close(dst);
+			}
+		}
+	}
+
+	PHYSFS_freeList(rc);
+}
+
 void ModuleFileSystem::SplitFilePath(const char* full_path, std::string* path, std::string* file, std::string* extension) const {
 	if (full_path != nullptr) {
 		std::string full(full_path);
@@ -393,7 +456,9 @@ void ModuleFileSystem::WatchDirectory(const char* directory) {
 	dwChangeHandles[0] = FindFirstChangeNotification(
 		directory,                       // directory to watch
 		TRUE,                          // watch the subtree
-		FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_ATTRIBUTES
+		FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME 
+		| FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_LAST_WRITE
+		| FILE_NOTIFY_CHANGE_SIZE
 	);
 
 	if (dwChangeHandles[0] == INVALID_HANDLE_VALUE) {
@@ -416,6 +481,31 @@ void ModuleFileSystem::WatchDirectory(const char* directory) {
 void ModuleFileSystem::RemoveFileExtension(std::string& file) {
 	std::size_t pos = file.find(".");    // position of "." in str
 	file = file.substr(0, pos);     // get from the beginning to "."
+}
+
+void ModuleFileSystem::DeleteDirectoryAndContents(const char* dir_path, bool recursive) {
+	std::string folder = dir_path;
+	folder += "/";
+
+	char** rc = PHYSFS_enumerateFiles(folder.c_str());
+	char** i;
+	
+	bool hasFolders = false;
+
+	for (i = rc; *i != nullptr; i++) {
+		if (PHYSFS_isDirectory((folder + *i).c_str())) {
+			hasFolders = true;
+			if (recursive)
+				DeleteDirectoryAndContents((folder + *i).c_str(), recursive);
+		}
+		else
+			PHYSFS_delete((folder + *i).c_str());
+	}
+
+	if (!hasFolders || recursive)
+		PHYSFS_delete(dir_path);
+
+	PHYSFS_freeList(rc);
 }
 
 
@@ -475,11 +565,11 @@ SDL_RWops* ModuleFileSystem::Load(const char* file) const {
 		return nullptr;
 }
 
-void ModuleFileSystem::DeleteArray(const std::vector<std::string>* to_delete) {
-	for (std::vector<std::vector<std::string>*>::iterator it = returned_arrays.begin(); it != returned_arrays.end(); ++it) 		{
-		if (to_delete == *it) {
-			delete *it;
-			returned_arrays.erase(it);
+void ModuleFileSystem::DeleteArray(const std::vector<std::string>& to_delete) {
+	for (int i = 0; i < MAX_RETURNED_ARRAYS; ++i) {
+		if (&to_delete == returned_arrays[i]) {
+			delete returned_arrays[i];
+			returned_arrays[i] = nullptr;
 			break;
 		}
 	}
@@ -662,6 +752,15 @@ aiFile* AssimpOpen(aiFileIO* io, const char* name, const char* format) {
 void AssimpClose(aiFileIO* io, aiFile* file) {
 	if (PHYSFS_close((PHYSFS_File*)file->UserData) == 0)
 		ENGINE_CONSOLE_LOG("File System error while CLOSE via assimp: %s", PHYSFS_getLastError());
+}
+
+inline void ModuleFileSystem::AddToReturnedArrays(string_vec* ptr) {
+	for (int i = 0; i < MAX_RETURNED_ARRAYS; ++i) {
+		if (returned_arrays[i] == nullptr) {
+			returned_arrays[i] = ptr;
+			break;
+		}
+	}
 }
 
 void ModuleFileSystem::CreateAssimpIO() {

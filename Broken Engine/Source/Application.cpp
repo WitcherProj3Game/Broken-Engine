@@ -18,6 +18,10 @@
 #include "ModulePhysics.h"
 #include "ModuleParticles.h"
 #include "ModuleAudio.h"
+#include "ModuleDetour.h"
+#include "ModuleSelection.h"
+
+#include "Optick/include/optick.h"
 
 #include "mmgr/mmgr.h"
 
@@ -57,6 +61,8 @@ Application::Application() {
 	physics = new ModulePhysics(true);
 	particles = new ModuleParticles(true);
 	audio = new ModuleAudio(true);
+	detour = new ModuleDetour(true);
+	selection = new ModuleSelection(true);
 
 	// The order of calls is very important!
 	// Modules will Init() Start() and Update in this order
@@ -101,11 +107,10 @@ Application::~Application() {
 	}
 }
 
-bool Application::Init() {
+bool Application::Init()
+{
 	bool ret = true;
 	COMPILATIONLOGINFO;
-	EngineConsoleLog(__FILE__, __LINE__, "Test"); 
-	SystemConsoleLog(__FILE__, __LINE__, "Test");
 
 	// --- Load App data from JSON files ---
 	json config = JLoader.Load(configpath.c_str());
@@ -133,7 +138,7 @@ bool Application::Init() {
 
 
 	// After all Init calls we call Start() in all modules
-	//ENGINE_AND_SYSTEM_CONSOLE_LOG("Broken Engine Start --------------");
+	ENGINE_AND_SYSTEM_CONSOLE_LOG("Broken Engine Start --------------");
 	item = list_modules.begin();
 
 	while(item != list_modules.end() && ret == true)
@@ -163,7 +168,7 @@ void Application::FinishUpdate() {
 
 void Application::SaveAllStatus() {
 	// --- Create Config with default values ---
-	json config = GetDefaultConfig();
+	json config;
 
 	std::string tmp = appName;
 	config["Application"]["Title"] = tmp;
@@ -172,12 +177,13 @@ void Application::SaveAllStatus() {
 
 	// --- Call Save of all modules ---
 
-	std::list<Module*>::const_iterator item = list_modules.begin();
-
-	while (item != list_modules.end())
-	{
-		if ((*item)->isEnabled()) (*item)->SaveStatus(config);
-		item++;
+	json node;
+	for (std::list<Module*>::const_iterator item = list_modules.begin(); item != list_modules.end(); ++item) {
+		if ((*item)->isEnabled()) {
+			node = (*item)->SaveStatus();
+			if (node.begin() != node.end()) 
+				config[(*item)->GetName()] = node;
+		}
 	}
 
 	JLoader.Save(configpath.data(), config);
@@ -212,40 +218,45 @@ update_status Application::Update()
 	update_status ret = UPDATE_CONTINUE;
 	PrepareUpdate();
 
-	std::list<Module*>::const_iterator item = list_modules.begin();
+	OPTICK_PUSH("Modules PreUpdate");
 
+	std::list<Module*>::const_iterator item = list_modules.begin();
 	while(item != list_modules.end() && ret == UPDATE_CONTINUE)
 	{
 		ret = (*item)->isEnabled() ? (*item)->PreUpdate(time->GetRealTimeDt()) : UPDATE_CONTINUE;
 		item++;
 	}
 
+	OPTICK_POP();
+	OPTICK_PUSH("Modules Update");
+
 	item = list_modules.begin();
-
-
 	while(item != list_modules.end() && ret == UPDATE_CONTINUE)
 	{
 		ret = (*item)->isEnabled() ? (*item)->Update(time->GetRealTimeDt()) : UPDATE_CONTINUE;
 		item++;
 	}
 
+	OPTICK_POP();
+
+	//item = list_modules.begin();
+	//while (item != list_modules.end() && ret == UPDATE_CONTINUE)
+	//{
+	//	ret = (*item)->isEnabled() ? (*item)->GameUpdate(time->GetGameDt()) : UPDATE_CONTINUE;
+	//	item++;
+	//}
+
+
+	OPTICK_PUSH("Modules PostUpdate");
+
 	item = list_modules.begin();
-
-	while (item != list_modules.end() && ret == UPDATE_CONTINUE)
-	{
-		ret = (*item)->isEnabled() ? (*item)->GameUpdate(time->GetGameDt()) : UPDATE_CONTINUE;
-		item++;
-	}
-
-	item = list_modules.begin();
-
-
 	while(item != list_modules.end() && ret == UPDATE_CONTINUE)
 	{
 		ret = (*item)->isEnabled() ? (*item)->PostUpdate(time->GetRealTimeDt()) : UPDATE_CONTINUE;
 		item++;
 	}
 
+	OPTICK_POP();
 	FinishUpdate();
 	return ret;
 }
@@ -295,6 +306,7 @@ void Application::SetOrganizationName(const char* name) {
 }
 
 void Application::Log(const char* entry) {
+	std::lock_guard<std::mutex> lk(logMutex);
 	if (logs.size() > 1000)
 		logs.erase(logs.begin());
 
@@ -320,9 +332,6 @@ json Application::GetDefaultConfig() const {
 		{"Application", {
 
 		}},
-		{"GUI", {
-
-		}},
 		{"Window", {
 			{"width", 1024},
 			{"height", 720},
@@ -330,10 +339,6 @@ json Application::GetDefaultConfig() const {
 			{"resizable", true},
 			{"borderless", false},
 			{"fullscreenDesktop", false}
-		}},
-
-		{"Input", {
-
 		}},
 
 		{"Renderer3D", {
@@ -342,38 +347,6 @@ json Application::GetDefaultConfig() const {
 	};
 
 	return config;
-}
-
-void Application::GetDefaultGameConfig(json& config) const {
-	// --- Create Game Config with default values ---
-	config = {
-		{"Application", {
-			{"Organization", orgName}
-
-		}},
-		{"SceneManager", {
-
-		}},
-		{"Camera3D", {
-
-		}},
-		{"Window", {
-			{"width", 1024},
-			{"height", 720},
-			{"fullscreen", false},
-			{"resizable", true},
-			{"borderless", false},
-			{"fullscreenDesktop", false}
-		}},
-
-		{"Input", {
-
-		}},
-
-		{"Renderer3D", {
-			{"VSync", true}
-		}},
-	};
 }
 
 json& Application::GetConfigFile() {

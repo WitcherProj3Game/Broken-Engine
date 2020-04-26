@@ -1,9 +1,10 @@
 #include "PanelConsole.h"
 #include "EngineApplication.h"
+#include "ModuleGui.h"
 
 #include "mmgr/mmgr.h"
 
-PanelConsole::PanelConsole(char * name) : Broken::Panel(name)
+PanelConsole::PanelConsole(char * name) : Panel(name)
 {
 }
 
@@ -52,7 +53,7 @@ bool PanelConsole::Draw()
 				else if(item[1] == *warning_key)
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.75, 0.75, 0, 255));
 				else
-					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 255, 255, 255));
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(255, 255, 255, 255));
 
 				// --- If text does not match the filter don't print it ---
 				if (!filter.PassFilter(item))

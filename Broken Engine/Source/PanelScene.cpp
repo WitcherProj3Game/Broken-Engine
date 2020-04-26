@@ -1,14 +1,32 @@
 #include "PanelScene.h"
-#include "Imgui/imgui.h"
 
+// -- Modules --
 #include "EngineApplication.h"
+#include "ModuleGui.h"
+#include "ModuleRenderer3D.h"
+#include "ModuleResourceManager.h"
+#include "ModuleSceneManager.h"
+#include "ModuleSelection.h"
+#include "ModuleCamera3D.h"
+#include "ModuleInput.h"
+
+// -- Panels --
 #include "PanelProject.h"
 
-#include "OpenGL.h"
+// -- Components --
+#include "GameObject.h"
+#include "ComponentCamera.h"
+#include "ComponentTransform.h"
 
+// -- Importers --
+#include "ImporterModel.h"
+
+// -- Utilities --
+#include "OpenGL.h"
+#include "Imgui/imgui.h"
 #include "mmgr/mmgr.h"
 
-PanelScene::PanelScene(char* name) : Broken::Panel(name)
+PanelScene::PanelScene(char* name) : Panel(name)
 {
 	ImGuizmo::Enable(true);
 	overlay = "Camera Speed Overlay";
@@ -22,6 +40,8 @@ PanelScene::~PanelScene()
 
 bool PanelScene::Draw()
 {
+	EngineApp->gui->draw_list = ImGui::GetForegroundDrawList(); //used for ui system
+
 	ImGui::SetCurrentContext(EngineApp->gui->getImgUICtx());
 
 	ImGuiWindowFlags settingsFlags = 0;
@@ -64,11 +84,16 @@ bool PanelScene::Draw()
 				uint UID = *(const uint*)payload->Data;
 				Broken::Resource* resource = EngineApp->resources->GetResource(UID, false);
 
-				// MYTODO: Instance resource here, put it on scene (depending on resource)
-				if (resource && resource->GetType() == Broken::Resource::ResourceType::MODEL)
+				if (resource->GetType() == Broken::Resource::ResourceType::MODEL)
 				{
 					resource = EngineApp->resources->GetResource(UID);
-					EngineApp->resources->GetImporter < Broken::ImporterModel > ()->InstanceOnCurrentScene(resource->GetResourceFile(), (Broken::ResourceModel*)resource);
+					EngineApp->resources->GetImporter<Broken::ImporterModel>()->InstanceOnCurrentScene(resource->GetResourceFile(), (Broken::ResourceModel*)resource);
+				}
+				if (resource->GetType() == Broken::Resource::ResourceType::PREFAB)
+				{
+					// We force a model instance without sending model*
+					resource = EngineApp->resources->GetResource(UID);
+					EngineApp->resources->GetImporter<Broken::ImporterModel>()->InstanceOnCurrentScene(resource->GetResourceFile(), nullptr);
 				}
 			}
 
@@ -86,9 +111,25 @@ bool PanelScene::Draw()
 				ImGui::MenuItem("LIGHTING", NULL, &EngineApp->renderer3D->lighting);
 				ImGui::MenuItem("COLOR MATERIAL", NULL, &EngineApp->renderer3D->color_material);
 				ImGui::MenuItem("WIREFRAME", NULL, &EngineApp->renderer3D->wireframe);
-				ImGui::MenuItem("BOUNDING BOXES", NULL, &EngineApp->scene_manager->display_boundingboxes);
+				ImGui::MenuItem("BOUNDING BOXES", NULL, &EngineApp->renderer3D->display_boundingboxes);
 				ImGui::MenuItem("OCTREE", NULL, &EngineApp->scene_manager->display_tree);
 				ImGui::MenuItem("ZDRAWER", NULL, &EngineApp->renderer3D->zdrawer);
+
+				if (ImGui::MenuItem("NORMAL MAPPING", NULL, &EngineApp->renderer3D->m_Draw_normalMapping))
+				{
+					EngineApp->renderer3D->m_Draw_normalMapping_Lit = false;
+					EngineApp->renderer3D->m_Draw_normalMapping_Lit_Adv = false;
+				}
+				if (ImGui::MenuItem("LIT NORMAL MAPPING", NULL, &EngineApp->renderer3D->m_Draw_normalMapping_Lit))
+				{
+						EngineApp->renderer3D->m_Draw_normalMapping = false;
+						EngineApp->renderer3D->m_Draw_normalMapping_Lit_Adv = false;
+				}
+				if (ImGui::MenuItem("LIT NORMAL MAPPING ADVANCED", NULL, &EngineApp->renderer3D->m_Draw_normalMapping_Lit_Adv))
+				{
+					EngineApp->renderer3D->m_Draw_normalMapping_Lit = false;
+					EngineApp->renderer3D->m_Draw_normalMapping = false;
+				}
 
 				ImGui::EndMenu();
 			}
@@ -103,7 +144,8 @@ bool PanelScene::Draw()
 	}
 
 	// --- Handle Guizmo operations ---
-	if(EngineApp->scene_manager->GetSelectedGameObject() != nullptr)
+	// SELECTED TODO
+	if(EngineApp->selection->GetLastSelected() != nullptr)
 		HandleGuizmo();
 
 	// --- Update editor camera ---
@@ -152,26 +194,27 @@ void PanelScene::HandleGuizmo()
 			guizmoOperation = ImGuizmo::OPERATION::SCALE;
 	}
 
-	Broken::GameObject* selectedGO = EngineApp->scene_manager->GetSelectedGameObject();
+	Broken::ComponentTransform* root_transform = EngineApp->selection->root->GetComponent<Broken::ComponentTransform>();
 
 	// --- Set drawing to this window and rendering rect (Scene Image) ---
 	ImGuizmo::SetDrawlist();
 	ImGuizmo::SetRect(EngineApp->gui->sceneX, EngineApp->gui->sceneY, EngineApp->gui->sceneWidth, EngineApp->gui->sceneHeight);
 
 	// --- Create temporal matrix to store results of guizmo operations ---
-	float modelMatrix[16];
-	memcpy(modelMatrix, selectedGO->GetComponent<Broken::ComponentTransform>()->GetLocalTransform().Transposed().ptr(), 16 * sizeof(float));
+	float modelMatrix[16], deltaMatrix[16];
+	memcpy(modelMatrix, root_transform->GetLocalTransform().Transposed().ptr(), 16 * sizeof(float));
 
 	// --- Process guizmo operation ---
 	ImGuizmo::MODE mode = ImGuizmo::MODE::LOCAL; // or Local ??
-	ImGuizmo::Manipulate(EngineApp->renderer3D->active_camera->GetOpenGLViewMatrix().ptr(), EngineApp->renderer3D->active_camera->GetOpenGLProjectionMatrix().ptr(), guizmoOperation, mode, modelMatrix);
+	ImGuizmo::Manipulate(EngineApp->renderer3D->active_camera->GetOpenGLViewMatrix().ptr(), EngineApp->renderer3D->active_camera->GetOpenGLProjectionMatrix().ptr(), guizmoOperation, mode, modelMatrix, deltaMatrix);
 
 	// --- Update Selected go transform ---
 	if (ImGuizmo::IsUsing())
 	{
-		float4x4 newTransform;
-		newTransform.Set(modelMatrix);
-		selectedGO->GetComponent<Broken::ComponentTransform>()->SetGlobalTransform(newTransform.Transposed());
+		float3 delta_pos, delta_rot, delta_scale;
+		ImGuizmo::DecomposeMatrixToComponents(deltaMatrix, delta_pos.ptr(), delta_rot.ptr(), delta_scale.ptr());
+
+		EngineApp->selection->UseGuizmo(guizmoOperation, delta_pos, delta_rot, delta_scale);
 	}
 }
 

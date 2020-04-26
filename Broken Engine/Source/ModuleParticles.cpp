@@ -10,13 +10,15 @@
 //#include "PhysX_3.4/Include/extensions/PxDefaultErrorCallback.h"
 //#include "PhysX_3.4/Include/PxPhysicsAPI.h"
 
+#include "Optick/include/optick.h"
+
 #include "mmgr/mmgr.h"
 
 using namespace Broken;
 
 ModuleParticles::ModuleParticles(bool start_enabled)
 {
-	name = "Particles module";
+	name = "Particles";
 }
 
 ModuleParticles::~ModuleParticles()
@@ -35,17 +37,13 @@ bool ModuleParticles::Start()
 
 update_status ModuleParticles::Update(float dt)
 {
+	OPTICK_CATEGORY("Particles Update", Optick::Category::VFX);
+	
 	for (int i = 0; i < particleEmitters.size(); ++i)
 		if (particleEmitters[i]->IsEnabled())
 			particleEmitters[i]->UpdateParticles(dt);
 
 	return UPDATE_CONTINUE;
-}
-
-void ModuleParticles::DrawParticles()
-{
-	for (uint i = 0; i < particleEmitters.size(); ++i)
-		particleEmitters[i]->DrawParticles();
 }
 
 void ModuleParticles::AddEmitter(ComponentParticleEmitter* componentEmitter)

@@ -2,13 +2,17 @@
 #define __PANELBUILD_H__
 #pragma once
 
-#include "BrokenEngine.h"
 #include <string>
 #include <vector>
+#include <memory>
+#include "Panel.h"
 
-class Broken::GameObject;
+namespace Broken
+{
+	class GameObject;
+}
 
-class PanelBuild : public Broken::Panel {
+class PanelBuild : public Panel {
 public:
 	PanelBuild(char* name);
 	~PanelBuild();
@@ -20,15 +24,17 @@ public:
 private:
 	void findCameras();
 	void makeBuild();
-	void copyAllFolderMT(std::shared_ptr<std::string> path, std::shared_ptr<std::string> build);
+	void copyFile(const char* path, const char* buildFolder);
+	void createFoldersAndRetrieveFiles(const char* path, const char* newPath, std::vector<std::string>& outFiles);
+
 
 private:
 	std::vector<Broken::GameObject*> cameras;
 	std::string buildName;
 	Broken::GameObject* selectedCamera;
-	std::string scenePath;
+	std::string sceneName;
 	//std::string cameraName;
-
+	bool Activate_Debug = false;
 };
 
 #endif

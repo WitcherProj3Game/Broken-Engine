@@ -10,6 +10,7 @@
 #include "PerfTimer.h"
 #include "MathGeoLib/include/Algorithm/Random/LCG.h"
 #include "JSONLoader.h"
+#include <mutex>
 
 #define MAX_CONSOLE_LOGS 1000
 
@@ -46,6 +47,8 @@ class ModuleUI;
 class ModulePhysics;
 class ModuleParticles;
 class ModuleAudio;
+class ModuleSelection;
+class ModuleDetour;
 
 class BROKEN_API Application {
 public:
@@ -54,7 +57,6 @@ public:
 	const char* GetAppName() const;
 	const char* GetOrganizationName() const;
 	json GetDefaultConfig() const;
-	void GetDefaultGameConfig(json& config) const;
 	json& GetConfigFile();
 	std::vector<std::string>& GetLogs();
 	LCG& GetRandom();
@@ -68,7 +70,6 @@ public:
 	void ClearLogsFromConsole();
 
 public:
-
 	ModuleWindow* window = nullptr;
 	ModuleInput* input = nullptr;
 	ModuleRenderer3D* renderer3D = nullptr;
@@ -87,6 +88,8 @@ public:
 	ModulePhysics* physics = nullptr;
 	ModuleParticles* particles = nullptr;
 	ModuleAudio* audio = nullptr;
+	ModuleSelection* selection = nullptr;
+	ModuleDetour* detour = nullptr;
 
 
 	bool isGame = false;
@@ -94,14 +97,16 @@ public:
 	//Random Number Generator
 	RNGen RandomNumberGenerator;
 
-private:
-
+protected:
 	std::list<Module*> list_modules;
-
-	JSONLoader			JLoader;
 	std::string			appName;
 	std::string			orgName;
 	std::string			configpath;
+	/// Logging mutexes
+	std::mutex logMutex;
+
+private:
+	JSONLoader			JLoader;
 	json				tempjson;
 
 	LCG*				RandomNumber = nullptr;

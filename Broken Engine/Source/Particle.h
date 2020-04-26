@@ -5,6 +5,9 @@
 #include "BrokenCore.h"
 
 BE_BEGIN_NAMESPACE
+
+class ResourceTexture;
+
 class BROKEN_API Particle {
 public:
 	Particle();
@@ -14,11 +17,15 @@ public:
 
 public:
 
+
 	float3 position = { 0,0,0 };
-	float3 color = { 255.0f, 0.0f, 0.0f };
+	float4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 	uint lifeTime=1;
 	uint spawnTime = 1;
 	float diameter=1;
+	float2 scale = {1,1};
+
+	ResourceTexture* texture = nullptr;
 };
 
 BE_END_NAMESPACE

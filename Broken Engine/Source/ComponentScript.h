@@ -14,6 +14,7 @@ public:
 	~ComponentScript();
 
 public:
+	void Update() override;
 	void Enable() override;
 	void Disable() override;
 	void CreateInspectorNode() override;
@@ -24,6 +25,7 @@ public:
 	// This function returns the index inside the vector of scriptvars of Script variable using its name as reference
 	// Returns -1 if the ScriptVar was not found in the vector
 	int ScriptVarAlreadyInComponent(std::string name);
+	bool ScriptFuncAlreadyInComponent(std::string name);
 
 	//Correct SAve & Load from Central 3D
 	json Save() const override;
@@ -31,10 +33,13 @@ public:
 	/*void Save(json &file);
 	void Load(json &file);*/
 
+	static inline Component::ComponentType GetType() { return Component::ComponentType::Script; };
 public:
 	ResourceScript* script = nullptr;
-	std::string script_name;
+	// Using component name instead of duplicating it with script_name
+	//std::string script_name;
 	std::vector<ScriptVar> script_variables;
+	std::vector<ScriptFunc> script_functions;
 };
 
 BE_END_NAMESPACE

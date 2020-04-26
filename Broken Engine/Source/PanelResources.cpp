@@ -1,13 +1,19 @@
 #include "PanelResources.h"
+
+// -- Modules --
 #include "EngineApplication.h"
+#include "ModuleGui.h"
+#include "ModuleResourceManager.h"
+
+// -- Resources --
 #include "Resources.h"
 
+// -- Utilities --
 #include "Imgui/imgui.h"
-
 #include "mmgr/mmgr.h"
 
 
-PanelResources::PanelResources(char* name) : Broken::Panel(name)
+PanelResources::PanelResources(char* name) : Panel(name)
 {
 }
 
@@ -99,6 +105,18 @@ bool PanelResources::Draw()
 
 			ImGui::Separator();
 		}
+		if (ImGui::CollapsingHeader("Animators"))
+		{
+			for (std::map<uint, Broken::ResourceAnimator*>::const_iterator it = EngineApp->resources->anim_info.begin(); it != EngineApp->resources->anim_info.end(); ++it)
+			{
+				if ((*it).second)
+				{
+					DrawResourceNode((*it).second, instances_color);
+				}
+			}
+
+			ImGui::Separator();
+		}
 		if (ImGui::CollapsingHeader("Shaders"))
 		{
 			for (std::map<uint, Broken::ResourceShader*>::const_iterator it = EngineApp->resources->shaders.begin(); it != EngineApp->resources->shaders.end(); ++it)
@@ -126,18 +144,6 @@ bool PanelResources::Draw()
 		if (ImGui::CollapsingHeader("Textures"))
 		{
 			for (std::map<uint, Broken::ResourceTexture*>::const_iterator it = EngineApp->resources->textures.begin(); it != EngineApp->resources->textures.end(); ++it)
-			{
-				if ((*it).second)
-				{
-					DrawResourceNode((*it).second, instances_color);
-				}
-			}
-
-			ImGui::Separator();
-		}
-		if (ImGui::CollapsingHeader("Shader Objects"))
-		{
-			for (std::map<uint, Broken::ResourceShaderObject*>::const_iterator it = EngineApp->resources->shader_objects.begin(); it != EngineApp->resources->shader_objects.end(); ++it)
 			{
 				if ((*it).second)
 				{

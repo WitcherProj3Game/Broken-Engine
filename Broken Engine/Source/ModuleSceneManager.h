@@ -17,8 +17,10 @@ class ResourceMesh;
 class ResourceScene;
 struct Event;
 
-class BROKEN_API ModuleSceneManager : public Module {
+class BROKEN_API ModuleSceneManager : public Module 
+{
 public:
+	friend class ModuleSelection;
 
 	ModuleSceneManager(bool start_enabled = true);
 	~ModuleSceneManager();
@@ -29,50 +31,46 @@ public:
 	update_status PreUpdate(float dt) override;
 	update_status Update(float dt) override;
 	bool CleanUp() override;
+	void DrawScene();
 
 	// --- Creators ---
 	GameObject* CreateEmptyGameObject();
 	GameObject* CreateEmptyGameObjectGivenUID(uint UID);
 	void ResetGameObjectUID(GameObject* go);
 
-	void CreateGrid(float target_distance);
+	//MYTODO: Move all resource stuff to RESOURCE MANAGER
 	GameObject* LoadSphere();
 	GameObject* LoadCube();
 	GameObject* LoadCapsule();
 	GameObject* LoadPlane();
 	GameObject* LoadCylinder();
+	GameObject* LoadDisk();
+
 
 	void DestroyGameObject(GameObject* go);
+	void GatherGameObjects(GameObject* go, std::vector<GameObject*>& gos_vec);
 
 	// --- Getters ---
-	GameObject* GetSelectedGameObject() const;
+
+	// Returns the last selected gameobject
+	//GameObject* GetSelectedGameObject() const;
 	GameObject* GetRootGO() const;
-	uint GetPointLineVAO() const;
 
 	// --- Setters ---
-	void SetSelectedGameObject(GameObject* go);
+	//void SetSelectedGameObject(GameObject* go);
 
 	// --- Utilities ---
-	void DrawGrid(bool drawAxis, float size);
-	void Draw();
 	void RedoOctree();
-	void SetStatic(GameObject* go);
+	void RedoOctree(AABB aabb);
+	void SetStatic(GameObject* go, bool setStatic, bool setChildren);
 	void RecursiveDrawQuadtree(QuadtreeNode* node) const;
+	//bool IsSelected(GameObject* go);
 	void SelectFromRay(LineSegment& ray);
 
 	// --- Save/Load ----
-	void SaveStatus(json &file) const override;
 	void LoadGame(const json & file);
 	void SaveScene(ResourceScene* scene);
 	void SetActiveScene(ResourceScene* scene);
-
-	// --- Draw Wireframe using given vertices ---
-	template <typename Box>
-	static void DrawWire(const Box& box, Color color, uint VAO) {
-		float3 corners[8];
-		box.GetCornerPoints(corners);
-		DrawWireFromVertices(corners, color, VAO);
-	};
 
 	// --- Primitives ---
 	GameObject* LoadPrimitiveObject(uint PrimitiveMeshID);
@@ -81,24 +79,31 @@ public:
 	void CreateCube(float sizeX, float sizeY, float sizeZ, ResourceMesh* rmesh);
 	void CreateSphere(float Radius, int slices, int slacks, ResourceMesh* rmesh);
 	void CreatePlane(float sizeX, float sizeY, float sizeZ, ResourceMesh* rmesh);
+	void CreateDisk(float radius, ResourceMesh* rmesh);
 
 	const ResourceMesh* GetCubeMesh()const { return cube; }
 	const ResourceMesh* GetSphereMesh() const { return sphere; }
 	const ResourceMesh* GetCapsuleMesh() const { return capsule; }
 	const ResourceMesh* GetPlaneMesh() const { return plane; }
 	const ResourceMesh* GetCylinderMesh() const { return cylinder; }
+	const ResourceMesh* GetDiskMesh() const { return disk; }
+
+
+	void SendToDelete(GameObject* go);
+
 private:
+
 	// --- Event Callbacks ---
 	static void ONResourceSelected(const Event& e);
 	static void ONGameObjectDestroyed(const Event& e);
 
 private:
 	GameObject* CreateRootGameObject();
-	void DrawScene();
 
 	// --- Primitives ---
-	void LoadParMesh(par_shapes_mesh_s* mesh, ResourceMesh* new_mesh) const;
-	static void DrawWireFromVertices(const float3* corners, Color color, uint VAO);
+	//For Broken Engine's sake, please put the bool to false if not cube or plane
+	void LoadParMesh(par_shapes_mesh_s* mesh, ResourceMesh* new_mesh, bool calculateTangents) const;
+	void CalculateTangentAndBitangent(ResourceMesh* mesh, uint index, float3& tangent, float3& bitangent) const;
 
 public:
 	//Components helper, check AddComponent function
@@ -107,31 +112,37 @@ public:
 	// --- Actually this is an octree ---
 	Quadtree tree;
 	bool display_tree = false;
-	bool display_boundingboxes = false;
-	bool display_grid = true;
+
+	bool update_tree=false;
+	uint treeUpdateTimer = 0;
 	ResourceScene* currentScene = nullptr;
 
+	// --- Do not modify, just use ---
+	ResourceMesh* cube = nullptr;
+	ResourceMesh* capsule = nullptr;
+	ResourceMesh* cylinder = nullptr;
+	ResourceMesh* disk = nullptr;
 	ResourceMesh* plane = nullptr;
+	ResourceMesh* sphere = nullptr;
 
 	// do not destroy
 	ResourceScene* defaultScene = nullptr;
 	ResourceScene* temporalScene = nullptr;
 private:
 
-	// --- Do not modify, just use ---
-	ResourceMesh* cube = nullptr;
-	ResourceMesh* sphere = nullptr;
-	ResourceMesh* capsule = nullptr;
-	ResourceMesh* cylinder = nullptr;
+	// Game objects to be deleted
+	std::vector<GameObject*> go_to_delete;
 
 
-	uint PointLineVAO = 0;
-	uint Grid_VAO = 0;
-	uint Grid_VBO = 0;
+
 	uint go_count = 0;
 	GameObject* root = nullptr;
-	GameObject* SelectedGameObject = nullptr;
+	//GameObject* root_selected = nullptr;
+	//GameObject* SelectedGameObject = nullptr;
 	GameObject* music = nullptr;
+public:
+
+	//std::vector<GameObject*> selected_gameobjects;
 };
 
 BE_END_NAMESPACE

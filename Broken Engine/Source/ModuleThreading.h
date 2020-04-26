@@ -37,6 +37,7 @@ private:
 private:
 	std::queue <std::function<void()>> tasksQueue;
 	std::vector <std::thread> threadVector;
+	std::vector <std::string> threadNames;
 	//True when thread is executing a task
 	std::vector <bool> threadStatus;
 	std::mutex tQueueMutex;

@@ -37,6 +37,7 @@
 
 #include "OpenGL.h"
 #include "Math.h"
+#include "Optick/include/optick.h"
 
 #pragma comment (lib, "glu32.lib")    /* link OpenGL Utility lib     */
 #pragma comment (lib, "opengl32.lib") /* link Microsoft OpenGL lib   */
@@ -243,6 +244,8 @@ bool ModuleRenderer3D::Init(json& file)
 // PreUpdate: clear buffer
 update_status ModuleRenderer3D::PreUpdate(float dt)
 {
+	OPTICK_CATEGORY("Renderer PreUpdate", Optick::Category::Rendering);
+
 	// --- Update OpenGL Capabilities ---
 	UpdateGLCapabilities();
 
@@ -268,6 +271,8 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 // PostUpdate present buffer to screen
 update_status ModuleRenderer3D::PostUpdate(float dt)
 {
+	OPTICK_CATEGORY("Renderer PostUpdate", Optick::Category::Rendering);
+
 	// --- Set Shader Matrices ---
 	GLint viewLoc = glGetUniformLocation(defaultShader->ID, "u_View");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLViewMatrix().ptr());
@@ -299,14 +304,17 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	// --- Do not write to the stencil buffer ---
 	glStencilMask(0x00);
 
+	OPTICK_PUSH("Skybox Rendering");
 	DrawSkybox(); // could not manage to draw it after scene with reversed-z ...
+	OPTICK_POP();
 
 	// --- Set depth filter to greater (Passes if the incoming depth value is greater than the stored depth value) ---
 	glDepthFunc(GL_GREATER);
 
 	// --- Issue Render orders ---
+	OPTICK_PUSH("Scene Rendering");
 	App->scene_manager->DrawScene();
-
+	OPTICK_POP();
 
 
 	for (std::map<uint, ResourceShader*>::const_iterator it = App->resources->shaders.begin(); it != App->resources->shaders.end(); ++it)
@@ -319,9 +327,11 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	if (display_grid)
 		DrawGrid();
 
+	OPTICK_PUSH("Meshes Lines and Boxes Rendering");
 	DrawRenderMeshes();
 	DrawRenderLines();
 	DrawRenderBoxes();
+	OPTICK_POP();
 
 	// --- Selected Object Outlining ---
 	HandleObjectOutlining();
@@ -330,17 +340,23 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	OPTICK_PUSH("Particles Rendering");
 	// -- Draw particles ---
 	for (int i = 0; i < particleEmitters.size(); ++i)
 		particleEmitters[i]->DrawParticles();
+	OPTICK_POP();
 
 	glDisable(GL_BLEND);
 
+	OPTICK_PUSH("Lights Rendering");
 	std::vector<ComponentLight*>::iterator LightIterator = m_LightsVec.begin();
 	for (; LightIterator != m_LightsVec.end(); ++LightIterator)
 		(*LightIterator)->Draw();
+	OPTICK_POP();
 
+	OPTICK_PUSH("UI Rendering");
 	App->ui_system->Draw();
+	OPTICK_POP();
 
 	// --- Back to defaults ---
 	glDepthFunc(GL_LESS);
@@ -350,11 +366,15 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// -- Draw framebuffer texture ---
+	OPTICK_PUSH("FBO Rendering");
 	if (drawfb)
 		DrawFramebuffer();
+	OPTICK_POP();
 
 	// --- Draw GUI and swap buffers ---
+	OPTICK_PUSH("GUI Rendering");
 	App->gui->Draw();
+	OPTICK_POP();
 
 
 	// --- To prevent problems with viewports, disabled due to crashes and conflicts with docking, sets a window as current rendering context ---

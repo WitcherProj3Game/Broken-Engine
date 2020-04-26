@@ -5,6 +5,7 @@
 #include "ModuleResourceManager.h"
 #include "Importer.h"
 
+#include "Optick/include/optick.h"
 
 #include "mmgr/mmgr.h"
 
@@ -76,9 +77,11 @@ bool ModuleInput::Init(json& file) {
 }
 
 // Called every draw update
-update_status ModuleInput::PreUpdate(float dt) {
-	SDL_PumpEvents();
+update_status ModuleInput::PreUpdate(float dt) 
+{
+	OPTICK_CATEGORY("Input PreUpdate", Optick::Category::Input);
 
+	SDL_PumpEvents();
 	const Uint8* keys = SDL_GetKeyboardState(NULL);
 
 	for (int i = 0; i < MAX_KEYS; ++i) {

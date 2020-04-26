@@ -18,6 +18,8 @@
 
 #include "ModuleSelection.h"
 
+#include "Optick/include/optick.h"
+
 #include "mmgr/mmgr.h"
 
 using namespace Broken;
@@ -61,7 +63,7 @@ bool ModuleCamera3D::CleanUp() {
 	return true;
 }
 
-void ModuleCamera3D::LoadStatus(const json& file) 
+void ModuleCamera3D::LoadStatus(const json& file)
 {
 	//#ifdef BE_GAME_BUILD
 	//if (file["Camera3D"].find("ActiveCamera") != file["Camera3D"].end()) {
@@ -75,8 +77,10 @@ void ModuleCamera3D::LoadStatus(const json& file)
 }
 
 // -----------------------------------------------------------------
-update_status ModuleCamera3D::Update(float dt) 
+update_status ModuleCamera3D::Update(float dt)
 {
+	OPTICK_CATEGORY("Engine Camera Update", Optick::Category::Camera);
+
 	if (App->GetAppState() == AppState::EDITOR && App->gui->isSceneHovered) {
 		m_CameraSpeedDeltaTime = m_CameraSpeed * dt;
 		m_ScrollSpeedDeltaTime = m_ScrollSpeed * dt;
@@ -91,7 +95,7 @@ update_status ModuleCamera3D::Update(float dt)
 
 void ModuleCamera3D::UpdateCamera()
 {
-	if (App->GetAppState() == AppState::EDITOR && App->gui->isSceneHovered) 
+	if (App->GetAppState() == AppState::EDITOR && App->gui->isSceneHovered)
 	{
 		float3 newPos(0, 0, 0);
 
@@ -159,7 +163,7 @@ void ModuleCamera3D::OnMouseClick(const float mouse_x, const float mouse_y) {
 	//ENGINE_CONSOLE_LOG("mouse_Y: %f", normalized_y);
 
 	LineSegment ray = App->renderer3D->active_camera->frustum.UnProjectLineSegment(normalized_x, normalized_y);
-	
+
 	ray.b = ray.a + (ray.Dir()*camera->GetFarPlane()*2);
 
 	last_ray = ray;

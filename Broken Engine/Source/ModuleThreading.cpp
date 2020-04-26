@@ -17,10 +17,15 @@ bool ModuleThreading::Init(json& file) {
 }
 
 bool ModuleThreading::Start() {
+	// --- We reserve the space in memory so that the vectors don't shift around when pushing to them --
+	threadStatus.reserve(concurrentThreads - 1);
+	threadNames.reserve	(concurrentThreads - 1);
+	threadVector.reserve(concurrentThreads - 1);
+
 	for (int i = 0; i < concurrentThreads - 1; i++) {
 		threadStatus.push_back(false);
-		threadVector.push_back(std::thread(&ModuleThreading::ProcessTasks, this, i, std::ref(stopPool)));
 		threadNames.push_back("Worker thread " + std::to_string(i + 1));
+		threadVector.push_back(std::thread(&ModuleThreading::ProcessTasks, this, i, std::ref(stopPool)));
 	}
 
 	ENGINE_AND_SYSTEM_CONSOLE_LOG("Created %d threads.", concurrentThreads - 1);
@@ -78,7 +83,7 @@ void ModuleThreading::ShutdownPool() {
 }
 
 void ModuleThreading::ProcessTasks(int threadID, std::atomic<bool>& stop) {
-	OPTICK_THREAD(threadNames[threadID].c_str());
+	OPTICK_START_THREAD(threadNames[threadID].c_str());
 	while (true) {
 		{
 			std::lock_guard<std::mutex> lk(threadPoolMutex);
@@ -106,6 +111,7 @@ void ModuleThreading::ProcessTasks(int threadID, std::atomic<bool>& stop) {
 		OPTICK_EVENT("Processing a task");
 		Task();
 	}
+	OPTICK_STOP_THREAD()
 }
 
 void ModuleThreading::FinishProcessing() {

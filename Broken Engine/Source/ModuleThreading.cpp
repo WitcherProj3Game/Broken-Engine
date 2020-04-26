@@ -118,11 +118,11 @@ void ModuleThreading::ProcessTasks(int threadID, std::atomic<bool>& stop) {
 
 void ModuleThreading::FinishProcessing() {
 	bool processing = true;
+	OPTICK_EVENT();
 	while (processing) {
 		tQueueMutex.lock();
 		//If our task queue is empty we check that our thread pool has finished processing
 		if (tasksQueue.empty()) {
-			OPTICK_CATEGORY("Waiting for threads", Optick::Category::Wait);
 			tQueueMutex.unlock();
 			std::unique_lock<std::mutex> threadPoolLock(threadPoolMutex);
 

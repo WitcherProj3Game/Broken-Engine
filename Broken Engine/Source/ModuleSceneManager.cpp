@@ -42,7 +42,7 @@
 #include "Component.h"
 #include "ComponentButton.h"
 
-
+#include "Optick/include/optick.h"
 #include "mmgr/mmgr.h"
 
 #include "ComponentAudioSource.h"
@@ -129,13 +129,13 @@ bool ModuleSceneManager::Start()
 
 update_status ModuleSceneManager::PreUpdate(float dt)
 {
-	
+	OPTICK_CATEGORY("Scene Manager PreUpdate", Optick::Category::Scene);
 	return UPDATE_CONTINUE;
 }
 
 update_status ModuleSceneManager::Update(float dt)
 {
-
+	OPTICK_CATEGORY("Scene Manager Update", Optick::Category::Scene);
 	root->Update(dt);
 
 	if (update_tree)

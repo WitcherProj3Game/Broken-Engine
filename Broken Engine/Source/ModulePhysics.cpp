@@ -6,6 +6,8 @@
 #include "GameObject.h"
 #include "PhysxSimulationEvents.h"
 
+#include "Optick/include/optick.h"
+
 #include "ModuleTimeManager.h"
 #include "ModuleScripting.h"
 
@@ -220,6 +222,7 @@ bool ModulePhysics::Init(json& config)
 
 update_status ModulePhysics::Update(float dt)
 {
+	OPTICK_CATEGORY("Physics Update", Optick::Category::Physics);
 	//if (App->GetAppState() == AppState::PLAY)
 	//	SimulatePhysics(dt);
 

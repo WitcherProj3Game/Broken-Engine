@@ -21,6 +21,8 @@
 #include "ModuleDetour.h"
 #include "ModuleSelection.h"
 
+#include "Optick/include/optick.h"
+
 #include "mmgr/mmgr.h"
 
 BE_BEGIN_NAMESPACE
@@ -105,7 +107,8 @@ Application::~Application() {
 	}
 }
 
-bool Application::Init() {
+bool Application::Init()
+{
 	bool ret = true;
 	COMPILATIONLOGINFO;
 
@@ -215,40 +218,45 @@ update_status Application::Update()
 	update_status ret = UPDATE_CONTINUE;
 	PrepareUpdate();
 
-	std::list<Module*>::const_iterator item = list_modules.begin();
+	OPTICK_PUSH("Modules PreUpdate");
 
+	std::list<Module*>::const_iterator item = list_modules.begin();
 	while(item != list_modules.end() && ret == UPDATE_CONTINUE)
 	{
 		ret = (*item)->isEnabled() ? (*item)->PreUpdate(time->GetRealTimeDt()) : UPDATE_CONTINUE;
 		item++;
 	}
 
+	OPTICK_POP();
+	OPTICK_PUSH("Modules Update");
+
 	item = list_modules.begin();
-
-
 	while(item != list_modules.end() && ret == UPDATE_CONTINUE)
 	{
 		ret = (*item)->isEnabled() ? (*item)->Update(time->GetRealTimeDt()) : UPDATE_CONTINUE;
 		item++;
 	}
 
-	item = list_modules.begin();
+	OPTICK_POP();
 
+	//item = list_modules.begin();
 	//while (item != list_modules.end() && ret == UPDATE_CONTINUE)
 	//{
 	//	ret = (*item)->isEnabled() ? (*item)->GameUpdate(time->GetGameDt()) : UPDATE_CONTINUE;
 	//	item++;
 	//}
 
+
+	OPTICK_PUSH("Modules PostUpdate");
+
 	item = list_modules.begin();
-
-
 	while(item != list_modules.end() && ret == UPDATE_CONTINUE)
 	{
 		ret = (*item)->isEnabled() ? (*item)->PostUpdate(time->GetRealTimeDt()) : UPDATE_CONTINUE;
 		item++;
 	}
 
+	OPTICK_POP();
 	FinishUpdate();
 	return ret;
 }

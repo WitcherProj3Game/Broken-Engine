@@ -8,6 +8,8 @@
 #include "JSONLoader.h"
 #include <vector>
 
+#include "Optick/include/optick.h"
+
 #include "mmgr/mmgr.h"
 
 #define BANKNAME_INIT "Assets/Sounds/Init.bnk"
@@ -52,6 +54,8 @@ bool ModuleAudio::Start()
 
 update_status ModuleAudio::PostUpdate(float dt)
 {
+	OPTICK_CATEGORY("Audio PostUpdate", Optick::Category::Audio);
+
 	AK::SoundEngine::RenderAudio();
 	if (App->GetAppState() == Broken::AppState::PAUSE)
 	{

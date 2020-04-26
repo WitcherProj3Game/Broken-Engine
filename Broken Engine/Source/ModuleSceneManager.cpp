@@ -42,12 +42,11 @@
 #include "Component.h"
 #include "ComponentButton.h"
 
-
-#include "mmgr/mmgr.h"
-
 #include "ComponentAudioSource.h"
 #include "ModuleAudio.h"
 #include "../Game/Assets/Sounds/Wwise_IDs.h"
+
+#include "mmgr/mmgr.h"
 
 
 #define TREE_UPDATE_PERIOD 1000

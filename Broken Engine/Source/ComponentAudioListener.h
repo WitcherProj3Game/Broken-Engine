@@ -30,4 +30,4 @@ private:
 };
 
 BE_END_NAMESPACE
-#endif __ComponentAudioListener__H__
+#endif //__ComponentAudioListener__H__

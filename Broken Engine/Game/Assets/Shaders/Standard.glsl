@@ -73,7 +73,7 @@ uniform int u_UseTextures = 0;
 uniform int u_HasDiffuseTexture = 0;
 uniform int u_HasSpecularTexture = 0;
 uniform int u_HasNormalMap = 0;
-uniform int HasTransparencies = 0;
+uniform int u_HasTransparencies = 0;
 
 uniform int u_DrawNormalMapping = 0;
 uniform int u_DrawNormalMapping_Lit = 0;
@@ -184,7 +184,7 @@ void main()
 {
 	// Transparency
 	float alpha = 1.0;
-	if(HasTransparencies == 1)
+	if(u_HasTransparencies == 1)
 	{
 		if(u_UseTextures == 0)
 			alpha = v_Color.a;
@@ -242,7 +242,7 @@ void main()
 		vec3 finalColor = u_AmbientColor.rgb * v_Color.rgb;
 
 		//Resulting Color
-		if(u_UseTextures == 0 || (HasTransparencies == 0 && u_UseTextures == 1 && texture(u_AlbedoTexture, v_TexCoord).a < 0.1))
+		if(u_UseTextures == 0 || (u_HasTransparencies == 0 && u_UseTextures == 1 && texture(u_AlbedoTexture, v_TexCoord).a < 0.1))
 			out_color = vec4(colorResult + finalColor, alpha);
 		else if(u_UseTextures == 1)
 			out_color = vec4(colorResult + finalColor * texture(u_AlbedoTexture, v_TexCoord).rgb, alpha);

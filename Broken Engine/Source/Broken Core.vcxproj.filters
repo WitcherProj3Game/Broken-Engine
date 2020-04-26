@@ -76,9 +76,6 @@
     <Filter Include="Sources\BrokenEngine\Containers">
       <UniqueIdentifier>{4b2dc7ac-838e-4aeb-829d-44efe88d224d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\BrokenEngine\Panel">
-      <UniqueIdentifier>{25379e3c-ec2a-453d-8182-58090e8b1519}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\BrokenEngine\Game Objects\Components\UI">
       <UniqueIdentifier>{8e36da21-d6c3-45eb-9c4a-0a53c18dfd0c}</UniqueIdentifier>
     </Filter>

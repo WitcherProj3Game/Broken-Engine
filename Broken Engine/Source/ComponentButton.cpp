@@ -78,7 +78,8 @@ void ComponentButton::Draw()
 	float4x4 transform = transform.FromTRS(pos, Quat::identity, size);
 
 	// --- Set Uniforms ---
-	uint shaderID = App->renderer3D->defaultShader->ID;
+	uint shaderID = App->renderer3D->UI_Shader->ID;
+	//uint shaderID = App->renderer3D->defaultShader->ID;
 	glUseProgram(shaderID);
 
 	GLint modelLoc = glGetUniformLocation(shaderID, "u_Model");
@@ -101,7 +102,7 @@ void ComponentButton::Draw()
 	// --- Color & Texturing ---
 	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");
 	glUniform4f(vertexColorLocation, color.r, color.g, color.b, color.a);
-	glUniform1i(glGetUniformLocation(shaderID, "HasTransparencies"), 1);
+	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);
 
 	GameObject* gameObj = GetContainerGameObject();
 

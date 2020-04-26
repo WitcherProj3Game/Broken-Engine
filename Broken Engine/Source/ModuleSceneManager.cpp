@@ -46,6 +46,7 @@
 #include "ModuleAudio.h"
 #include "../Game/Assets/Sounds/Wwise_IDs.h"
 
+#include "Optick/include/optick.h"
 #include "mmgr/mmgr.h"
 
 
@@ -54,12 +55,12 @@
 using namespace Broken;
 // --- Event Manager Callbacks ---
 
-void ModuleSceneManager::ONResourceSelected(const Event& e) 
+void ModuleSceneManager::ONResourceSelected(const Event& e)
 {
 	App->selection->ClearSelection();
 }
 
-void ModuleSceneManager::ONGameObjectDestroyed(const Event& e) 
+void ModuleSceneManager::ONGameObjectDestroyed(const Event& e)
 {
 	for (GameObject* obj : App->scene_manager->GetRootGO()->childs) //all objects in scene
 	{
@@ -128,21 +129,26 @@ bool ModuleSceneManager::Start()
 
 update_status ModuleSceneManager::PreUpdate(float dt)
 {
-	
+	OPTICK_CATEGORY("Scene Manager PreUpdate", Optick::Category::Scene);
 	return UPDATE_CONTINUE;
 }
 
 update_status ModuleSceneManager::Update(float dt)
 {
-
+	OPTICK_CATEGORY("Scene Manager Update", Optick::Category::Scene);
+	OPTICK_PUSH("Root Objects Update");
 	root->Update(dt);
+	OPTICK_POP();
 
 	if (update_tree)
-		if ((SDL_GetTicks() - treeUpdateTimer) > TREE_UPDATE_PERIOD) {
+	{
+		if ((SDL_GetTicks() - treeUpdateTimer) > TREE_UPDATE_PERIOD)
+		{
 			treeUpdateTimer = SDL_GetTicks();
 			RedoOctree();
 			update_tree = false;
 		}
+	}
 
 	return UPDATE_CONTINUE;
 }
@@ -314,7 +320,7 @@ void ModuleSceneManager::RecursiveDrawQuadtree(QuadtreeNode* node) const
 		App->renderer3D->DrawAABB(node->box, Red);
 }
 
-void ModuleSceneManager::SelectFromRay(LineSegment& ray) 
+void ModuleSceneManager::SelectFromRay(LineSegment& ray)
 {
 	// --- Note all Game Objects are pushed into a map given distance so we can decide order later ---
 	if (currentScene)
@@ -493,7 +499,7 @@ void ModuleSceneManager::SetActiveScene(ResourceScene* scene)
 
 }
 
-GameObject* ModuleSceneManager::CreateEmptyGameObject() 
+GameObject* ModuleSceneManager::CreateEmptyGameObject()
 {
 	// --- Create New Game Object Name ---
 	std::string Name = "GameObject ";
@@ -609,7 +615,7 @@ void ModuleSceneManager::LoadParMesh(par_shapes_mesh_s* mesh, ResourceMesh* new_
 	{
 		for (uint i = 0; i < new_mesh->VerticesSize - 2; i += 3)
 		{
-			// --- Tangents & Bitangents Calculations ---	
+			// --- Tangents & Bitangents Calculations ---
 			float3 tangent, bitangent;
 			CalculateTangentAndBitangent(new_mesh, i, tangent, bitangent);
 

@@ -38,6 +38,7 @@
 //This include MUST go after Lua includes
 //#include "LuaBridge-241/include/LuaBridge.h"
 #include "ScriptData.h"
+#include "Optick/include/optick.h"
 #include "mmgr/mmgr.h"
 
 using namespace Broken;
@@ -818,7 +819,10 @@ bool ModuleScripting::CleanUp() {
 	return true;
 }
 
-update_status ModuleScripting::Update(float realDT) {
+update_status ModuleScripting::Update(float realDT)
+{
+	OPTICK_CATEGORY("Scripting Update", Optick::Category::Script);
+
 	// If a script was changed during runtime, hot reload
 	if (App->GetAppState() == AppState::EDITOR && hot_reloading_waiting) // Ask Aitor if this is correct (condition should return true only when no gameplay is being played)
 		DoHotReloading();
@@ -848,6 +852,7 @@ update_status ModuleScripting::Update(float realDT) {
 
 update_status ModuleScripting::GameUpdate(float gameDT)
 {
+	OPTICK_CATEGORY("Scripting (GAME) Update", Optick::Category::GameLogic);
 
 	if (cannot_start == false && App->GetAppState() == AppState::PLAY)
 	{

@@ -42,12 +42,12 @@
 #include "Component.h"
 #include "ComponentButton.h"
 
-#include "Optick/include/optick.h"
-#include "mmgr/mmgr.h"
-
 #include "ComponentAudioSource.h"
 #include "ModuleAudio.h"
 #include "../Game/Assets/Sounds/Wwise_IDs.h"
+
+#include "Optick/include/optick.h"
+#include "mmgr/mmgr.h"
 
 
 #define TREE_UPDATE_PERIOD 1000
@@ -55,12 +55,12 @@
 using namespace Broken;
 // --- Event Manager Callbacks ---
 
-void ModuleSceneManager::ONResourceSelected(const Event& e) 
+void ModuleSceneManager::ONResourceSelected(const Event& e)
 {
 	App->selection->ClearSelection();
 }
 
-void ModuleSceneManager::ONGameObjectDestroyed(const Event& e) 
+void ModuleSceneManager::ONGameObjectDestroyed(const Event& e)
 {
 	for (GameObject* obj : App->scene_manager->GetRootGO()->childs) //all objects in scene
 	{
@@ -320,7 +320,7 @@ void ModuleSceneManager::RecursiveDrawQuadtree(QuadtreeNode* node) const
 		App->renderer3D->DrawAABB(node->box, Red);
 }
 
-void ModuleSceneManager::SelectFromRay(LineSegment& ray) 
+void ModuleSceneManager::SelectFromRay(LineSegment& ray)
 {
 	// --- Note all Game Objects are pushed into a map given distance so we can decide order later ---
 	if (currentScene)
@@ -499,7 +499,7 @@ void ModuleSceneManager::SetActiveScene(ResourceScene* scene)
 
 }
 
-GameObject* ModuleSceneManager::CreateEmptyGameObject() 
+GameObject* ModuleSceneManager::CreateEmptyGameObject()
 {
 	// --- Create New Game Object Name ---
 	std::string Name = "GameObject ";
@@ -615,7 +615,7 @@ void ModuleSceneManager::LoadParMesh(par_shapes_mesh_s* mesh, ResourceMesh* new_
 	{
 		for (uint i = 0; i < new_mesh->VerticesSize - 2; i += 3)
 		{
-			// --- Tangents & Bitangents Calculations ---	
+			// --- Tangents & Bitangents Calculations ---
 			float3 tangent, bitangent;
 			CalculateTangentAndBitangent(new_mesh, i, tangent, bitangent);
 

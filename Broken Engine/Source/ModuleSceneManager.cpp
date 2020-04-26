@@ -136,14 +136,19 @@ update_status ModuleSceneManager::PreUpdate(float dt)
 update_status ModuleSceneManager::Update(float dt)
 {
 	OPTICK_CATEGORY("Scene Manager Update", Optick::Category::Scene);
+	OPTICK_PUSH("Root Objects Update");
 	root->Update(dt);
+	OPTICK_POP();
 
 	if (update_tree)
-		if ((SDL_GetTicks() - treeUpdateTimer) > TREE_UPDATE_PERIOD) {
+	{
+		if ((SDL_GetTicks() - treeUpdateTimer) > TREE_UPDATE_PERIOD)
+		{
 			treeUpdateTimer = SDL_GetTicks();
 			RedoOctree();
 			update_tree = false;
 		}
+	}
 
 	return UPDATE_CONTINUE;
 }

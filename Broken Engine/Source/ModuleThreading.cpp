@@ -36,12 +36,16 @@ bool ModuleThreading::Start() {
 	return true;
 }
 
-update_status ModuleThreading::Update(float dt) {
+update_status ModuleThreading::Update(float dt)
+{
+	OPTICK_CATEGORY("Threading Update", Optick::Category::Debug);
 	FinishProcessing();
 	return UPDATE_CONTINUE;
 }
 
-update_status ModuleThreading::PostUpdate(float dt) {
+update_status ModuleThreading::PostUpdate(float dt)
+{
+	OPTICK_CATEGORY("Threading PostUpdate", Optick::Category::Debug);
 	FinishProcessing();
 	return UPDATE_CONTINUE;
 }

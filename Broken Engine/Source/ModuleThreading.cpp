@@ -54,9 +54,6 @@ bool ModuleThreading::CleanUp() {
 	if (!poolTerminated)
 		ShutdownPool();
 
-	threadNames.clear();
-	threadStatus.clear();
-	threadVector.clear();
 	return true;
 }
 
@@ -80,8 +77,9 @@ void ModuleThreading::ShutdownPool() {
 	for (std::thread& currentThread : threadVector)
 		currentThread.join();
 
-	threadVector.empty();
-	threadStatus.empty();
+	threadNames.clear();
+	threadStatus.clear();
+	threadVector.clear();
 	poolTerminated = true;
 	ENGINE_AND_SYSTEM_CONSOLE_LOG("Thread pool has been shutdown, all %d threads are joined.", concurrentThreads);
 }

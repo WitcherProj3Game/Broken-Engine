@@ -4,6 +4,7 @@
 #include "Timer.h"
 #include "RandomGenerator.h"
 #include "ResourceTexture.h"
+#include "ResourceMesh.h"
 
 #include "ComponentParticleEmitter.h"
 #include "ComponentTransform.h"
@@ -17,6 +18,7 @@
 #include "ModuleResourceManager.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleFileSystem.h"
+#include "ModuleSceneManager.h"
 
 #include "Particle.h"
 
@@ -43,7 +45,6 @@ ComponentParticleEmitter::ComponentParticleEmitter(GameObject* ContainerGO) :Com
 		particles[i] = new Particle();
 
 	texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
-
 	App->renderer3D->particleEmitters.push_back(this);
 }
 
@@ -76,6 +77,20 @@ ComponentParticleEmitter::~ComponentParticleEmitter()
 
 void ComponentParticleEmitter::Update()
 {
+	if (animation && !createdAnim) {
+		CreateAnimation(tileSize_X, tileSize_Y);
+		createdAnim = true;
+	}
+	else if (!animation) {
+		if (particleMeshes.size() > 0) {
+			for (int i = 0; i < particleMeshes.size(); ++i) {
+				particleMeshes.at(i)->FreeMemory();
+			}
+			particleMeshes.clear();
+		}
+		createdAnim = false;
+	}
+
 	if (to_delete)
 		this->GetContainerGameObject()->RemoveComponent(this);
 }
@@ -169,6 +184,10 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				if (particles[i]->scale.y < 0)
 					particles[i]->scale.y = 0;
 
+				if (animation)
+					particles[i]->plane = particleMeshes[0];
+				else
+					particles[i]->plane = App->scene_manager->plane;
 
 			}
 		}
@@ -668,6 +687,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 		// Image
 		ImGui::Text("Image");
+		ImGui::SameLine();
 
 		if (texture == nullptr)
 			ImGui::Image((ImTextureID)App->textures->GetDefaultTextureID(), ImVec2(100, 100), ImVec2(0, 1), ImVec2(1, 0)); //default texture
@@ -717,6 +737,23 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 			ImGui::Text("Color");
 		}
+
+		int tmpX = tileSize_X;
+		int tmpY = tileSize_Y;
+		ImGui::Checkbox("Animation", &animation);
+		ImGui::DragInt("X", &tileSize_X, 1, 1, texture->Texture_width);
+		ImGui::DragInt("Y", &tileSize_Y,1,1,texture->Texture_height);
+
+		if (tmpX != tileSize_X || tmpY != tileSize_Y && animation) {
+			if (particleMeshes.size() > 0) {
+				for (int i = 0; i < particleMeshes.size(); ++i) {
+					particleMeshes.at(i)->FreeMemory();
+				}
+				particleMeshes.clear();
+			}
+			createdAnim = false;
+		}
+
 		ImGui::TreePop();
 	}
 }
@@ -798,6 +835,40 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 		delete[] index;
 		delete[] positionBuffer;
 		delete[] velocityBuffer;
+	}
+}
+
+void ComponentParticleEmitter::CreateAnimation(uint w, uint h) {
+	int width = texture->Texture_width / w;
+	int height = texture->Texture_height / h;
+
+	for (int i = 0; i < w; ++i) {
+		for (int j = 0; j < h; ++j) {
+			//Create new Frame
+			ResourceMesh* plane = (ResourceMesh*)App->resources->CreateResource(Resource::ResourceType::MESH, "DefaultColliderMesh");
+			App->scene_manager->CreatePlane(1, 1, 1, plane);
+			plane->LoadInMemory();
+
+
+			//Set Texture Coords
+			plane->vertices[0].texCoord[0] = i * width / (float)texture->Texture_width;
+			plane->vertices[0].texCoord[1] = j * height / (float)texture->Texture_height;
+			plane->vertices[2].texCoord[0] = ((i * width) + width) / (float)texture->Texture_width;
+			plane->vertices[2].texCoord[1] = j * height / (float)texture->Texture_height;
+			plane->vertices[1].texCoord[0] = i * width / (float)texture->Texture_width;
+			plane->vertices[1].texCoord[1] = ((j * height) + height) / (float)texture->Texture_height;
+			plane->vertices[3].texCoord[0] = ((i * width) + width) / (float)texture->Texture_width;
+			plane->vertices[3].texCoord[1] = ((j * height) + height) / (float)texture->Texture_height;
+
+			//Update Buffer
+			glDeleteBuffers(1, (GLuint*)&plane->VBO);
+			glDeleteBuffers(1, (GLuint*)&plane->EBO);
+			glDeleteVertexArrays(1, (GLuint*)&plane->VAO);
+			plane->CreateVBO();
+			plane->CreateEBO();
+			plane->CreateVAO();
+			particleMeshes.push_back(plane);
+		}
 	}
 }
 

@@ -7,11 +7,14 @@
 BE_BEGIN_NAMESPACE
 
 class ResourceTexture;
+class ResourceMesh;
 
 class BROKEN_API Particle {
 public:
 	Particle();
 	~Particle();
+
+	void SetAnimation(ResourceMesh* mesh);
 
 	void Draw();
 
@@ -26,6 +29,7 @@ public:
 	float2 scale = {1,1};
 
 	ResourceTexture* texture = nullptr;
+	ResourceMesh* plane = nullptr;
 };
 
 BE_END_NAMESPACE

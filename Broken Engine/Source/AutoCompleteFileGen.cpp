@@ -588,9 +588,8 @@ void AutoCompleteFileGen::EmplaceAudioFunctions()
 }
 
 //This function iterates the list of functions to deploy them in the snippets.json file to place in VSCode 
-void AutoCompleteFileGen::GenerateAutoCompleteFile()
+void AutoCompleteFileGen::GenerateAutoCompleteFile(bool variables_entered)
 {
-	GetAllFunctions();
 	// Include all functions by executing the separated functions
 	EmplaceSystemFunctions();
 	EmplaceTransformFunctions();
@@ -611,24 +610,49 @@ void AutoCompleteFileGen::GenerateAutoCompleteFile()
 	//Iterate all functions into the .json file
 	std::string body;
 	std::string extended_description;
+	std::string vars_description;
 	for (std::vector<SerializedFunction>::iterator it = engine_functions.begin(); it != engine_functions.end(); ++it)
 	{
 		body = (*it).name + "("; // Here we stipulate what will be pasted into the code when we hit enter, we will iterate variables and finally close the ()
 		
-		for (int i = 0; i < (*it).variables.size(); ++i)
+		if (variables_entered == true)
 		{
-			body += "$" + std::to_string(i);
-			body += (*it).variables[i].c_str();
+			for (int i = 0; i < (*it).variables.size(); ++i)
+			{
+				body += "$" + std::to_string(i);
+				body += (*it).variables[i].c_str();
 
-			if((*it).variables.size()-1 > i) //If we aren't the last member of variables
-			body += ", ";
+				if ((*it).variables.size() - 1 > i) //If we aren't the last member of variables
+					body += ", ";
+			}
 		}
+
 		body +=  ")";
 
 		file[(*it).name.c_str()]["body"] = body.c_str();
 		file[(*it).name.c_str()]["scope"] = (*it).scope.c_str();
 		file[(*it).name.c_str()]["prefix"] = (*it).name.c_str();
-		extended_description = "Scripting." + (*it).scope + " \\\n" + (*it).description;
+
+		if (variables_entered == true)
+		{
+			extended_description = "Scripting." + (*it).scope + " \\\n" + (*it).description;
+		}
+		else
+		{
+			vars_description = (*it).name.c_str();
+			vars_description += "(";
+
+			for (int i = 0; i < (*it).variables.size(); ++i)
+			{
+				vars_description += (*it).variables[i];
+				if ((*it).variables.size() - 1 > i) //If we aren't the last member of variables
+					vars_description += ", ";
+			}
+			vars_description += ")";
+
+			extended_description = "Scripting." + (*it).scope + " \\\n" + (*it).description + " \\\n" + vars_description.c_str();
+		}
+
 		file[(*it).name.c_str()]["description"] = extended_description.c_str();
 	}
 
@@ -642,35 +666,4 @@ void AutoCompleteFileGen::GenerateAutoCompleteFile()
 
 	std::string file_path = "snippets.json";
 	App->fs->Save(file_path.c_str(), buffer, size);
-}
-
-void AutoCompleteFileGen::GetAllFunctions()
-{
-	//luabridge::LuaRef table = luabridge::getGlobal(App->scripting->L, "Scripting");
-	std::string file = App->scripting->GetScriptingBasePath() + "Lua_Globals/ACSystemGetter.lua";
-	int compiled = luaL_dofile(App->scripting->L, file.c_str());
-
-	/*if (compiled == LUA_OK)
-	{
-		luabridge::LuaRef ScriptGetTable = luabridge::getGlobal(App->scripting->L, "GetSystem");
-		luabridge::LuaRef table(ScriptGetTable());
-		const char* sys = "System";
-
-
-		for (luabridge::Iterator it(table); !it.isNil(); ++it)
-		{
-			std::string test = (*it).first.tostring();
-		}
-	}*/
-
-	/*ScriptingSystem system;
-	luabridge::LuaRef table = luabridge::newTable(App->scripting->L);
-	table(new ScriptingSystem);
-	const char* sys = "System";
-
-
-	for (luabridge::Iterator it(table); !it.isNil(); ++it)
-	{
-		std::string test = (*it).first.tostring();
-	}*/
 }

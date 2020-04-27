@@ -43,8 +43,7 @@ public: //Function
 	void EmplaceScriptingInputsFunctions();
 
 
-	void GenerateAutoCompleteFile();
-	void GetAllFunctions();
+	void GenerateAutoCompleteFile(bool variables_entered = true);
 
 
 public: //Variables

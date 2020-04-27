@@ -12,6 +12,7 @@
 // -- Modules --
 #include "ModuleGui.h"
 #include "ModuleSceneManager.h"
+#include "ModuleScripting.h"
 
 // -- Components --
 #include "GameObject.h"
@@ -26,6 +27,7 @@
 // -- Utilities --
 #include "EngineLog.h"
 #include "Panels.h"
+#include "AutoCompleteFileGen.h"
 #include "mmgr/mmgr.h"
 
 ModuleEditorUI::ModuleEditorUI(bool start_enabled) : Module(start_enabled) {
@@ -112,7 +114,24 @@ update_status ModuleEditorUI::Update(float dt) {
 
 			if (ImGui::MenuItem("Build Game")) {
 				panelBuild->SetOnOff(true);
+			}			
+
+			if (ImGui::BeginMenu("Generate Autocomplete File"))
+			{
+				if (ImGui::MenuItem("With variables placed on Enter"))
+				{
+					Broken::AutoCompleteFileGen ac_filegen;
+					ac_filegen.GenerateAutoCompleteFile(true);
+				}
+				if (ImGui::MenuItem("Only Variable Suggestion on description"))
+				{
+					Broken::AutoCompleteFileGen ac_filegen;
+					ac_filegen.GenerateAutoCompleteFile(false);
+				}
+
+				ImGui::EndMenu();
 			}
+
 			ImGui::EndMenu();
 		}
 

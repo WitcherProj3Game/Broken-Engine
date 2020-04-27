@@ -446,10 +446,6 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 			ENGINE_CONSOLE_LOG("%s", error.data());
 			cannot_start = true;
 		}
-
-		//Testing the autogeneration of the Autocomplete file
-		AutoCompleteFileGen ac_filegen;
-		ac_filegen.GenerateAutoCompleteFile();
 	}
 }
 

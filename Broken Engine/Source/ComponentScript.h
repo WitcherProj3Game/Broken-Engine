@@ -27,6 +27,8 @@ public:
 	int ScriptVarAlreadyInComponent(std::string name);
 	bool ScriptFuncAlreadyInComponent(std::string name);
 
+	void AddVariable(const ScriptVar& new_var);
+
 	//Correct SAve & Load from Central 3D
 	json Save() const override;
 	void Load(json& node) override;

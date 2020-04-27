@@ -55,12 +55,13 @@ void ComponentImage::Draw()
 {
 	// --- Frame image with camera ---
 	float nearp = App->renderer3D->active_camera->GetNearPlane();
-	float3 pos = { position2D.x, position2D.y, nearp + 0.026f };
+	float3 pos = { position2D.x / App->gui->sceneWidth, position2D.y / App->gui->sceneHeight, nearp + 0.026f };
 	float3 size = { size2D.x / App->gui->sceneWidth, size2D.y / App->gui->sceneHeight, 1.0f };
 	float4x4 transform = transform.FromTRS(pos, Quat::identity, size);
 
 	// --- Set Uniforms ---
-	uint shaderID = App->renderer3D->defaultShader->ID;
+	uint shaderID = App->renderer3D->UI_Shader->ID;
+	//uint shaderID = App->renderer3D->defaultShader->ID;
 	glUseProgram(shaderID);
 
 	GLint modelLoc = glGetUniformLocation(shaderID, "u_Model");
@@ -84,7 +85,7 @@ void ComponentImage::Draw()
 	// --- Color & Texturing ---
 	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), 1.0f, 1.0f, 1.0f, 1.0f);
 	int TextureLocation = glGetUniformLocation(shaderID, "u_UseTextures");
-	glUniform1i(glGetUniformLocation(shaderID, "HasTransparencies"), 1);
+	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);
 	
 	if (texture)
 	{
@@ -165,7 +166,7 @@ void ComponentImage::CreateInspectorNode()
 	ImGui::Text("Size:    ");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	if (ImGui::DragFloat("x##imagesize", &size2D.x) && resize)
+	if (ImGui::DragFloat("x##imagesize", &size2D.x, 1.0f, 0.0f, INFINITY) && resize)
 	{
 		if (texture)
 		{
@@ -180,7 +181,7 @@ void ComponentImage::CreateInspectorNode()
 	}
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	if (ImGui::DragFloat("y##imagesize", &size2D.y) && resize)
+	if (ImGui::DragFloat("y##imagesize", &size2D.y, 1.0f, 0.0f, INFINITY) && resize)
 	{
 		if (texture)
 		{
@@ -198,10 +199,10 @@ void ComponentImage::CreateInspectorNode()
 	ImGui::Text("Position:");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("x##imageposition", &position2D.x, 0.001f);
+	ImGui::DragFloat("x##imageposition", &position2D.x);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("y##imageposition", &position2D.y, 0.001f);
+	ImGui::DragFloat("y##imageposition", &position2D.y);
 
 	// Rotation
 	//ImGui::Text("Rotation:");

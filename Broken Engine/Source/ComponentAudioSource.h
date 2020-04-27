@@ -42,4 +42,4 @@ public:
 };
 
 BE_END_NAMESPACE
-#endif __COMPONENTAUDIOSOURCE__H__
+#endif //__COMPONENTAUDIOSOURCE__H__

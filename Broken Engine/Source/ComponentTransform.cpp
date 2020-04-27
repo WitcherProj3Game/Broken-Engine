@@ -60,6 +60,18 @@ void ComponentTransform::SetPosition(float x, float y, float z)
 	UpdateLocalTransform();
 }
 
+void ComponentTransform::SetGlobalPosition(float3 new_pos) {
+	float3 parent_position = GO->parent->GetComponent<ComponentTransform>()->GetPosition();
+	position = new_pos - parent_position;
+	UpdateLocalTransform();
+}
+
+void ComponentTransform::SetGlobalPosition(float x, float y, float z) {
+	float3 parent_position = GO->parent->GetComponent<ComponentTransform>()->GetPosition();
+	position = float3(x,y,z) - parent_position;
+	UpdateLocalTransform();
+}
+
 void ComponentTransform::SetRotation(float3 euler_angles) {
 	// --- Compute desired rotation in radians ---
 	float3 difference = (euler_angles - rotation_euler) * DEGTORAD;

@@ -1,7 +1,9 @@
 #include "ModuleEventManager.h"
 
+#include "Optick/include/optick.h"
 
 #include "mmgr/mmgr.h"
+
 using namespace Broken;
 ModuleEventManager::ModuleEventManager(bool start_enabled) {
 	BROKEN_ASSERT(static_cast<int>(Event::EventType::invalid) == EVENT_TYPES - 1, "EVENT_TYPES macro needs to be updated!");
@@ -24,6 +26,8 @@ bool ModuleEventManager::Start() {
 }
 
 update_status ModuleEventManager::PreUpdate(float dt) {
+
+	OPTICK_CATEGORY("Event Manager PreUpdate", Optick::Category::Network);
 	while (head != tail) {
 		// Process eventsW
 

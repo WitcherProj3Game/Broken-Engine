@@ -31,7 +31,7 @@ luabridge::LuaRef ScriptingTransform::GetPosition(uint gameobject_UUID, lua_Stat
 
 		if (transform)
 		{
-			pos = transform->GetPosition();
+			pos = transform->GetGlobalPosition();
 		}
 		else
 			ENGINE_CONSOLE_LOG("Object or its transformation component are null");
@@ -87,13 +87,47 @@ void ScriptingTransform::SetPosition(float x, float y, float z, uint gameobject_
 	if (go) {
 		ComponentTransform* transform = go->GetComponent<ComponentTransform>();
 
-		if (transform)
-			transform->SetPosition(x, y, z);
+		if (transform) {
+			transform->SetGlobalPosition(x, y, z);
+			go->TransformGlobal();
+		}
 		else
-			ENGINE_CONSOLE_LOG("Object or its transformation component are null");
+			ENGINE_CONSOLE_LOG("![Script]: (SetPosition) GOs transform component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetPosition) Could not find GameObject with UUID %d", gameobject_UUID);
+}
+
+void ScriptingTransform::SetLocalPosition(float x, float y, float z, uint gameobject_UUID) {
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentTransform* transform = go->GetComponent<ComponentTransform>();
+
+		if (transform) {
+			transform->SetPosition(x, y, z);
+			go->TransformGlobal();
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (SetLocalPosition) GOs transform component is null");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetLocalPosition) Could not find GameObject with UUID %d", gameobject_UUID);
+}
+
+void ScriptingTransform::SetScale(float x, float y, float z, uint gameobject_UUID) {
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentTransform* transform = go->GetComponent<ComponentTransform>();
+
+		if (transform)
+			transform->Scale(x, y, z);
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (SetScale) GameObject has no component transform.");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetScale) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 void ScriptingTransform::RotateObject(float x, float y, float z, uint gameobject_UUID)
@@ -130,6 +164,7 @@ void ScriptingTransform::RotateObject(float x, float y, float z, uint gameobject
 			float3 rot = transform->GetRotation();
 			rot += float3(x, y, z);
 			transform->SetRotation(rot);
+			go->TransformGlobal();
 		}
 		else
 			ENGINE_CONSOLE_LOG("Object or its transformation component are null");
@@ -145,8 +180,10 @@ void ScriptingTransform::SetObjectRotation(float x, float y, float z, uint gameo
 	if (go) {
 		ComponentTransform* transform = go->GetComponent<ComponentTransform>();
 
-		if (transform)
+		if (transform) {
 			transform->SetRotation({ x, y, z });
+			go->TransformGlobal();
+		}
 		else
 			ENGINE_CONSOLE_LOG("Object or its transformation component are null");
 	}

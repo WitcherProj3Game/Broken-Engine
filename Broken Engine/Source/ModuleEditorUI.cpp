@@ -26,6 +26,8 @@
 // -- Utilities --
 #include "EngineLog.h"
 #include "Panels.h"
+
+#include "Optick/include/optick.h"
 #include "mmgr/mmgr.h"
 
 ModuleEditorUI::ModuleEditorUI(bool start_enabled) : Module(start_enabled) {
@@ -92,7 +94,10 @@ bool ModuleEditorUI::Start() {
 	return true;
 }
 
-update_status ModuleEditorUI::Update(float dt) {
+update_status ModuleEditorUI::Update(float dt)
+{
+	OPTICK_CATEGORY("Editor UI Update", Optick::Category::UI);
+
 	//// --- Create Main Menu Bar ---
 	ImGui::SetCurrentContext(EngineApp->gui->getImgUICtx());
 	if (ImGui::BeginMainMenuBar()) {
@@ -335,7 +340,9 @@ update_status ModuleEditorUI::Update(float dt) {
 	return UPDATE_CONTINUE;
 }
 
-update_status ModuleEditorUI::PostUpdate(float dt) {
+update_status ModuleEditorUI::PostUpdate(float dt)
+{
+	OPTICK_CATEGORY("Editor UI PostUpdate", Optick::Category::UI);
 	ImGui::SetCurrentContext(EngineApp->gui->getImgUICtx());
 	for (uint i = 0; i < panels.size(); ++i) {
 	if (panels[i]->IsEnabled())

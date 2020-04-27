@@ -698,12 +698,12 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 		if (colorGradient) {
 			bool colorsChanged = false;
-			if (ImGui::ColorEdit4("##PEParticle Color", (float*)&particlesColor, ImGuiColorEditFlags_NoInputs))
+			if (ImGui::ColorEdit4("##PEParticle Color", (float*)&particlesColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar))
 				colorsChanged = true;
 			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 			ImGui::Text("Color");
 
-			if (ImGui::ColorEdit4("##PEParticle Color2", (float*)&particlesColor2, ImGuiColorEditFlags_NoInputs))
+			if (ImGui::ColorEdit4("##PEParticle Color2", (float*)&particlesColor2, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar))
 				colorsChanged = true;
 			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 			ImGui::Text("Color2");
@@ -713,7 +713,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 		}
 		else {
-			ImGui::ColorEdit4("##PEParticle Color", (float*)&particlesColor, ImGuiColorEditFlags_NoInputs);
+			ImGui::ColorEdit4("##PEParticle Color", (float*)&particlesColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 			ImGui::Text("Color");
 		}

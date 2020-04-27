@@ -28,6 +28,8 @@ ResourceMaterial::ResourceMaterial(uint UID, const char* source_file) : Resource
 	previewTexID = App->gui->materialTexID;
 
 	shader->GetAllUniforms(uniforms);
+
+	LoadToMemory();
 }
 
 ResourceMaterial::~ResourceMaterial() 
@@ -88,11 +90,11 @@ void ResourceMaterial::CreateInspectorNode()
 			
 			ImGui::EndCombo();
 		}
-	}
 
-	// --- Uniforms ---
-	shader->GetAllUniforms(uniforms);
-	DisplayAndUpdateUniforms();
+		// --- Uniforms ---
+		shader->GetAllUniforms(uniforms);
+		DisplayAndUpdateUniforms();
+	}
 
 	ImGui::Text("Use Textures");
 	ImGui::SameLine();
@@ -109,7 +111,7 @@ void ResourceMaterial::CreateInspectorNode()
 
 	// --- Color ---
 	ImGui::Separator();
-	if(ImGui::ColorEdit4("##AmbientColor", (float*)&m_AmbientColor, ImGuiColorEditFlags_NoInputs)) 
+	if(ImGui::ColorEdit4("##AmbientColor", (float*)&m_AmbientColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar))
 		save_material = true;
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 	ImGui::Text("MatAmbientColor");

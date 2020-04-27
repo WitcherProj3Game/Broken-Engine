@@ -557,7 +557,7 @@ void ModuleScripting::FillScriptInstanceComponentVars(ScriptInstance* script) {
 				}
 			}
 			else {
-				script->my_component->script_variables.push_back(variable);
+				script->my_component->AddVariable(variable);
 			}
 		}
 	}

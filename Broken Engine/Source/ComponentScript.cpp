@@ -197,6 +197,22 @@ bool ComponentScript::ScriptFuncAlreadyInComponent(std::string name)
 	return false;
 }
 
+void ComponentScript::AddVariable(const ScriptVar& new_var)
+{
+	bool inserted = false;
+	for (std::vector<ScriptVar>::iterator it = script_variables.begin(); it != script_variables.end(); it++)
+	{
+		if ((*it).name >= new_var.name)
+		{
+			script_variables.insert(it, new_var);
+			inserted = true;
+			break;
+		}
+	}
+	if (!inserted)
+		script_variables.push_back(new_var);
+}
+
 json ComponentScript::Save() const
 {
 	json node;

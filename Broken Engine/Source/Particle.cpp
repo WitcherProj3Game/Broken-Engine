@@ -38,15 +38,12 @@ void Particle::SetAnimation(ResourceMesh* mesh) {
 void Particle::Draw()
 {
 	// --- Update transform and rotation to face camera ---
-	float3 frustum_pos = float3(0, 0, 0);
 	float3 center = float3(position.x, position.y, position.z);
 
 	// --- Frame image with camera ---
 	float4x4 transform = transform.FromTRS(float3(position.x, position.y, position.z),
 		App->renderer3D->active_camera->GetOpenGLViewMatrix().RotatePart(),
 		float3(scale.x, scale.y, 1));
-
-	float3 Movement = App->renderer3D->active_camera->frustum.Front();
 
 	// --- Set Uniforms ---
 	uint shaderID = App->renderer3D->defaultShader->ID;
@@ -93,4 +90,5 @@ void Particle::Draw()
 	glUniform1i(TextureLocation, 0); //reset texture location
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0); // Stop using buffer (texture)
+
 }

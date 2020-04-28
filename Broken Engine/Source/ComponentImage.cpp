@@ -55,12 +55,13 @@ void ComponentImage::Draw()
 {
 	// --- Frame image with camera ---
 	float nearp = App->renderer3D->active_camera->GetNearPlane();
-	float3 pos = { position2D.x, position2D.y, nearp + 0.026f };
+	float3 pos = { position2D.x / App->gui->sceneWidth, position2D.y / App->gui->sceneHeight, nearp + 0.026f };
 	float3 size = { size2D.x / App->gui->sceneWidth, size2D.y / App->gui->sceneHeight, 1.0f };
 	float4x4 transform = transform.FromTRS(pos, Quat::identity, size);
 
 	// --- Set Uniforms ---
-	uint shaderID = App->renderer3D->defaultShader->ID;
+	uint shaderID = App->renderer3D->UI_Shader->ID;
+	//uint shaderID = App->renderer3D->defaultShader->ID;
 	glUseProgram(shaderID);
 
 	GLint modelLoc = glGetUniformLocation(shaderID, "u_Model");
@@ -82,9 +83,9 @@ void ComponentImage::Draw()
 	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
 
 	// --- Color & Texturing ---
-	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), 1.0f, 1.0f, 1.0f, 1.0f);
+	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), img_color.x, img_color.y, img_color.z, img_color.w);
 	int TextureLocation = glGetUniformLocation(shaderID, "u_UseTextures");
-	glUniform1i(glGetUniformLocation(shaderID, "HasTransparencies"), 1);
+	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);
 	
 	if (texture)
 	{
@@ -125,7 +126,10 @@ json ComponentImage::Save() const
 	node["size2Dx"] = std::to_string(size2D.x);
 	node["size2Dy"] = std::to_string(size2D.y);
 
-
+	node["ColorR"] = std::to_string(img_color.x);
+	node["ColorG"] = std::to_string(img_color.y);
+	node["ColorB"] = std::to_string(img_color.z);
+	node["ColorA"] = std::to_string(img_color.w);
 
 	return node;
 }
@@ -151,6 +155,12 @@ void ComponentImage::Load(json& node)
 	std::string size2Dx = node["size2Dx"].is_null() ? "0" : node["size2Dx"];
 	std::string size2Dy = node["size2Dy"].is_null() ? "0" : node["size2Dy"];
 
+	std::string str_colorR = node["ColorR"].is_null() ? "1" : node["ColorR"];
+	std::string str_colorG = node["ColorG"].is_null() ? "1" : node["ColorG"];
+	std::string str_colorB = node["ColorB"].is_null() ? "1" : node["ColorB"];
+	std::string str_colorA = node["ColorA"].is_null() ? "1" : node["ColorA"];
+
+	img_color = float4(std::stof(str_colorR), std::stof(str_colorG), std::stof(str_colorB), std::stof(str_colorA));
 	position2D = float2(std::stof(position2Dx), std::stof(position2Dy));
 	size2D = float2(std::stof(size2Dx), std::stof(size2Dy));
 }
@@ -165,7 +175,7 @@ void ComponentImage::CreateInspectorNode()
 	ImGui::Text("Size:    ");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	if (ImGui::DragFloat("x##imagesize", &size2D.x) && resize)
+	if (ImGui::DragFloat("x##imagesize", &size2D.x, 1.0f, 0.0f, INFINITY) && resize)
 	{
 		if (texture)
 		{
@@ -180,7 +190,7 @@ void ComponentImage::CreateInspectorNode()
 	}
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	if (ImGui::DragFloat("y##imagesize", &size2D.y) && resize)
+	if (ImGui::DragFloat("y##imagesize", &size2D.y, 1.0f, 0.0f, INFINITY) && resize)
 	{
 		if (texture)
 		{
@@ -198,10 +208,10 @@ void ComponentImage::CreateInspectorNode()
 	ImGui::Text("Position:");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("x##imageposition", &position2D.x, 0.001f);
+	ImGui::DragFloat("x##imageposition", &position2D.x);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("y##imageposition", &position2D.y, 0.001f);
+	ImGui::DragFloat("y##imageposition", &position2D.y);
 
 	// Rotation
 	//ImGui::Text("Rotation:");
@@ -241,6 +251,20 @@ void ComponentImage::CreateInspectorNode()
 		}
 		ImGui::EndDragDropTarget();
 	}
+	if (ImGui::Button("Delete Texture"))
+	{
+		if (texture)
+		{
+			texture->Release();
+			texture = nullptr;
+		}
+	}
+
+	// Color
+	ImGui::Separator();
+	ImGui::ColorEdit4("##IMGColor", (float*)&img_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+	ImGui::Text("Color");
 
 	// Aspect Ratio
 	ImGui::Checkbox("Maintain Aspect Ratio", &resize);

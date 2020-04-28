@@ -28,6 +28,7 @@
 #include "EngineLog.h"
 #include "Panels.h"
 #include "AutoCompleteFileGen.h"
+#include "Optick/include/optick.h"
 #include "mmgr/mmgr.h"
 
 ModuleEditorUI::ModuleEditorUI(bool start_enabled) : Module(start_enabled) {
@@ -94,7 +95,10 @@ bool ModuleEditorUI::Start() {
 	return true;
 }
 
-update_status ModuleEditorUI::Update(float dt) {
+update_status ModuleEditorUI::Update(float dt)
+{
+	OPTICK_CATEGORY("Editor UI Update", Optick::Category::UI);
+
 	//// --- Create Main Menu Bar ---
 	ImGui::SetCurrentContext(EngineApp->gui->getImgUICtx());
 	if (ImGui::BeginMainMenuBar()) {
@@ -114,7 +118,7 @@ update_status ModuleEditorUI::Update(float dt) {
 
 			if (ImGui::MenuItem("Build Game")) {
 				panelBuild->SetOnOff(true);
-			}			
+			}
 
 			if (ImGui::BeginMenu("Generate Autocomplete File"))
 			{
@@ -175,7 +179,7 @@ update_status ModuleEditorUI::Update(float dt) {
 					EngineApp->scene_manager->LoadSphere();
 
 				if (ImGui::MenuItem("Camera")) {
-					Broken::GameObject* cam = EngineApp->scene_manager->CreateEmptyGameObject();
+					Broken::GameObject* cam = EngineApp->scene_manager->CreateEmptyGameObject("Camera");
 					//App->scene_manager->currentScene->NoStaticGameObjects[cam->GetUID()] = cam;
 
 					Broken::ComponentCamera* camera = (Broken::ComponentCamera*)cam->AddComponent(Broken::Component::ComponentType::Camera);
@@ -188,42 +192,42 @@ update_status ModuleEditorUI::Update(float dt) {
 
 				ImGui::EndMenu();
 			}
-			if (ImGui::BeginMenu("UI Elements")) 
+			if (ImGui::BeginMenu("UI Elements"))
 			{
-				if (ImGui::MenuItem("Canvas")) 
+				if (ImGui::MenuItem("Canvas"))
 				{
-					Broken::GameObject* canvas_go = EngineApp->scene_manager->CreateEmptyGameObject();
+					Broken::GameObject* canvas_go = EngineApp->scene_manager->CreateEmptyGameObject("Canvas");
 					Broken::ComponentCanvas* camera = (Broken::ComponentCanvas*)canvas_go->AddComponent(Broken::Component::ComponentType::Canvas);
 				}
-				if (ImGui::MenuItem("Image")) 
+				if (ImGui::MenuItem("Image"))
 				{
-					Broken::GameObject* image_go = EngineApp->scene_manager->CreateEmptyGameObject();
+					Broken::GameObject* image_go = EngineApp->scene_manager->CreateEmptyGameObject("Image");
 					Broken::ComponentImage* image = (Broken::ComponentImage*)image_go->AddComponent(Broken::Component::ComponentType::Image);
 				}
-				if (ImGui::MenuItem("Text")) 
+				if (ImGui::MenuItem("Text"))
 				{
-					Broken::GameObject* text_go = EngineApp->scene_manager->CreateEmptyGameObject();
+					Broken::GameObject* text_go = EngineApp->scene_manager->CreateEmptyGameObject("Text");
 					Broken::ComponentText* text = (Broken::ComponentText*)text_go->AddComponent(Broken::Component::ComponentType::Text);
 				}
-				if (ImGui::MenuItem("Button")) 
+				if (ImGui::MenuItem("Button"))
 				{
-					Broken::GameObject* button_go = EngineApp->scene_manager->CreateEmptyGameObject();
+					Broken::GameObject* button_go = EngineApp->scene_manager->CreateEmptyGameObject("Button");
 					Broken::ComponentText* button = (Broken::ComponentText*)button_go->AddComponent(Broken::Component::ComponentType::Button);
 				}
-				//if (ImGui::MenuItem("Checkbox")) 
+				//if (ImGui::MenuItem("Checkbox"))
 				//{
 				//}
-				//if (ImGui::MenuItem("Input Text")) 
+				//if (ImGui::MenuItem("Input Text"))
 				//{
 				//}
 				if (ImGui::MenuItem("Progress Bar"))
 				{
-					Broken::GameObject* bar_go = EngineApp->scene_manager->CreateEmptyGameObject();
+					Broken::GameObject* bar_go = EngineApp->scene_manager->CreateEmptyGameObject("ProgressBar");
 					Broken::ComponentProgressBar* bar = (Broken::ComponentProgressBar*)bar_go->AddComponent(Broken::Component::ComponentType::ProgressBar);
 				}
 				if (ImGui::MenuItem("Circular Bar"))
 				{
-					Broken::GameObject* cbar_go = EngineApp->scene_manager->CreateEmptyGameObject();
+					Broken::GameObject* cbar_go = EngineApp->scene_manager->CreateEmptyGameObject("CircularBar");
 					Broken::ComponentProgressBar* cbar = (Broken::ComponentProgressBar*)cbar_go->AddComponent(Broken::Component::ComponentType::CircularBar);
 				}
 
@@ -234,21 +238,21 @@ update_status ModuleEditorUI::Update(float dt) {
 			{
 				if (ImGui::MenuItem("Directional"))
 				{
-					Broken::GameObject* lightGObj = EngineApp->scene_manager->CreateEmptyGameObject();
+					Broken::GameObject* lightGObj = EngineApp->scene_manager->CreateEmptyGameObject("DirectionalLight");
 					Broken::ComponentLight* light = (Broken::ComponentLight*)lightGObj->AddComponent(Broken::Component::ComponentType::Light);
 					light->SetLightType(Broken::LightType::DIRECTIONAL);
 				}
 
 				if (ImGui::MenuItem("Pointlight"))
 				{
-					Broken::GameObject* lightGObj = EngineApp->scene_manager->CreateEmptyGameObject();
+					Broken::GameObject* lightGObj = EngineApp->scene_manager->CreateEmptyGameObject("PointLight");
 					Broken::ComponentLight* light = (Broken::ComponentLight*)lightGObj->AddComponent(Broken::Component::ComponentType::Light);
 					light->SetLightType(Broken::LightType::POINTLIGHT);
 				}
 
 				if (ImGui::MenuItem("Spotlight"))
 				{
-					Broken::GameObject* lightGObj = EngineApp->scene_manager->CreateEmptyGameObject();
+					Broken::GameObject* lightGObj = EngineApp->scene_manager->CreateEmptyGameObject("SpotLight");
 					Broken::ComponentLight* light = (Broken::ComponentLight*)lightGObj->AddComponent(Broken::Component::ComponentType::Light);
 					light->SetLightType(Broken::LightType::SPOTLIGHT);
 				}
@@ -354,7 +358,9 @@ update_status ModuleEditorUI::Update(float dt) {
 	return UPDATE_CONTINUE;
 }
 
-update_status ModuleEditorUI::PostUpdate(float dt) {
+update_status ModuleEditorUI::PostUpdate(float dt)
+{
+	OPTICK_CATEGORY("Editor UI PostUpdate", Optick::Category::UI);
 	ImGui::SetCurrentContext(EngineApp->gui->getImgUICtx());
 	for (uint i = 0; i < panels.size(); ++i) {
 	if (panels[i]->IsEnabled())
@@ -393,7 +399,7 @@ const Broken::json& ModuleEditorUI::SaveStatus() const {
 			config[panels[i]->GetName()] = false;
 		else
 			config[panels[i]->GetName()] = panels[i]->IsEnabled();
-	} 
+	}
 	return config;
 };
 

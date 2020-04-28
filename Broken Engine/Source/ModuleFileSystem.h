@@ -6,6 +6,7 @@
 #define NOMINMAX
 #include <Windows.h>
 #include "Timer.h"
+#undef CreateDirectory
 
 struct SDL_RWops;
 int close_sdl_rwops(SDL_RWops *rw);

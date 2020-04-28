@@ -31,7 +31,7 @@ luabridge::LuaRef ScriptingTransform::GetPosition(uint gameobject_UUID, lua_Stat
 
 		if (transform)
 		{
-			pos = transform->GetPosition();
+			pos = transform->GetGlobalPosition();
 		}
 		else
 			ENGINE_CONSOLE_LOG("Object or its transformation component are null");
@@ -87,13 +87,47 @@ void ScriptingTransform::SetPosition(float x, float y, float z, uint gameobject_
 	if (go) {
 		ComponentTransform* transform = go->GetComponent<ComponentTransform>();
 
-		if (transform)
-			transform->SetPosition(x, y, z);
+		if (transform) {
+			transform->SetGlobalPosition(x, y, z);
+			go->TransformGlobal();
+		}
 		else
-			ENGINE_CONSOLE_LOG("Object or its transformation component are null");
+			ENGINE_CONSOLE_LOG("![Script]: (SetPosition) GOs transform component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetPosition) Could not find GameObject with UUID %d", gameobject_UUID);
+}
+
+void ScriptingTransform::SetLocalPosition(float x, float y, float z, uint gameobject_UUID) {
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentTransform* transform = go->GetComponent<ComponentTransform>();
+
+		if (transform) {
+			transform->SetPosition(x, y, z);
+			go->TransformGlobal();
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (SetLocalPosition) GOs transform component is null");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetLocalPosition) Could not find GameObject with UUID %d", gameobject_UUID);
+}
+
+void ScriptingTransform::SetScale(float x, float y, float z, uint gameobject_UUID) {
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentTransform* transform = go->GetComponent<ComponentTransform>();
+
+		if (transform)
+			transform->Scale(x, y, z);
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (SetScale) GameObject has no component transform.");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetScale) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 void ScriptingTransform::RotateObject(float x, float y, float z, uint gameobject_UUID)
@@ -105,11 +139,8 @@ void ScriptingTransform::RotateObject(float x, float y, float z, uint gameobject
 		ComponentCollider* collider = go->GetComponent<ComponentCollider>();
 		ComponentDynamicRigidBody* rb = go->GetComponent<ComponentDynamicRigidBody>();
 
-		if (transform && rb && collider)
+		if (transform && rb && rb->rigidBody && collider)
 		{
-			if (!rb->rigidBody)
-				return;
-
 			// We get current rotation in quaternions
 			float3 rot = transform->GetRotation();
 			Quat current_quat = Quat::FromEulerXYZ(DEGTORAD * rot.x, DEGTORAD * rot.y, DEGTORAD * rot.z);
@@ -130,12 +161,13 @@ void ScriptingTransform::RotateObject(float x, float y, float z, uint gameobject
 			float3 rot = transform->GetRotation();
 			rot += float3(x, y, z);
 			transform->SetRotation(rot);
+			go->TransformGlobal();
 		}
 		else
-			ENGINE_CONSOLE_LOG("Object or its transformation component are null");
+			ENGINE_CONSOLE_LOG("![Script]: (RotateObject) Object's transformation component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (RotateObject) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 void ScriptingTransform::SetObjectRotation(float x, float y, float z, uint gameobject_UUID)
@@ -144,14 +176,30 @@ void ScriptingTransform::SetObjectRotation(float x, float y, float z, uint gameo
 
 	if (go) {
 		ComponentTransform* transform = go->GetComponent<ComponentTransform>();
+		ComponentCollider* collider = go->GetComponent<ComponentCollider>();
+		ComponentDynamicRigidBody* rb = go->GetComponent<ComponentDynamicRigidBody>();
 
-		if (transform)
+		if (transform && rb && rb->rigidBody && collider)
+		{
+			// We calculate the quaternion of the new rotation
+			Quat quaternion = Quat::FromEulerXYZ(DEGTORAD * x, DEGTORAD * y, DEGTORAD * z);
+			physx::PxQuat quat = physx::PxQuat(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+		
+			physx::PxTransform globalPos = rb->rigidBody->getGlobalPose();
+			globalPos = physx::PxTransform(globalPos.p, quat);
+			collider->UpdateTransformByRigidBody(rb, transform, &globalPos);
+
+		}
+		else if (transform)
+		{
 			transform->SetRotation({ x, y, z });
+			go->TransformGlobal();
+		}
 		else
-			ENGINE_CONSOLE_LOG("Object or its transformation component are null");
+			ENGINE_CONSOLE_LOG("![Script]: (SetObjectRotation) Object's transformation component is null");
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetObjectRotation) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 void ScriptingTransform::LookAt(float spotX, float spotY, float spotZ, uint gameobject_UUID)
@@ -184,11 +232,8 @@ void ScriptingTransform::LookAt(float spotX, float spotY, float spotZ, uint game
 			m.Decompose(pos, rot, scale);
 			rot = rot.Inverted();
 
-			if (rb && collider)
+			if (rb && rb->rigidBody && collider)
 			{
-				if (!rb->rigidBody)
-					return;
-
 				physx::PxTransform globalPos = rb->rigidBody->getGlobalPose();
 				physx::PxQuat quat = physx::PxQuat(rot.x, rot.y, rot.z, rot.w);
 				globalPos = physx::PxTransform(globalPos.p, quat);

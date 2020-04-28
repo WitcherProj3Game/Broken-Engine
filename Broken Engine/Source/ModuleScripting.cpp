@@ -25,6 +25,7 @@
 #include "ScriptingInterface.h"
 #include "ScriptingScenes.h"
 #include "ScriptingNavigation.h"
+#include "ScriptingLighting.h"
 #include "ScriptVar.h"
 #include <iterator>
 
@@ -38,6 +39,7 @@
 //This include MUST go after Lua includes
 //#include "LuaBridge-241/include/LuaBridge.h"
 #include "ScriptData.h"
+#include "Optick/include/optick.h"
 #include "mmgr/mmgr.h"
 
 using namespace Broken;
@@ -139,6 +141,10 @@ bool ModuleScripting::JustCompile(std::string absolute_path) {
 		.addConstructor<void(*) (void)>()
 		.endClass()
 
+		.beginClass <ScriptingLighting>("Lighting")
+		.addConstructor<void(*) (void)>()
+		.endClass()
+
 		.beginClass <ScriptingAudio>("Audio")
 		.addConstructor<void(*) (void)>()
 		.endClass()
@@ -217,6 +223,8 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("GetPosition", &ScriptingTransform::GetPosition)
 		.addFunction("Translate", &ScriptingTransform::Translate)
 		.addFunction("SetPosition", &ScriptingTransform::SetPosition)
+		.addFunction("SetLocalPosition", &ScriptingTransform::SetLocalPosition)
+		.addFunction("SetScale", &ScriptingTransform::SetScale)
 
 		// Rotation
 		.addFunction("GetRotation", &ScriptingTransform::GetRotation)
@@ -232,11 +240,14 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addConstructor<void(*) (void)>()
 
 		.addFunction("FindGameObject", &ScriptingGameobject::FindGameObject)
+		.addFunction("FindChildGameObject", &ScriptingGameobject::FindChildGameObject)
+		.addFunction("FindChildGameObjectFromGO", &ScriptingGameobject::FindChildGameObjectFromGO)
 		.addFunction("GetMyUID", &ScriptingGameobject::GetMyUID)
 		.addFunction("GetParent", &ScriptingGameobject::GetScriptGOParent)
 		.addFunction("GetGameObjectParent", &ScriptingGameobject::GetGOParentFromUID)
 		.addFunction("DestroyGameObject", &ScriptingGameobject::DestroyGOFromScript)
 		.addFunction("SetActiveGameObject", &ScriptingGameobject::SetActiveGameObject)
+		.addFunction("IsActiveGameObject", &ScriptingGameobject::IsActiveGameObject)
 
 		.addFunction("GetMyLayer", &ScriptingGameobject::GetMyLayer)
 		.addFunction("GetLayerByID", &ScriptingGameobject::GetLayerByID)
@@ -322,6 +333,27 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------
+		// LIGHTING
+		// ----------------------------------------------------------------------------------
+		.beginClass <ScriptingLighting>("Lighting")
+		.addConstructor<void(*) (void)>()
+
+		.addFunction("GetLightColor", &ScriptingLighting::GetColor)
+		.addFunction("GetLightAttenuation", &ScriptingLighting::GetAttenuation)
+		.addFunction("GetLightCutoff", &ScriptingLighting::GetCutoff)
+		.addFunction("GetLightType", &ScriptingLighting::GetType)
+		.addFunction("GetLightIntensity", &ScriptingLighting::GetIntensity)
+		.addFunction("GetDistMultiplier", &ScriptingLighting::GetDistanceMultiplier)
+
+		.addFunction("SetLightIntensity", &ScriptingLighting::SetIntensity)
+		.addFunction("SetLightType", &ScriptingLighting::SetType)
+		.addFunction("SetLightColor", &ScriptingLighting::SetColor)
+		.addFunction("SetLightAttenuation", &ScriptingLighting::SetAttenuation)
+		.addFunction("SetLightCutoff", &ScriptingLighting::SetCutoff)
+		.addFunction("SetDistMultiplier", &ScriptingLighting::SetDistanceMultiplier)
+		.endClass()
+
+		// ----------------------------------------------------------------------------------
 		// AUDIO
 		// ----------------------------------------------------------------------------------
 		.beginClass <ScriptingAudio>("Audio")
@@ -332,6 +364,11 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("StopAudioEvent", &ScriptingAudio::StopAudioEvent)
 		.addFunction("PauseAudioEvent", &ScriptingAudio::PauseAudioEvent)
 		.addFunction("ResumeAudioEvent", &ScriptingAudio::ResumeAudioEvent)
+		.addFunction("SetVolume", &ScriptingAudio::SetVolume)
+		.addFunction("PlayAudioEventGO", &ScriptingAudio::PlayAudioEventGO)
+		.addFunction("StopAudioEventGO", &ScriptingAudio::StopAudioEventGO)
+		.addFunction("PauseAudioEventGO", &ScriptingAudio::PauseAudioEventGO)
+		.addFunction("ResumeAudioEventGO", &ScriptingAudio::ResumeAudioEventGO)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------
@@ -345,6 +382,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetCurrentAnimationSpeed", &ScriptingAnimations::SetCurrentAnimSpeed)
 		.addFunction("SetBlendTime", &ScriptingAnimations::SetBlendTime)
 		.addFunction("CurrentAnimationEnded", &ScriptingAnimations::CurrentAnimEnded)
+		.addFunction("GetCurrentFrame", &ScriptingAnimations::GetCurrentFrame)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------
@@ -520,7 +558,7 @@ void ModuleScripting::FillScriptInstanceComponentVars(ScriptInstance* script) {
 				}
 			}
 			else {
-				script->my_component->script_variables.push_back(variable);
+				script->my_component->AddVariable(variable);
 			}
 		}
 	}
@@ -782,7 +820,10 @@ bool ModuleScripting::CleanUp() {
 	return true;
 }
 
-update_status ModuleScripting::Update(float realDT) {
+update_status ModuleScripting::Update(float realDT)
+{
+	OPTICK_CATEGORY("Scripting Update", Optick::Category::Script);
+
 	// If a script was changed during runtime, hot reload
 	if (App->GetAppState() == AppState::EDITOR && hot_reloading_waiting) // Ask Aitor if this is correct (condition should return true only when no gameplay is being played)
 		DoHotReloading();
@@ -812,6 +853,7 @@ update_status ModuleScripting::Update(float realDT) {
 
 update_status ModuleScripting::GameUpdate(float gameDT)
 {
+	OPTICK_CATEGORY("Scripting (GAME) Update", Optick::Category::GameLogic);
 
 	if (cannot_start == false && App->GetAppState() == AppState::PLAY)
 	{

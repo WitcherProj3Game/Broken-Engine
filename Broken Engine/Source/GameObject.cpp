@@ -24,6 +24,8 @@
 #include "ResourceModel.h"
 #include "ResourceScene.h"
 
+#include "Optick/include/optick.h"
+
 #include "mmgr/mmgr.h"
 
 using namespace Broken;
@@ -75,22 +77,30 @@ void GameObject::Update(float dt)
 	// PHYSICS: TEMPORAL example, after updating transform, update collider
 	ComponentCollider* collider = GetComponent<ComponentCollider>();
 
+	OPTICK_PUSH("GameObjects - Colliders Update");
 	if (collider)
 		collider->UpdateLocalMatrix();
+	OPTICK_POP();
 
+	OPTICK_PUSH("GameObjects - Transform Update");
 	if (GetComponent<ComponentTransform>()->update_transform)
 		TransformGlobal();
+	OPTICK_POP();
 
+	OPTICK_PUSH("GameObjects - Comps Update");
 	for (int i = 0; i < components.size(); ++i)
 	{
 		if (components[i] && components[i]->GetActive())
 			components[i]->Update();
 	}
+	OPTICK_POP();
 
+	OPTICK_PUSH("GameObjects - Childs Update");
 	for (std::vector<GameObject*>::iterator it = childs.begin(); it != childs.end(); ++it)
 	{
 		(*it)->Update(dt);
 	}
+	OPTICK_POP();
 }
 
 void GameObject::Draw()
@@ -187,6 +197,8 @@ void GameObject::TransformGlobal()
 	for (std::vector<GameObject*>::iterator tmp = childs.begin(); tmp != childs.end(); ++tmp)
 	{
 		(*tmp)->TransformGlobal();
+		if (GetComponent<ComponentTransform>()->updateValues)
+			(*tmp)->GetComponent<ComponentTransform>()->updateValues = true;
 	}
 
 	if (is_been_reparented)

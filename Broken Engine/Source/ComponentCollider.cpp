@@ -186,11 +186,12 @@ void ComponentCollider::UpdateLocalMatrix() {
 	{
 		if ((App->gui->isUsingGuizmo && App->GetAppState() != AppState::PLAY) || cTransform->updateValues) { //ON EDITOR
 
-			dynamicRB->rigidBody->setGlobalPose(transform);
+			dynamicRB->rigidBody->setGlobalPose(transform); 
+			cTransform->updateValues = false;
 		}
-		else if (dynamicRB->rigidBody != nullptr && App->GetAppState() == AppState::PLAY) //ON GAME
+		if (dynamicRB->rigidBody != nullptr && App->GetAppState() == AppState::PLAY) //ON GAME
 		{
-			UpdateTransformByRigidBody(dynamicRB, cTransform);
+			UpdateTransformByRigidBody(dynamicRB, cTransform, &transform);
 		}
 	}
 }
@@ -200,12 +201,12 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 	if (!RB)
 		return;
 
-	if (globalPos) {
-		transform = physx::PxTransform(globalPos->p, globalPos->q);
-		RB->rigidBody->setGlobalPose(transform);
+	if (globalPos && App->GetAppState() == AppState::PLAY && !toPlay && !App->time->gamePaused) {
+		RB->rigidBody->setGlobalPose(*globalPos);
+		toPlay = true;
 	}
 
-	if (App->GetAppState() == AppState::PLAY && !toPlay && !App->time->gamePaused)
+	/*if (App->GetAppState() == AppState::PLAY && !toPlay && !App->time->gamePaused)
 	{
 		float3 pos, scale;
 		Quat rot;
@@ -218,24 +219,21 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 		RB->rigidBody->setGlobalPose(transform);
 
 		toPlay = true;
-	}
+	}*/
+	//float4x4 trans = float4x4::FromTRS(float3(transform.p.x, transform.p.y - globalMatrix.scaleY/2, transform.p.z), Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), cTransform->GetGlobalTransform().ExtractScale());
 
+	//REVIEW ADD QUATERNION OF PARENT/SCALE (CHECK)
 	transform = RB->rigidBody->getGlobalPose();
 
-	physx::PxTransform localTransform;
-	localTransform.p.x = transform.p.x - cTransform->GetGlobalPosition().x + cTransform->GetPosition().x;
-	localTransform.p.y = transform.p.y - cTransform->GetGlobalPosition().y + cTransform->GetPosition().y;
-	localTransform.p.z = transform.p.z - cTransform->GetGlobalPosition().z + cTransform->GetPosition().z;
+	float4x4 new_transform(Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), float3(transform.p.x, transform.p.y, transform.p.z));
+	float4x4 trans = new_transform - globalMatrix;
+	trans.Scale(float3(0,0,0));
+	float4x4 final = cTransform->GetGlobalTransform() + trans;
 
-	float4x4 trans = float4x4::FromTRS(float3(transform.p.x, transform.p.y, transform.p.z), Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), cTransform->GetGlobalTransform().ExtractScale());;
-
-	cTransform->SetGlobalTransform(trans);
-	
-
+	cTransform->SetGlobalTransform(final);
 	cTransform->SetPosition(cTransform->GetLocalTransform().x, cTransform->GetLocalTransform().y, cTransform->GetLocalTransform().z);
 	cTransform->SetRotation(Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
-
-	globalMatrix = cTransform->GetGlobalTransform() * localMatrix;
+	//globalMatrix = cTransform->GetGlobalTransform();
 }
 
 json ComponentCollider::Save() const
@@ -385,6 +383,7 @@ void ComponentCollider::Load(json& node)
 
 	centerPosition = float3(std::stof(localPositionx), std::stof(localPositiony), std::stof(localPositionz));
 	originalSize = float3(std::stof(originalScalex), std::stof(originalScaley), std::stof(originalScalez));
+	colliderSize = float3(std::stof(scalex), std::stof(scaley), std::stof(scalez));
 	offset = float3(std::stof(offsetx), std::stof(offsety), std::stof(offsetz));
 
 	localMatrix.x = std::stof(localMatrixx);
@@ -397,7 +396,6 @@ void ComponentCollider::Load(json& node)
 	globalMatrix.z = std::stof(globalMatrixz);
 	globalMatrix.w = std::stof(globalMatrixw);
 
-	colliderSize = float3(std::stof(scalex), std::stof(scaley), std::stof(scalez));
 
 	radius = std::stof(radius_);
 	height = std::stof(height_);
@@ -647,6 +645,10 @@ void ComponentCollider::CreateInspectorNode()
 			}
 			editCollider = true;
 		}
+		ImGui::SameLine();
+		if (ImGui::Button("Update")) {
+			editCollider = true;
+		}
 	}
 	}
 }
@@ -722,14 +724,14 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 		{
 			qInverse.InverseAndNormalize();
 			Quat tmp = q * qInverse;
-			transform->rotation = tmp;
-
-			transform->SetRotation(transform->rotation);
-			transform->UpdateLocalTransform();
+			transform->SetRotation(tmp);
 
 			GO->UpdateAABB();
 
-			originalSize = GO->GetOBB().Size().Div(scale);
+			if (GO->HasComponent(ComponentType::Mesh))
+				originalSize = GO->GetOBB().Size().Div(scale);
+			else
+				originalSize = float3::one;
 
 			center = GO->GetAABB().CenterPoint();
 
@@ -750,15 +752,13 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 			GO->UpdateAABB();
 			firstCreation = true;
 
-			center = GO->GetAABB().CenterPoint();
-			float3 dir = center - transform->GetGlobalPosition();
+			//center = GO->GetOBB().CenterPoint();
+			float3 dir = center-transform->GetGlobalPosition();
 			float3 dir2 = quat.Inverted().Mul(dir); // rotate it
 			offset = (dir2.Div(scale));
 
 			offset.Mul(scale);
 		}
-
-		UpdateLocalMatrix();
 
 		lastIndex = (int)ComponentCollider::COLLIDER_TYPE::BOX;
 		break;

@@ -109,10 +109,12 @@ public:
 	void SetActiveCamera(ComponentCamera* camera);
 	void SetCullingCamera(ComponentCamera* camera);
 	void SetGammaCorrection(float gammaCorr) { m_GammaCorrection = gammaCorr; }
+	void SetSceneAmbientColor(float3 color) { m_AmbientColor = color; }
 
 	// --- Getters ---
 	bool GetVSync() const { return vsync; }
 	const float GetGammaCorrection() const { return m_GammaCorrection; }
+	const float3 GetSceneAmbientColor() const { return m_AmbientColor; }
 
 private:
 
@@ -161,8 +163,8 @@ public:
 	ResourceShader* linepointShader = nullptr;
 	ResourceShader* OutlineShader = nullptr;
 	ResourceShader* ZDrawerShader = nullptr;
-	ResourceShader* textShader = nullptr;
 	ResourceShader* screenShader = nullptr;
+	ResourceShader* UI_Shader = nullptr;
 
 	ResourceShader* SkyboxShader = nullptr;
 
@@ -209,6 +211,7 @@ private:
 	//Lights vector
 	std::vector<ComponentLight*> m_LightsVec;
 	float m_GammaCorrection = 2.0f;
+	float3 m_AmbientColor = float3::one;
 
 	uint fbo = 0;
 	uint cubemapTexID = 0;

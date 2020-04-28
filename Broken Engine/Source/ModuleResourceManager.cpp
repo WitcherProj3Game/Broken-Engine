@@ -14,6 +14,8 @@
 
 #include "PanelProject.h"
 
+#include "Optick/include/optick.h"
+
 #include "Assimp/include/cimport.h"
 
 #pragma comment (lib, "Assimp/libx86/assimp.lib")
@@ -1452,6 +1454,8 @@ ResourceFolder* ModuleResourceManager::getCurrentDirectory() const {
 
 update_status ModuleResourceManager::Update(float dt)
 {
+	OPTICK_CATEGORY("Resource Manager Update", Optick::Category::Streaming);
+
 	// --- We check defer saves and if they are not still being used (bool is false) we save them ---
 	if (save_timer.ReadMs() >= RESOURCE_SAVE_TIME) {
 		for (std::map<Resource*, bool>::iterator it = resources_to_save.begin(); it != resources_to_save.end();) {

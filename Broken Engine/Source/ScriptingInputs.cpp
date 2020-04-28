@@ -11,7 +11,7 @@ int ScriptingInputs::GetKey(const char* key) const {
 	if (code != SDL_SCANCODE_UNKNOWN)
 		return code;
 	else {
-		ENGINE_CONSOLE_LOG("[Script Error]: Unknown key passed as string.");
+		ENGINE_CONSOLE_LOG("![Script]: (GetKey) Unknown key passed as string.");
 		return -1;
 	}
 }
@@ -21,7 +21,7 @@ int ScriptingInputs::GetKeyState(const char* key) const {
 	if (code != SDL_SCANCODE_UNKNOWN)
 		return App->input->GetKey(code);
 	else {
-		ENGINE_CONSOLE_LOG("[Script Error]: Unknown key passed as string.");
+		ENGINE_CONSOLE_LOG("![Script]: (GetKeyState) Unknown key passed as string.");
 		return -1;
 	}
 }
@@ -54,7 +54,7 @@ int ScriptingInputs::GetMouseButton(const char* button) const {
 	else if (!std::strcmp("X2", button))
 		return SDL_BUTTON_X2;
 	else {
-		ENGINE_CONSOLE_LOG("[Script Error]: Unknown MouseButton passed as string.");
+		ENGINE_CONSOLE_LOG("![Script]: (GetMouseButton) Unknown MouseButton passed as string.");
 		return -1;
 	}
 }
@@ -71,7 +71,7 @@ int ScriptingInputs::GetMouseButtonState(const char* button) const {
 	else if (!std::strcmp("X2", button))
 		return App->input->GetMouseButton(SDL_BUTTON_X2);
 	else {
-		ENGINE_CONSOLE_LOG("[Script Error]: Unknown MouseButton passed as string.");
+		ENGINE_CONSOLE_LOG("![Script]: (GetMouseButtonState) Unknown MouseButton passed as string.");
 		return -1;
 	}
 }
@@ -95,22 +95,31 @@ bool ScriptingInputs::IsMouseButtonIdle(const char* button) const {
 bool ScriptingInputs::IsGamepadButton(int player_num, const char* button, const char* button_state) const
 {
 	bool ret = false;
-	//Get Player
-	PLAYER player = PLAYER::P1;
-	if(player_num > 0)
-	player = (PLAYER)(player_num -1);
 
-	//Get Button
-	SDL_GameControllerButton SDL_button = GetControllerButtonFromString(button);
+	if (player_num <= 0 || player_num > MAX_GAMEPADS)
+		ENGINE_CONSOLE_LOG("![Script]: (IsGamepadButton) Provided player ID is invalid");
+	else {
+		//Get Player
+		PLAYER player = (PLAYER)(player_num - 1);
 
-	//Get Button State
-	GP_BUTTON_STATE b_state = GetGamepadButtonState(button_state);
+		//Check if controller is connected
+		if (App->input->ControllerIsConnected(player)) 
+		{
+			//Get Button
+			SDL_GameControllerButton SDL_button = GetControllerButtonFromString(button);
 
-	//Evaluate condition
-	if (App->input->GetButton(player, (int)SDL_button) == b_state)
-		ret = true;
-	else
-		ret = false;
+			//Get Button State
+			GP_BUTTON_STATE b_state = GetGamepadButtonState(button_state);
+
+			//Evaluate condition
+			if (App->input->GetButton(player, (int)SDL_button) == b_state)
+				ret = true;
+			else
+				ret = false;
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (IsGamepadButton) Player %d has no controller connected!", player_num);
+	}
 
 	return ret;
 }
@@ -177,27 +186,32 @@ GP_BUTTON_STATE ScriptingInputs::GetGamepadButtonState(const char* state_name) c
 bool ScriptingInputs::IsJoystickAxis(int player_num, const char* joy_axis, const char* axis_state) const
 {
 	bool ret = false;
-	//Get Player
-	PLAYER player = PLAYER::P1;
-	if (player_num > 0)
-		player = (PLAYER)(player_num - 1);
+	if (player_num <= 0 || player_num > MAX_GAMEPADS)
+		ENGINE_CONSOLE_LOG("![Script]: (IsJoystickAxis) Provided player ID is invalid");
+	else {
+		//Get Player
+		PLAYER player = (PLAYER)(player_num - 1);
 
-	//Get Axis
-	SDL_GameControllerAxis SDL_axis = GetControllerAxisFromString(joy_axis);
+		if (App->input->ControllerIsConnected(player)) 
+		{
+			//Get Axis
+			SDL_GameControllerAxis SDL_axis = GetControllerAxisFromString(joy_axis);
 
-	if (SDL_axis == SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERLEFT ||
-		SDL_axis == SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
-	{
-		//In case anyone tries to call this function to use the triggers
-		ENGINE_CONSOLE_LOG("Tried to call IsJoystickAxis with a Trigger! this function is exclusive for joysticks, FALSE will be returned by default");
-	}
-	else
-	{
-		//Get State
-		GP_AXIS_STATE SDL_axis_state = GetAxisStateFromString(axis_state);
+			if (SDL_axis == SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERLEFT ||
+				SDL_axis == SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT) {
+				//In case anyone tries to call this function to use the triggers
+				ENGINE_CONSOLE_LOG("![Script]: (IsJoystickAxis) Tried to call with a Trigger! this function is exclusive for joysticks, FALSE will be returned by default");
+			}
+			else {
+				//Get State
+				GP_AXIS_STATE SDL_axis_state = GetAxisStateFromString(axis_state);
 
-		if (App->input->GetLRAxisState(player, SDL_axis) == SDL_axis_state)
-			ret = true;
+				if (App->input->GetLRAxisState(player, SDL_axis) == SDL_axis_state)
+					ret = true;
+			}
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (IsTriggerState) Player %d has no controller connected!", player_num);
 	}
 
 	return ret;
@@ -206,29 +220,33 @@ bool ScriptingInputs::IsJoystickAxis(int player_num, const char* joy_axis, const
 bool ScriptingInputs::IsTriggerState(int player_num, const char* trigger, const char* button_state) const
 {
 	bool ret = false;
-	//Get Player
-	PLAYER player = PLAYER::P1;
-	if (player_num > 0)
-		player = (PLAYER)(player_num - 1);
+	if (player_num <= 0 || player_num > MAX_GAMEPADS)
+		ENGINE_CONSOLE_LOG("![Script]: (IsTriggerState) Provided player ID is invalid");
+	else {
+		//Get Player
+		PLAYER player = (PLAYER)(player_num - 1);
 
-	//Get TRIGGER
-	SDL_GameControllerAxis SDL_axis = GetControllerAxisFromString(trigger);
+		if (App->input->ControllerIsConnected(player)) 
+		{
+			//Get TRIGGER
+			SDL_GameControllerAxis SDL_axis = GetControllerAxisFromString(trigger);
 
-	if (SDL_axis != SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERLEFT &&
-		SDL_axis != SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
-	{
-		//In case anyone tries to call this function to use the triggers
-		ENGINE_CONSOLE_LOG("Tried to call Gamepad INPUT function IsTriggerState with a joystick axis! this function is exclusive for Triggers, FALSE will be returned by default");
+			if (SDL_axis != SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERLEFT &&
+				SDL_axis != SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT) {
+				//In case anyone tries to call this function to use the triggers
+				ENGINE_CONSOLE_LOG("![Script]: (IsTriggerState) Tried to call with a joystick axis! This function is exclusive for Triggers, FALSE will be returned by default");
+			}
+			else {
+				//Get State
+				GP_BUTTON_STATE SDL_axis_state = GetGamepadButtonState(button_state);
+
+				if (App->input->GetTriggerState(player, SDL_axis) == SDL_axis_state)
+					ret = true;
+			}
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (IsTriggerState) Player %d has no controller connected!", player_num);
 	}
-	else
-	{
-		//Get State
-		GP_BUTTON_STATE SDL_axis_state = GetGamepadButtonState(button_state);
-
-		if (App->input->GetTriggerState(player, SDL_axis) == SDL_axis_state)
-			ret = true;
-	}
-
 	return ret;
 }
 
@@ -280,16 +298,23 @@ int ScriptingInputs::GetAxisRealValue(int player_num, const char* axis) const
 {
 	int ret = 0;
 
-	//Get Player
-	PLAYER player = PLAYER::P1;
-	if (player_num > 0)
-		player = (PLAYER)(player_num - 1);
+	if (player_num <= 0 || player_num > MAX_GAMEPADS)
+		ENGINE_CONSOLE_LOG("![Script]: (GetAxisRealValue) Provided player ID is invalid");
+	else {
+		//Get Player
+		PLAYER player = (PLAYER)(player_num - 1);
 
-	//Get Axis (you can use both triggers & axis for this function)
-	SDL_GameControllerAxis SDL_axis = GetControllerAxisFromString(axis);
+		if (App->input->ControllerIsConnected(player)) 
+		{
+			//Get Axis (you can use both triggers & axis for this function)
+			SDL_GameControllerAxis SDL_axis = GetControllerAxisFromString(axis);
 
-	ret = App->input->GetAxis(player,SDL_axis);
-	//ENGINE_CONSOLE_LOG("%i", ret);
+			ret = App->input->GetAxis(player, SDL_axis);
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (GetAxisRealValue) Player %d has no controller connected!", player_num);
+	}
+
 	return ret;
 }
 
@@ -311,18 +336,29 @@ float ScriptingInputs::GetAxisValue(int player_num, const char* joy_axis, float 
 
 void ScriptingInputs::ShakeController(int player_num, float intensity, uint32 milliseconds) const
 {
-	//Get Player
-	PLAYER player = PLAYER::P1;
-	if (player_num > 0)
-		player = (PLAYER)(player_num - 1);
-	App->input->ShakeController((PLAYER)player, intensity, milliseconds);
+	if (player_num <= 0 || player_num > MAX_GAMEPADS)
+		ENGINE_CONSOLE_LOG("![Script]: (ShakeController) Provided player ID is invalid");
+	else {
+		//Get Player
+		PLAYER player = (PLAYER)(player_num - 1);
+		if (App->input->ControllerIsConnected(player))
+			App->input->ShakeController(player, intensity, milliseconds);
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (ShakeController) Player %d has no controller connected!", player_num);
+	}
 }
 
 void ScriptingInputs::StopControllerShake(int player_num) const
 {
-	//Get Player
-	PLAYER player = PLAYER::P1;
-	if (player_num > 0)
-		player = (PLAYER)(player_num - 1);
-	App->input->StopControllerShake((PLAYER)player);
+	if (player_num <= 0 || player_num > MAX_GAMEPADS)
+		ENGINE_CONSOLE_LOG("![Script]: (StopControllerShake) Provided player ID is invalid");
+	else {
+		//Get Player
+		PLAYER player = (PLAYER)(player_num - 1);
+		if (App->input->ControllerIsConnected(player))
+			App->input->StopControllerShake(player);
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (StopControllerShake) Player %d has no controller connected!", player_num);
+
+	}
 }

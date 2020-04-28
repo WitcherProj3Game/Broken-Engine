@@ -24,6 +24,8 @@
 #include "Imgui/ImGuizmo/ImGuizmo.h"
 #include "ModuleFileSystem.h"
 
+#include "Optick/include/optick.h"
+
 #pragma comment( lib, "SDL/libx86/SDL2.lib" )
 
 #include "OpenGL.h"
@@ -98,8 +100,9 @@ bool ModuleGui::Start()
 
 update_status ModuleGui::PreUpdate(float dt)
 {
-	// --- Start the frame ---
+	OPTICK_CATEGORY("GUI PreUpdate", Optick::Category::UI);
 
+	// --- Start the frame ---
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(App->window->window);
 	ImGui::NewFrame();

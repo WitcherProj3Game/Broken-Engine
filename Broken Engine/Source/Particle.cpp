@@ -147,7 +147,7 @@ void Particle::Draw()
 	//Texturing & Color
 	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");
 	glUniform4f(vertexColorLocation, color.x, color.y, color.z, color.w);
-	glUniform1i(glGetUniformLocation(shaderID, "HasTransparencies"), 1);
+	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);
 
 	int TextureLocation = glGetUniformLocation(shaderID, "u_UseTextures");
 	glUniform1i(TextureLocation, (int)true);

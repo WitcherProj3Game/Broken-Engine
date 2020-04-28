@@ -18,11 +18,14 @@ public:
 public:
 	// GameObject-related functions
 	uint FindGameObject(const char* go_name);
+	uint FindChildGameObject(const char* go_name);
+	uint FindChildGameObjectFromGO(const char* go_name, uint gameobject_UUID);
 	uint GetMyUID();
 	uint GetScriptGOParent();
 	uint GetGOParentFromUID(uint gameobject_UUID);
 	uint GetComponentFromGO(const char* component_name, uint gameobject_UUID);
 	void SetActiveGameObject(bool active, uint gameobject_UUID);
+	bool IsActiveGameObject(uint gameobject_UUID);
 	void DestroyGOFromScript(uint gameobject_UUID);
 
 	int GetMyLayer();

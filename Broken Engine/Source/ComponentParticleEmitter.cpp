@@ -81,18 +81,20 @@ ComponentParticleEmitter::~ComponentParticleEmitter()
 
 void ComponentParticleEmitter::Update()
 {
-	if (animation && !createdAnim) {
-		CreateAnimation(tileSize_X, tileSize_Y);
-		createdAnim = true;
-	}
-	else if (!animation) {
+	if (!animation || !createdAnim) {
 		if (particleMeshes.size() > 0) {
 			for (int i = 0; i < particleMeshes.size(); ++i) {
 				particleMeshes.at(i)->FreeMemory();
+				delete particleMeshes.at(i);
 			}
 			particleMeshes.clear();
 		}
 		createdAnim = false;
+	}
+
+	if (animation && !createdAnim) {
+		CreateAnimation(tileSize_X, tileSize_Y);
+		createdAnim = true;
 	}
 
 	if (to_delete)
@@ -199,8 +201,13 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				if (particles[i]->scale.y < 0)
 					particles[i]->scale.y = 0;
 
-				if (animation)
-					particles[i]->plane = particleMeshes[0];
+				if (animation && particleMeshes.size() > 0) {
+					int time = App->time->GetGameplayTimePassed() * 1000 - particles[i]->spawnTime;
+					int index = (particleMeshes.size() * time) / particles[i]->lifeTime;
+					if (index >= particleMeshes.size())
+						index = particleMeshes.size() - 1;
+					particles[i]->plane = particleMeshes[index];
+				}
 				else
 					particles[i]->plane = App->scene_manager->plane;
 
@@ -300,6 +307,10 @@ json ComponentParticleEmitter::Save() const
 
 	node["particlesLifeTime"] = std::to_string(particlesLifeTime);
 
+	node["animation"] = std::to_string(animation);
+	node["tiles_X"] = std::to_string(tileSize_X);
+	node["tiles_Y"] = std::to_string(tileSize_Y);
+
 
 	node["GradientColor"] = colorGradient;
 
@@ -357,6 +368,10 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string LparticlesLifeTime = node["particlesLifeTime"].is_null() ? "0" : node["particlesLifeTime"];
 
 	std::string LParticlesSize = node["particlesSize"].is_null() ? "0" : node["particlesSize"];
+
+	std::string _animation = node["animation"].is_null() ? "0" : node["animation"];
+	std::string _tiles_X = node["tiles_X"].is_null() ? "1" : node["tiles_X"];
+	std::string _tiles_Y = node["tiles_Y"].is_null() ? "1" : node["tiles_Y"];
 
 	std::string LDuration = node["Duration"].is_null() ? "0" : node["Duration"];
 
@@ -431,6 +446,10 @@ void ComponentParticleEmitter::Load(json& node)
 	particlesScaleRandomFactor = std::stof(LParticleScaleRandomFactor);
 
 	scaleOverTime = std::stof(LScaleOverTime);
+
+	animation = std::stof(_animation);
+	tileSize_X = std::stof(_tiles_X);
+	tileSize_Y = std::stof(_tiles_Y);
 }
 
 void ComponentParticleEmitter::CreateInspectorNode()
@@ -741,20 +760,25 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 			ImGui::Text("Color");
 		}
+		ImGui::TreePop();
+	}
 
+	ImGui::Separator();
+
+	if (ImGui::TreeNode("Animation"))
+	{
 		int tmpX = tileSize_X;
 		int tmpY = tileSize_Y;
 		ImGui::Checkbox("Animation", &animation);
+		ImGui::Text("Tiles:");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 		ImGui::DragInt("X", &tileSize_X, 1, 1, texture->Texture_width);
-		ImGui::DragInt("Y", &tileSize_Y,1,1,texture->Texture_height);
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+		ImGui::DragInt("Y", &tileSize_Y, 1, 1, texture->Texture_height);
 
 		if (tmpX != tileSize_X || tmpY != tileSize_Y && animation) {
-			if (particleMeshes.size() > 0) {
-				for (int i = 0; i < particleMeshes.size(); ++i) {
-					particleMeshes.at(i)->FreeMemory();
-				}
-				particleMeshes.clear();
-			}
 			createdAnim = false;
 		}
 
@@ -848,13 +872,11 @@ void ComponentParticleEmitter::CreateAnimation(uint w, uint h) {
 	int width = texture->Texture_width / w;
 	int height = texture->Texture_height / h;
 
-	for (int i = 0; i < w; ++i) {
-		for (int j = 0; j < h; ++j) {
+	for (int j = h - 1; j >= 0; --j) {
+		for (int i = 0; i < w; ++i) {
 			//Create new Frame
-			ResourceMesh* plane = (ResourceMesh*)App->resources->CreateResource(Resource::ResourceType::MESH, "DefaultColliderMesh");
+			ResourceMesh* plane = new ResourceMesh(App->GetRandom().Int(), "ParticleMesh");
 			App->scene_manager->CreatePlane(1, 1, 1, plane);
-			plane->LoadInMemory();
-
 
 			//Set Texture Coords
 			plane->vertices[0].texCoord[0] = i * width / (float)texture->Texture_width;
@@ -867,12 +889,7 @@ void ComponentParticleEmitter::CreateAnimation(uint w, uint h) {
 			plane->vertices[3].texCoord[1] = ((j * height) + height) / (float)texture->Texture_height;
 
 			//Update Buffer
-			glDeleteBuffers(1, (GLuint*)&plane->VBO);
-			glDeleteBuffers(1, (GLuint*)&plane->EBO);
-			glDeleteVertexArrays(1, (GLuint*)&plane->VAO);
-			plane->CreateVBO();
-			plane->CreateEBO();
-			plane->CreateVAO();
+			plane->LoadInMemory();
 			particleMeshes.push_back(plane);
 		}
 	}

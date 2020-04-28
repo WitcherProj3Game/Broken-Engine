@@ -816,6 +816,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 						if(i != 0)
 							std::advance(g_it, i - 1);
 						gradients.erase(g_it);
+						colorDuration = particlesLifeTime / gradients.size();
 						UpdateAllGradients();
 					}
 					else {

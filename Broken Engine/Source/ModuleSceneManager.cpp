@@ -15,6 +15,7 @@
 #include "ModuleSelection.h"
 #include "ModuleScripting.h"
 #include "ModuleGui.h"
+#include "ModuleTimeManager.h"
 
 #include "par/par_shapes.h"
 
@@ -446,6 +447,7 @@ void ModuleSceneManager::SetActiveScene(ResourceScene* scene)
 	if (scene)
 	{
 		App->selection->ClearSelection();
+		App->time->Gametime_clock.Stop();
 		//SelectedGameObject = nullptr;
 
 		// --- Unload current scene ---
@@ -488,6 +490,8 @@ void ModuleSceneManager::SetActiveScene(ResourceScene* scene)
 				App->scene_manager->SaveScene(App->scene_manager->temporalScene);
 			}
 		}
+		App->physics->physAccumulatedTime = 0.0f;//Reset Physics
+		App->time->Gametime_clock.Start();
 	}
 	else
 		ENGINE_CONSOLE_LOG("|[error]: Trying to load invalid scene");

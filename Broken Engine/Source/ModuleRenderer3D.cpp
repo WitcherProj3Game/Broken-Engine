@@ -37,6 +37,7 @@
 
 #include "OpenGL.h"
 #include "Math.h"
+#include "Optick/include/optick.h"
 
 #pragma comment (lib, "glu32.lib")    /* link OpenGL Utility lib     */
 #pragma comment (lib, "opengl32.lib") /* link Microsoft OpenGL lib   */
@@ -243,6 +244,8 @@ bool ModuleRenderer3D::Init(json& file)
 // PreUpdate: clear buffer
 update_status ModuleRenderer3D::PreUpdate(float dt)
 {
+	OPTICK_CATEGORY("Renderer PreUpdate", Optick::Category::Rendering);
+
 	// --- Update OpenGL Capabilities ---
 	UpdateGLCapabilities();
 
@@ -268,6 +271,8 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 // PostUpdate present buffer to screen
 update_status ModuleRenderer3D::PostUpdate(float dt)
 {
+	OPTICK_CATEGORY("Renderer PostUpdate", Optick::Category::Rendering);
+
 	// --- Set Shader Matrices ---
 	GLint viewLoc = glGetUniformLocation(defaultShader->ID, "u_View");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLViewMatrix().ptr());
@@ -299,14 +304,17 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	// --- Do not write to the stencil buffer ---
 	glStencilMask(0x00);
 
+	OPTICK_PUSH("Skybox Rendering");
 	DrawSkybox(); // could not manage to draw it after scene with reversed-z ...
+	OPTICK_POP();
 
 	// --- Set depth filter to greater (Passes if the incoming depth value is greater than the stored depth value) ---
 	glDepthFunc(GL_GREATER);
 
 	// --- Issue Render orders ---
+	OPTICK_PUSH("Scene Rendering");
 	App->scene_manager->DrawScene();
-
+	OPTICK_POP();
 
 
 	for (std::map<uint, ResourceShader*>::const_iterator it = App->resources->shaders.begin(); it != App->resources->shaders.end(); ++it)
@@ -319,9 +327,11 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	if (display_grid)
 		DrawGrid();
 
+	OPTICK_PUSH("Meshes Lines and Boxes Rendering");
 	DrawRenderMeshes();
 	DrawRenderLines();
 	DrawRenderBoxes();
+	OPTICK_POP();
 
 	// --- Selected Object Outlining ---
 	HandleObjectOutlining();
@@ -329,18 +339,26 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	// --- Draw ---
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
+	OPTICK_PUSH("Particles Rendering");
 	// -- Draw particles ---
 	for (int i = 0; i < particleEmitters.size(); ++i)
 		particleEmitters[i]->DrawParticles();
+	OPTICK_POP();
 
 	glDisable(GL_BLEND);
 
+	OPTICK_PUSH("Lights Rendering");
 	std::vector<ComponentLight*>::iterator LightIterator = m_LightsVec.begin();
 	for (; LightIterator != m_LightsVec.end(); ++LightIterator)
 		(*LightIterator)->Draw();
+	OPTICK_POP();
 
+	OPTICK_PUSH("UI Rendering");
 	App->ui_system->Draw();
+	OPTICK_POP();
 
 	// --- Back to defaults ---
 	glDepthFunc(GL_LESS);
@@ -350,11 +368,15 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// -- Draw framebuffer texture ---
+	OPTICK_PUSH("FBO Rendering");
 	if (drawfb)
 		DrawFramebuffer();
+	OPTICK_POP();
 
 	// --- Draw GUI and swap buffers ---
+	OPTICK_PUSH("GUI Rendering");
 	App->gui->Draw();
+	OPTICK_POP();
 
 
 	// --- To prevent problems with viewports, disabled due to crashes and conflicts with docking, sets a window as current rendering context ---
@@ -391,12 +413,22 @@ bool ModuleRenderer3D::CleanUp()
 void ModuleRenderer3D::LoadStatus(const json& file)
 {
 	m_GammaCorrection = file["Renderer3D"]["GammaCorrection"].is_null() ? 1.0f : file["Renderer3D"]["GammaCorrection"].get<float>();
+
+	float ambR = file["Renderer3D"]["SceneAmbientColor"]["R"].is_null() ? 1.0f : file["Renderer3D"]["SceneAmbientColor"]["R"].get<float>();
+	float ambG = file["Renderer3D"]["SceneAmbientColor"]["G"].is_null() ? 1.0f : file["Renderer3D"]["SceneAmbientColor"]["G"].get<float>();
+	float ambB = file["Renderer3D"]["SceneAmbientColor"]["B"].is_null() ? 1.0f : file["Renderer3D"]["SceneAmbientColor"]["B"].get<float>();
+	m_AmbientColor = float3(ambR, ambG, ambB);
 }
 
 const json& ModuleRenderer3D::SaveStatus() const
 {
 	static json m_config;
+
 	m_config["GammaCorrection"] = m_GammaCorrection;
+	m_config["SceneAmbientColor"]["R"] = m_AmbientColor.x;
+	m_config["SceneAmbientColor"]["G"] = m_AmbientColor.y;
+	m_config["SceneAmbientColor"]["B"] = m_AmbientColor.z;
+
 	return m_config;
 }
 
@@ -800,7 +832,7 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
 		glUseProgram(shader);
 
 		// --- Transparency Uniform ---
-		glUniform1i(glGetUniformLocation(shader, "HasTransparencies"), (int)mesh->mat->has_transparencies);
+		glUniform1i(glGetUniformLocation(shader, "u_HasTransparencies"), (int)mesh->mat->has_transparencies);
 
 		if (!mesh->mat->has_culling)
 			glDisable(GL_CULL_FACE);
@@ -809,8 +841,9 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
 		glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit"), (int)m_Draw_normalMapping_Lit);
 		glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit_Adv"), (int)m_Draw_normalMapping_Lit_Adv);
 
-		// --- Gamma Correction Value ---
+		// --- Gamma Correction & Ambient Color Values ---
 		glUniform1f(glGetUniformLocation(shader, "u_GammaCorrection"), m_GammaCorrection);
+		glUniform4f(glGetUniformLocation(shader, "u_AmbientColor"), m_AmbientColor.x, m_AmbientColor.y, m_AmbientColor.z, 1.0f);
 
 		// --- Set Textures usage to 0 ---
 		//glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 0);
@@ -1287,7 +1320,6 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	IShader->Save(OutlineShader);
 
 	// --- Creating point/line drawing shaders ---
-
 	const char* linePointVertShaderSrc =
 		"#version 440 core \n"
 		"#define VERTEX_SHADER \n"
@@ -1327,7 +1359,6 @@ void ModuleRenderer3D::CreateDefaultShaders()
 
 
 	// --- Creating z buffer shader drawer ---
-
 	const char* zdrawervertex =
 		R"(#version 440 core
 		#define VERTEX_SHADER
@@ -1385,62 +1416,7 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	ZDrawerShader->LoadToMemory();
 	IShader->Save(ZDrawerShader);
 
-
-	// --- Creating text rendering shaders ---
-
-	const char* textVertShaderSrc =
-		R"(#version 440 core
-		#define VERTEX_SHADER
-		#ifdef VERTEX_SHADER
-
-		layout (location = 0) in vec3 a_Position;
-		layout (location = 1) in vec2 a_TexCoords;
-
-		uniform mat4 u_Model;
-		uniform mat4 u_View;
-		uniform mat4 u_Proj;
-
-		out vec2 v_TexCoords;
-
-		void main()
-		{
-			gl_Position = u_Proj * u_View * u_Model * vec4 (a_Position, 1.0f);
-			v_TexCoords = a_TexCoords;
-		}
-
-		#endif //VERTEX_SHADER)";
-
-	const char* textFragShaderSrc =
-		R"(#version 440 core
-		#define FRAGMENT_SHADER
-		#ifdef FRAGMENT_SHADER
-
-		in vec2 v_TexCoords;
-
-		uniform sampler2D text;
-		uniform vec3 textColor;
-
-		out vec4 color;
-
-		void main()
-		{
-			vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, v_TexCoords).r);
-			color = vec4(textColor, 1.0) * sampled;
-		}
-
-		#endif //FRAGMENT_SHADER)";
-
-	textShader = (ResourceShader*)App->resources->CreateResourceGivenUID(Resource::ResourceType::SHADER, "Assets/Shaders/TextShader.glsl", 11);
-	textShader->vShaderCode = textVertShaderSrc;
-	textShader->fShaderCode = textFragShaderSrc;
-	textShader->ReloadAndCompileShader();
-	textShader->SetName("TextShader");
-	textShader->LoadToMemory();
-	IShader->Save(textShader);
-
-
 	// --- Creating Default Vertex and Fragment Shaders ---
-
 	const char* vertexShaderSource =
 		R"(#version 440 core
 		#define VERTEX_SHADER
@@ -1497,7 +1473,6 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	IShader->Save(defaultShader);
 
 	// ---Creating screen shader ---
-
 	const char* vertexScreenShader =
 		R"(#version 440 core
 		#define VERTEX_SHADER
@@ -1577,6 +1552,69 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	SkyboxShader->SetName("SkyboxShader");
 	SkyboxShader->LoadToMemory();
 	IShader->Save(SkyboxShader);
+
+	// --- Creating UI shader ---
+	const char* vertexUIShader =
+		R"(#version 440 core
+			#define VERTEX_SHADER
+			#ifdef VERTEX_SHADER
+			layout(location = 0) in vec3 a_Position;
+			layout(location = 1) in vec3 a_Normal;
+			layout(location = 2) in vec3 a_Color;
+			layout(location = 3) in vec2 a_TexCoord;
+			uniform mat4 u_Model;
+			uniform mat4 u_View;
+			uniform mat4 u_Proj;
+			uniform vec4 u_Color = vec4(1.0);
+			out vec2 v_TexCoord;
+			out vec4 v_Color;
+			void main()
+			{
+				v_Color = u_Color;
+				v_TexCoord = a_TexCoord;
+				gl_Position = u_Proj * u_View * u_Model * vec4(a_Position, 1.0);
+			}
+			#endif //VERTEX_SHADER)";
+
+	const char* fragmentUIShader =
+		R"(#version 440 core
+			#define FRAGMENT_SHADER
+			#ifdef FRAGMENT_SHADER			
+			out vec4 out_color;
+			in vec2 v_TexCoord;
+			in vec4 v_Color;
+			uniform int u_UseTextures = 0;
+			uniform int u_HasTransparencies = 0;
+			uniform sampler2D u_AlbedoTexture;			
+			void main()
+			{
+				float alpha = 1.0;
+				if (u_HasTransparencies == 1)
+				{
+					if (u_UseTextures == 0)
+						alpha = v_Color.a;
+					else
+						alpha = texture(u_AlbedoTexture, v_TexCoord).a * v_Color.a;
+				}
+			
+				if (alpha < 0.004)
+					discard;			
+			
+				if (u_UseTextures == 0 || (u_UseTextures == 1 && u_HasTransparencies == 0 && texture(u_AlbedoTexture, v_TexCoord).a < 0.1))
+					out_color = vec4(v_Color.rgb, alpha);
+				else if (u_UseTextures == 1)
+					out_color = vec4(v_Color.rgb * texture(u_AlbedoTexture, v_TexCoord).rgb, alpha);
+			}
+			#endif //FRAGMENT_SHADER)";
+
+
+	UI_Shader = (ResourceShader*)App->resources->CreateResourceGivenUID(Resource::ResourceType::SHADER, "Assets/Shaders/UIShader.glsl", 16);
+	UI_Shader->vShaderCode = vertexUIShader;
+	UI_Shader->fShaderCode = fragmentUIShader;
+	UI_Shader->ReloadAndCompileShader();
+	UI_Shader->SetName("UI Shader");
+	UI_Shader->LoadToMemory();
+	IShader->Save(UI_Shader);
 
 	defaultShader->use();
 }

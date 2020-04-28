@@ -12,7 +12,7 @@
         "Navigation": false,
         "Physics": true,
         "Project": true,
-        "Rendering": false,
+        "Rendering": true,
         "Resources": false,
         "Scene": true,
         "Settings": false,
@@ -197,7 +197,12 @@
         "staticFriction": 1.0
     },
     "Renderer3D": {
-        "GammaCorrection": 1.8650000095367432
+        "GammaCorrection": 1.8650000095367432,
+        "SceneAmbientColor": {
+            "R": 1.0,
+            "G": 1.0,
+            "B": 1.0
+        }
     },
     "Window": {
         "borderless": false,

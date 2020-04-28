@@ -13,6 +13,8 @@
 #include "ComponentCamera.h"
 #include "ResourceFont.h"
 
+#include "Optick/include/optick.h"
+
 #include <queue>
 #pragma comment( lib, "Freetype/lib/freetype.lib" )
 
@@ -56,6 +58,8 @@ bool ModuleUI::Init(json& file)
 
 update_status ModuleUI::PreUpdate(float dt)
 {
+	OPTICK_CATEGORY("Game UI Update", Optick::Category::GameLogic);
+	//#include "Optick/include/optick.h"
 	OrderCanvas(); //order canvas
 
 	for (GameObject* obj : App->scene_manager->GetRootGO()->childs) //all objects in scene
@@ -71,6 +75,7 @@ update_status ModuleUI::PreUpdate(float dt)
 
 update_status ModuleUI::PostUpdate(float dt)
 {
+	OPTICK_CATEGORY("Game UI PostUpdate", Optick::Category::GameLogic);
 	return UPDATE_CONTINUE;
 }
 

@@ -60,7 +60,8 @@ void ComponentImage::Draw()
 	float4x4 transform = transform.FromTRS(pos, Quat::identity, size);
 
 	// --- Set Uniforms ---
-	uint shaderID = App->renderer3D->defaultShader->ID;
+	uint shaderID = App->renderer3D->UI_Shader->ID;
+	//uint shaderID = App->renderer3D->defaultShader->ID;
 	glUseProgram(shaderID);
 
 	GLint modelLoc = glGetUniformLocation(shaderID, "u_Model");
@@ -84,7 +85,7 @@ void ComponentImage::Draw()
 	// --- Color & Texturing ---
 	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), 1.0f, 1.0f, 1.0f, 1.0f);
 	int TextureLocation = glGetUniformLocation(shaderID, "u_UseTextures");
-	glUniform1i(glGetUniformLocation(shaderID, "HasTransparencies"), 1);
+	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);
 	
 	if (texture)
 	{

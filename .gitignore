@@ -371,3 +371,6 @@ Broken Engine/Game/Builds/
 Broken Engine/Game/BrokenCore_DEBUG.dll
 Broken Engine/Game/BrokenCore.dll
 Broken Engine/Game/BEG.exe
+
+# Optick temp folder
+enc_temp_folder/

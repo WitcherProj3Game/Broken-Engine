@@ -47,7 +47,6 @@ ComponentParticleEmitter::ComponentParticleEmitter(GameObject* ContainerGO) :Com
 	texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
 	App->renderer3D->particleEmitters.push_back(this);
 
-	//White color to begin
 	float4 whiteColor(1, 1, 1, 1);
 	colors.push_back(whiteColor);
 }
@@ -180,11 +179,13 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				//Update particle position
 				particles[i]->scale.x += scaleOverTime * dt;
 				particles[i]->scale.y += scaleOverTime * dt;
-				float3 newPosition(positionIt->x + particles[i]->scale.x / 2, positionIt->y + particles[i]->scale.y / 2, positionIt->z);
+				float3 newPosition(positionIt->x + particles[i]->scale.x / 2, positionIt->y - particles[i]->scale.y / 2, positionIt->z);
 				particles[i]->position = newPosition;
 
 				if (colorGradient && gradients.size() > 0)
 				{
+					if (particles[i]->currentGradient >= gradients.size())//Comment this and next line in case gradient widget is applyed
+						particles[i]->currentGradient = gradients.size() - 1;
 					particles[i]->color += gradients[particles[i]->currentGradient] * dt * 1000;
 					
 					if ((currentPlayTime - particles[i]->gradientTimer > colorDuration) && (particles[i]->currentGradient < gradients.size()-1))
@@ -312,6 +313,22 @@ json ComponentParticleEmitter::Save() const
 	node["cycles"] = std::to_string(cycles);
 	node["startFrame"] = std::to_string(startFrame);
 
+	node["num_colors"] = std::to_string(colors.size());
+
+	for (int i = 0; i < colors.size(); ++i) {
+		node["colors"][i]["x"] = std::to_string(colors[i].x);
+		node["colors"][i]["y"] = std::to_string(colors[i].y);
+		node["colors"][i]["z"] = std::to_string(colors[i].z);
+		node["colors"][i]["a"] = std::to_string(colors[i].w);
+	}
+
+	node["num_gradients"] = std::to_string(gradients.size());
+	for (int i = 0; i < gradients.size(); ++i) {
+		node["gradients"][i]["x"] = std::to_string(gradients[i].x);
+		node["gradients"][i]["y"] = std::to_string(gradients[i].y);
+		node["gradients"][i]["z"] = std::to_string(gradients[i].z);
+		node["gradients"][i]["a"] = std::to_string(gradients[i].w);
+	}
 
 	node["GradientColor"] = colorGradient;
 
@@ -385,10 +402,37 @@ void ComponentParticleEmitter::Load(json& node)
 
 	std::string LScaleOverTime = node["particleScaleOverTime"].is_null() ? "0" : node["particleScaleOverTime"];
 
+	std::string _num_colors = node["num_colors"].is_null() ? "0" : node["num_colors"];
+	std::string _num_gradients = node["num_gradients"].is_null() ? "0" : node["num_gradients"];
+
+	int num = std::stof(_num_colors);
+	if (num != 0) {
+		colors.pop_back();
+		for (int i = 0; i < num; ++i) {
+			std::string color_x = node["colors"][i]["x"].is_null() ? "255" : node["colors"][i]["x"];
+			std::string color_y = node["colors"][i]["y"].is_null() ? "255" : node["colors"][i]["y"];
+			std::string color_z = node["colors"][i]["z"].is_null() ? "255" : node["colors"][i]["z"];
+			std::string color_a = node["colors"][i]["a"].is_null() ? "255" : node["colors"][i]["a"];
+			float4 color = float4(std::stof(color_x), std::stof(color_y), std::stof(color_z), std::stof(color_a));
+			colors.push_back(color);
+		}
+	}
+
 	if (!node["GradientColor"].is_null())
 		colorGradient = node["GradientColor"];
 	else
 		colorGradient = false;
+
+	num = std::stof(_num_gradients);
+	for (int i = 0; i < num; ++i) {
+		std::string color_x = node["gradients"][i]["x"].is_null() ? "255" : node["colors"][i]["x"];
+		std::string color_y = node["gradients"][i]["y"].is_null() ? "255" : node["colors"][i]["y"];
+		std::string color_z = node["gradients"][i]["z"].is_null() ? "255" : node["colors"][i]["z"];
+		std::string color_a = node["gradients"][i]["a"].is_null() ? "255" : node["colors"][i]["a"];
+		float4 color = float4(std::stof(color_x), std::stof(color_y), std::stof(color_z), std::stof(color_a));
+		gradients.push_back(color);
+	}
+
 
 	if (!node["Loop"].is_null())
 		loop = node["Loop"];
@@ -721,6 +765,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::Checkbox("Color gradient", &colorGradient);
 
 		if (colorGradient) {
+			int delete_color = -1;
 			for (int i = 0; i < colors.size(); ++i)
 			{
 				std::string label = "##PEParticle Color";
@@ -745,8 +790,52 @@ void ComponentParticleEmitter::CreateInspectorNode()
 						}
 					}
 				}
-				ImGui::SameLine();
-				ImGui::Button("x");
+				if (colors.size() > 1) {
+					ImGui::SameLine();
+					ImGui::PushID(std::to_string(i).c_str());
+					if (ImGui::Button("x")) {
+						delete_color = i;
+					}
+					ImGui::PopID();
+				}
+			}
+
+			if (delete_color != -1) {
+				int i = 0;
+				std::vector<float4>::iterator it = colors.begin();
+				while (it != colors.end()) {
+					if (i == delete_color) {
+						it = colors.erase(it);
+						std::vector<float4>::iterator g_it = gradients.begin();
+						if(i != 0)
+							std::advance(g_it, i - 1);
+						gradients.erase(g_it);
+						for (int i = 0; i < colors.size(); ++i)
+						{
+							//Update gradients if we have to
+							if (colors.size() > 1)
+							{
+								if (i == 0) //If we change the first color, only 1 gradient is affected
+								{
+									gradients[0] = (colors[1] - colors[0]) / colorDuration;
+								}
+								else if (i == colors.size() - 1) //If we changed the last color, only 1 gradient is affected
+								{
+									gradients[i - 1] = (colors[i] - colors[i - 1]) / colorDuration;
+								}
+								else //Else, 2 gradients are afected
+								{
+									gradients[i - 1] = (colors[i] - colors[i - 1]) / colorDuration;
+									gradients[i] = (colors[i + 1] - colors[i]) / colorDuration;
+								}
+							}
+						}
+					}
+					else {
+						++it;
+					}
+					i++;
+				}
 			}
 
 			if (ImGui::Button("Add color"))

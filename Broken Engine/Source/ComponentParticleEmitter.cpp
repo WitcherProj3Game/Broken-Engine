@@ -819,6 +819,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 						gradients.erase(g_it);
 						for (int i = 0; i < colors.size(); ++i)
 						{
+							colorDuration = particlesLifeTime / gradients.size();
 							//Update gradients if we have to
 							if (colors.size() > 1)
 							{

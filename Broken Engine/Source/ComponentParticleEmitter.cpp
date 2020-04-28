@@ -201,6 +201,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				if (particles[i]->scale.y < 0)
 					particles[i]->scale.y = 0;
 
+				//Choose Frame Animation
 				if (animation && particleMeshes.size() > 0) {
 					int time = App->time->GetGameplayTimePassed() * 1000 - particles[i]->spawnTime;
 					int index = (particleMeshes.size() * time) / (particles[i]->lifeTime / cycles);

@@ -187,7 +187,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 					if (particles[i]->currentGradient >= gradients.size())//Comment this and next line in case gradient widget is applyed
 						particles[i]->currentGradient = gradients.size() - 1;
 					particles[i]->color += gradients[particles[i]->currentGradient] * dt * 1000;
-					
+
 					if ((currentPlayTime - particles[i]->gradientTimer > colorDuration) && (particles[i]->currentGradient < gradients.size()-1))
 					{
 						particles[i]->currentGradient++;

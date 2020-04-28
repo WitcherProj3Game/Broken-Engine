@@ -100,6 +100,7 @@ class BROKEN_API ModulePhysics : public Broken::Module
 {
 public:
 	friend struct Layer;
+	friend struct ModuleSceneManager;
 
 	ModulePhysics(bool start_enabled = true);
 	~ModulePhysics();

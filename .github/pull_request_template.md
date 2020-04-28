@@ -5,6 +5,8 @@ Please make sure you mark with an "x" ([x]) all the tests you have done in the b
 - [ ] Compiles both in Release and Debug mode
 - [ ] Game build can be created and it launches without issue
 - [ ] I have checked and it has no memory leaks
+- [ ] I have tested in latest game build, no issues. 
+
 
 ## Description
 Include a description on what you are adding with this pull so it can be tested

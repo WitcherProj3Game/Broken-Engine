@@ -339,6 +339,8 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	// --- Draw ---
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
 	OPTICK_PUSH("Particles Rendering");
 	// -- Draw particles ---

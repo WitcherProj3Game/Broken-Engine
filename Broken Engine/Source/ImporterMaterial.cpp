@@ -181,7 +181,10 @@ Resource* ImporterMaterial::Load(const char* path) const
 			ResourceShader* shader = (ResourceShader*)App->resources->ImportAssets(IDataShader);
 
 			if (shader)
+			{
 				mat->shader = shader;
+				shader->GetAllUniforms(mat->uniforms);
+			}
 		}
 
 
@@ -215,7 +218,7 @@ Resource* ImporterMaterial::Load(const char* path) const
 
 				case GL_FLOAT:
 					mat->shader->FillUniform(uniform, name.c_str(), unitype);
-					uniform->value.intU = uniforms_node[iterator.key()]["x"].get<float>();
+					uniform->value.floatU = uniforms_node[iterator.key()]["x"].get<float>();
 					mat->shader->setUniform(name.c_str(), uniform->value, UniformType::floatU);
 					break;
 

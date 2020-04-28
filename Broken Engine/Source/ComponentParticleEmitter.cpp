@@ -205,9 +205,6 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 					int time = App->time->GetGameplayTimePassed() * 1000 - particles[i]->spawnTime;
 					int index = (particleMeshes.size() * time) / (particles[i]->lifeTime / cycles);
 					particles[i]->plane = particleMeshes[(index + startFrame) % particleMeshes.size()];
-					ENGINE_CONSOLE_LOG("------");
-					ENGINE_CONSOLE_LOG("Index: %u", index);
-					ENGINE_CONSOLE_LOG("New: %u", index + 5);
 				}
 				else
 					particles[i]->plane = App->scene_manager->plane;

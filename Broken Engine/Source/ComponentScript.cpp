@@ -217,6 +217,24 @@ void ComponentScript::AddVariable(const ScriptVar& new_var)
 		script_variables.push_back(new_var);
 }
 
+void ComponentScript::SetVariable(const ScriptVar& new_var)
+{
+	bool set = false;
+	for (std::vector<ScriptVar>::iterator it = script_variables.begin(); it != script_variables.end(); it++)
+	{
+		if ((*it).name == new_var.name)
+		{
+			(*it) = new_var;
+			set = true;
+			break;
+		}
+	}
+	
+	// If it wasn't in the vector we add it
+	if (!set)
+		AddVariable(new_var);
+}
+
 json ComponentScript::Save() const
 {
 	json node;
@@ -322,6 +340,6 @@ void ComponentScript::Load(json& node)
 			current.ChangeEditorValue(as_string.c_str());
 		}
 
-		AddVariable(current);
+		SetVariable(current);
 	}
 }

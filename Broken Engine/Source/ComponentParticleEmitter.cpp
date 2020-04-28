@@ -178,10 +178,10 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				}
 
 				//Update particle position
-				float3 newPosition(positionIt->x, positionIt->y, positionIt->z);
-				particles[i]->position = newPosition;
 				particles[i]->scale.x += scaleOverTime * dt;
 				particles[i]->scale.y += scaleOverTime * dt;
+				float3 newPosition(positionIt->x + particles[i]->scale.x / 2, positionIt->y + particles[i]->scale.y / 2, positionIt->z);
+				particles[i]->position = newPosition;
 
 				if (colorGradient && gradients.size() > 0)
 				{

@@ -58,6 +58,8 @@ private:
 
 	void SortParticles();
 
+	void UpdateAllGradients();
+
 	void CreateParticles(uint particlesAmount);
 
 	void CreateAnimation(uint rows, uint cols);

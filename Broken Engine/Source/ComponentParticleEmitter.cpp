@@ -655,8 +655,11 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	//Particles lifetime
 	ImGui::Text("Particles lifetime (ms)");
 	if (ImGui::DragInt("##SParticlesLifetime", &particlesLifeTime, 3.0f, 0.0f, 10000.0f))
-		/*if (colorGradient)
-			particleColorVariation = (particlesColor2 - particlesColor) / (particlesLifeTime);*/
+	{
+		colorDuration = particlesLifeTime / gradients.size();
+		if (colorGradient && colors.size() >1)
+			UpdateAllGradients();
+	}
 
 	ImGui::Separator();
 
@@ -846,11 +849,13 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			{
 				uint index = colors.size() - 1;
 				colors.push_back(colors[index]); //Start the new color with tha same the last one had
-				colorDuration = particlesLifeTime/ colors.size();
+				colorDuration = particlesLifeTime/(gradients.size()+1);
 
 				//Update the gradients
 				float4 newGradient = (colors[index+1] - colors[index])/ colorDuration;
 				gradients.push_back(newGradient);
+
+				UpdateAllGradients();
 			}
 		}
 		else {
@@ -1001,6 +1006,25 @@ void ComponentParticleEmitter::CreateAnimation(uint w, uint h) {
 	}
 }
 
+void ComponentParticleEmitter::UpdateAllGradients()
+{
+	for (int i = 0; i < colors.size(); ++i) {
+		if (i == 0) //If we change the first color, only 1 gradient is affected
+		{
+			gradients[0] = (colors[1] - colors[0]) / colorDuration;
+		}
+		else if (i == colors.size() - 1) //If we changed the last color, only 1 gradient is affected
+		{
+			gradients[i - 1] = (colors[i] - colors[i - 1]) / colorDuration;
+		}
+		else //Else, 2 gradients are afected
+		{
+			gradients[i - 1] = (colors[i] - colors[i - 1]) / colorDuration;
+			gradients[i] = (colors[i + 1] - colors[i]) / colorDuration;
+		}
+	}
+}
+
 void ComponentParticleEmitter::Play()
 {
 	emisionActive = true;
@@ -1052,8 +1076,13 @@ void ComponentParticleEmitter::SetLifeTime(int ms)
 {
 	particlesLifeTime = ms;
 
-	/*if (colorGradient)
-		particleColorVariation = (particlesColor2 - particlesColor) / (particlesLifeTime);*/
+	colorDuration = particlesLifeTime / gradients.size();
+
+	//Update gradients if we have to
+	if (colors.size() > 1)
+	{
+		UpdateAllGradients();
+	}
 }
 
 void ComponentParticleEmitter::SetParticlesScale(float x, float y)

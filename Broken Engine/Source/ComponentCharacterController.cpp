@@ -236,7 +236,7 @@ void ComponentCharacterController::Move(float minDist)
 	physx::PxControllerFilters controllerFilter;
 	controllerFilter.mFilterData = &filterData;
 
-	controller->move(vel * App->time->GetGameDt(), minDist, App->time->GetGameDt(), controllerFilter);
+	controller->move(vel, minDist, App->time->GetGameDt(), controllerFilter);
 }
 
 void ComponentCharacterController::Delete()

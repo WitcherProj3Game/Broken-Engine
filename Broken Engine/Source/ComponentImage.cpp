@@ -242,6 +242,14 @@ void ComponentImage::CreateInspectorNode()
 		}
 		ImGui::EndDragDropTarget();
 	}
+	if (ImGui::Button("Delete Texture"))
+	{
+		if (texture)
+		{
+			texture->Release();
+			texture = nullptr;
+		}
+	}
 
 	// Aspect Ratio
 	ImGui::Checkbox("Maintain Aspect Ratio", &resize);

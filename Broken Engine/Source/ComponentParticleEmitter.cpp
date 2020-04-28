@@ -330,6 +330,8 @@ json ComponentParticleEmitter::Save() const
 		node["gradients"][i]["a"] = std::to_string(gradients[i].w);
 	}
 
+	node["grad_duration"] = std::to_string(colorDuration);
+
 	node["GradientColor"] = colorGradient;
 
 	node["Loop"] = loop;
@@ -404,7 +406,9 @@ void ComponentParticleEmitter::Load(json& node)
 
 	std::string _num_colors = node["num_colors"].is_null() ? "0" : node["num_colors"];
 	std::string _num_gradients = node["num_gradients"].is_null() ? "0" : node["num_gradients"];
+	std::string _gradientDuration = node["grad_duration"].is_null() ? "0" : node["grad_duration"];
 
+	colorDuration = std::atoi(_gradientDuration.c_str());
 	int num = std::stof(_num_colors);
 	if (num != 0) {
 		colors.pop_back();
@@ -425,10 +429,10 @@ void ComponentParticleEmitter::Load(json& node)
 
 	num = std::stof(_num_gradients);
 	for (int i = 0; i < num; ++i) {
-		std::string color_x = node["gradients"][i]["x"].is_null() ? "255" : node["colors"][i]["x"];
-		std::string color_y = node["gradients"][i]["y"].is_null() ? "255" : node["colors"][i]["y"];
-		std::string color_z = node["gradients"][i]["z"].is_null() ? "255" : node["colors"][i]["z"];
-		std::string color_a = node["gradients"][i]["a"].is_null() ? "255" : node["colors"][i]["a"];
+		std::string color_x = node["gradients"][i]["x"].is_null() ? "255" : node["gradients"][i]["x"];
+		std::string color_y = node["gradients"][i]["y"].is_null() ? "255" : node["gradients"][i]["y"];
+		std::string color_z = node["gradients"][i]["z"].is_null() ? "255" : node["gradients"][i]["z"];
+		std::string color_a = node["gradients"][i]["a"].is_null() ? "255" : node["gradients"][i]["a"];
 		float4 color = float4(std::stof(color_x), std::stof(color_y), std::stof(color_z), std::stof(color_a));
 		gradients.push_back(color);
 	}

@@ -34,7 +34,7 @@ public:
 	void DrawScene();
 
 	// --- Creators ---
-	GameObject* CreateEmptyGameObject();
+	GameObject* CreateEmptyGameObject(const char* name = "GameObject");
 	GameObject* CreateEmptyGameObjectGivenUID(uint UID);
 	void ResetGameObjectUID(GameObject* go);
 

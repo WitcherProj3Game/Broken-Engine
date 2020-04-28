@@ -499,10 +499,10 @@ void ModuleSceneManager::SetActiveScene(ResourceScene* scene)
 
 }
 
-GameObject* ModuleSceneManager::CreateEmptyGameObject()
+GameObject* ModuleSceneManager::CreateEmptyGameObject(const char* name) 
 {
 	// --- Create New Game Object Name ---
-	std::string Name = "GameObject ";
+	std::string Name = name;
 	Name.append("(");
 	Name.append(std::to_string(go_count));
 	Name.append(")");
@@ -802,32 +802,50 @@ void ModuleSceneManager::CreateCapsule(float radius, float height, ResourceMesh*
 
 GameObject * ModuleSceneManager::LoadCube()
 {
-	return LoadPrimitiveObject(cube->GetUID());
+	GameObject* obj = LoadPrimitiveObject(cube->GetUID());
+	std::string name = "Cube (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadPlane()
 {
-	return LoadPrimitiveObject(plane->GetUID());
+	GameObject* obj = LoadPrimitiveObject(plane->GetUID());
+	std::string name = "Plane (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadSphere()
 {
-	return LoadPrimitiveObject(sphere->GetUID());
+	GameObject* obj = LoadPrimitiveObject(sphere->GetUID());
+	std::string name = "Sphere (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadCylinder()
 {
-	return LoadPrimitiveObject(cylinder->GetUID());
+	GameObject* obj = LoadPrimitiveObject(cylinder->GetUID());
+	std::string name = "Cylinder (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadDisk()
 {
-	return LoadPrimitiveObject(disk->GetUID());
+	GameObject* obj = LoadPrimitiveObject(disk->GetUID());
+	std::string name = "Disk (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadCapsule()
 {
-	return LoadPrimitiveObject(capsule->GetUID());
+	GameObject* obj = LoadPrimitiveObject(capsule->GetUID());
+	std::string name = "Capsule (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadPrimitiveObject(uint PrimitiveMeshID)

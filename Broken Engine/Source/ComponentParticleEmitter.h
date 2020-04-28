@@ -94,6 +94,8 @@ private:
 	uint emisionStart = 0;
 	int tileSize_X = 1;
 	int tileSize_Y = 1;
+	int startFrame = 0;
+	int cycles = 1;
 
 	//Particle properties
 	int particlesLifeTime = 1000;

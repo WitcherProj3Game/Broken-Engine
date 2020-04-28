@@ -203,10 +203,11 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 
 				if (animation && particleMeshes.size() > 0) {
 					int time = App->time->GetGameplayTimePassed() * 1000 - particles[i]->spawnTime;
-					int index = (particleMeshes.size() * time) / particles[i]->lifeTime;
-					if (index >= particleMeshes.size())
-						index = particleMeshes.size() - 1;
-					particles[i]->plane = particleMeshes[index];
+					int index = (particleMeshes.size() * time) / (particles[i]->lifeTime / cycles);
+					particles[i]->plane = particleMeshes[(index + startFrame) % particleMeshes.size()];
+					ENGINE_CONSOLE_LOG("------");
+					ENGINE_CONSOLE_LOG("Index: %u", index);
+					ENGINE_CONSOLE_LOG("New: %u", index + 5);
 				}
 				else
 					particles[i]->plane = App->scene_manager->plane;
@@ -310,6 +311,8 @@ json ComponentParticleEmitter::Save() const
 	node["animation"] = std::to_string(animation);
 	node["tiles_X"] = std::to_string(tileSize_X);
 	node["tiles_Y"] = std::to_string(tileSize_Y);
+	node["cycles"] = std::to_string(cycles);
+	node["startFrame"] = std::to_string(startFrame);
 
 
 	node["GradientColor"] = colorGradient;
@@ -372,6 +375,8 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string _animation = node["animation"].is_null() ? "0" : node["animation"];
 	std::string _tiles_X = node["tiles_X"].is_null() ? "1" : node["tiles_X"];
 	std::string _tiles_Y = node["tiles_Y"].is_null() ? "1" : node["tiles_Y"];
+	std::string _cycles = node["cycles"].is_null() ? "1" : node["cycles"];
+	std::string _startFrame = node["startFrame"].is_null() ? "0" : node["startFrame"];
 
 	std::string LDuration = node["Duration"].is_null() ? "0" : node["Duration"];
 
@@ -450,6 +455,8 @@ void ComponentParticleEmitter::Load(json& node)
 	animation = std::stof(_animation);
 	tileSize_X = std::stof(_tiles_X);
 	tileSize_Y = std::stof(_tiles_Y);
+	cycles = std::stof(_cycles);
+	startFrame = std::stof(_startFrame);
 }
 
 void ComponentParticleEmitter::CreateInspectorNode()
@@ -777,6 +784,14 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 		ImGui::DragInt("Y", &tileSize_Y, 1, 1, texture->Texture_height);
+		ImGui::Text("Start Frame:");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+		ImGui::DragInt("##sframe", &startFrame);
+		ImGui::Text("Cycles:");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+		ImGui::DragInt("##cycle", &cycles, 1, 1, 100);
 
 		if (tmpX != tileSize_X || tmpY != tileSize_Y && animation) {
 			createdAnim = false;

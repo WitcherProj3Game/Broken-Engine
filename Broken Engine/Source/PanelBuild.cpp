@@ -169,13 +169,13 @@ void PanelBuild::makeBuild() {
 	std::string buildFolder = BUILDS_FOLDER + buildName + '/';
 
 	// Create build folders
-	EngineApp->fs->CreateDirectoryA(buildFolder.c_str());
-	EngineApp->fs->CreateDirectoryA((buildFolder + LIBRARY_FOLDER).c_str());
-	EngineApp->fs->CreateDirectoryA((buildFolder + ASSETS_FOLDER).c_str());
-	EngineApp->fs->CreateDirectoryA((buildFolder + SETTINGS_FOLDER).c_str());
-	EngineApp->fs->CreateDirectoryA((buildFolder + LUA_GLOBALS).c_str());
+	EngineApp->fs->CreateDirectory(buildFolder.c_str());
+	EngineApp->fs->CreateDirectory((buildFolder + LIBRARY_FOLDER).c_str());
+	EngineApp->fs->CreateDirectory((buildFolder + ASSETS_FOLDER).c_str());
+	EngineApp->fs->CreateDirectory((buildFolder + SETTINGS_FOLDER).c_str());
+	EngineApp->fs->CreateDirectory((buildFolder + LUA_GLOBALS).c_str());
 	if(Activate_Debug)
-		EngineApp->fs->CreateDirectoryA((buildFolder + LUA_DEBUG).c_str());
+		EngineApp->fs->CreateDirectory((buildFolder + LUA_DEBUG).c_str());
 
 	//We copy the executable
 	EngineApp->threading->ADDTASK(this, PanelBuild::copyFile, GAME_EXE, buildFolder.c_str());
@@ -243,7 +243,7 @@ void PanelBuild::createFoldersAndRetrieveFiles(const char* path, const char* new
 
 
 	for (std::vector<std::string>::const_iterator it = folders.begin(); it != folders.end(); ++it) {
-		EngineApp->fs->CreateDirectoryA((newPath + *it).c_str());
+		EngineApp->fs->CreateDirectory((newPath + *it).c_str());
 		createFoldersAndRetrieveFiles((path + *it + "/").c_str(), (newPath + *it + "/").c_str(), outFiles);
 	}
 

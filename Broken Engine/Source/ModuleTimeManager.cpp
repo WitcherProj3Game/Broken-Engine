@@ -47,7 +47,7 @@ void ModuleTimeManager::PrepareUpdate() {
 			App->GetAppState() = AppState::PLAY;
 
 			// --- Create temporal directory/scene ---
-			App->fs->CreateDirectoryA("Temp");
+			App->fs->CreateDirectory("Temp");
 			App->scene_manager->currentScene->CopyInto(App->scene_manager->temporalScene);
 			App->scene_manager->SaveScene(App->scene_manager->temporalScene);
 

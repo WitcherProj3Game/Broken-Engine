@@ -437,7 +437,6 @@ void ComponentParticleEmitter::Load(json& node)
 		gradients.push_back(color);
 	}
 
-
 	if (!node["Loop"].is_null())
 		loop = node["Loop"];
 	else
@@ -817,26 +816,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 						if(i != 0)
 							std::advance(g_it, i - 1);
 						gradients.erase(g_it);
-						for (int i = 0; i < colors.size(); ++i)
-						{
-							//Update gradients if we have to
-							if (colors.size() > 1)
-							{
-								if (i == 0) //If we change the first color, only 1 gradient is affected
-								{
-									gradients[0] = (colors[1] - colors[0]) / colorDuration;
-								}
-								else if (i == colors.size() - 1) //If we changed the last color, only 1 gradient is affected
-								{
-									gradients[i - 1] = (colors[i] - colors[i - 1]) / colorDuration;
-								}
-								else //Else, 2 gradients are afected
-								{
-									gradients[i - 1] = (colors[i] - colors[i - 1]) / colorDuration;
-									gradients[i] = (colors[i + 1] - colors[i]) / colorDuration;
-								}
-							}
-						}
+						UpdateAllGradients();
 					}
 					else {
 						++it;

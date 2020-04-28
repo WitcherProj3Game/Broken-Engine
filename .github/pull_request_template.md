@@ -7,7 +7,6 @@ Please make sure you mark with an "x" ([x]) all the tests you have done in the b
 - [ ] I have checked and it has no memory leaks
 - [ ] I have tested with latest game build's assets/scenes, no issues. 
 
-
 ## Description
 Include a description on what you are adding with this pull so it can be tested
 

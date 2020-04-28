@@ -77,7 +77,7 @@ void ScriptingLighting::SetColor(float r, float g, float b, uint gameobject_UUID
 	{
 		ComponentLight* light = go->GetComponent<ComponentLight>();
 		if (light)
-			light->SetLightColor(float3(r, g, b));
+			light->SetLightColor(float3(r, g, b)/255.0f);
 		else
 			ENGINE_CONSOLE_LOG("![Script]: (SetColor) Light Component is null");
 	}
@@ -186,7 +186,7 @@ luabridge::LuaRef ScriptingLighting::GetColor(uint gameobject_UUID, lua_State* L
 	{
 		ComponentLight* light = go->GetComponent<ComponentLight>();
 		if (light)
-			color = light->GetLightColor();
+			color = light->GetLightColor() * 255.0f;
 		else
 			ENGINE_CONSOLE_LOG("![Script]: (GetColor) Light Component is null");
 	}

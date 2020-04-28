@@ -765,6 +765,9 @@
     <ClInclude Include="Optick\include\optick_server.h">
       <Filter>Sources\BrokenEngine\3rd Party\Optick</Filter>
     </ClInclude>
+    <ClInclude Include="ScriptingMaterials.h">
+      <Filter>Sources\BrokenEngine\Modules\Scripting Functions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MathGeoLib\include\SystemInfo.cpp">
@@ -1297,6 +1300,9 @@
     </ClCompile>
     <ClCompile Include="Optick\include\optick_server.cpp">
       <Filter>Sources\BrokenEngine\3rd Party\Optick</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptingMaterials.cpp">
+      <Filter>Sources\BrokenEngine\Modules\Scripting Functions</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

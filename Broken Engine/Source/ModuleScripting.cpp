@@ -25,6 +25,7 @@
 #include "ScriptingScenes.h"
 #include "ScriptingNavigation.h"
 #include "ScriptingLighting.h"
+#include "ScriptingMaterials.h"
 #include "ScriptVar.h"
 #include <iterator>
 
@@ -141,6 +142,10 @@ bool ModuleScripting::JustCompile(std::string absolute_path) {
 		.endClass()
 
 		.beginClass <ScriptingLighting>("Lighting")
+		.addConstructor<void(*) (void)>()
+		.endClass()
+
+		.beginClass <ScriptingMaterials>("Materials")
 		.addConstructor<void(*) (void)>()
 		.endClass()
 
@@ -350,6 +355,15 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetLightAttenuation", &ScriptingLighting::SetAttenuation)
 		.addFunction("SetLightCutoff", &ScriptingLighting::SetCutoff)
 		.addFunction("SetDistMultiplier", &ScriptingLighting::SetDistanceMultiplier)
+		.endClass()
+
+		// ----------------------------------------------------------------------------------
+		// AUDIO
+		// ----------------------------------------------------------------------------------
+		.beginClass <ScriptingMaterials>("Materials")
+		.addConstructor<void(*) (void)>()
+
+		
 		.endClass()
 
 		// ----------------------------------------------------------------------------------

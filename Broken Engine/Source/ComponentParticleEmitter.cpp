@@ -655,11 +655,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	ImGui::Text("Particles lifetime (ms)");
 	if (ImGui::DragInt("##SParticlesLifetime", &particlesLifeTime, 3.0f, 0.0f, 10000.0f))
 	{
-		if (colorGradient && colors.size() > 1 && gradients.size() > 0) {
-			colorDuration = particlesLifeTime / gradients.size();
-			UpdateAllGradients();
-		}
-
+		UpdateAllGradients();
 	}
 
 	int maxParticles = particlesPerCreation/emisionRate * particlesLifeTime;
@@ -783,23 +779,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 				label.append(std::to_string(i));
 				if (ImGui::ColorEdit4(label.data(), (float*)&colors[i], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar))
 				{
-					//Update gradients if we have to
-					if (colors.size() > 1)
-					{
-						if (i == 0) //If we change the first color, only 1 gradient is affected
-						{
-							gradients[0] = (colors[1] - colors[0]) / colorDuration;
-						}
-						else if (i == colors.size() - 1) //If we changed the last color, only 1 gradient is affected
-						{
-							gradients[i - 1] = (colors[i] - colors[i - 1]) / colorDuration;
-						}
-						else //Else, 2 gradients are afected
-						{
-							gradients[i-1] = (colors[i] - colors[i - 1]) / colorDuration;
-							gradients[i] = (colors[i + 1] - colors[i]) / colorDuration;
-						}
-					}
+					UpdateAllGradients();
 				}
 				if (colors.size() > 1) {
 					ImGui::SameLine();
@@ -821,10 +801,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 						if(i != 0)
 							std::advance(g_it, i - 1);
 						gradients.erase(g_it);
-						if (gradients.size() > 0) {
-							colorDuration = particlesLifeTime / gradients.size();
-							UpdateAllGradients();
-						}
+						UpdateAllGradients();
 					}
 					else {
 						++it;
@@ -842,7 +819,6 @@ void ComponentParticleEmitter::CreateInspectorNode()
 				//Update the gradients
 				float4 newGradient = (colors[index+1] - colors[index])/ colorDuration;
 				gradients.push_back(newGradient);
-
 				UpdateAllGradients();
 			}
 		}
@@ -996,19 +972,22 @@ void ComponentParticleEmitter::CreateAnimation(uint w, uint h) {
 
 void ComponentParticleEmitter::UpdateAllGradients()
 {
-	for (int i = 0; i < colors.size(); ++i) {
-		if (i == 0) //If we change the first color, only 1 gradient is affected
-		{
-			gradients[0] = (colors[1] - colors[0]) / colorDuration;
-		}
-		else if (i == colors.size() - 1) //If we changed the last color, only 1 gradient is affected
-		{
-			gradients[i - 1] = (colors[i] - colors[i - 1]) / colorDuration;
-		}
-		else //Else, 2 gradients are afected
-		{
-			gradients[i - 1] = (colors[i] - colors[i - 1]) / colorDuration;
-			gradients[i] = (colors[i + 1] - colors[i]) / colorDuration;
+	if (gradients.size() > 0) {
+		colorDuration = particlesLifeTime / gradients.size();
+		for (int i = 0; i < colors.size(); ++i) {
+			if (i == 0) //If we change the first color, only 1 gradient is affected
+			{
+				gradients[0] = (colors[1] - colors[0]) / colorDuration;
+			}
+			else if (i == colors.size() - 1) //If we changed the last color, only 1 gradient is affected
+			{
+				gradients[i - 1] = (colors[i] - colors[i - 1]) / colorDuration;
+			}
+			else //Else, 2 gradients are afected
+			{
+				gradients[i - 1] = (colors[i] - colors[i - 1]) / colorDuration;
+				gradients[i] = (colors[i + 1] - colors[i]) / colorDuration;
+			}
 		}
 	}
 }

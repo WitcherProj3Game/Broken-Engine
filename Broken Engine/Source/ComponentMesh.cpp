@@ -65,7 +65,9 @@ void ComponentMesh::Update()
 
 const AABB& ComponentMesh::GetAABB() const
 {
-	if (resource_mesh)
+	if (deformable_mesh)
+		return deformable_mesh->aabb;
+	else if (resource_mesh)
 		return resource_mesh->aabb;
 	else
 		return AABB();
@@ -218,6 +220,8 @@ void ComponentMesh::UpdateDefMesh()
 			}*/
 		}
 	}
+
+	deformable_mesh->CreateAABB();
 
 	// --- Bind it ---
 	glBindVertexArray(deformable_mesh->VAO);

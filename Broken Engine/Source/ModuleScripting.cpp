@@ -358,11 +358,24 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------
-		// AUDIO
+		// MATERIALS
 		// ----------------------------------------------------------------------------------
 		.beginClass <ScriptingMaterials>("Materials")
 		.addConstructor<void(*) (void)>()
 
+		.addFunction("SetMaterialTransparent", &ScriptingMaterials::SetTransparency)
+		.addFunction("SetMaterialCulling", &ScriptingMaterials::SetCulling)
+		.addFunction("SetMaterialShininess", &ScriptingMaterials::SetShininess)
+		.addFunction("SetMaterialTextureUsage", &ScriptingMaterials::SetTextureUsage)
+		.addFunction("SetMaterialAlpha", &ScriptingMaterials::SetAlpha)
+		.addFunction("SetMaterialColor", &ScriptingMaterials::SetColor)
+
+		.addFunction("GetMaterialTransparency", &ScriptingMaterials::GetTransparency)
+		.addFunction("GetMaterialCulling", &ScriptingMaterials::GetCulling)
+		.addFunction("GetMaterialTextureUsage", &ScriptingMaterials::GetTextureUsage)
+		.addFunction("GetMaterialShininess", &ScriptingMaterials::GetShininess)
+		.addFunction("GetMaterialAlpha", &ScriptingMaterials::GetAlpha)
+		.addFunction("GetMaterialColor", &ScriptingMaterials::GetColor)
 		
 		.endClass()
 

@@ -134,7 +134,10 @@ void ScriptingMaterials::SetColor(float r, float g, float b, float a, uint gameo
 		{
 			ResourceMaterial* mat = mesh->material;
 			if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
-				mat->m_AmbientColor = float4(r, g, b, a)/255.0f;
+			{
+				mat->m_AmbientColor = float4(r, g, b, 255.0f) / 255.0f;
+				mat->m_AmbientColor.w = a;
+			}
 			else
 				ENGINE_CONSOLE_LOG("![Script]: (SetColor) Mesh material is default or null");
 		}

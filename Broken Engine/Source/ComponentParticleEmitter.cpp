@@ -655,9 +655,11 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	ImGui::Text("Particles lifetime (ms)");
 	if (ImGui::DragInt("##SParticlesLifetime", &particlesLifeTime, 3.0f, 0.0f, 10000.0f))
 	{
-		colorDuration = particlesLifeTime / gradients.size();
-		if (colorGradient && colors.size() > 1)
+		if (colorGradient && colors.size() > 1 && gradients.size() > 0) {
+			colorDuration = particlesLifeTime / gradients.size();
 			UpdateAllGradients();
+		}
+
 	}
 
 	int maxParticles = particlesPerCreation/emisionRate * particlesLifeTime;

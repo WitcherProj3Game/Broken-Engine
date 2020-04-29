@@ -7,11 +7,14 @@
 BE_BEGIN_NAMESPACE
 
 class ResourceTexture;
+class ResourceMesh;
 
 class BROKEN_API Particle {
 public:
 	Particle();
 	~Particle();
+
+	void SetAnimation(ResourceMesh* mesh);
 
 	void Draw();
 
@@ -22,10 +25,13 @@ public:
 	float4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 	uint lifeTime=1;
 	uint spawnTime = 1;
+	int currentGradient = 0;
+	int gradientTimer = 0;
 	float diameter=1;
 	float2 scale = {1,1};
 
 	ResourceTexture* texture = nullptr;
+	ResourceMesh* plane = nullptr;
 };
 
 BE_END_NAMESPACE

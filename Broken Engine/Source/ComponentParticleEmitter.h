@@ -58,13 +58,18 @@ private:
 
 	void SortParticles();
 
+	void UpdateAllGradients();
+
 	void CreateParticles(uint particlesAmount);
+
+	void CreateAnimation(uint rows, uint cols);
 
 	double GetRandomValue(double min, double max); //MUST EREASE IN THE FUTURE
 
 private:
 	physx::PxParticleSystem* particleSystem = nullptr;
 
+	std::vector<ResourceMesh*> particleMeshes;
 	std::vector<Particle*> particles;
 	std::map<float, int> drawingIndices;
 
@@ -89,6 +94,10 @@ private:
 	bool emisionActive = true;
 	int duration = 1000;
 	uint emisionStart = 0;
+	int tileSize_X = 1;
+	int tileSize_Y = 1;
+	int startFrame = 0;
+	int cycles = 1;
 
 	//Particle properties
 	int particlesLifeTime = 1000;
@@ -99,10 +108,11 @@ private:
 
 	//Colors
 	bool colorGradient = false;
-	float4 particlesColor = float4::one;
-	float4 particlesColor2 = float4::one;
-	float4 particleColorVariation = float4::one;
-
+	std::vector<float4> colors;
+	std::vector<float4> gradients;
+	bool animation = false;
+	bool createdAnim = false;
+	uint colorDuration = 0;
 	float spawnClock = 0.0f;
 };
 BE_END_NAMESPACE

@@ -10,6 +10,7 @@
 BE_BEGIN_NAMESPACE
 class BROKEN_API ModuleTimeManager : public Module {
 public:
+	friend class ModuleSceneManager;
 
 	ModuleTimeManager(bool start_enabled = true);
 	~ModuleTimeManager();

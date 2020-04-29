@@ -36,6 +36,8 @@ void AutoCompleteFileGen::EmplaceAnimationFunctions()
 	SerializedFunction CurrentAnimationEnded("CurrentAnimationEnded", source.c_str());
 	CurrentAnimationEnded.variables.push_back("gameObject_UID");
 
+	//GetCurrentFrame
+
 	//Pushback all functions
 	engine_functions.push_back(PlayAnimation);
 	engine_functions.push_back(SetAnimationSpeed);
@@ -276,11 +278,21 @@ void AutoCompleteFileGen::EmplaceTransformFunctions()
 
 	SerializedFunction GetPosition("GetPosition", source.c_str());
 	GetPosition.variables.push_back("gameObject_UID");
+	
 	SerializedFunction Translate("Translate", source.c_str());
 	Translate.variables.push_back("x"); Translate.variables.push_back("y"); Translate.variables.push_back("z"); Translate.variables.push_back("gameObject_UID");
+	
 	SerializedFunction SetPosition("SetPosition", source.c_str());
 	SetPosition.variables.push_back("x"); SetPosition.variables.push_back("y"); SetPosition.variables.push_back("z"); SetPosition.variables.push_back("gameObject_UID");
-		// Rotation
+
+	SerializedFunction SetLocalPosition("SetLocalPosition", source.c_str());
+	SetLocalPosition.variables.push_back("x"); SetLocalPosition.variables.push_back("y"); SetLocalPosition.variables.push_back("z"); SetLocalPosition.variables.push_back("gameObject_UID");
+
+	SerializedFunction SetScale("SetScale", source.c_str());
+	SetScale.variables.push_back("x"); SetScale.variables.push_back("y"); SetScale.variables.push_back("z"); SetScale.variables.push_back("gameObject_UID");
+
+
+	// Rotation
 	SerializedFunction GetRotation("GetRotation", source.c_str());
 	GetRotation.variables.push_back("gameObject_UID");
 	SerializedFunction RotateObject("RotateObject", source.c_str());
@@ -293,6 +305,8 @@ void AutoCompleteFileGen::EmplaceTransformFunctions()
 	engine_functions.push_back(GetPosition);
 	engine_functions.push_back(Translate);
 	engine_functions.push_back(SetPosition);
+	engine_functions.push_back(SetLocalPosition);
+	engine_functions.push_back(SetScale);
 	engine_functions.push_back(GetRotation);
 	engine_functions.push_back(RotateObject);
 	engine_functions.push_back(SetObjectRotation);
@@ -306,33 +320,57 @@ void AutoCompleteFileGen::EmplaceGameObjectFunctions()
 	SerializedFunction FindGameObject("FindGameObject", source.c_str());
 	FindGameObject.variables.push_back("gameobject_name");
 	FindGameObject.description = "Returns the UID of the GameObject if it is found in the scene. This function searches using strings, only recomended to be called on Awake or Start since it consumes a lot of resources.";
+	
+	//FindChildGameObject
+	SerializedFunction FindChildGameObject("FindChildGameObject", source.c_str());
+	FindChildGameObject.variables.push_back("gameObject_name");
+	//FindChidGameObjectFromGO
+	SerializedFunction FindChidGameObjectFromGO("FindChidGameObjectFromGO", source.c_str());
+	FindChidGameObjectFromGO.variables.push_back("gameObject_name"); FindChidGameObjectFromGO.variables.push_back("gameObject_UID");
+
 	SerializedFunction GetMyUID("GetMyUID", source.c_str());
 	GetMyUID.description = "Returns the UID of the gameObject that contains the script and that currently running the Awake, Start or Update functions.";
+	
 	SerializedFunction GetParent("GetParent", source.c_str());
+	
 	SerializedFunction GetGameObjectParent("GetGameObjectParent", source.c_str());
 	GetGameObjectParent.variables.push_back("gameObject_UID");
+	
 	SerializedFunction DestroyGameObject("DestroyGameObject", source.c_str());
 	DestroyGameObject.description = "Deletes the gameObject with the passedUID.";
 	DestroyGameObject.variables.push_back("gameObject_UID");
+	
 	SerializedFunction SetActiveGameObject("SetActiveGameObject", source.c_str());
 	SetActiveGameObject.variables.push_back("bool_active"); SetActiveGameObject.variables.push_back("gameObject_UID");
 	
+
+	//IsActive GameObject
+	SerializedFunction IsActive("IsActive", source.c_str());
+	IsActive.variables.push_back("gameObject_UID");
+
+	
 	SerializedFunction GetMyLayer("GetMyLayer", source.c_str());
+	
 	SerializedFunction GetLayerByID("GetLayerByID", source.c_str());
 	GetLayerByID.variables.push_back("UID");
+	
 	SerializedFunction GetComponent("GetComponent", source.c_str());
 	GetComponent.variables.push_back("component_name"); GetComponent.variables.push_back("gameObject_UID");
+	
 	SerializedFunction GetScript("GetScript", source.c_str());
 	GetScript.description = "Returns a reference to another script. The script returned is the one placed inside the gameObject with the UID you pass. ";
 
 
 	//PushBack all functions
 	engine_functions.push_back(FindGameObject);
+	engine_functions.push_back(FindChildGameObject);
+	engine_functions.push_back(FindChidGameObjectFromGO);
 	engine_functions.push_back(GetMyUID);
 	engine_functions.push_back(GetParent);
 	engine_functions.push_back(GetGameObjectParent);
 	engine_functions.push_back(DestroyGameObject);
 	engine_functions.push_back(SetActiveGameObject);
+	engine_functions.push_back(IsActive);
 	engine_functions.push_back(GetMyLayer);
 
 	engine_functions.push_back(GetLayerByID);
@@ -560,6 +598,64 @@ void AutoCompleteFileGen::EmplaceParticlesFunctions()
 	engine_functions.push_back(SetRandomParticlesScale);
 }
 
+void AutoCompleteFileGen::EmplaceLightingFunctions()
+{
+	std::string source = "Lighting";
+
+	SerializedFunction GetLightColor("GetLightColor", source.c_str());
+	GetLightColor.variables.push_back("gameObject_UID");
+	
+	SerializedFunction GetLightAttenuation("GetLightAttenuation", source.c_str());
+	GetLightAttenuation.variables.push_back("gameObject_UID");
+	
+	SerializedFunction GetLightCutoff("GetLightCutoff", source.c_str());
+	GetLightCutoff.variables.push_back("gameObject_UID");
+	
+	SerializedFunction GetLightType("GetLightType", source.c_str());
+	GetLightType.variables.push_back("gameObject_UID");
+	
+	SerializedFunction GetLightIntensity("GetLightIntensity", source.c_str());
+	GetLightIntensity.variables.push_back("gameObject_UID");
+	
+	SerializedFunction GetDistMultiplier("GetDistMultiplier", source.c_str());
+	GetDistMultiplier.variables.push_back("gameObject_UID");
+
+	
+	SerializedFunction SetLightIntensity("SetLightIntensity", source.c_str());
+	SetLightIntensity.variables.push_back("float_intensity"); SetLightIntensity.variables.push_back("gameObject_UID");
+
+	SerializedFunction SetLightType("SetLightType", source.c_str());
+	SetLightType.variables.push_back("int_type"); SetLightType.variables.push_back("gameObject_UID");
+	
+	SerializedFunction SetLightColor("SetLightColor", source.c_str());
+	SetLightColor.variables.push_back("r"); SetLightColor.variables.push_back("g"); SetLightColor.variables.push_back("b"); SetLightColor.variables.push_back("gameObject_UID");
+	
+	SerializedFunction SetLightAttenuation("SetLightAttenuation", source.c_str());
+	SetLightAttenuation.variables.push_back("K"); SetLightAttenuation.variables.push_back("L"); SetLightAttenuation.variables.push_back("Q"); SetLightAttenuation.variables.push_back("gameObject_UID");
+	
+	SerializedFunction SetLightCutoff("SetLightCutoff", source.c_str());
+	SetLightCutoff.variables.push_back("float_innerCutoff"); SetLightCutoff.variables.push_back("float_outerCutoff"); SetLightCutoff.variables.push_back("gameObject_UID");
+	
+	SerializedFunction SetDistMultiplier("SetDistMultiplier", source.c_str());
+	SetDistMultiplier.variables.push_back("float_Multiplier"); SetDistMultiplier.variables.push_back("gameObject_UID");
+
+
+	//PushBack all functions
+	engine_functions.push_back(GetLightColor);
+	engine_functions.push_back(GetLightAttenuation);
+	engine_functions.push_back(GetLightCutoff);
+	engine_functions.push_back(GetLightType);
+	engine_functions.push_back(GetLightIntensity);
+	engine_functions.push_back(GetDistMultiplier);
+
+	engine_functions.push_back(SetLightIntensity);
+	engine_functions.push_back(SetLightType);
+	engine_functions.push_back(SetLightColor);
+	engine_functions.push_back(SetLightAttenuation);
+	engine_functions.push_back(SetLightCutoff);
+	engine_functions.push_back(SetDistMultiplier);
+}
+
 void AutoCompleteFileGen::EmplaceAudioFunctions()
 {
 	std::string source = "Audio";
@@ -579,12 +675,31 @@ void AutoCompleteFileGen::EmplaceAudioFunctions()
 	SerializedFunction ResumeAudioEvent("ResumeAudioEvent", source.c_str());
 	ResumeAudioEvent.variables.push_back("event");
 
+	//PlayAudioEventGO
+	SerializedFunction PlayAudioEventGO("PlayAudioEventGO", source.c_str());
+	PlayAudioEventGO.variables.push_back("event"); PlayAudioEventGO.variables.push_back("gameObject_UID");
+	//StopAudioEventGO
+	SerializedFunction StopAudioEventGO("StopAudioEventGO", source.c_str());
+	StopAudioEventGO.variables.push_back("event"); StopAudioEventGO.variables.push_back("gameObject_UID");
+	//PauseAudioEventGO
+	SerializedFunction PauseAudioEventGO("PauseAudioEventGO", source.c_str());
+	PauseAudioEventGO.variables.push_back("event"); PauseAudioEventGO.variables.push_back("gameObject_UID");
+	//ResumeAudioEventGO
+	SerializedFunction ResumeAudioEventGO("ResumeAudioEventGO", source.c_str());
+	ResumeAudioEventGO.variables.push_back("event"); ResumeAudioEventGO.variables.push_back("gameObject_UID");
+	
+
 	//PushBack all functions
 	engine_functions.push_back(SetVolume);
 	engine_functions.push_back(PlayAudioEvent);
 	engine_functions.push_back(StopAudioEvent);
 	engine_functions.push_back(PauseAudioEvent);
 	engine_functions.push_back(ResumeAudioEvent);
+
+	engine_functions.push_back(PlayAudioEventGO);
+	engine_functions.push_back(StopAudioEventGO);
+	engine_functions.push_back(PauseAudioEventGO);
+	engine_functions.push_back(ResumeAudioEventGO);
 }
 
 //This function iterates the list of functions to deploy them in the snippets.json file to place in VSCode 
@@ -597,6 +712,7 @@ void AutoCompleteFileGen::GenerateAutoCompleteFile(bool variables_entered)
 	EmplaceCameraFunctions();
 	EmplacePhysicsFunctions();
 	EmplaceParticlesFunctions();
+	EmplaceLightingFunctions();
 	EmplaceAudioFunctions();
 	EmplaceAnimationFunctions();
 	EmplaceUserInterfaceFunctions();

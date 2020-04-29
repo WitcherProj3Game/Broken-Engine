@@ -35,6 +35,7 @@ public: //Function
 	void EmplaceCameraFunctions();
 	void EmplacePhysicsFunctions();
 	void EmplaceParticlesFunctions();
+	void EmplaceLightingFunctions();
 	void EmplaceAudioFunctions();
 	void EmplaceAnimationFunctions();
 	void EmplaceUserInterfaceFunctions();

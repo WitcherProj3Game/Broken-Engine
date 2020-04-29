@@ -19,7 +19,12 @@ public:
 	~ScriptingMaterials() {}
 
 
-	//Set & Get Material and FindMaterialByUUID
+	//Set & Get Material and FindMaterialByName (through UUID?)
+	//void SetMaterialByName(const char* mat_name);
+	//void SetMaterialByUUID(uint mat_UUID);
+	//void GetCurrentMaterialName(); //Not a void
+	//void GetCurrentMaterialUUID(); //Not a void
+	//void GetMaterialUUIDByName(); //Not a void
 
 	// --- Setters ---
 	void SetTransparency(bool is_transparent, uint gameobject_UUID);
@@ -29,7 +34,7 @@ public:
 	void SetAlpha(float alpha, uint gameobject_UUID);
 	void SetColor(float r, float g, float b, float a, uint gameobject_UUID);
 
-	//SetShader (through name)
+	//SetShader (through name and uuid)
 	//SetUniform (through uniform name & type)
 
 	// --- Getters ---
@@ -40,7 +45,7 @@ public:
 	float GetAlpha(uint gameobject_UUID) const;
 	luabridge::LuaRef GetColor(uint gameobject_UUID, lua_State* L) const;
 
-	//GetShader (through name)
+	//GetShader (name and uuid)
 	//GetUniform (through uniform name & type)
 
 };

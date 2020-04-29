@@ -18,6 +18,14 @@
 
 using namespace Broken;
 
+//void ScriptingMaterials::SetMaterialByName(const char* mat_name)
+//{
+//}
+//
+//void ScriptingMaterials::SetMaterialByUUID(uint mat_UUID)
+//{
+//}
+
 // --------------------------- SETTERS ---------------------------
 void ScriptingMaterials::SetTransparency(bool is_transparent, uint gameobject_UUID)
 {

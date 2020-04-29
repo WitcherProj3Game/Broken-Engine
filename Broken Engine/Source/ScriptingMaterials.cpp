@@ -31,13 +31,13 @@ void ScriptingMaterials::SetTransparency(bool is_transparent, uint gameobject_UU
 			if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 				mat->has_transparencies = is_transparent;
 			else
-				ENGINE_CONSOLE_LOG("![Script]: (SetTransparency) Mesh material is default or null");
+				ENGINE_CONSOLE_LOG("![Script]: (SetMaterialTransparent) Mesh material is default or null");
 		}
 		else
-			ENGINE_CONSOLE_LOG("![Script]: (SetTransparency) Game Object has no mesh (or null)");
+			ENGINE_CONSOLE_LOG("![Script]: (SetMaterialTransparent) Game Object has no mesh (or null)");
 	}
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (SetTransparency) Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialTransparent) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 void ScriptingMaterials::SetCulling(bool culling, uint gameobject_UUID)
@@ -52,17 +52,23 @@ void ScriptingMaterials::SetCulling(bool culling, uint gameobject_UUID)
 			if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 				mat->has_culling = culling;
 			else
-				ENGINE_CONSOLE_LOG("![Script]: (SetCulling) Mesh material is default or null");
+				ENGINE_CONSOLE_LOG("![Script]: (SetMaterialCulling) Mesh material is default or null");
 		}
 		else
-			ENGINE_CONSOLE_LOG("![Script]: (SetCulling) Game Object has no mesh (or null)");
+			ENGINE_CONSOLE_LOG("![Script]: (SetMaterialCulling) Game Object has no mesh (or null)");
 	}
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (SetCulling) Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialCulling) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 void ScriptingMaterials::SetShininess(float shininess, uint gameobject_UUID)
 {
+	if (shininess < 1.0f || shininess > 500.0f)
+	{
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialShininess) Shininess has to be between [1.0, 500.0]");
+		return;
+	}
+
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 	if (go)
 	{
@@ -73,13 +79,13 @@ void ScriptingMaterials::SetShininess(float shininess, uint gameobject_UUID)
 			if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 				mat->m_Shininess = shininess;
 			else
-				ENGINE_CONSOLE_LOG("![Script]: (SetShininess) Mesh material is default or null");
+				ENGINE_CONSOLE_LOG("![Script]: (SetMaterialShininess) Mesh material is default or null");
 		}
 		else
-			ENGINE_CONSOLE_LOG("![Script]: (SetShininess) Game Object has no mesh (or null)");
+			ENGINE_CONSOLE_LOG("![Script]: (SetMaterialShininess) Game Object has no mesh (or null)");
 	}
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (SetShininess) Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialShininess) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 void ScriptingMaterials::SetTextureUsage(bool use_textures, uint gameobject_UUID)
@@ -94,17 +100,23 @@ void ScriptingMaterials::SetTextureUsage(bool use_textures, uint gameobject_UUID
 			if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 				mat->m_UseTexture = use_textures;
 			else
-				ENGINE_CONSOLE_LOG("![Script]: (SetTextureUsage) Mesh material is default or null");
+				ENGINE_CONSOLE_LOG("![Script]: (SetMaterialTextureUsage) Mesh material is default or null");
 		}
 		else
-			ENGINE_CONSOLE_LOG("![Script]: (SetTextureUsage) Game Object has no mesh (or null)");
+			ENGINE_CONSOLE_LOG("![Script]: (SetMaterialTextureUsage) Game Object has no mesh (or null)");
 	}
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (SetTextureUsage) Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialTextureUsage) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 void ScriptingMaterials::SetAlpha(float alpha, uint gameobject_UUID)
 {
+	if (alpha > 1.0f || alpha < 0.0f)
+	{
+		ENGINE_CONSOLE_LOG("![Script]: (SetAlpha) Alpha has to be between [0.0, 1.0]");
+		return;
+	}
+
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 	if (go)
 	{
@@ -115,17 +127,23 @@ void ScriptingMaterials::SetAlpha(float alpha, uint gameobject_UUID)
 			if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 				mat->m_AmbientColor.w = alpha;
 			else
-				ENGINE_CONSOLE_LOG("![Script]: (SetAlpha) Mesh material is default or null");
+				ENGINE_CONSOLE_LOG("![Script]: (SetMaterialAlpha) Mesh material is default or null");
 		}
 		else
-			ENGINE_CONSOLE_LOG("![Script]: (SetAlpha) Game Object has no mesh (or null)");
+			ENGINE_CONSOLE_LOG("![Script]: (SetMaterialAlpha) Game Object has no mesh (or null)");
 	}
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (SetAlpha) Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialAlpha) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 void ScriptingMaterials::SetColor(float r, float g, float b, float a, uint gameobject_UUID)
 {
+	if (r > 255.0f || g > 255.0f || b > 255.0f || a > 1.0f || r < 0.0f || g < 0.0f || b < 0.0f || a < 0.0f)
+	{
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialColor) Color has to be between [0.0, 255.0] and alpha between [0.0, 1.0]");
+		return;
+	}
+
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 	if (go)
 	{
@@ -139,13 +157,13 @@ void ScriptingMaterials::SetColor(float r, float g, float b, float a, uint gameo
 				mat->m_AmbientColor.w = a;
 			}
 			else
-				ENGINE_CONSOLE_LOG("![Script]: (SetColor) Mesh material is default or null");
+				ENGINE_CONSOLE_LOG("![Script]: (SetMaterialColor) Mesh material is default or null");
 		}
 		else
-			ENGINE_CONSOLE_LOG("![Script]: (SetColor) Game Object has no mesh (or null)");
+			ENGINE_CONSOLE_LOG("![Script]: (SetMaterialColor) Game Object has no mesh (or null)");
 	}
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (SetColor) Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialColor) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 
@@ -164,13 +182,13 @@ bool ScriptingMaterials::GetTransparency(uint gameobject_UUID) const
 			if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 				ret = mat->has_transparencies;
 			else
-				ENGINE_CONSOLE_LOG("![Script]: (GetTransparency) Mesh material is default or null");
+				ENGINE_CONSOLE_LOG("![Script]: (GetMaterialTransparency) Mesh material is default or null");
 		}
 		else
-			ENGINE_CONSOLE_LOG("![Script]: (GetTransparency) Game Object has no mesh (or null)");
+			ENGINE_CONSOLE_LOG("![Script]: (GetMaterialTransparency) Game Object has no mesh (or null)");
 	}
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (GetTransparency) Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (GetMaterialTransparency) Could not find GameObject with UUID %d", gameobject_UUID);
 
 	return ret;
 }
@@ -189,13 +207,13 @@ bool ScriptingMaterials::GetCulling(uint gameobject_UUID) const
 			if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 				ret = mat->has_culling;
 			else
-				ENGINE_CONSOLE_LOG("![Script]: (GetCulling) Mesh material is default or null");
+				ENGINE_CONSOLE_LOG("![Script]: (GetMaterialCulling) Mesh material is default or null");
 		}
 		else
-			ENGINE_CONSOLE_LOG("![Script]: (GetCulling) Game Object has no mesh (or null)");
+			ENGINE_CONSOLE_LOG("![Script]: (GetMaterialCulling) Game Object has no mesh (or null)");
 	}
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (GetCulling) Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (GetMaterialCulling) Could not find GameObject with UUID %d", gameobject_UUID);
 
 	return ret;
 }
@@ -239,13 +257,13 @@ float ScriptingMaterials::GetShininess(uint gameobject_UUID) const
 			if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 				ret = mat->m_Shininess;
 			else
-				ENGINE_CONSOLE_LOG("![Script]: (GetShininess) Mesh material is default or null");
+				ENGINE_CONSOLE_LOG("![Script]: (GetMaterialShininess) Mesh material is default or null");
 		}
 		else
-			ENGINE_CONSOLE_LOG("![Script]: (GetShininess) Game Object has no mesh (or null)");
+			ENGINE_CONSOLE_LOG("![Script]: (GetMaterialShininess) Game Object has no mesh (or null)");
 	}
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (GetShininess) Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (GetMaterialShininess) Could not find GameObject with UUID %d", gameobject_UUID);
 	
 	return ret;
 }
@@ -264,13 +282,13 @@ float ScriptingMaterials::GetAlpha(uint gameobject_UUID) const
 			if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 				ret = mat->m_AmbientColor.w;
 			else
-				ENGINE_CONSOLE_LOG("![Script]: (GetAlpha) Mesh material is default or null");
+				ENGINE_CONSOLE_LOG("![Script]: (GetMaterialAlpha) Mesh material is default or null");
 		}
 		else
-			ENGINE_CONSOLE_LOG("![Script]: (GetAlpha) Game Object has no mesh (or null)");
+			ENGINE_CONSOLE_LOG("![Script]: (GetMaterialAlpha) Game Object has no mesh (or null)");
 	}
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (GetAlpha) Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (GetMaterialAlpha) Could not find GameObject with UUID %d", gameobject_UUID);
 
 	return ret;
 }
@@ -289,13 +307,13 @@ luabridge::LuaRef ScriptingMaterials::GetColor(uint gameobject_UUID, lua_State* 
 			if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 				color = mat->m_AmbientColor;
 			else
-				ENGINE_CONSOLE_LOG("![Script]: (GetColor) Mesh material is default or null");
+				ENGINE_CONSOLE_LOG("![Script]: (GetMaterialColor) Mesh material is default or null");
 		}
 		else
-			ENGINE_CONSOLE_LOG("![Script]: (GetColor) Game Object has no mesh (or null)");
+			ENGINE_CONSOLE_LOG("![Script]: (GetMaterialColor) Game Object has no mesh (or null)");
 	}
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (GetColor) Could not find GameObject with UUID %d", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (GetMaterialColor) Could not find GameObject with UUID %d", gameobject_UUID);
 
 	luabridge::LuaRef table = luabridge::newTable(L);
 	table.append(color.x);

@@ -87,9 +87,8 @@ void ComponentTransform::SetRotation(float3 euler_angles) {
 void ComponentTransform::SetRotation(Quat quat)
 { 
 	// --- Update own variables ---
-	math::Quat diff = quat * rotation.Inverted();
 	rotation = quat;
-	rotation_euler += diff.ToEulerXYZ() * RADTODEG;
+	rotation_euler = quat.ToEulerXYZ() * RADTODEG;
 
 	// --- Update Transform ---
 	UpdateLocalTransform();
@@ -273,9 +272,6 @@ void ComponentTransform::CreateInspectorNode()
 }
 
 void ComponentTransform::UpdateTRS() {
-	math::Quat new_rot;
-	Local_transform.Decompose(position, new_rot, scale);
-	math::Quat difference = new_rot * rotation.Inverted();
-	rotation = new_rot;
-	rotation_euler += difference.ToEulerXYZ() * RADTODEG;
+	Local_transform.Decompose(position, rotation, scale);
+	rotation_euler = rotation.ToEulerXYZ() * RADTODEG;
 }

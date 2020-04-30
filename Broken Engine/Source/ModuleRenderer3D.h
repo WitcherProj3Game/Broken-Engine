@@ -35,6 +35,8 @@ struct BROKEN_API RenderMesh
 {
 	RenderMesh(float4x4 transform, const ResourceMesh* mesh, ResourceMaterial* mat, const RenderMeshFlags flags = 0/*, const Color& color = White*/) : transform(transform), resource_mesh(mesh), mat(mat), flags(flags)/*, color(color)*/ {}
 
+	RenderMesh() {};
+
 	float4x4 transform;
 	const ResourceMesh* resource_mesh = nullptr;
 	ResourceMaterial* mat = nullptr;

@@ -38,6 +38,7 @@ public:
 
 	float2 size2D = { 50, 50 };
 	float2 position2D = { 0,0 };
+	float4 img_color = { 1.0f, 1.0f, 1.0f, 1.0f };
 	float rotation2D = 0.0f;
 
 public:

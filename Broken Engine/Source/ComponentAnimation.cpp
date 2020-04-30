@@ -574,7 +574,7 @@ void ComponentAnimation::UpdateJointsTransform()
 					}
 				}
 			}
-			trans->SetQuatRotation(rotation);
+			trans->SetRotation(rotation);
 
 			//SCALE
 			float3 scale = trans->GetScale();
@@ -657,7 +657,7 @@ void ComponentAnimation::BlendAnimations(float blend_time)
 		if (start_position[i].x != 1234)
 			trans->SetPosition(end_position[i].Lerp(start_position[i], value));
 		if (start_rotation[i].x != 1234)
-			trans->SetQuatRotation(end_rotation[i].Slerp(start_rotation[i], value));
+			trans->SetRotation(end_rotation[i].Slerp(start_rotation[i], value));
 		if (start_scale[i].x != 1234)
 			trans->Scale(end_scale[i].Lerp(start_scale[i], value).x, end_scale[i].Lerp(start_scale[i], value).y, end_scale[i].Lerp(start_scale[i], value).z);
 	}

@@ -217,6 +217,24 @@ void ComponentScript::AddVariable(const ScriptVar& new_var)
 		script_variables.push_back(new_var);
 }
 
+void ComponentScript::SetVariable(const ScriptVar& new_var)
+{
+	bool set = false;
+	for (std::vector<ScriptVar>::iterator it = script_variables.begin(); it != script_variables.end(); it++)
+	{
+		if ((*it).name == new_var.name)
+		{
+			(*it) = new_var;
+			set = true;
+			break;
+		}
+	}
+	
+	// If it wasn't in the vector we add it
+	if (!set)
+		AddVariable(new_var);
+}
+
 json ComponentScript::Save() const
 {
 	json node;
@@ -288,36 +306,40 @@ void ComponentScript::Load(json& node)
 	// Load the public variables of the script
 	char name[50];
 	uint cnt = node["Script variables"]["Count"];
-	script_variables.resize(cnt);
+	script_variables.reserve(cnt);
+
+	ScriptVar current;
 
 	for (int i = 0; i < cnt; ++i) {
 
 		sprintf_s(name, 50, "Variable %d", i);
 		json js1 = node["Script variables"][name]["Name"];
-		script_variables[i].name = js1.get<std::string>(); 
+		current.name = js1.get<std::string>(); 
 
-		script_variables[i].display_object_name = node["Script variables"][name]["DisplayObjectName"];
+		current.display_object_name = node["Script variables"][name]["DisplayObjectName"];
 		json js2 = node["Script variables"][name]["ObjectName"];
-		script_variables[i].object_name = js2.get<std::string>();
+		current.object_name = js2.get<std::string>();
 
 		json js3 = node["Script variables"][name]["Type"];
 		std::string type = js3.get<std::string>();
 
-		script_variables[i].changed_value = true; // We make sure the value will be changed in the script when we press PLAY
+		current.changed_value = true; // We make sure the value will be changed in the script when we press PLAY
 
 		if (type.compare("Boolean") == 0) {
-			script_variables[i].type = VarType::BOOLEAN;
-			script_variables[i].editor_value.as_boolean = node["Script variables"][name]["Value"];
+			current.type = VarType::BOOLEAN;
+			current.editor_value.as_boolean = node["Script variables"][name]["Value"];
 		}
 		else if (type.compare("Double") == 0) {
-			script_variables[i].type = VarType::DOUBLE;
-			script_variables[i].editor_value.as_double = node["Script variables"][name]["Value"];
+			current.type = VarType::DOUBLE;
+			current.editor_value.as_double = node["Script variables"][name]["Value"];
 		} 
 		else if (type.compare("String") == 0) {
-			script_variables[i].type = VarType::STRING;
+			current.type = VarType::STRING;
 			json js3 = node["Script variables"][name]["Value"];
 			std::string as_string = js3.get<std::string>();
-			script_variables[i].ChangeEditorValue(as_string.c_str());
+			current.ChangeEditorValue(as_string.c_str());
 		}
+
+		SetVariable(current);
 	}
 }

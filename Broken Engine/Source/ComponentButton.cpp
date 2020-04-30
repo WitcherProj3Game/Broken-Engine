@@ -218,9 +218,11 @@ void ComponentButton::Load(json& node)
 
 	texture = (ResourceTexture*)App->resources->GetResource(std::stoi(path));
 
-	if (texture == nullptr)
-		texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
-	texture->AddUser(GO);
+	//if (texture == nullptr)
+	//	texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
+	//
+	if (texture)
+		texture->AddUser(GO);
 
 	std::string visible_str = node["visible"].is_null() ? "0" : node["visible"];
 	std::string draggable_str = node["visible"].is_null() ? "0" : node["draggable"];

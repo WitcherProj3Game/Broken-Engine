@@ -83,7 +83,7 @@ void ComponentImage::Draw()
 	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
 
 	// --- Color & Texturing ---
-	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), 1.0f, 1.0f, 1.0f, 1.0f);
+	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), img_color.x, img_color.y, img_color.z, img_color.w);
 	int TextureLocation = glGetUniformLocation(shaderID, "u_UseTextures");
 	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);
 	
@@ -126,7 +126,10 @@ json ComponentImage::Save() const
 	node["size2Dx"] = std::to_string(size2D.x);
 	node["size2Dy"] = std::to_string(size2D.y);
 
-
+	node["ColorR"] = std::to_string(img_color.x);
+	node["ColorG"] = std::to_string(img_color.y);
+	node["ColorB"] = std::to_string(img_color.z);
+	node["ColorA"] = std::to_string(img_color.w);
 
 	return node;
 }
@@ -152,6 +155,12 @@ void ComponentImage::Load(json& node)
 	std::string size2Dx = node["size2Dx"].is_null() ? "0" : node["size2Dx"];
 	std::string size2Dy = node["size2Dy"].is_null() ? "0" : node["size2Dy"];
 
+	std::string str_colorR = node["ColorR"].is_null() ? "1" : node["ColorR"];
+	std::string str_colorG = node["ColorG"].is_null() ? "1" : node["ColorG"];
+	std::string str_colorB = node["ColorB"].is_null() ? "1" : node["ColorB"];
+	std::string str_colorA = node["ColorA"].is_null() ? "1" : node["ColorA"];
+
+	img_color = float4(std::stof(str_colorR), std::stof(str_colorG), std::stof(str_colorB), std::stof(str_colorA));
 	position2D = float2(std::stof(position2Dx), std::stof(position2Dy));
 	size2D = float2(std::stof(size2Dx), std::stof(size2Dy));
 }
@@ -242,6 +251,20 @@ void ComponentImage::CreateInspectorNode()
 		}
 		ImGui::EndDragDropTarget();
 	}
+	if (ImGui::Button("Delete Texture"))
+	{
+		if (texture)
+		{
+			texture->Release();
+			texture = nullptr;
+		}
+	}
+
+	// Color
+	ImGui::Separator();
+	ImGui::ColorEdit4("##IMGColor", (float*)&img_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+	ImGui::Text("Color");
 
 	// Aspect Ratio
 	ImGui::Checkbox("Maintain Aspect Ratio", &resize);

@@ -207,9 +207,11 @@ void ComponentButton::Load(json& node)
 
 	texture = (ResourceTexture*)App->resources->GetResource(std::stoi(path));
 
-	if (texture == nullptr)
-		texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
-	texture->AddUser(GO);
+	//if (texture == nullptr)
+	//	texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
+	//
+	if (texture)
+		texture->AddUser(GO);
 
 	std::string visible_str = node["visible"].is_null() ? "0" : node["visible"];
 	std::string draggable_str = node["visible"].is_null() ? "0" : node["draggable"];
@@ -375,24 +377,6 @@ void ComponentButton::CreateInspectorNode()
 	ImGui::SameLine();
 	ImGui::Checkbox("Visible##2", &collider_visible);
 
-	// Position
-	ImGui::Text("Position:");
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(60);
-	ImGui::DragInt("x##buttoncolliderposition", &collider.x, 0.001f);
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(60);
-	ImGui::DragInt("y##buttoncolliderposition", &collider.y, 0.001f);
-
-	// Size
-	ImGui::Text("Size:    ");
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(60);
-	ImGui::DragInt("x##buttoncollidersize", &collider.w);
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(60);
-	ImGui::DragInt("y##buttoncollidersize", &collider.h);
-
 	// ------------------------------------------
 
 	// Image
@@ -422,6 +406,14 @@ void ComponentButton::CreateInspectorNode()
 			}
 		}
 		ImGui::EndDragDropTarget();
+	}
+	if (ImGui::Button("Delete Texture"))
+	{
+		if (texture)
+		{
+			texture->Release();
+			texture = nullptr;
+		}
 	}
 
 	// Aspect Ratio

@@ -724,10 +724,7 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 		{
 			qInverse.InverseAndNormalize();
 			Quat tmp = q * qInverse;
-			transform->rotation = tmp;
-
-			transform->SetRotation(transform->rotation);
-			transform->UpdateLocalTransform();
+			transform->SetRotation(tmp);
 
 			GO->UpdateAABB();
 

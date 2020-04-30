@@ -134,4 +134,13 @@ void ComponentCanvas::CreateInspectorNode()
 	ImGui::SetNextItemWidth(100);
 	ImGui::InputInt("Priority", &priority);
 	ImGui::Separator();
+
+	// Position
+	ImGui::Text("Position:");
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(60);
+	ImGui::DragFloat("x##canvasposition", &position2D.x);
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(60);
+	ImGui::DragFloat("y##canvasposition", &position2D.y);
 }

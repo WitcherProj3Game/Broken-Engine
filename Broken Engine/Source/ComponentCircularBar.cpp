@@ -30,8 +30,11 @@ ComponentCircularBar::ComponentCircularBar(GameObject* gameObject) : Component(g
 {
 	visible = true;
 	//texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
-	canvas = (ComponentCanvas*)gameObject->AddComponent(Component::ComponentType::Canvas);
-	canvas->AddElement(this);
+	if (GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas->AddElement(this);
+	}
 }
 
 ComponentCircularBar::~ComponentCircularBar()
@@ -45,6 +48,12 @@ ComponentCircularBar::~ComponentCircularBar()
 
 void ComponentCircularBar::Update()
 {
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas->AddElement(this);
+	}
+
 	if (to_delete)
 		this->GetContainerGameObject()->RemoveComponent(this);
 }

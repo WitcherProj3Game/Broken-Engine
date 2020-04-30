@@ -31,8 +31,11 @@ ComponentProgressBar::ComponentProgressBar(GameObject* gameObject) : Component(g
 	name = "ProgressBar";
 	visible = true;
 	//texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
-	canvas = (ComponentCanvas*)gameObject->AddComponent(Component::ComponentType::Canvas);
-	canvas->AddElement(this);
+	if (GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas->AddElement(this);
+	}
 }
 
 ComponentProgressBar::~ComponentProgressBar()
@@ -46,6 +49,12 @@ ComponentProgressBar::~ComponentProgressBar()
 
 void ComponentProgressBar::Update()
 {
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas->AddElement(this);
+	}
+
 	if (to_delete)
 		this->GetContainerGameObject()->RemoveComponent(this);
 }

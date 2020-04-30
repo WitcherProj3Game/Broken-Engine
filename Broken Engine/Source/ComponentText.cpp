@@ -20,8 +20,11 @@ ComponentText::ComponentText(GameObject* gameObject) : Component(gameObject, Com
 	name = "Text";
 	visible = true;
 
-	canvas = (ComponentCanvas*)gameObject->AddComponent(Component::ComponentType::Canvas);
-	canvas->AddElement(this);
+	if (GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas->AddElement(this);
+	}
 
 	font = App->resources->DefaultFont;
 	if (font)
@@ -41,6 +44,12 @@ ComponentText::~ComponentText()
 
 void ComponentText::Update()
 {
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas->AddElement(this);
+	}
+
 	if (to_delete)
 		this->GetContainerGameObject()->RemoveComponent(this);
 }

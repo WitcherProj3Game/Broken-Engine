@@ -31,9 +31,12 @@ ComponentImage::ComponentImage(GameObject* gameObject) : Component(gameObject, C
 	name = "Image";
 	visible = true;
 
-	canvas = (ComponentCanvas*)gameObject->AddComponent(Component::ComponentType::Canvas);
+	if (GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas->AddElement(this);
+	}
 	//texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
-	canvas->AddElement(this);
 }
 
 ComponentImage::~ComponentImage()
@@ -47,6 +50,12 @@ ComponentImage::~ComponentImage()
 
 void ComponentImage::Update()
 {
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas->AddElement(this);
+	}
+
 	if (to_delete)
 		this->GetContainerGameObject()->RemoveComponent(this);
 }

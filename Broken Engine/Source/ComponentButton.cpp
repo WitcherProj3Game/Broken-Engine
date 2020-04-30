@@ -43,10 +43,12 @@ ComponentButton::ComponentButton(GameObject* gameObject) : Component(gameObject,
 	collider = { 0,0,0,0 };
 	color = idle_color;
 
-	if (GO->parent->HasComponent(Component::ComponentType::Canvas))
+	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
 	{
 		canvas = GO->parent->GetComponent<ComponentCanvas>();
-		canvas->AddElement(this);
+
+		if(canvas)
+			canvas->AddElement(this);
 	}
 
 	//texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");

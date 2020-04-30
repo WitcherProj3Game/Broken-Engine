@@ -20,10 +20,12 @@ ComponentText::ComponentText(GameObject* gameObject) : Component(gameObject, Com
 	name = "Text";
 	visible = true;
 
-	if (GO->parent->HasComponent(Component::ComponentType::Canvas))
+	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
 	{
 		canvas = GO->parent->GetComponent<ComponentCanvas>();
-		canvas->AddElement(this);
+
+		if (canvas)
+			canvas->AddElement(this);
 	}
 
 	font = App->resources->DefaultFont;

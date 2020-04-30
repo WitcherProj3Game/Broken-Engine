@@ -94,6 +94,10 @@ private:
 	bool emisionActive = true;
 	int duration = 1000;
 	uint emisionStart = 0;
+	bool rotationActive = false;
+	int rotationOvertime = 0;
+
+	//Animation
 	int tileSize_X = 1;
 	int tileSize_Y = 1;
 	int startFrame = 0;

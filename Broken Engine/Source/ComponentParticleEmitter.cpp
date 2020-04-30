@@ -211,6 +211,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				else
 					particles[i]->plane = App->scene_manager->plane;
 
+				particles[i]->rotation.z += rotationOvertime * dt;
 			}
 		}
 		// return ownership of the buffers back to the SDK
@@ -847,7 +848,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::Text("Start Frame:");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragInt("##sframe", &startFrame);
+		ImGui::DragInt("##sframe", &startFrame,1,0, (tileSize_X * tileSize_Y) - 1);
 		ImGui::Text("Cycles:");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
@@ -857,6 +858,16 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			createdAnim = false;
 		}
 
+		ImGui::TreePop();
+	}
+
+	if (ImGui::TreeNode("Rotation Speed OverTime"))
+	{
+		ImGui::Checkbox("Active", &rotationActive);
+		ImGui::Text("Speed:");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+		ImGui::DragInt("#X", &rotationOvertime);
 		ImGui::TreePop();
 	}
 }

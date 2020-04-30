@@ -28,6 +28,7 @@ public:
 	int currentGradient = 0;
 	int gradientTimer = 0;
 	float diameter=1;
+	float3 rotation = float3::zero;
 	float2 scale = {1,1};
 
 	ResourceTexture* texture = nullptr;

@@ -79,6 +79,7 @@ private:
 	physx::PxParticleExt::IndexPool* indexPool;
 
 	uint validParticles = 0;
+	bool constants = false;
 
 	//Emitter properties
 	float3 emitterPosition = { 0,0,0 };
@@ -95,7 +96,9 @@ private:
 	int duration = 1000;
 	uint emisionStart = 0;
 	bool rotationActive = false;
-	int rotationOvertime = 0;
+	int rotationOvertime1[3] = { 0,0,0 };
+	int rotationOvertime2[3] = { 0,0,0 };
+	bool separateAxis = false;
 
 	//Animation
 	int tileSize_X = 1;

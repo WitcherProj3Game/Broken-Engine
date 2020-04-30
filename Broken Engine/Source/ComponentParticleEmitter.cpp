@@ -179,8 +179,8 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				//Update particle position
 				particles[i]->scale.x += scaleOverTime * dt;
 				particles[i]->scale.y += scaleOverTime * dt;
-				float3 newPosition(positionIt->x + particles[i]->scale.x / 2, positionIt->y - particles[i]->scale.y / 2, positionIt->z);
-				particles[i]->position = newPosition;
+
+				particles[i]->position = float3(positionIt->x, positionIt->y, positionIt->z);
 
 				if (colorGradient && gradients.size() > 0)
 				{
@@ -211,7 +211,9 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				else
 					particles[i]->plane = App->scene_manager->plane;
 
-				particles[i]->rotation.z += rotationOvertime * dt;
+				if(rotationOvertime1 != 0)
+					particles[i]->rotation += particles[i]->rotationSpeed * DEGTORAD * dt;
+
 			}
 		}
 		// return ownership of the buffers back to the SDK
@@ -350,6 +352,15 @@ json ComponentParticleEmitter::Save() const
 	if (texture)
 		node["Resources"]["ResourceTexture"] = std::string(texture->GetResourceFile());
 
+	node["separateAxis"] = std::to_string(separateAxis);
+	node["rotationOvertime1"][0] = std::to_string(rotationOvertime1[0]);
+	node["rotationOvertime1"][1] = std::to_string(rotationOvertime1[1]);
+	node["rotationOvertime1"][2] = std::to_string(rotationOvertime1[2]);
+	node["rotationOvertime2"][0] = std::to_string(rotationOvertime2[0]);
+	node["rotationOvertime2"][1] = std::to_string(rotationOvertime2[1]);
+	node["rotationOvertime2"][2] = std::to_string(rotationOvertime2[2]);
+	node["constants"] = std::to_string(constants);
+
 	return node;
 }
 
@@ -408,6 +419,16 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string _num_colors = node["num_colors"].is_null() ? "0" : node["num_colors"];
 	std::string _num_gradients = node["num_gradients"].is_null() ? "0" : node["num_gradients"];
 	std::string _gradientDuration = node["grad_duration"].is_null() ? "0" : node["grad_duration"];
+
+
+	std::string _separateAxis = node["separateAxis"].is_null() ? "0" : node["separateAxis"];
+	std::string rotationOvertime1_X = node["rotationOvertime1"][0].is_null() ? "0" : node["rotationOvertime1"][0];
+	std::string rotationOvertime1_Y = node["rotationOvertime1"][1].is_null() ? "0" : node["rotationOvertime1"][1];
+	std::string rotationOvertime1_Z = node["rotationOvertime1"][2].is_null() ? "0" : node["rotationOvertime1"][2];
+	std::string rotationOvertime2_X = node["rotationOvertime2"][0].is_null() ? "0" : node["rotationOvertime2"][0];
+	std::string rotationOvertime2_Y = node["rotationOvertime2"][1].is_null() ? "0" : node["rotationOvertime2"][1];
+	std::string rotationOvertime2_Z = node["rotationOvertime2"][2].is_null() ? "0" : node["rotationOvertime2"][2];
+	std::string _constants = node["constants"].is_null() ? "0" : node["constants"];
 
 	colorDuration = std::atoi(_gradientDuration.c_str());
 	int num = std::stof(_num_colors);
@@ -503,6 +524,16 @@ void ComponentParticleEmitter::Load(json& node)
 	tileSize_Y = std::stof(_tiles_Y);
 	cycles = std::stof(_cycles);
 	startFrame = std::stof(_startFrame);
+
+	separateAxis = std::stof(_separateAxis);
+	rotationOvertime1[0] = std::stof(rotationOvertime1_X);
+	rotationOvertime1[1] = std::stof(rotationOvertime1_Y);
+	rotationOvertime1[2] = std::stof(rotationOvertime1_Z);
+	rotationOvertime2[0] = std::stof(rotationOvertime2_X);
+	rotationOvertime2[1] = std::stof(rotationOvertime2_Y);
+	rotationOvertime2[2] = std::stof(rotationOvertime2_Z);
+	constants = std::stof(_constants);
+
 }
 
 void ComponentParticleEmitter::CreateInspectorNode()
@@ -713,6 +744,161 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	ImGui::Separator();
 
+	if (ImGui::TreeNode("Color over Lifetime"))
+	{
+		////Particles Color
+		int delete_color = -1;
+		for (int i = 0; i < colors.size(); ++i)
+		{
+			std::string label = "##PEParticle Color";
+			label.append(std::to_string(i));
+			if (ImGui::ColorEdit4(label.data(), (float*)&colors[i], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar))
+			{
+				UpdateAllGradients();
+			}
+			if (colors.size() > 1) {
+				colorGradient = true;
+				ImGui::SameLine();
+				ImGui::PushID(std::to_string(i).c_str());
+				if (ImGui::Button("x")) {
+					delete_color = i;
+				}
+				ImGui::PopID();
+			}
+			else {
+				colorGradient = false;
+			}
+		}
+
+		if (delete_color != -1) {
+			int i = 0;
+			std::vector<float4>::iterator it = colors.begin();
+			while (it != colors.end()) {
+				if (i == delete_color) {
+					it = colors.erase(it);
+					std::vector<float4>::iterator g_it = gradients.begin();
+					if (i != 0)
+						std::advance(g_it, i - 1);
+					gradients.erase(g_it);
+					UpdateAllGradients();
+				}
+				else {
+					++it;
+				}
+				i++;
+			}
+		}
+
+		if (ImGui::Button("Add color"))
+		{
+			uint index = colors.size() - 1;
+			colors.push_back(colors[index]); //Start the new color with tha same the last one had
+			colorDuration = particlesLifeTime / (gradients.size() + 1);
+
+			//Update the gradients
+			float4 newGradient = (colors[index + 1] - colors[index]) / colorDuration;
+			gradients.push_back(newGradient);
+			UpdateAllGradients();
+		}
+
+		ImGui::TreePop();
+	}
+
+	ImGui::Separator();
+
+	if (ImGui::TreeNode("Rotation over Lifetime"))
+	{
+		ImGui::Text("Separate Axis");
+		ImGui::SameLine();
+		ImGui::Checkbox("##separateaxis", &separateAxis);
+		ImGui::Text("Ang. Vel:");
+		ImGui::SameLine();
+		if (!separateAxis) {
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragInt("##Z2", &rotationOvertime1[2]);
+			if (constants) {
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+				ImGui::DragInt("##Z2", &rotationOvertime2[2]);
+			}
+			ImGui::SameLine();
+			if (ImGui::SmallButton("v"))
+				ImGui::OpenPopup("Component options");
+		}
+		else {
+			int cursor = ImGui::GetCursorPosX();
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragInt("##X0", &rotationOvertime1[0], 1, -1000, 1000);
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragInt("##Y0", &rotationOvertime1[1], 1, -1000, 1000);
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragInt("##Z0", &rotationOvertime1[2], 1, -1000, 1000);
+			ImGui::SameLine();
+			if (ImGui::SmallButton("v"))
+				ImGui::OpenPopup("Component options");
+			if (constants) {
+				ImGui::SetCursorPosX(cursor);
+				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+				ImGui::DragInt("##X1", &rotationOvertime2[0], 1, -1000, 1000);
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+				ImGui::DragInt("##Y1", &rotationOvertime2[1], 1, -1000, 1000);
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+				ImGui::DragInt("##Z1", &rotationOvertime2[2], 1, -1000, 1000);
+			}
+		}
+
+		if (ImGui::BeginPopup("Component options"))
+		{
+			if (ImGui::MenuItem("Constant", "", !constants))
+			{
+				constants = false;
+			}
+			if (ImGui::MenuItem("Random Between two Constants", "", constants))
+			{
+				constants = true;
+			}
+			ImGui::EndPopup();
+		}
+
+		ImGui::TreePop();
+	}
+
+	ImGui::Separator();
+
+	if (ImGui::TreeNode("Animation"))
+	{
+		int tmpX = tileSize_X;
+		int tmpY = tileSize_Y;
+		ImGui::Checkbox("Animation", &animation);
+		ImGui::Text("Tiles:");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+		ImGui::DragInt("X", &tileSize_X, 1, 1, texture->Texture_width);
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+		ImGui::DragInt("Y", &tileSize_Y, 1, 1, texture->Texture_height);
+		ImGui::Text("Start Frame:");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+		ImGui::DragInt("##sframe", &startFrame, 1, 0, (tileSize_X * tileSize_Y) - 1);
+		ImGui::Text("Cycles:");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+		ImGui::DragInt("##cycle", &cycles, 1, 1, 100);
+
+		if (tmpX != tileSize_X || tmpY != tileSize_Y && animation) {
+			createdAnim = false;
+		}
+
+		ImGui::TreePop();
+	}
+
+	ImGui::Separator();
+
 	if (ImGui::TreeNode("Renderer"))
 	{
 		//Scale
@@ -769,107 +955,13 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			ImGui::EndDragDropTarget();
 		}
 
-		////Particles Color
-		ImGui::Checkbox("Color gradient", &colorGradient);
-
-		if (colorGradient) {
-			int delete_color = -1;
-			for (int i = 0; i < colors.size(); ++i)
-			{
-				std::string label = "##PEParticle Color";
-				label.append(std::to_string(i));
-				if (ImGui::ColorEdit4(label.data(), (float*)&colors[i], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar))
-				{
-					UpdateAllGradients();
-				}
-				if (colors.size() > 1) {
-					ImGui::SameLine();
-					ImGui::PushID(std::to_string(i).c_str());
-					if (ImGui::Button("x")) {
-						delete_color = i;
-					}
-					ImGui::PopID();
-				}
-			}
-
-			if (delete_color != -1) {
-				int i = 0;
-				std::vector<float4>::iterator it = colors.begin();
-				while (it != colors.end()) {
-					if (i == delete_color) {
-						it = colors.erase(it);
-						std::vector<float4>::iterator g_it = gradients.begin();
-						if(i != 0)
-							std::advance(g_it, i - 1);
-						gradients.erase(g_it);
-						UpdateAllGradients();
-					}
-					else {
-						++it;
-					}
-					i++;
-				}
-			}
-
-			if (ImGui::Button("Add color"))
-			{
-				uint index = colors.size() - 1;
-				colors.push_back(colors[index]); //Start the new color with tha same the last one had
-				colorDuration = particlesLifeTime/(gradients.size()+1);
-
-				//Update the gradients
-				float4 newGradient = (colors[index+1] - colors[index])/ colorDuration;
-				gradients.push_back(newGradient);
-				UpdateAllGradients();
-			}
-		}
-		else {
-			ImGui::ColorEdit4("##PEParticle Color", (float*)&colors[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
-			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
-			ImGui::Text("Color");
-		}
-		ImGui::TreePop();
-	}
-
-	ImGui::Separator();
-
-	if (ImGui::TreeNode("Animation"))
-	{
-		int tmpX = tileSize_X;
-		int tmpY = tileSize_Y;
-		ImGui::Checkbox("Animation", &animation);
-		ImGui::Text("Tiles:");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragInt("X", &tileSize_X, 1, 1, texture->Texture_width);
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragInt("Y", &tileSize_Y, 1, 1, texture->Texture_height);
-		ImGui::Text("Start Frame:");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragInt("##sframe", &startFrame,1,0, (tileSize_X * tileSize_Y) - 1);
-		ImGui::Text("Cycles:");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragInt("##cycle", &cycles, 1, 1, 100);
-
-		if (tmpX != tileSize_X || tmpY != tileSize_Y && animation) {
-			createdAnim = false;
-		}
+		ImGui::ColorEdit4("##PEParticle Color", (float*)&colors[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+		ImGui::Text("Start Color");
 
 		ImGui::TreePop();
 	}
 
-	if (ImGui::TreeNode("Rotation Speed OverTime"))
-	{
-		ImGui::Checkbox("Active", &rotationActive);
-		ImGui::Text("Speed:");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragInt("#X", &rotationOvertime);
-		ImGui::TreePop();
-	}
 }
 
 double ComponentParticleEmitter::GetRandomValue(double min, double max) //EREASE IN THE FUTURE
@@ -940,6 +1032,37 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 			float randomScaleValue = GetRandomValue(1, particlesScaleRandomFactor);
 			particles[index[i]]->scale.x = particlesScale.x * randomScaleValue;
 			particles[index[i]]->scale.y = particlesScale.y * randomScaleValue;
+
+			//Set Rotation
+			particles[index[i]]->rotation = float3::zero;
+			float3 rot1 = float3::zero;
+			float3 rot2 = float3::zero;
+			if (separateAxis) {
+				rot1 = float3((float)rotationOvertime1[0], (float)rotationOvertime1[1], (float)rotationOvertime1[2]);
+				rot2 = float3((float)rotationOvertime2[0], (float)rotationOvertime2[1], (float)rotationOvertime2[2]);
+			}
+			else {
+				rot1 = float3(0, 0, (float)rotationOvertime1[2]);
+				rot2 = float3(0, 0, (float)rotationOvertime2[2]);
+			}
+			if (constants) {
+				if(rot1.x <= rot2.x)
+					particles[index[i]]->rotationSpeed.x = GetRandomValue(rot1.x, rot2.x);
+				else
+					particles[index[i]]->rotationSpeed.x = GetRandomValue(rot2.x, rot1.x);
+				if (rot1.y <= rot2.y)
+					particles[index[i]]->rotationSpeed.y = GetRandomValue(rot1.y, rot2.y);
+				else
+					particles[index[i]]->rotationSpeed.y = GetRandomValue(rot2.y, rot1.y);
+				if (rot1.z <= rot2.z)
+					particles[index[i]]->rotationSpeed.z = GetRandomValue(rot1.z, rot2.z);
+				else
+					particles[index[i]]->rotationSpeed.z = GetRandomValue(rot2.z, rot1.z);
+			}
+			else {
+				particles[index[i]]->rotationSpeed = rot1;
+			}
+
 		}
 
 		creationData.indexBuffer = indexBuffer;

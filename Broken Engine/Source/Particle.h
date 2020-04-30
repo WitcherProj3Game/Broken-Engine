@@ -28,8 +28,10 @@ public:
 	int currentGradient = 0;
 	int gradientTimer = 0;
 	float diameter=1;
-	float3 rotation = float3::zero;
-	float2 scale = {1,1};
+	float3 rotation = { 0,0,0 };
+	float3 scale = {1,1,1};
+	float3 rotationSpeed = { 0,0,0 };
+	float3 scaleSpeed = { 0,0,0 };
 
 	ResourceTexture* texture = nullptr;
 	ResourceMesh* plane = nullptr;

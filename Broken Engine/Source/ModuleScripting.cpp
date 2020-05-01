@@ -367,7 +367,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetMaterialByUID", &ScriptingMaterials::SetMaterialByUUID)
 		
 		.addFunction("GetCurrentMatName", &ScriptingMaterials::GetCurrentMaterialName)
-		.addFunction("GetCurrentMatUUID", &ScriptingMaterials::GetCurrentMaterialUUID)
+		.addFunction("GetCurrentMatUID", &ScriptingMaterials::GetCurrentMaterialUUID)
 		.addFunction("GetMaterialNameFromUID", &ScriptingMaterials::GetMaterialNameByUUID)
 		.addFunction("GetMaterialUIDFromName", &ScriptingMaterials::GetMaterialUUIDByName)
 

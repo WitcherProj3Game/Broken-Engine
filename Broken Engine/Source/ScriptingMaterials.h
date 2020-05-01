@@ -26,9 +26,6 @@ public:
 	void SetAlpha(float alpha, uint gameobject_UUID);
 	void SetColor(float r, float g, float b, float a, uint gameobject_UUID);
 
-	//SetShader (through name and uuid)
-	//SetUniform (through uniform name & type)
-
 	// --- Standard Getters ---
 	bool GetTransparency(uint gameobject_UUID) const;
 	bool GetCulling(uint gameobject_UUID) const;
@@ -42,11 +39,15 @@ public:
 	void SetMaterialByUUID(uint mat_UUID, uint gameobject_UUID);
 
 	// --- Get Materials ---
-	const char* GetCurrentMaterialName(uint gameobject_UUID);
-	int GetCurrentMaterialUUID(uint gameobject_UUID);
-	const char* GetMaterialNameByUUID(const uint mat_UUID);
-	int GetMaterialUUIDByName(const char* mat_name);
+	const char* GetCurrentMaterialName(uint gameobject_UUID) const;
+	int GetCurrentMaterialUUID(uint gameobject_UUID) const;
+	const char* GetMaterialNameByUUID(const uint mat_UUID) const;
+	int GetMaterialUUIDByName(const char* mat_name) const;
 
+	// --- Set Shader ---
+	//SetShader (through name and uuid)
+	//SetUniform (through uniform name & type)
+	// --- Get Shader ---
 	//GetShader (name and uuid)
 	//GetUniform (through uniform name & type)
 

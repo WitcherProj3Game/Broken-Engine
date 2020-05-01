@@ -375,7 +375,7 @@ void ScriptingMaterials::SetMaterialByUUID(uint mat_UUID, uint gameobject_UUID)
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------- MATERIAL GETTERS -------------------------------------------------------------------
-const char* ScriptingMaterials::GetCurrentMaterialName(uint gameobject_UUID)
+const char* ScriptingMaterials::GetCurrentMaterialName(uint gameobject_UUID) const
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 	if (go)
@@ -393,7 +393,7 @@ const char* ScriptingMaterials::GetCurrentMaterialName(uint gameobject_UUID)
 	return "null";
 }
 
-int ScriptingMaterials::GetCurrentMaterialUUID(uint gameobject_UUID)
+int ScriptingMaterials::GetCurrentMaterialUUID(uint gameobject_UUID) const
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 	if (go)
@@ -415,7 +415,7 @@ int ScriptingMaterials::GetCurrentMaterialUUID(uint gameobject_UUID)
 	return -1;
 }
 
-const char* ScriptingMaterials::GetMaterialNameByUUID(const uint mat_UUID)
+const char* ScriptingMaterials::GetMaterialNameByUUID(const uint mat_UUID) const
 {
 	ResourceMaterial* new_mat = App->resources->GetMaterialByUUID(mat_UUID).second;
 	if (new_mat != nullptr)
@@ -426,7 +426,7 @@ const char* ScriptingMaterials::GetMaterialNameByUUID(const uint mat_UUID)
 	return "null";
 }
 
-int ScriptingMaterials::GetMaterialUUIDByName(const char* mat_name)
+int ScriptingMaterials::GetMaterialUUIDByName(const char* mat_name) const
 {
 	ResourceMaterial* new_mat = App->resources->GetMaterialByName(mat_name).second;
 	if (new_mat != nullptr)

@@ -122,12 +122,12 @@ update_status ModuleEditorUI::Update(float dt)
 
 			if (ImGui::BeginMenu("Generate Autocomplete File"))
 			{
-				if (ImGui::MenuItem("With variables placed on Enter"))
+				if (ImGui::MenuItem("With Variables Autocompleted on Enter"))
 				{
 					Broken::AutoCompleteFileGen ac_filegen;
 					ac_filegen.GenerateAutoCompleteFile(true);
 				}
-				if (ImGui::MenuItem("Only Variable Suggestion on description"))
+				if (ImGui::MenuItem("Only Variable Suggestion on Description"))
 				{
 					Broken::AutoCompleteFileGen ac_filegen;
 					ac_filegen.GenerateAutoCompleteFile(false);

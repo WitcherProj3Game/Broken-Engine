@@ -58,6 +58,14 @@ public:
 	//SetUniform (through uniform name & type)
 	//GetUniform (through uniform name & type)
 
+	// --- Uniforms ---
+	void SetUniformInt(const char* material_name, const char* unif_name, int value);
+	void SetUniformFloat(const char* material_name, const char* unif_name, float value);
+	void SetUniformVec2(const char* material_name, const char* unif_name, float x, float y);
+	void SetUniformVec3(const char* material_name, const char* unif_name, float x, float y, float z);
+	void SetUniformVec4(const char* material_name, const char* unif_name, float x, float y, float z, float w);
+	void SetUniformBool(const char* material_name, const char* unif_name, bool value);
+
 };
 BE_END_NAMESPACE
 

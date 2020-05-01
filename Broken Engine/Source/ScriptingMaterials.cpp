@@ -469,3 +469,87 @@ int ScriptingMaterials::GetShaderUUIDByName(const char* shader_name) const
 
 	return -1;
 }
+
+// --------------------------------------------------------------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------- SHADER UNIFORMS -------------------------------------------------------------------
+void ScriptingMaterials::SetUniformInt(const char* material_name, const char* unif_name, int value)
+{
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
+	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
+	{
+		ENGINE_CONSOLE_LOG("[Script]: () Material passed (%s) is null or Default (cannot be modified)", material_name);
+		return;
+	}
+
+	Broken::data unif_data;
+	unif_data.intU = value;
+	new_mat->shader->setUniform(unif_name, unif_data, Broken::UniformType::intU);
+}
+
+void ScriptingMaterials::SetUniformFloat(const char* material_name, const char* unif_name, float value)
+{
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
+	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
+	{
+		ENGINE_CONSOLE_LOG("[Script]: () Material passed (%s) is null or Default (cannot be modified)", material_name);
+		return;
+	}
+
+	Broken::data unif_data;
+	unif_data.floatU = value;
+	new_mat->shader->setUniform(unif_name, unif_data, Broken::UniformType::floatU);
+}
+
+void ScriptingMaterials::SetUniformVec2(const char* material_name, const char* unif_name, float x, float y)
+{
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
+	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
+	{
+		ENGINE_CONSOLE_LOG("[Script]: () Material passed (%s) is null or Default (cannot be modified)", material_name);
+		return;
+	}
+
+	Broken::data unif_data;
+	unif_data.vec2U = float2(x, y);
+	new_mat->shader->setUniform(unif_name, unif_data, Broken::UniformType::vec2U);
+}
+
+void ScriptingMaterials::SetUniformVec3(const char* material_name, const char* unif_name, float x, float y, float z)
+{
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
+	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
+	{
+		ENGINE_CONSOLE_LOG("[Script]: () Material passed (%s) is null or Default (cannot be modified)", material_name);
+		return;
+	}
+
+	Broken::data unif_data;
+	unif_data.vec3U = float3(x, y, z);
+	new_mat->shader->setUniform(unif_name, unif_data, Broken::UniformType::vec3U);
+}
+
+void ScriptingMaterials::SetUniformVec4(const char* material_name, const char* unif_name, float x, float y, float z, float w)
+{
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
+	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
+	{
+		ENGINE_CONSOLE_LOG("[Script]: () Material passed (%s) is null or Default (cannot be modified)", material_name);
+		return;
+	}
+
+	Broken::data unif_data;
+	unif_data.vec4U = float4(x, y, z, w);
+	new_mat->shader->setUniform(unif_name, unif_data, Broken::UniformType::vec4U);
+}
+
+void ScriptingMaterials::SetUniformBool(const char* material_name, const char* unif_name, bool value)
+{
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
+	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
+	{
+		ENGINE_CONSOLE_LOG("[Script]: () Material passed (%s) is null or Default (cannot be modified)", material_name);
+		return;
+	}
+
+	new_mat->shader->setBool(unif_name, value);
+}

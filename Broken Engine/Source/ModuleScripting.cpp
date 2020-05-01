@@ -363,15 +363,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.beginClass <ScriptingMaterials>("Materials")
 		.addConstructor<void(*) (void)>()
 
-		.addFunction("SetMaterialByName", &ScriptingMaterials::SetMaterialByName)
-		.addFunction("SetMaterialByUID", &ScriptingMaterials::SetMaterialByUUID)
-		
-		.addFunction("GetCurrentMatName", &ScriptingMaterials::GetCurrentMaterialName)
-		.addFunction("GetCurrentMatUID", &ScriptingMaterials::GetCurrentMaterialUUID)
-		.addFunction("GetMaterialNameFromUID", &ScriptingMaterials::GetMaterialNameByUUID)
-		.addFunction("GetMaterialUIDFromName", &ScriptingMaterials::GetMaterialUUIDByName)
-
-
+		//Materials Standard Values
 		.addFunction("SetMaterialTransparent", &ScriptingMaterials::SetTransparency)
 		.addFunction("SetMaterialCulling", &ScriptingMaterials::SetCulling)
 		.addFunction("SetMaterialShininess", &ScriptingMaterials::SetShininess)
@@ -385,6 +377,25 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("GetMaterialShininess", &ScriptingMaterials::GetShininess)
 		.addFunction("GetMaterialAlpha", &ScriptingMaterials::GetAlpha)
 		.addFunction("GetMaterialColor", &ScriptingMaterials::GetColor)
+
+		//Materials Setters/Getters
+		.addFunction("SetMaterialByName", &ScriptingMaterials::SetMaterialByName)
+		.addFunction("SetMaterialByUID", &ScriptingMaterials::SetMaterialByUUID)
+
+		.addFunction("GetCurrentMatName", &ScriptingMaterials::GetCurrentMaterialName)
+		.addFunction("GetCurrentMatUID", &ScriptingMaterials::GetCurrentMaterialUUID)
+		.addFunction("GetMaterialNameFromUID", &ScriptingMaterials::GetMaterialNameByUUID)
+		.addFunction("GetMaterialUIDFromName", &ScriptingMaterials::GetMaterialUUIDByName)
+
+		//Materials Shaders
+		.addFunction("SetShaderByName", &ScriptingMaterials::SetShaderByName)
+		.addFunction("SetShaderByUID", &ScriptingMaterials::SetShaderByUUID)
+		.addFunction("SetShaderToMaterial", &ScriptingMaterials::SetShaderToMaterial)
+
+		.addFunction("GetCurrentShaderName", &ScriptingMaterials::GetCurrentShaderName)
+		.addFunction("GetCurrentShaderUID", &ScriptingMaterials::GetCurrentShaderUUID)
+		.addFunction("GetShaderNameFromUID", &ScriptingMaterials::GetShaderNameByUUID)
+		.addFunction("GetShaderUIDFromName", &ScriptingMaterials::GetShaderUUIDByName)
 		
 		.endClass()
 

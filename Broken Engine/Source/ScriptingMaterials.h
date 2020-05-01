@@ -41,14 +41,21 @@ public:
 	// --- Get Materials ---
 	const char* GetCurrentMaterialName(uint gameobject_UUID) const;
 	int GetCurrentMaterialUUID(uint gameobject_UUID) const;
-	const char* GetMaterialNameByUUID(const uint mat_UUID) const;
+	const char* GetMaterialNameByUUID(uint mat_UUID) const;
 	int GetMaterialUUIDByName(const char* mat_name) const;
 
 	// --- Set Shader ---
-	//SetShader (through name and uuid)
-	//SetUniform (through uniform name & type)
+	void SetShaderByName(const char* shader_name, uint gameobject_UUID);
+	void SetShaderByUUID(uint shader_UUID, uint gameobject_UUID);
+	void SetShaderToMaterial(const char* shader_name, const char* material_name);
+
 	// --- Get Shader ---
-	//GetShader (name and uuid)
+	const char* GetCurrentShaderName(uint gameobject_UUID) const;
+	int GetCurrentShaderUUID(uint gameobject_UUID) const;
+	const char* GetShaderNameByUUID(uint mat_UUID) const;
+	int GetShaderUUIDByName(const char* mat_name) const;
+
+	//SetUniform (through uniform name & type)
 	//GetUniform (through uniform name & type)
 
 };

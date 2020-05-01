@@ -30,11 +30,10 @@ public:
 	void FreeMemory() override;
 
 	std::string previewTexPath;
-private:
-
+	void CreateVAO();
 	void CreateVBO();
 	void CreateEBO();
-	void CreateVAO();
+private:
 
 public:
 

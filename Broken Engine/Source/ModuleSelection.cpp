@@ -526,12 +526,12 @@ void ModuleSelection::PasteComponentValuesToSelected()
 	}
 }
 
-void ModuleSelection::DeleteComponentToSelected()
+void ModuleSelection::DeleteComponentToSelected(Component* component)
 {
 	for (GameObject* obj : *GetSelected())
 	{
-		if (Component * component = obj->HasComponent(component_type))
-			component->to_delete = true;
+		if (Component * c = obj->HasComponent(component->GetType()))
+			c->to_delete = true;
 	}
 
 }

@@ -11,8 +11,11 @@
 #include "GameObject.h"
 #include "Components.h"
 #include "ComponentMeshRenderer.h"
+
+// -- Others --
 #include "ResourceMaterial.h"
 #include "ResourceShader.h"
+#include "ImporterMaterial.h"
 
 #include "ScriptData.h"
 #include "ResourceScene.h"
@@ -477,13 +480,19 @@ void ScriptingMaterials::SetUniformInt(const char* material_name, const char* un
 	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
 	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
 	{
-		ENGINE_CONSOLE_LOG("[Script]: () Material passed (%s) is null or Default (cannot be modified)", material_name);
+		ENGINE_CONSOLE_LOG("[Script]: (SetUniformInt) Material passed (%s) is null or Default (cannot be modified)", material_name);
 		return;
 	}
 
-	Broken::data unif_data;
-	unif_data.intU = value;
-	new_mat->shader->setUniform(unif_name, unif_data, Broken::UniformType::intU);
+	for (uint i = 0; i < new_mat->uniforms.size(); ++i)
+	{
+		if (new_mat->uniforms[i]->name == unif_name)
+		{
+			new_mat->uniforms[i]->value.intU = value;
+			new_mat->UpdateUniforms();
+			App->resources->GetImporter<ImporterMaterial>()->Save(new_mat);
+		}
+	}
 }
 
 void ScriptingMaterials::SetUniformFloat(const char* material_name, const char* unif_name, float value)
@@ -491,13 +500,19 @@ void ScriptingMaterials::SetUniformFloat(const char* material_name, const char* 
 	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
 	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
 	{
-		ENGINE_CONSOLE_LOG("[Script]: () Material passed (%s) is null or Default (cannot be modified)", material_name);
+		ENGINE_CONSOLE_LOG("[Script]: (SetUniformFloat) Material passed (%s) is null or Default (cannot be modified)", material_name);
 		return;
 	}
 
-	Broken::data unif_data;
-	unif_data.floatU = value;
-	new_mat->shader->setUniform(unif_name, unif_data, Broken::UniformType::floatU);
+	for (uint i = 0; i < new_mat->uniforms.size(); ++i)
+	{
+		if (new_mat->uniforms[i]->name == unif_name)
+		{
+			new_mat->uniforms[i]->value.floatU = value;
+			new_mat->UpdateUniforms();
+			App->resources->GetImporter<ImporterMaterial>()->Save(new_mat);
+		}
+	}
 }
 
 void ScriptingMaterials::SetUniformVec2(const char* material_name, const char* unif_name, float x, float y)
@@ -505,13 +520,19 @@ void ScriptingMaterials::SetUniformVec2(const char* material_name, const char* u
 	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
 	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
 	{
-		ENGINE_CONSOLE_LOG("[Script]: () Material passed (%s) is null or Default (cannot be modified)", material_name);
+		ENGINE_CONSOLE_LOG("[Script]: (SetUniformVec2) Material passed (%s) is null or Default (cannot be modified)", material_name);
 		return;
 	}
 
-	Broken::data unif_data;
-	unif_data.vec2U = float2(x, y);
-	new_mat->shader->setUniform(unif_name, unif_data, Broken::UniformType::vec2U);
+	for (uint i = 0; i < new_mat->uniforms.size(); ++i)
+	{
+		if (new_mat->uniforms[i]->name == unif_name)
+		{
+			new_mat->uniforms[i]->value.vec2U = float2(x, y);
+			new_mat->UpdateUniforms();
+			App->resources->GetImporter<ImporterMaterial>()->Save(new_mat);
+		}
+	}
 }
 
 void ScriptingMaterials::SetUniformVec3(const char* material_name, const char* unif_name, float x, float y, float z)
@@ -519,13 +540,19 @@ void ScriptingMaterials::SetUniformVec3(const char* material_name, const char* u
 	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
 	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
 	{
-		ENGINE_CONSOLE_LOG("[Script]: () Material passed (%s) is null or Default (cannot be modified)", material_name);
+		ENGINE_CONSOLE_LOG("[Script]: (SetUniformVec3) Material passed (%s) is null or Default (cannot be modified)", material_name);
 		return;
 	}
 
-	Broken::data unif_data;
-	unif_data.vec3U = float3(x, y, z);
-	new_mat->shader->setUniform(unif_name, unif_data, Broken::UniformType::vec3U);
+	for (uint i = 0; i < new_mat->uniforms.size(); ++i)
+	{
+		if (new_mat->uniforms[i]->name == unif_name)
+		{
+			new_mat->uniforms[i]->value.vec3U = float3(x, y, z);
+			new_mat->UpdateUniforms();
+			App->resources->GetImporter<ImporterMaterial>()->Save(new_mat);
+		}
+	}
 }
 
 void ScriptingMaterials::SetUniformVec4(const char* material_name, const char* unif_name, float x, float y, float z, float w)
@@ -533,13 +560,19 @@ void ScriptingMaterials::SetUniformVec4(const char* material_name, const char* u
 	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
 	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
 	{
-		ENGINE_CONSOLE_LOG("[Script]: () Material passed (%s) is null or Default (cannot be modified)", material_name);
+		ENGINE_CONSOLE_LOG("[Script]: (SetUniformVec4) Material passed (%s) is null or Default (cannot be modified)", material_name);
 		return;
 	}
-
-	Broken::data unif_data;
-	unif_data.vec4U = float4(x, y, z, w);
-	new_mat->shader->setUniform(unif_name, unif_data, Broken::UniformType::vec4U);
+	
+	for (uint i = 0; i < new_mat->uniforms.size(); ++i)
+	{
+		if (new_mat->uniforms[i]->name == unif_name)
+		{
+			new_mat->uniforms[i]->value.vec4U = float4(x, y, z, w);
+			new_mat->UpdateUniforms();
+			App->resources->GetImporter<ImporterMaterial>()->Save(new_mat);
+		}
+	}
 }
 
 void ScriptingMaterials::SetUniformBool(const char* material_name, const char* unif_name, bool value)
@@ -547,7 +580,7 @@ void ScriptingMaterials::SetUniformBool(const char* material_name, const char* u
 	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
 	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
 	{
-		ENGINE_CONSOLE_LOG("[Script]: () Material passed (%s) is null or Default (cannot be modified)", material_name);
+		ENGINE_CONSOLE_LOG("[Script]: (SetUniformBool) Material passed (%s) is null or Default (cannot be modified)", material_name);
 		return;
 	}
 

@@ -398,12 +398,12 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("GetShaderUIDFromName", &ScriptingMaterials::GetShaderUUIDByName)
 
 		//Uniforms
-		//.addFunction("SetUniformInt", &ScriptingMaterials::SetUniformInt)
-		//.addFunction("SetUniformFloat", &ScriptingMaterials::SetUniformFloat)
-		//.addFunction("SetUniformVec2", &ScriptingMaterials::SetUniformVec2)
-		//.addFunction("SetUniformVec3", &ScriptingMaterials::SetUniformVec3)
-		//.addFunction("SetUniformVec4", &ScriptingMaterials::SetUniformVec4)
-		//.addFunction("SetUniformBool", &ScriptingMaterials::SetUniformBool)
+		.addFunction("SetUniformInt", &ScriptingMaterials::SetUniformInt)
+		.addFunction("SetUniformFloat", &ScriptingMaterials::SetUniformFloat)
+		.addFunction("SetUniformVec2", &ScriptingMaterials::SetUniformVec2)
+		.addFunction("SetUniformVec3", &ScriptingMaterials::SetUniformVec3)
+		.addFunction("SetUniformVec4", &ScriptingMaterials::SetUniformVec4)
+		.addFunction("SetUniformBool", &ScriptingMaterials::SetUniformBool)
 		
 		.endClass()
 

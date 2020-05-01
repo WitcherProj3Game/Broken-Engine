@@ -18,15 +18,7 @@ public:
 	ScriptingMaterials() {}
 	~ScriptingMaterials() {}
 
-
-	//Set & Get Material and FindMaterialByName (through UUID?)
-	//void SetMaterialByName(const char* mat_name);
-	//void SetMaterialByUUID(uint mat_UUID);
-	//void GetCurrentMaterialName(); //Not a void
-	//void GetCurrentMaterialUUID(); //Not a void
-	//void GetMaterialUUIDByName(); //Not a void
-
-	// --- Setters ---
+	// --- Standard Setters ---
 	void SetTransparency(bool is_transparent, uint gameobject_UUID);
 	void SetCulling(bool culling, uint gameobject_UUID);
 	void SetShininess(float shininess, uint gameobject_UUID);
@@ -37,13 +29,23 @@ public:
 	//SetShader (through name and uuid)
 	//SetUniform (through uniform name & type)
 
-	// --- Getters ---
+	// --- Standard Getters ---
 	bool GetTransparency(uint gameobject_UUID) const;
 	bool GetCulling(uint gameobject_UUID) const;
 	bool GetTextureUsage(uint gameobject_UUID) const;
 	float GetShininess(uint gameobject_UUID) const;
 	float GetAlpha(uint gameobject_UUID) const;
 	luabridge::LuaRef GetColor(uint gameobject_UUID, lua_State* L) const;
+
+	// --- Set Material ---
+	void SetMaterialByName(const char* mat_name, uint gameobject_UUID);
+	void SetMaterialByUUID(uint mat_UUID, uint gameobject_UUID);
+
+	// --- Get Materials ---
+	const char* GetCurrentMaterialName(uint gameobject_UUID);
+	int GetCurrentMaterialUUID(uint gameobject_UUID);
+	const char* GetMaterialNameByUUID(const uint mat_UUID);
+	int GetMaterialUUIDByName(const char* mat_name);
 
 	//GetShader (name and uuid)
 	//GetUniform (through uniform name & type)

@@ -363,6 +363,15 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.beginClass <ScriptingMaterials>("Materials")
 		.addConstructor<void(*) (void)>()
 
+		.addFunction("SetMaterialByName", &ScriptingMaterials::SetMaterialByName)
+		.addFunction("SetMaterialByUID", &ScriptingMaterials::SetMaterialByUUID)
+		
+		.addFunction("GetCurrentMatName", &ScriptingMaterials::GetCurrentMaterialName)
+		.addFunction("GetCurrentMatUUID", &ScriptingMaterials::GetCurrentMaterialUUID)
+		.addFunction("GetMaterialNameFromUID", &ScriptingMaterials::GetMaterialNameByUUID)
+		.addFunction("GetMaterialUIDFromName", &ScriptingMaterials::GetMaterialUUIDByName)
+
+
 		.addFunction("SetMaterialTransparent", &ScriptingMaterials::SetTransparency)
 		.addFunction("SetMaterialCulling", &ScriptingMaterials::SetCulling)
 		.addFunction("SetMaterialShininess", &ScriptingMaterials::SetShininess)

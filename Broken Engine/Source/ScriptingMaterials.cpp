@@ -5,6 +5,7 @@
 #include "ModuleScripting.h"
 #include "ModuleSceneManager.h"
 #include "ModuleResourceManager.h"
+#include "ModuleRenderer3D.h"
 
 // -- Components -
 #include "GameObject.h"
@@ -18,15 +19,8 @@
 
 using namespace Broken;
 
-//void ScriptingMaterials::SetMaterialByName(const char* mat_name)
-//{
-//}
-//
-//void ScriptingMaterials::SetMaterialByUUID(uint mat_UUID)
-//{
-//}
-
-// --------------------------- SETTERS ---------------------------
+// -------------------------------------------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------- SETTERS -----------------------------------------------------------------------
 void ScriptingMaterials::SetTransparency(bool is_transparent, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
@@ -175,7 +169,8 @@ void ScriptingMaterials::SetColor(float r, float g, float b, float a, uint gameo
 }
 
 
-// --------------------------- GETTERS ---------------------------
+// -------------------------------------------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------- GETTERS -----------------------------------------------------------------------
 bool ScriptingMaterials::GetTransparency(uint gameobject_UUID) const
 {
 	bool ret = false;
@@ -330,4 +325,114 @@ luabridge::LuaRef ScriptingMaterials::GetColor(uint gameobject_UUID, lua_State* 
 	table.append(color.w);
 
 	return table;
+}
+
+
+// --------------------------------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------- MATERIAL SETTERS -------------------------------------------------------------------
+void ScriptingMaterials::SetMaterialByName(const char* mat_name, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	if (go)
+	{
+		ComponentMeshRenderer* mesh = go->GetComponent<ComponentMeshRenderer>();
+		if (mesh)
+		{
+			ResourceMaterial* new_mat = App->resources->GetMaterialByName(mat_name).second;
+			if (new_mat != nullptr)
+				mesh->material = new_mat;
+			else
+				ENGINE_CONSOLE_LOG("[Script]: (SetMaterialByName) Couldn't Find Material: '%s' ... Or was null", mat_name);
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (SetMaterialByName) Game Object has no mesh (or null)");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialByName) Could not find GameObject with UUID %d", gameobject_UUID);
+}
+
+void ScriptingMaterials::SetMaterialByUUID(uint mat_UUID, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	if (go)
+	{
+		ComponentMeshRenderer* mesh = go->GetComponent<ComponentMeshRenderer>();
+		if (mesh)
+		{
+			ResourceMaterial* new_mat = App->resources->GetMaterialByUUID(mat_UUID).second;
+			if (new_mat != nullptr)
+				mesh->material = new_mat;
+			else
+				ENGINE_CONSOLE_LOG("[Script]: (SetMaterialByUUID) Couldn't Find Material with UUID %d", mat_UUID);
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (SetMaterialByUUID) Game Object has no mesh (or null)");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialByUUID) Could not find GameObject with UUID %d", gameobject_UUID);
+}
+
+
+// --------------------------------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------- MATERIAL GETTERS -------------------------------------------------------------------
+const char* ScriptingMaterials::GetCurrentMaterialName(uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	if (go)
+	{
+		ComponentMeshRenderer* mesh = go->GetComponent<ComponentMeshRenderer>();
+		if (mesh)
+		{
+			if (mesh->material != nullptr)
+				return mesh->material->GetName();
+			else
+				ENGINE_CONSOLE_LOG("[Script]: (GetCurrentMatUUID) Mesh Material is null");
+		}
+	}
+
+	return "null";
+}
+
+int ScriptingMaterials::GetCurrentMaterialUUID(uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	if (go)
+	{
+		ComponentMeshRenderer* mesh = go->GetComponent<ComponentMeshRenderer>();
+		if (mesh)
+		{
+			if (mesh->material != nullptr)
+				return mesh->material->GetUID();
+			else
+				ENGINE_CONSOLE_LOG("[Script]: (GetCurrentMatUUID) Mesh Material is null");
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (GetCurrentMatUUID) Game Object has no mesh (or null)");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (GetCurrentMatUUID) Could not find GameObject with UUID %d", gameobject_UUID);
+
+	return -1;
+}
+
+const char* ScriptingMaterials::GetMaterialNameByUUID(const uint mat_UUID)
+{
+	ResourceMaterial* new_mat = App->resources->GetMaterialByUUID(mat_UUID).second;
+	if (new_mat != nullptr)
+		return new_mat->GetName();
+	else
+		ENGINE_CONSOLE_LOG("[Script]: (GetMaterialName) Couldn't Find Material with UUID %d", mat_UUID);
+
+	return "null";
+}
+
+int ScriptingMaterials::GetMaterialUUIDByName(const char* mat_name)
+{
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(mat_name).second;
+	if (new_mat != nullptr)
+		return new_mat->GetUID();
+	else
+		ENGINE_CONSOLE_LOG("[Script]: (GetMaterialUUID) Couldn't Find Material: '%s' ... Or was null", mat_name);
+
+	return -1;
 }

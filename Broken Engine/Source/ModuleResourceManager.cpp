@@ -1116,6 +1116,42 @@ uint ModuleResourceManager::GetDefaultMaterialUID()
 	return DefaultMaterial->GetUID();
 }
 
+const std::pair<uint, ResourceMaterial*> ModuleResourceManager::GetDefaultMaterial()
+{
+	return { DefaultMaterial->GetUID(), DefaultMaterial };
+}
+
+const std::pair<uint, ResourceMaterial*> ModuleResourceManager::GetMaterialByName(const char* mat_name)
+{
+	std::string name = mat_name;
+	if (name.compare(DefaultMaterial->GetName()) == 0)
+		return { DefaultMaterial->GetUID(), DefaultMaterial };
+
+	std::map<uint, ResourceMaterial*>::iterator it = materials.begin();
+	for (; it != materials.end(); ++it)
+	{
+		if ((*it).second == nullptr || (*it).first == DefaultMaterial->GetUID())
+			continue;
+
+		if (name.compare((*it).second->GetName()) == 0)
+			return (*it);
+	}
+
+	return { -1, nullptr };
+}
+
+const std::pair<uint, ResourceMaterial*> ModuleResourceManager::GetMaterialByUUID(const uint mat_UUID)
+{
+	if(mat_UUID == DefaultMaterial->GetUID())
+		return { DefaultMaterial->GetUID(), DefaultMaterial };
+
+	std::pair<uint, ResourceMaterial*> ret = (*materials.find(mat_UUID));
+	if (ret.second != nullptr)
+		return ret;
+	else
+		return { -1, nullptr };
+}
+
 void ModuleResourceManager::SaveResource(Resource* resource) const {
 	Resource::ResourceType type = resource->GetType();
 	switch (type) {

@@ -122,6 +122,9 @@ public:
 	ResourceFolder* GetAssetsFolder();
 	uint GetFileFormatVersion();
 	uint GetDefaultMaterialUID();
+	const std::pair<uint, ResourceMaterial*> GetDefaultMaterial();
+	const std::pair<uint, ResourceMaterial*> GetMaterialByName(const char* mat_name);
+	const std::pair<uint, ResourceMaterial*> GetMaterialByUUID(const uint mat_UUID);
 
 private:
 	void SaveResource(Resource* resource) const;

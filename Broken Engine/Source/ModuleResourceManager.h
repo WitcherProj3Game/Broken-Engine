@@ -125,6 +125,8 @@ public:
 	const std::pair<uint, ResourceMaterial*> GetDefaultMaterial();
 	const std::pair<uint, ResourceMaterial*> GetMaterialByName(const char* mat_name);
 	const std::pair<uint, ResourceMaterial*> GetMaterialByUUID(const uint mat_UUID);
+	const std::pair<uint, ResourceShader*> GetShaderByName(const char* shader_name);
+	const std::pair<uint, ResourceShader*> GetShaderByUUID(const uint mat_UUID);
 
 private:
 	void SaveResource(Resource* resource) const;

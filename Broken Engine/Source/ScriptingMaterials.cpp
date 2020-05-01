@@ -12,6 +12,7 @@
 #include "Components.h"
 #include "ComponentMeshRenderer.h"
 #include "ResourceMaterial.h"
+#include "ResourceShader.h"
 
 #include "ScriptData.h"
 #include "ResourceScene.h"
@@ -271,14 +272,14 @@ void ScriptingMaterials::SetMaterialByName(const char* mat_name, uint gameobject
 void ScriptingMaterials::SetMaterialByUUID(uint mat_UUID, uint gameobject_UUID)
 {
 	ComponentMeshRenderer* mesh = nullptr;
-	if (FailSafeCheck("(SetMaterialByUUID)", gameobject_UUID, &mesh) == false)
+	if (FailSafeCheck("(SetMaterialByUID)", gameobject_UUID, &mesh) == false)
 		return;
 
 	ResourceMaterial* new_mat = App->resources->GetMaterialByUUID(mat_UUID).second;
 	if (new_mat != nullptr)
 		mesh->material = new_mat;
 	else
-		ENGINE_CONSOLE_LOG("[Script]: (SetMaterialByUUID) Couldn't Find Material with UUID %d", mat_UUID);
+		ENGINE_CONSOLE_LOG("[Script]: (SetMaterialByUID) Couldn't Find Material with UUID %d", mat_UUID);
 }
 
 
@@ -287,13 +288,13 @@ void ScriptingMaterials::SetMaterialByUUID(uint mat_UUID, uint gameobject_UUID)
 const char* ScriptingMaterials::GetCurrentMaterialName(uint gameobject_UUID) const
 {
 	ComponentMeshRenderer* mesh = nullptr;
-	if (FailSafeCheck("(SetMaterialByName)", gameobject_UUID, &mesh) == false)
+	if (FailSafeCheck("(GetCurrentMatName)", gameobject_UUID, &mesh) == false)
 		return "null";
 
 	if (mesh->material != nullptr)
 		return mesh->material->GetName();
 	else
-		ENGINE_CONSOLE_LOG("[Script]: (GetCurrentMatUUID) Mesh Material is null");
+		ENGINE_CONSOLE_LOG("[Script]: (GetCurrentMatName) Mesh Material is null");
 
 	return "null";
 }
@@ -303,13 +304,13 @@ int ScriptingMaterials::GetCurrentMaterialUUID(uint gameobject_UUID) const
 	int ret = -1;
 
 	ComponentMeshRenderer* mesh = nullptr;
-	if (FailSafeCheck("(GetMaterialAlpha)", gameobject_UUID, &mesh) == false)
+	if (FailSafeCheck("(GetCurrentMatUID)", gameobject_UUID, &mesh) == false)
 		return ret;
 
 	if (mesh->material != nullptr)
 		ret = mesh->material->GetUID();
 	else
-		ENGINE_CONSOLE_LOG("[Script]: (GetCurrentMatUUID) Mesh Material is null");
+		ENGINE_CONSOLE_LOG("[Script]: (GetCurrentMatUID) Mesh Material is null");
 
 	return ret;
 }
@@ -320,7 +321,7 @@ const char* ScriptingMaterials::GetMaterialNameByUUID(uint mat_UUID) const
 	if (new_mat != nullptr)
 		return new_mat->GetName();
 	else
-		ENGINE_CONSOLE_LOG("[Script]: (GetMaterialName) Couldn't Find Material with UUID %d", mat_UUID);
+		ENGINE_CONSOLE_LOG("[Script]: (GetMaterialNameFromUID) Couldn't Find Material with UUID %d", mat_UUID);
 
 	return "null";
 }
@@ -331,7 +332,7 @@ int ScriptingMaterials::GetMaterialUUIDByName(const char* mat_name) const
 	if (new_mat != nullptr)
 		return new_mat->GetUID();
 	else
-		ENGINE_CONSOLE_LOG("[Script]: (GetMaterialUUID) Couldn't Find Material: '%s' ... Or was null", mat_name);
+		ENGINE_CONSOLE_LOG("[Script]: (GetMaterialUIDFromName) Couldn't Find Material: '%s' ... Or was null", mat_name);
 
 	return -1;
 }
@@ -341,17 +342,66 @@ int ScriptingMaterials::GetMaterialUUIDByName(const char* mat_name) const
 // -------------------------------------------------------------------- SHADER SETTERS --------------------------------------------------------------------
 void ScriptingMaterials::SetShaderByName(const char* shader_name, uint gameobject_UUID)
 {
+	ComponentMeshRenderer* mesh = nullptr;
+	if (FailSafeCheck("(SetShaderByName)", gameobject_UUID, &mesh) == false)
+		return;
 
+	if (mesh->material->GetUID() == App->resources->GetDefaultMaterialUID())
+	{
+		ENGINE_CONSOLE_LOG("[Script]: (SetShaderByName) Object has Default Material and cannot be modified");
+		return;
+	}
+
+	ResourceShader* new_shader = App->resources->GetShaderByName(shader_name).second;
+	if (new_shader != nullptr)
+	{
+		mesh->material->shader = new_shader;
+		mesh->material->shader->GetAllUniforms(mesh->material->uniforms);
+	}
+	else
+		ENGINE_CONSOLE_LOG("[Script]: (SetShaderByName) Couldn't Find Shader: '%s' ... Or was null", shader_name);
 }
 
 void ScriptingMaterials::SetShaderByUUID(uint shader_UUID, uint gameobject_UUID)
 {
+	ComponentMeshRenderer* mesh = nullptr;
+	if (FailSafeCheck("(SetShaderByUID)", gameobject_UUID, &mesh) == false)
+		return;
 
+	if (mesh->material->GetUID() == App->resources->GetDefaultMaterialUID())
+	{
+		ENGINE_CONSOLE_LOG("[Script]: (SetShaderByUID) Object has Default Material and cannot be modified");
+		return;
+	}
+
+	ResourceShader* new_shader = App->resources->GetShaderByUUID(shader_UUID).second;
+	if (new_shader != nullptr)
+	{
+		mesh->material->shader = new_shader;
+		mesh->material->shader->GetAllUniforms(mesh->material->uniforms);
+	}
+	else
+		ENGINE_CONSOLE_LOG("[Script]: (SetShaderByUID) Couldn't Find Shader with UUID %d", shader_UUID);
 }
 
 void ScriptingMaterials::SetShaderToMaterial(const char* shader_name, const char* material_name)
 {
-
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
+	
+	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
+	{
+		ENGINE_CONSOLE_LOG("[Script]: (SetShaderToMaterial) Material passed (%s) is null or Default (cannot be modified)", material_name);
+		return;
+	}	
+	
+	ResourceShader* new_shader = App->resources->GetShaderByName(shader_name).second;
+	if (new_shader)
+	{
+		new_mat->shader = new_shader;
+		new_mat->shader->GetAllUniforms(new_mat->uniforms);
+	}
+	else
+		ENGINE_CONSOLE_LOG("[Script]: (SetShaderToMaterial) Shader Passed is null (%s)", shader_name);
 }
 
 
@@ -359,20 +409,63 @@ void ScriptingMaterials::SetShaderToMaterial(const char* shader_name, const char
 // -------------------------------------------------------------------- SHADER GETTERS --------------------------------------------------------------------
 const char* ScriptingMaterials::GetCurrentShaderName(uint gameobject_UUID) const
 {
+	ComponentMeshRenderer* mesh = nullptr;
+	if (FailSafeCheck("(GetCurrentShaderName)", gameobject_UUID, &mesh) == false)
+		return "null";
+
+	if (mesh->material != nullptr)
+	{
+		if (mesh->material->shader != nullptr)
+			return mesh->material->shader->GetName();
+		else
+			ENGINE_CONSOLE_LOG("[Script]: (GetCurrentShaderName) Material Shader is null");
+	}
+	else
+		ENGINE_CONSOLE_LOG("[Script]: (GetCurrentShaderName) Mesh Material is null");
+
+
 	return "null";
 }
 
 int ScriptingMaterials::GetCurrentShaderUUID(uint gameobject_UUID) const
 {
-	return 0;
+	int ret = -1;
+
+	ComponentMeshRenderer* mesh = nullptr;
+	if (FailSafeCheck("(GetCurrentShaderUID)", gameobject_UUID, &mesh) == false)
+		return ret;
+
+	if (mesh->material != nullptr)
+	{
+		if (mesh->material->shader != nullptr)
+			return mesh->material->shader->GetUID();
+		else
+			ENGINE_CONSOLE_LOG("[Script]: (GetCurrentShaderName) Material Shader is null");
+	}
+	else
+		ENGINE_CONSOLE_LOG("[Script]: (GetCurrentShaderUID) Mesh Material is null");
+
+	return ret;
 }
 
-const char* ScriptingMaterials::GetShaderNameByUUID(uint mat_UUID) const
+const char* ScriptingMaterials::GetShaderNameByUUID(uint shader_UUID) const
 {
+	ResourceShader* new_shader = App->resources->GetShaderByUUID(shader_UUID).second;
+	if (new_shader != nullptr)
+		return new_shader->GetName();
+	else
+		ENGINE_CONSOLE_LOG("[Script]: (GetShaderNameFromUID) Couldn't Find Shader with UUID %d", shader_UUID);
+
 	return "null";
 }
 
-int ScriptingMaterials::GetShaderUUIDByName(const char* mat_name) const
+int ScriptingMaterials::GetShaderUUIDByName(const char* shader_name) const
 {
-	return 0;
+	ResourceShader* new_shader = App->resources->GetShaderByName(shader_name).second;
+	if (new_shader != nullptr)
+		return new_shader->GetUID();
+	else
+		ENGINE_CONSOLE_LOG("[Script]: (GetShaderUIDFromName) Couldn't Find Shader: '%s' ... Or was null", shader_name);
+
+	return -1;
 }

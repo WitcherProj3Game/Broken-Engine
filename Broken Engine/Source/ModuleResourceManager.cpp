@@ -1072,6 +1072,7 @@ Resource* ModuleResourceManager::CreateResourceGivenUID(Resource::ResourceType t
 }
 
 
+// ------------------------------------------------------ GETTERS ------------------------------------------------------
 Resource::ResourceType ModuleResourceManager::GetResourceTypeFromPath(const char* path)
 {
 	static_assert(static_cast<int>(Resource::ResourceType::UNKNOWN) == 15, "Resource Switch needs to be updated");
@@ -1111,6 +1112,7 @@ uint ModuleResourceManager::GetFileFormatVersion()
 	return fileFormatVersion;
 }
 
+// ----- Materials & Shaders Getter ----- 
 uint ModuleResourceManager::GetDefaultMaterialUID()
 {
 	return DefaultMaterial->GetUID();
@@ -1152,6 +1154,33 @@ const std::pair<uint, ResourceMaterial*> ModuleResourceManager::GetMaterialByUUI
 		return { -1, nullptr };
 }
 
+const std::pair<uint, ResourceShader*> ModuleResourceManager::GetShaderByName(const char* shader_name)
+{
+	std::string name = shader_name;
+	std::map<uint, ResourceShader*>::iterator it = shaders.begin();
+
+	for (; it != shaders.end(); ++it)
+	{
+		if ((*it).second == nullptr)
+			continue;
+
+		if (name.compare((*it).second->GetName()) == 0)
+			return (*it);
+	}
+
+	return { -1, nullptr };
+}
+
+const std::pair<uint, ResourceShader*> ModuleResourceManager::GetShaderByUUID(const uint mat_UUID)
+{
+	std::pair<uint, ResourceShader*> ret = (*shaders.find(mat_UUID));
+	if (ret.second != nullptr)
+		return ret;
+	else
+		return { -1, nullptr };
+}
+
+// ------------------------------------------------------ RESOURCES UTILITIES ------------------------------------------------------
 void ModuleResourceManager::SaveResource(Resource* resource) const {
 	Resource::ResourceType type = resource->GetType();
 	switch (type) {

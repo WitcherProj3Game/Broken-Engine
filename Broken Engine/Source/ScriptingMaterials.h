@@ -52,8 +52,8 @@ public:
 	// --- Get Shader ---
 	const char* GetCurrentShaderName(uint gameobject_UUID) const;
 	int GetCurrentShaderUUID(uint gameobject_UUID) const;
-	const char* GetShaderNameByUUID(uint mat_UUID) const;
-	int GetShaderUUIDByName(const char* mat_name) const;
+	const char* GetShaderNameByUUID(uint shader_UUID) const;
+	int GetShaderUUIDByName(const char* shader_name) const;
 
 	//SetUniform (through uniform name & type)
 	//GetUniform (through uniform name & type)

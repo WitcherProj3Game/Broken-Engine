@@ -274,3 +274,105 @@ void ScriptingParticles::SetRandomParticleScale(float randomFactor, uint gameobj
 	else
 		ENGINE_CONSOLE_LOG("[Script]: GameObject with UUID %d could not be found!", gameobject_UUID);
 }
+
+void ScriptingParticles::SetScaleOverTime(float scale, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
+		if (emitter)
+			emitter->SetScaleOverTime(scale);
+		else
+			ENGINE_CONSOLE_LOG("[Script]: Particle Emmiter component is NULL");
+	}
+	else
+		ENGINE_CONSOLE_LOG("[Script]: GameObject with UUID %d could not be found!", gameobject_UUID);
+}
+
+void ScriptingParticles::SetTexture(uint texture_UUID, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
+		if (emitter)
+			emitter->SetTexture(texture_UUID);
+		else
+			ENGINE_CONSOLE_LOG("[Script]: Particle Emmiter component is NULL");
+	}
+	else
+		ENGINE_CONSOLE_LOG("[Script]: GameObject with UUID %d could not be found!", gameobject_UUID);
+}
+
+void ScriptingParticles::SetParticlesRotationOverTime(int rotationOverTime, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
+		if (emitter)
+			emitter->SetParticlesRotationOverTime(rotationOverTime);
+		else
+			ENGINE_CONSOLE_LOG("[Script]: Particle Emmiter component is NULL");
+	}
+	else
+		ENGINE_CONSOLE_LOG("[Script]: GameObject with UUID %d could not be found!", gameobject_UUID);
+}
+void ScriptingParticles::SetParticlesRandomRotationOverTime(int randomRotation, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
+		if (emitter)
+			emitter->SetParticlesRandomRotationOverTime(randomRotation);
+		else
+			ENGINE_CONSOLE_LOG("[Script]: Particle Emmiter component is NULL");
+	}
+	else
+		ENGINE_CONSOLE_LOG("[Script]: GameObject with UUID %d could not be found!", gameobject_UUID);
+}
+void ScriptingParticles::SetParticles3DRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
+		if (emitter)
+			emitter->SetParticles3DRotationOverTime(rotationOverTimeX, rotationOverTimeY, rotationOverTimeZ);
+		else
+			ENGINE_CONSOLE_LOG("[Script]: Particle Emmiter component is NULL");
+	}
+	else
+		ENGINE_CONSOLE_LOG("[Script]: GameObject with UUID %d could not be found!", gameobject_UUID);
+}
+void ScriptingParticles::SetParticles3DRandomRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
+		if (emitter)
+			emitter->SetParticles3DRandomRotationOverTime(rotationOverTimeX, rotationOverTimeY, rotationOverTimeZ);
+		else
+			ENGINE_CONSOLE_LOG("[Script]: Particle Emmiter component is NULL");
+	}
+	else
+		ENGINE_CONSOLE_LOG("[Script]: GameObject with UUID %d could not be found!", gameobject_UUID);
+}
+
+void ScriptingParticles::RemoveParticlesRandomRotation(uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
+		if (emitter)
+			emitter->RemoveParticlesRandomRotation();
+		else
+			ENGINE_CONSOLE_LOG("[Script]: Particle Emmiter component is NULL");
+	}
+	else
+		ENGINE_CONSOLE_LOG("[Script]: GameObject with UUID %d could not be found!", gameobject_UUID);
+}

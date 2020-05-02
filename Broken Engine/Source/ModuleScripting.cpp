@@ -330,7 +330,15 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 
 		.addFunction("SetParticlesScale", &ScriptingParticles::SetParticleScaleFromScript)
 		.addFunction("SetRandomParticlesScale", &ScriptingParticles::SetRandomParticleScale)
-		.endClass()
+		.addFunction("SetScaleOverTime", &ScriptingParticles::SetScaleOverTime)
+		.addFunction("SetTexture", &ScriptingParticles::SetTexture)
+		
+		.addFunction("SetParticlesRotationOverTime", &ScriptingParticles::SetParticlesRotationOverTime)
+		.addFunction("SetParticlesRandomRotationOverTime", &ScriptingParticles::SetParticlesRandomRotationOverTime)
+		.addFunction("SetParticles3DRotationOverTime", &ScriptingParticles::SetParticles3DRotationOverTime)
+		.addFunction("SetParticles3DRandomRotationOverTime", &ScriptingParticles::SetParticles3DRandomRotationOverTime)
+		.addFunction("RemoveParticlesRandomRotation", &ScriptingParticles::RemoveParticlesRandomRotation)
+			.endClass()
 
 		// ----------------------------------------------------------------------------------
 		// LIGHTING

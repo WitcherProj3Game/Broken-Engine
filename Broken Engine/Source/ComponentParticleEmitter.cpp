@@ -1237,8 +1237,70 @@ void ComponentParticleEmitter::SetOffsetRotation(float x, float y, float z)
 	float3 difference = (rotation- eulerRotation) * DEGTORAD;
 	Quat quatrot = Quat::FromEulerXYZ(difference.x, difference.y, difference.z);
 
-
-	//emitterRotation = emitterRotation * quatrot;
 	emitterRotation = Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD);
 	eulerRotation = rotation;
+}
+
+void ComponentParticleEmitter::SetScale(float x, float y)
+{
+	particlesScale = { x,y };
+}
+
+void ComponentParticleEmitter::SetScaleOverTime(float scale)
+{
+	scaleOverTime = scale;
+}
+
+void ComponentParticleEmitter::SetScaleRandomFactor(float scaleRandomFactor)
+{
+	particlesScaleRandomFactor = scaleRandomFactor;
+}
+
+void ComponentParticleEmitter::SetTexture(uint UID)
+{
+	Resource* resource = App->resources->GetResource(UID, false);
+
+	if (resource && resource->GetType() == Resource::ResourceType::TEXTURE)
+	{
+		if (texture)
+			texture->Release();
+
+		texture = (ResourceTexture*)App->resources->GetResource(UID);
+	}
+}
+
+
+void ComponentParticleEmitter::SetParticlesRotationOverTime(int rotationOverTime)
+{
+	separateAxis = false;
+	rotationOvertime1[2] = rotationOverTime;
+}
+
+void ComponentParticleEmitter::SetParticlesRandomRotationOverTime(int randomRotation)
+{
+	constants = true;
+	separateAxis = false;
+	rotationOvertime2[2] = randomRotation;
+}
+
+void ComponentParticleEmitter::SetParticles3DRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ)
+{
+	separateAxis = true;
+	rotationOvertime1[0] = rotationOverTimeX;
+	rotationOvertime1[1] = rotationOverTimeY;
+	rotationOvertime1[2] = rotationOverTimeZ;
+}
+
+void ComponentParticleEmitter::SetParticles3DRandomRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ)
+{
+	constants = true;
+	separateAxis = true; 
+	rotationOvertime2[0] = rotationOverTimeX;
+	rotationOvertime2[1] = rotationOverTimeY;
+	rotationOvertime2[2] = rotationOverTimeZ;
+}
+
+void ComponentParticleEmitter::RemoveParticlesRandomRotation()
+{
+	constants = false;
 }

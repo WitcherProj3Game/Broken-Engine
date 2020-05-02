@@ -37,21 +37,37 @@ public:
 
 
 	//Scripting functions
+	//Emitter
 	void Play();
 	void Stop();
 	void SetEmisionRate(float ms);
 	void SetParticlesPerCreation(int particlesAmount);
+	void SetLooping(bool active);
+	void SetOffsetPosition(float x, float y, float z);
+	void SetOffsetRotation(float x, float y, float z);
+	void SetDuration(int duration);
+	
+	//Particles
 	void SetExternalAcceleration(float x, float y, float z);
 	void SetParticlesVelocity(float x, float y, float z);
 	void SetVelocityRF(float x, float y, float z);
-	void SetOffsetPosition(float x, float y, float z);
-	void SetOffsetRotation(float x, float y, float z);
-	void SetLooping(bool active);
-	void SetDuration(int duration);
 	void SetLifeTime(int ms);
 	void SetParticlesScale(float x, float y);
 	void SetParticlesScaleRF(float randomFactor);
+
+	//Rendering
 	void UpdateActorLayer(const int* layerMask);
+	void SetScale(float x, float y);
+	void SetScaleOverTime(float scale);
+	void SetScaleRandomFactor(float scaleRandomFactor);
+	void SetTexture(uint UID);
+
+	//Rotation
+	void SetParticlesRotationOverTime(int rotationOverTime);
+	void SetParticlesRandomRotationOverTime(int randomRotation);
+	void SetParticles3DRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ);
+	void SetParticles3DRandomRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ);
+	void RemoveParticlesRandomRotation();
 
 private:
 

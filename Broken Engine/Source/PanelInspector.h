@@ -22,7 +22,7 @@ public:
 	bool Startup = true;
 
 private:
-	void CreateGameObjectNode(Broken::GameObject& Selected) const;
+	void CreateGameObjectNode(Broken::GameObject* Selected) const;
 };
 
 #endif

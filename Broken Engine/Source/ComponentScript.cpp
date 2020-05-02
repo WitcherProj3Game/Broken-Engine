@@ -101,8 +101,6 @@ void ComponentScript::CreateInspectorNode() {
 							}
 						}
 						ImGui::EndDragDropTarget();
-
-						ImGui::EndDragDropTarget();
 					}
 
 					if (script_variables[i].display_object_name) {

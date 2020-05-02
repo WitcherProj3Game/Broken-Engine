@@ -165,7 +165,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 	particleSystem->setSimulationFilterData(filterData);
 
 	//Update particles
-//lock SDK buffers of *PxParticleSystem* ps for reading
+	//lock SDK buffers of *PxParticleSystem* ps for reading
 	physx::PxParticleReadData* rd = particleSystem->lockParticleReadData();
 
 	std::vector<physx::PxU32> indicesToErease;
@@ -289,9 +289,12 @@ void ComponentParticleEmitter::DrawParticles()
 	while (it != drawingIndices.end())
 	{
 		int paco = (*it).second;
+
+		//Check if the particles are inside the frustum of the camera
 		bool draw = true;
 		for (int i = 0; i < 6; ++i)
 		{
+			//If the particles is on the positive side of one ore more planes, it's outside the frustum
 			if (cameraPlanes[i].IsOnPositiveSide(particles[paco]->position))
 			{
 				draw = false;

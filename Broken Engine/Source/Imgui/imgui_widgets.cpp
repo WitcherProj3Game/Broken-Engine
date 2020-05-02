@@ -7911,6 +7911,7 @@ int ImGui::CurveEditor(const char* label
         }
 
         ImVec2 p_prev = points[0];
+        ImVec2 p_last = points[sizeof(points) / sizeof(ImVec2) + 1];
         ImVec2 tangent_last;
         ImVec2 tangent;
         ImVec2 p;
@@ -8074,12 +8075,17 @@ int ImGui::CurveEditor(const char* label
         }
         if (point_idx == 0)
         {
+            window->DrawList->AddLine(transform(p_prev - ImVec2(50, 0)), transform(p_prev), ImGui::GetColorU32(ImGuiCol_PlotLinesHovered), 1.0f);
             if (handlePoint(p_prev, 0))
             {
                 if (p.x <= p_prev.x) p_prev.x = p.x - 0.001f;
                 points[0] = p_prev;
                 changed_idx = point_idx;
             }
+
+        }
+        if (point_idx + 2 == points_count ) {
+            window->DrawList->AddLine(transform(p_last), transform(p_last + ImVec2(50, 0)), ImGui::GetColorU32(ImGuiCol_PlotLinesHovered), 1.0f);
         }
         ImGui::PopID();
     }

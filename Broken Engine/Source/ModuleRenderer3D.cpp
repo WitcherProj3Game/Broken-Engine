@@ -337,14 +337,19 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	HandleObjectOutlining();
 
 
+	// --- Draw ---
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	if(m_RendererAlphaFunc == AlphaFunction::ONE_ONE_MINUS_SRC)
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	else if(m_RendererAlphaFunc == AlphaFunction::SRC_ONE_MINUS_SCR_ONE)
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+	else
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	DrawTransparentRenderMeshes();
 
-	// --- Draw ---
-	//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+	
 
 	OPTICK_PUSH("Particles Rendering");
 	// -- Draw particles ---

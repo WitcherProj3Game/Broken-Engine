@@ -586,3 +586,111 @@ void ScriptingMaterials::SetUniformBool(const char* material_name, const char* u
 
 	new_mat->shader->setBool(unif_name, value);
 }
+
+
+// ------ UNIFORM GETTERS ------
+int ScriptingMaterials::GetUniformInt(const char* material_name, const char* unif_name) const
+{
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name).second;
+	if (mat == nullptr)
+	{
+		ENGINE_CONSOLE_LOG("[Script]: (GetUniformInt) Material passed (%s) is null", material_name);
+		return -1;
+	}
+
+	for (uint i = 0; i < mat->uniforms.size(); ++i)
+		if (mat->uniforms[i]->name == unif_name)
+			return mat->uniforms[i]->value.intU;
+
+	ENGINE_CONSOLE_LOG("[Script]: (GetUniformInt) Couldn't Find Uniform '%s' for Material '%s'", unif_name, material_name);
+	return -1;
+}
+
+float ScriptingMaterials::GetUniformFloat(const char* material_name, const char* unif_name) const
+{
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name).second;
+	if (mat == nullptr)
+	{
+		ENGINE_CONSOLE_LOG("[Script]: (GetUniformFloat) Material passed (%s) is null", material_name);
+		return -1.0f;
+	}
+
+	for (uint i = 0; i < mat->uniforms.size(); ++i)
+		if (mat->uniforms[i]->name == unif_name)
+			return mat->uniforms[i]->value.floatU;
+
+	ENGINE_CONSOLE_LOG("[Script]: (GetUniformFloat) Couldn't Find Uniform '%s' for Material '%s'", unif_name, material_name);
+	return -1.0f;
+}
+
+luabridge::LuaRef ScriptingMaterials::GetUniformVec2(const char* material_name, const char* unif_name, lua_State* L) const
+{
+	float2 vec = float2(-1.0f, -1.0f);
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name).second;
+
+	if (mat == nullptr)
+		ENGINE_CONSOLE_LOG("[Script]: (GetUniformVec2) Material passed (%s) is null", material_name);
+	else
+	{
+		for (uint i = 0; i < mat->uniforms.size(); ++i)
+			if (mat->uniforms[i]->name == unif_name)
+				vec = mat->uniforms[i]->value.vec2U;
+
+		if (vec.Equals(float2(-1.0f, -1.0f)))
+			ENGINE_CONSOLE_LOG("[Script]: (GetUniformVec2) Couldn't Find Uniform '%s' for Material '%s'", unif_name, material_name);
+	}
+
+	luabridge::LuaRef table = luabridge::newTable(L);
+	table.append(vec.x);
+	table.append(vec.y);
+	return table;
+}
+
+luabridge::LuaRef ScriptingMaterials::GetUniformVec3(const char* material_name, const char* unif_name, lua_State* L) const
+{
+	float3 vec = float3(-1.0f, -1.0f, -1.0f);
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name).second;
+	
+	if (mat == nullptr)
+		ENGINE_CONSOLE_LOG("[Script]: (GetUniformVec3) Material passed (%s) is null", material_name);
+	else
+	{
+		for (uint i = 0; i < mat->uniforms.size(); ++i)
+			if (mat->uniforms[i]->name == unif_name)
+				vec = mat->uniforms[i]->value.vec3U;
+
+		if (vec.Equals(float3(-1.0f, -1.0f, -1.0f)))
+			ENGINE_CONSOLE_LOG("[Script]: (GetUniformVec3) Couldn't Find Uniform '%s' for Material '%s'", unif_name, material_name);
+	}
+
+	luabridge::LuaRef table = luabridge::newTable(L);
+	table.append(vec.x);
+	table.append(vec.y);
+	table.append(vec.z);
+	return table;
+}
+
+luabridge::LuaRef ScriptingMaterials::GetUniformVec4(const char* material_name, const char* unif_name, lua_State* L) const
+{
+	float4 vec = float4(-1.0f, -1.0f, -1.0f, -1.0f);
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name).second;
+
+	if (mat == nullptr)
+		ENGINE_CONSOLE_LOG("[Script]: (GetUniformVec4) Material passed (%s) is null", material_name);
+	else
+	{
+		for (uint i = 0; i < mat->uniforms.size(); ++i)
+			if (mat->uniforms[i]->name == unif_name)
+				vec = mat->uniforms[i]->value.vec4U;
+
+		if (vec.Equals(float4(-1.0f, -1.0f, -1.0f, -1.0f)))
+			ENGINE_CONSOLE_LOG("[Script]: (GetUniformVec4) Couldn't Find Uniform '%s' for Material '%s'", unif_name, material_name);
+	}
+
+	luabridge::LuaRef table = luabridge::newTable(L);
+	table.append(vec.x);
+	table.append(vec.y);
+	table.append(vec.z);
+	table.append(vec.w);
+	return table;
+}

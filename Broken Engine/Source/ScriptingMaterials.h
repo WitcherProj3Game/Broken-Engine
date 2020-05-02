@@ -55,9 +55,6 @@ public:
 	const char* GetShaderNameByUUID(uint shader_UUID) const;
 	int GetShaderUUIDByName(const char* shader_name) const;
 
-	//SetUniform (through uniform name & type)
-	//GetUniform (through uniform name & type)
-
 	// --- Uniforms ---
 	void SetUniformInt(const char* material_name, const char* unif_name, int value);
 	void SetUniformFloat(const char* material_name, const char* unif_name, float value);
@@ -66,6 +63,12 @@ public:
 	void SetUniformVec4(const char* material_name, const char* unif_name, float x, float y, float z, float w);
 	void SetUniformBool(const char* material_name, const char* unif_name, bool value);
 
+	// --- Uniform Getters ---
+	int GetUniformInt(const char* material_name, const char* unif_name) const;
+	float GetUniformFloat(const char* material_name, const char* unif_name) const;
+	luabridge::LuaRef GetUniformVec2(const char* material_name, const char* unif_name, lua_State* L) const;
+	luabridge::LuaRef GetUniformVec3(const char* material_name, const char* unif_name, lua_State* L) const;
+	luabridge::LuaRef GetUniformVec4(const char* material_name, const char* unif_name, lua_State* L) const;
 };
 BE_END_NAMESPACE
 

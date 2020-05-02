@@ -404,6 +404,12 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetUniformVec3", &ScriptingMaterials::SetUniformVec3)
 		.addFunction("SetUniformVec4", &ScriptingMaterials::SetUniformVec4)
 		.addFunction("SetUniformBool", &ScriptingMaterials::SetUniformBool)
+
+		.addFunction("GetUniformInt", &ScriptingMaterials::GetUniformInt)
+		.addFunction("GetUniformFloat", &ScriptingMaterials::GetUniformFloat)
+		.addFunction("GetUniformVec2", &ScriptingMaterials::GetUniformVec2)
+		.addFunction("GetUniformVec3", &ScriptingMaterials::GetUniformVec3)
+		.addFunction("GetUniformVec4", &ScriptingMaterials::GetUniformVec4)
 		
 		.endClass()
 

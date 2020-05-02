@@ -4,6 +4,7 @@
 #include "Timer.h"
 #include "RandomGenerator.h"
 #include "ResourceTexture.h"
+#include "ResourceMesh.h"
 
 #include "ComponentParticleEmitter.h"
 #include "ComponentTransform.h"
@@ -17,6 +18,7 @@
 #include "ModuleResourceManager.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleFileSystem.h"
+#include "ModuleSceneManager.h"
 
 #include "Particle.h"
 
@@ -43,8 +45,10 @@ ComponentParticleEmitter::ComponentParticleEmitter(GameObject* ContainerGO) :Com
 		particles[i] = new Particle();
 
 	texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
-
 	App->renderer3D->particleEmitters.push_back(this);
+
+	float4 whiteColor(1, 1, 1, 1);
+	colors.push_back(whiteColor);
 }
 
 ComponentParticleEmitter::~ComponentParticleEmitter()
@@ -76,6 +80,27 @@ ComponentParticleEmitter::~ComponentParticleEmitter()
 
 void ComponentParticleEmitter::Update()
 {
+	/*if (auxCurve.size() != 0) {
+		pointsCurve.resize(auxCurve.size());
+		std::copy(auxCurve.begin(), auxCurve.end(), pointsCurve.begin());
+	}*/
+
+	if (!animation || !createdAnim) {
+		if (particleMeshes.size() > 0) {
+			for (int i = 0; i < particleMeshes.size(); ++i) {
+				particleMeshes.at(i)->FreeMemory();
+				delete particleMeshes.at(i);
+			}
+			particleMeshes.clear();
+		}
+		createdAnim = false;
+	}
+
+	if (animation && !createdAnim) {
+		CreateAnimation(tileSize_X, tileSize_Y);
+		createdAnim = true;
+	}
+
 	if (to_delete)
 		this->GetContainerGameObject()->RemoveComponent(this);
 }
@@ -110,6 +135,8 @@ void ComponentParticleEmitter::Disable()
 
 void ComponentParticleEmitter::UpdateParticles(float dt)
 {
+	int currentPlayTime = App->time->GetGameplayTimePassed() * 1000;
+
 	// Create particle depending on the time
 	if (emisionActive && App->GetAppState() == AppState::PLAY && !App->time->gamePaused) {
 		if (App->time->GetGameplayTimePassed() * 1000 - spawnClock > emisionRate)
@@ -131,7 +158,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 	particleSystem->setSimulationFilterData(filterData);
 
 	//Update particles
-//lock SDK buffers of *PxParticleSystem* ps for reading
+	//lock SDK buffers of *PxParticleSystem* ps for reading
 	physx::PxParticleReadData* rd = particleSystem->lockParticleReadData();
 
 	std::vector<physx::PxU32> indicesToErease;
@@ -155,13 +182,24 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				}
 
 				//Update particle position
-				float3 newPosition(positionIt->x, positionIt->y, positionIt->z);
-				particles[i]->position = newPosition;
 				particles[i]->scale.x += scaleOverTime * dt;
 				particles[i]->scale.y += scaleOverTime * dt;
 
-				if (colorGradient)
-					particles[i]->color += particleColorVariation * dt * 1000;
+				particles[i]->position = float3(positionIt->x, positionIt->y, positionIt->z);
+
+				if (colorGradient && gradients.size() > 0)
+				{
+					if (particles[i]->currentGradient >= gradients.size())//Comment this and next line in case gradient widget is applyed
+						particles[i]->currentGradient = gradients.size() - 1;
+					particles[i]->color += gradients[particles[i]->currentGradient] * dt * 1000;
+
+					if ((currentPlayTime - particles[i]->gradientTimer > colorDuration) && (particles[i]->currentGradient < gradients.size()-1))
+					{
+						particles[i]->currentGradient++;
+						particles[i]->gradientTimer = currentPlayTime;
+					}
+
+				}
 
 				if (particles[i]->scale.x < 0)
 					particles[i]->scale.x = 0;
@@ -169,6 +207,17 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				if (particles[i]->scale.y < 0)
 					particles[i]->scale.y = 0;
 
+				//Choose Frame Animation
+				if (animation && particleMeshes.size() > 0) {
+					int time = App->time->GetGameplayTimePassed() * 1000 - particles[i]->spawnTime;
+					int index = (particleMeshes.size() * time) / (particles[i]->lifeTime / cycles);
+					particles[i]->plane = particleMeshes[(index + startFrame) % particleMeshes.size()];
+				}
+				else
+					particles[i]->plane = App->scene_manager->plane;
+
+				if(rotationOvertime1 != 0)
+					particles[i]->rotation += particles[i]->rotationSpeed * DEGTORAD * dt;
 
 			}
 		}
@@ -212,11 +261,27 @@ void ComponentParticleEmitter::DrawParticles()
 	if (!active || drawingIndices.empty())
 		return;
 
+	Plane cameraPlanes[6];
+	App->renderer3D->culling_camera->frustum.GetPlanes(cameraPlanes);
+
 	std::map<float, int>::iterator it = drawingIndices.begin();
 	while (it != drawingIndices.end())
 	{
 		int paco = (*it).second;
-		particles[paco]->Draw();
+
+		//Check if the particles are inside the frustum of the camera
+		bool draw = true;
+		for (int i = 0; i < 6; ++i)
+		{
+			//If the particles is on the positive side of one ore more planes, it's outside the frustum
+			if (cameraPlanes[i].IsOnPositiveSide(particles[paco]->position))
+			{
+				draw = false;
+				break;
+			}
+		}
+		if (draw)
+			particles[paco]->Draw();
 		it++;
 	}
 	drawingIndices.clear();
@@ -266,20 +331,30 @@ json ComponentParticleEmitter::Save() const
 
 	node["particlesLifeTime"] = std::to_string(particlesLifeTime);
 
-	node["ColorR"] = std::to_string(particlesColor.x);
-	node["ColorG"] = std::to_string(particlesColor.y);
-	node["ColorB"] = std::to_string(particlesColor.z);
-	node["ColorA"] = std::to_string(particlesColor.w);
+	node["animation"] = std::to_string(animation);
+	node["tiles_X"] = std::to_string(tileSize_X);
+	node["tiles_Y"] = std::to_string(tileSize_Y);
+	node["cycles"] = std::to_string(cycles);
+	node["startFrame"] = std::to_string(startFrame);
 
-	node["Color2R"] = std::to_string(particlesColor2.x);
-	node["Color2G"] = std::to_string(particlesColor2.y);
-	node["Color2B"] = std::to_string(particlesColor2.z);
-	node["Color2A"] = std::to_string(particlesColor2.w);
+	node["num_colors"] = std::to_string(colors.size());
 
-	node["ColorVariationR"] = std::to_string(particleColorVariation.x);
-	node["ColorVariationG"] = std::to_string(particleColorVariation.y);
-	node["ColorVariationB"] = std::to_string(particleColorVariation.z);
-	node["ColorVariationA"] = std::to_string(particleColorVariation.w);
+	for (int i = 0; i < colors.size(); ++i) {
+		node["colors"][i]["x"] = std::to_string(colors[i].x);
+		node["colors"][i]["y"] = std::to_string(colors[i].y);
+		node["colors"][i]["z"] = std::to_string(colors[i].z);
+		node["colors"][i]["a"] = std::to_string(colors[i].w);
+	}
+
+	node["num_gradients"] = std::to_string(gradients.size());
+	for (int i = 0; i < gradients.size(); ++i) {
+		node["gradients"][i]["x"] = std::to_string(gradients[i].x);
+		node["gradients"][i]["y"] = std::to_string(gradients[i].y);
+		node["gradients"][i]["z"] = std::to_string(gradients[i].z);
+		node["gradients"][i]["a"] = std::to_string(gradients[i].w);
+	}
+
+	node["grad_duration"] = std::to_string(colorDuration);
 
 	node["GradientColor"] = colorGradient;
 
@@ -297,6 +372,15 @@ json ComponentParticleEmitter::Save() const
 
 	if (texture)
 		node["Resources"]["ResourceTexture"] = std::string(texture->GetResourceFile());
+
+	node["separateAxis"] = std::to_string(separateAxis);
+	node["rotationOvertime1"][0] = std::to_string(rotationOvertime1[0]);
+	node["rotationOvertime1"][1] = std::to_string(rotationOvertime1[1]);
+	node["rotationOvertime1"][2] = std::to_string(rotationOvertime1[2]);
+	node["rotationOvertime2"][0] = std::to_string(rotationOvertime2[0]);
+	node["rotationOvertime2"][1] = std::to_string(rotationOvertime2[1]);
+	node["rotationOvertime2"][2] = std::to_string(rotationOvertime2[2]);
+	node["constants"] = std::to_string(constants);
 
 	return node;
 }
@@ -338,22 +422,13 @@ void ComponentParticleEmitter::Load(json& node)
 
 	std::string LParticlesSize = node["particlesSize"].is_null() ? "0" : node["particlesSize"];
 
+	std::string _animation = node["animation"].is_null() ? "0" : node["animation"];
+	std::string _tiles_X = node["tiles_X"].is_null() ? "1" : node["tiles_X"];
+	std::string _tiles_Y = node["tiles_Y"].is_null() ? "1" : node["tiles_Y"];
+	std::string _cycles = node["cycles"].is_null() ? "1" : node["cycles"];
+	std::string _startFrame = node["startFrame"].is_null() ? "0" : node["startFrame"];
+
 	std::string LDuration = node["Duration"].is_null() ? "0" : node["Duration"];
-
-	std::string LColorR = node["ColorR"].is_null() ? "0" : node["ColorR"];
-	std::string LColorG = node["ColorG"].is_null() ? "0" : node["ColorG"];
-	std::string LColorB = node["ColorB"].is_null() ? "0" : node["ColorB"];
-	std::string LColorA = node["ColorA"].is_null() ? "0" : node["ColorA"];
-
-	std::string LColor2R = node["Color2R"].is_null() ? "0" : node["Color2R"];
-	std::string LColor2G = node["Color2G"].is_null() ? "0" : node["Color2G"];
-	std::string LColor2B = node["Color2B"].is_null() ? "0" : node["Color2B"];
-	std::string LColor2A = node["Color2A"].is_null() ? "0" : node["Color2A"];
-
-	std::string LColorVariationR = node["ColorVariationR"].is_null() ? "0" : node["ColorVariationR"];
-	std::string LColorVariationG = node["ColorVariationG"].is_null() ? "0" : node["ColorVariationG"];
-	std::string LColorVariationB = node["ColorVariationB"].is_null() ? "0" : node["ColorVariationB"];
-	std::string LColorVariationA = node["ColorVariationA"].is_null() ? "0" : node["ColorVariationA"];
 
 	std::string LParticlesScaleX = node["particlesScaleX"].is_null() ? "1" : node["particlesScaleX"];
 	std::string LParticlesScaleY = node["particlesScaleY"].is_null() ? "1" : node["particlesScaleY"];
@@ -362,10 +437,48 @@ void ComponentParticleEmitter::Load(json& node)
 
 	std::string LScaleOverTime = node["particleScaleOverTime"].is_null() ? "0" : node["particleScaleOverTime"];
 
+	std::string _num_colors = node["num_colors"].is_null() ? "0" : node["num_colors"];
+	std::string _num_gradients = node["num_gradients"].is_null() ? "0" : node["num_gradients"];
+	std::string _gradientDuration = node["grad_duration"].is_null() ? "0" : node["grad_duration"];
+
+
+	std::string _separateAxis = node["separateAxis"].is_null() ? "0" : node["separateAxis"];
+	std::string rotationOvertime1_X = node["rotationOvertime1"][0].is_null() ? "0" : node["rotationOvertime1"][0];
+	std::string rotationOvertime1_Y = node["rotationOvertime1"][1].is_null() ? "0" : node["rotationOvertime1"][1];
+	std::string rotationOvertime1_Z = node["rotationOvertime1"][2].is_null() ? "0" : node["rotationOvertime1"][2];
+	std::string rotationOvertime2_X = node["rotationOvertime2"][0].is_null() ? "0" : node["rotationOvertime2"][0];
+	std::string rotationOvertime2_Y = node["rotationOvertime2"][1].is_null() ? "0" : node["rotationOvertime2"][1];
+	std::string rotationOvertime2_Z = node["rotationOvertime2"][2].is_null() ? "0" : node["rotationOvertime2"][2];
+	std::string _constants = node["constants"].is_null() ? "0" : node["constants"];
+
+	colorDuration = std::atoi(_gradientDuration.c_str());
+	int num = std::stof(_num_colors);
+	if (num != 0) {
+		colors.pop_back();
+		for (int i = 0; i < num; ++i) {
+			std::string color_x = node["colors"][i]["x"].is_null() ? "255" : node["colors"][i]["x"];
+			std::string color_y = node["colors"][i]["y"].is_null() ? "255" : node["colors"][i]["y"];
+			std::string color_z = node["colors"][i]["z"].is_null() ? "255" : node["colors"][i]["z"];
+			std::string color_a = node["colors"][i]["a"].is_null() ? "255" : node["colors"][i]["a"];
+			float4 color = float4(std::stof(color_x), std::stof(color_y), std::stof(color_z), std::stof(color_a));
+			colors.push_back(color);
+		}
+	}
+
 	if (!node["GradientColor"].is_null())
 		colorGradient = node["GradientColor"];
 	else
 		colorGradient = false;
+
+	num = std::stof(_num_gradients);
+	for (int i = 0; i < num; ++i) {
+		std::string color_x = node["gradients"][i]["x"].is_null() ? "255" : node["gradients"][i]["x"];
+		std::string color_y = node["gradients"][i]["y"].is_null() ? "255" : node["gradients"][i]["y"];
+		std::string color_z = node["gradients"][i]["z"].is_null() ? "255" : node["gradients"][i]["z"];
+		std::string color_a = node["gradients"][i]["a"].is_null() ? "255" : node["gradients"][i]["a"];
+		float4 color = float4(std::stof(color_x), std::stof(color_y), std::stof(color_z), std::stof(color_a));
+		gradients.push_back(color);
+	}
 
 	if (!node["Loop"].is_null())
 		loop = node["Loop"];
@@ -418,10 +531,6 @@ void ComponentParticleEmitter::Load(json& node)
 
 	particlesLifeTime = std::stof(LparticlesLifeTime);
 
-	particlesColor = float4(std::stof(LColorR), std::stof(LColorG), std::stof(LColorB), std::stof(LColorA));
-	particlesColor2 = float4(std::stof(LColor2R), std::stof(LColor2G), std::stof(LColor2B), std::stof(LColor2A));
-	particleColorVariation = float4(std::stof(LColorVariationR), std::stof(LColorVariationG), std::stof(LColorVariationB), std::stof(LColorVariationA));
-
 	duration = std::stoi(LDuration);
 
 	particlesScale.x = std::stof(LParticlesScaleX);
@@ -430,6 +539,22 @@ void ComponentParticleEmitter::Load(json& node)
 	particlesScaleRandomFactor = std::stof(LParticleScaleRandomFactor);
 
 	scaleOverTime = std::stof(LScaleOverTime);
+
+	animation = std::stof(_animation);
+	tileSize_X = std::stof(_tiles_X);
+	tileSize_Y = std::stof(_tiles_Y);
+	cycles = std::stof(_cycles);
+	startFrame = std::stof(_startFrame);
+
+	separateAxis = std::stof(_separateAxis);
+	rotationOvertime1[0] = std::stof(rotationOvertime1_X);
+	rotationOvertime1[1] = std::stof(rotationOvertime1_Y);
+	rotationOvertime1[2] = std::stof(rotationOvertime1_Z);
+	rotationOvertime2[0] = std::stof(rotationOvertime2_X);
+	rotationOvertime2[1] = std::stof(rotationOvertime2_Y);
+	rotationOvertime2[2] = std::stof(rotationOvertime2_Z);
+	constants = std::stof(_constants);
+
 }
 
 void ComponentParticleEmitter::CreateInspectorNode()
@@ -511,8 +636,6 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		float3 difference = (rotation - eulerRotation) * DEGTORAD;
 		Quat quatrot = Quat::FromEulerXYZ(difference.x, difference.y, difference.z);
 
-
-		//emitterRotation = emitterRotation * quatrot;
 		emitterRotation = Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD);
 		eulerRotation = rotation;
 	}
@@ -584,8 +707,12 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	//Particles lifetime
 	ImGui::Text("Particles lifetime (ms)");
 	if (ImGui::DragInt("##SParticlesLifetime", &particlesLifeTime, 3.0f, 0.0f, 10000.0f))
-		if (colorGradient)
-			particleColorVariation = (particlesColor2 - particlesColor) / (particlesLifeTime);
+	{
+		UpdateAllGradients();
+	}
+
+	int maxParticles = particlesPerCreation/emisionRate * particlesLifeTime;
+	ImGui::Text("Total particles alive: %d", maxParticles);
 
 	ImGui::Separator();
 
@@ -638,6 +765,161 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	ImGui::Separator();
 
+	if (ImGui::TreeNode("Color over Lifetime"))
+	{
+		////Particles Color
+		int delete_color = -1;
+		for (int i = 0; i < colors.size(); ++i)
+		{
+			std::string label = "##PEParticle Color";
+			label.append(std::to_string(i));
+			if (ImGui::ColorEdit4(label.data(), (float*)&colors[i], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar))
+			{
+				UpdateAllGradients();
+			}
+			if (colors.size() > 1) {
+				colorGradient = true;
+				ImGui::SameLine();
+				ImGui::PushID(std::to_string(i).c_str());
+				if (ImGui::Button("x")) {
+					delete_color = i;
+				}
+				ImGui::PopID();
+			}
+			else {
+				colorGradient = false;
+			}
+		}
+
+		if (delete_color != -1) {
+			int i = 0;
+			std::vector<float4>::iterator it = colors.begin();
+			while (it != colors.end()) {
+				if (i == delete_color) {
+					it = colors.erase(it);
+					std::vector<float4>::iterator g_it = gradients.begin();
+					if (i != 0)
+						std::advance(g_it, i - 1);
+					gradients.erase(g_it);
+					UpdateAllGradients();
+				}
+				else {
+					++it;
+				}
+				i++;
+			}
+		}
+
+		if (ImGui::Button("Add color"))
+		{
+			uint index = colors.size() - 1;
+			colors.push_back(colors[index]); //Start the new color with tha same the last one had
+			colorDuration = particlesLifeTime / (gradients.size() + 1);
+
+			//Update the gradients
+			float4 newGradient = (colors[index + 1] - colors[index]) / colorDuration;
+			gradients.push_back(newGradient);
+			UpdateAllGradients();
+		}
+
+		ImGui::TreePop();
+	}
+
+	ImGui::Separator();
+
+	if (ImGui::TreeNode("Rotation over Lifetime"))
+	{
+		ImGui::Text("Separate Axis");
+		ImGui::SameLine();
+		ImGui::Checkbox("##separateaxis", &separateAxis);
+		ImGui::Text("Ang. Vel:");
+		ImGui::SameLine();
+		if (!separateAxis) {
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragInt("##Z1", &rotationOvertime1[2]);
+			if (constants) {
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+				ImGui::DragInt("##Z2", &rotationOvertime2[2]);
+			}
+			ImGui::SameLine();
+			if (ImGui::SmallButton("v"))
+				ImGui::OpenPopup("Component options");
+		}
+		else {
+			int cursor = ImGui::GetCursorPosX();
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragInt("##X0", &rotationOvertime1[0], 1, -1000, 1000);
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragInt("##Y0", &rotationOvertime1[1], 1, -1000, 1000);
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragInt("##Z0", &rotationOvertime1[2], 1, -1000, 1000);
+			ImGui::SameLine();
+			if (ImGui::SmallButton("v"))
+				ImGui::OpenPopup("Component options");
+			if (constants) {
+				ImGui::SetCursorPosX(cursor);
+				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+				ImGui::DragInt("##X1", &rotationOvertime2[0], 1, -1000, 1000);
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+				ImGui::DragInt("##Y1", &rotationOvertime2[1], 1, -1000, 1000);
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+				ImGui::DragInt("##Z1", &rotationOvertime2[2], 1, -1000, 1000);
+			}
+		}
+
+		if (ImGui::BeginPopup("Component options"))
+		{
+			if (ImGui::MenuItem("Constant", "", !constants))
+			{
+				constants = false;
+			}
+			if (ImGui::MenuItem("Random Between two Constants", "", constants))
+			{
+				constants = true;
+			}
+			ImGui::EndPopup();
+		}
+
+		ImGui::TreePop();
+	}
+
+	ImGui::Separator();
+
+	if (ImGui::TreeNode("Animation"))
+	{
+		int tmpX = tileSize_X;
+		int tmpY = tileSize_Y;
+		ImGui::Checkbox("Animation", &animation);
+		ImGui::Text("Tiles:");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+		ImGui::DragInt("X", &tileSize_X, 1, 1, texture->Texture_width);
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+		ImGui::DragInt("Y", &tileSize_Y, 1, 1, texture->Texture_height);
+		ImGui::Text("Start Frame:");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+		ImGui::DragInt("##sframe", &startFrame, 1, 0, (tileSize_X * tileSize_Y) - 1);
+		ImGui::Text("Cycles:");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+		ImGui::DragInt("##cycle", &cycles, 1, 1, 100);
+
+		if (tmpX != tileSize_X || tmpY != tileSize_Y && animation) {
+			createdAnim = false;
+		}
+
+		ImGui::TreePop();
+	}
+
+	ImGui::Separator();
+
 	if (ImGui::TreeNode("Renderer"))
 	{
 		//Scale
@@ -668,6 +950,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 		// Image
 		ImGui::Text("Image");
+		ImGui::SameLine();
 
 		if (texture == nullptr)
 			ImGui::Image((ImTextureID)App->textures->GetDefaultTextureID(), ImVec2(100, 100), ImVec2(0, 1), ImVec2(1, 0)); //default texture
@@ -693,32 +976,16 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			ImGui::EndDragDropTarget();
 		}
 
-		////Particles Color
-		ImGui::Checkbox("Color gradient", &colorGradient);
+		ImGui::ColorEdit4("##PEParticle Color", (float*)&colors[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+		ImGui::Text("Start Color");
 
-		if (colorGradient) {
-			bool colorsChanged = false;
-			if (ImGui::ColorEdit4("##PEParticle Color", (float*)&particlesColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar))
-				colorsChanged = true;
-			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
-			ImGui::Text("Color");
-
-			if (ImGui::ColorEdit4("##PEParticle Color2", (float*)&particlesColor2, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar))
-				colorsChanged = true;
-			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
-			ImGui::Text("Color2");
-
-			if (colorsChanged)
-				particleColorVariation = (particlesColor2 - particlesColor) / (particlesLifeTime);
-
-		}
-		else {
-			ImGui::ColorEdit4("##PEParticle Color", (float*)&particlesColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
-			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
-			ImGui::Text("Color");
-		}
 		ImGui::TreePop();
 	}
+
+	ImGui::Separator();
+
+	
 }
 
 double ComponentParticleEmitter::GetRandomValue(double min, double max) //EREASE IN THE FUTURE
@@ -780,13 +1047,46 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 
 			particles[index[i]]->lifeTime = particlesLifeTime;
 			particles[index[i]]->spawnTime = spawnClock;
-			particles[index[i]]->color = particlesColor;
+			particles[index[i]]->color = colors[0];
 			particles[index[i]]->texture = texture;
+			particles[index[i]]->gradientTimer = spawnClock;
+			particles[index[i]]->currentGradient = 0;
 
 			//Set scale
 			float randomScaleValue = GetRandomValue(1, particlesScaleRandomFactor);
 			particles[index[i]]->scale.x = particlesScale.x * randomScaleValue;
 			particles[index[i]]->scale.y = particlesScale.y * randomScaleValue;
+
+			//Set Rotation
+			particles[index[i]]->rotation = float3::zero;
+			float3 rot1 = float3::zero;
+			float3 rot2 = float3::zero;
+			if (separateAxis) {
+				rot1 = float3((float)rotationOvertime1[0], (float)rotationOvertime1[1], (float)rotationOvertime1[2]);
+				rot2 = float3((float)rotationOvertime2[0], (float)rotationOvertime2[1], (float)rotationOvertime2[2]);
+			}
+			else {
+				rot1 = float3(0, 0, (float)rotationOvertime1[2]);
+				rot2 = float3(0, 0, (float)rotationOvertime2[2]);
+			}
+			if (constants) {
+				if(rot1.x <= rot2.x)
+					particles[index[i]]->rotationSpeed.x = GetRandomValue(rot1.x, rot2.x);
+				else
+					particles[index[i]]->rotationSpeed.x = GetRandomValue(rot2.x, rot1.x);
+				if (rot1.y <= rot2.y)
+					particles[index[i]]->rotationSpeed.y = GetRandomValue(rot1.y, rot2.y);
+				else
+					particles[index[i]]->rotationSpeed.y = GetRandomValue(rot2.y, rot1.y);
+				if (rot1.z <= rot2.z)
+					particles[index[i]]->rotationSpeed.z = GetRandomValue(rot1.z, rot2.z);
+				else
+					particles[index[i]]->rotationSpeed.z = GetRandomValue(rot2.z, rot1.z);
+			}
+			else {
+				particles[index[i]]->rotationSpeed = rot1;
+			}
+
 		}
 
 		creationData.indexBuffer = indexBuffer;
@@ -798,6 +1098,55 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 		delete[] index;
 		delete[] positionBuffer;
 		delete[] velocityBuffer;
+	}
+}
+
+void ComponentParticleEmitter::CreateAnimation(uint w, uint h) {
+	int width = texture->Texture_width / w;
+	int height = texture->Texture_height / h;
+
+	for (int j = h - 1; j >= 0; --j) {
+		for (int i = 0; i < w; ++i) {
+			//Create new Frame
+			ResourceMesh* plane = new ResourceMesh(App->GetRandom().Int(), "ParticleMesh");
+			App->scene_manager->CreatePlane(1, 1, 1, plane);
+
+			//Set Texture Coords
+			plane->vertices[0].texCoord[0] = i * width / (float)texture->Texture_width;
+			plane->vertices[0].texCoord[1] = j * height / (float)texture->Texture_height;
+			plane->vertices[2].texCoord[0] = ((i * width) + width) / (float)texture->Texture_width;
+			plane->vertices[2].texCoord[1] = j * height / (float)texture->Texture_height;
+			plane->vertices[1].texCoord[0] = i * width / (float)texture->Texture_width;
+			plane->vertices[1].texCoord[1] = ((j * height) + height) / (float)texture->Texture_height;
+			plane->vertices[3].texCoord[0] = ((i * width) + width) / (float)texture->Texture_width;
+			plane->vertices[3].texCoord[1] = ((j * height) + height) / (float)texture->Texture_height;
+
+			//Update Buffer
+			plane->LoadInMemory();
+			particleMeshes.push_back(plane);
+		}
+	}
+}
+
+void ComponentParticleEmitter::UpdateAllGradients()
+{
+	if (gradients.size() > 0) {
+		colorDuration = particlesLifeTime / gradients.size();
+		for (int i = 0; i < colors.size(); ++i) {
+			if (i == 0) //If we change the first color, only 1 gradient is affected
+			{
+				gradients[0] = (colors[1] - colors[0]) / colorDuration;
+			}
+			else if (i == colors.size() - 1) //If we changed the last color, only 1 gradient is affected
+			{
+				gradients[i - 1] = (colors[i] - colors[i - 1]) / colorDuration;
+			}
+			else //Else, 2 gradients are afected
+			{
+				gradients[i - 1] = (colors[i] - colors[i - 1]) / colorDuration;
+				gradients[i] = (colors[i + 1] - colors[i]) / colorDuration;
+			}
+		}
 	}
 }
 
@@ -852,8 +1201,13 @@ void ComponentParticleEmitter::SetLifeTime(int ms)
 {
 	particlesLifeTime = ms;
 
-	if (colorGradient)
-		particleColorVariation = (particlesColor2 - particlesColor) / (particlesLifeTime);
+	colorDuration = particlesLifeTime / gradients.size();
+
+	//Update gradients if we have to
+	if (colors.size() > 1)
+	{
+		UpdateAllGradients();
+	}
 }
 
 void ComponentParticleEmitter::SetParticlesScale(float x, float y)

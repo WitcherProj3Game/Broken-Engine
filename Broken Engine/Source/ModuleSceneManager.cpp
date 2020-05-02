@@ -15,6 +15,7 @@
 #include "ModuleSelection.h"
 #include "ModuleScripting.h"
 #include "ModuleGui.h"
+#include "ModuleTimeManager.h"
 
 #include "par/par_shapes.h"
 
@@ -451,6 +452,7 @@ void ModuleSceneManager::SetActiveScene(ResourceScene* scene)
 	if (scene)
 	{
 		App->selection->ClearSelection();
+		App->time->Gametime_clock.Stop();
 		//SelectedGameObject = nullptr;
 
 		// --- Unload current scene ---
@@ -493,6 +495,8 @@ void ModuleSceneManager::SetActiveScene(ResourceScene* scene)
 				App->scene_manager->SaveScene(App->scene_manager->temporalScene);
 			}
 		}
+		App->physics->physAccumulatedTime = 0.0f;//Reset Physics
+		App->time->Gametime_clock.Start();
 	}
 	else
 		ENGINE_CONSOLE_LOG("|[error]: Trying to load invalid scene");
@@ -724,10 +728,11 @@ void ModuleSceneManager::CreateCylinder(float radius, float height, ResourceMesh
 void ModuleSceneManager::CreatePlane(float sizeX, float sizeY, float sizeZ, ResourceMesh* rmesh)
 {
 	// --- Create par shapes sphere ---
-	par_shapes_mesh* mesh = par_shapes_create_plane(1, 1);
+	par_shapes_mesh* mesh = par_shapes_create_plane(1,1);
 
 	if (mesh)
 	{
+		par_shapes_translate(mesh, -0.5, -0.5, 0);
 		par_shapes_scale(mesh, sizeX, sizeY, sizeZ);
 		LoadParMesh(mesh, rmesh, true);
 	}

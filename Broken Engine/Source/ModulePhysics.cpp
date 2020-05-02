@@ -236,7 +236,7 @@ update_status ModulePhysics::Update(float dt)
 		{
 			physAccumulatedTime -= physx::fixed_dt;
 
-			FixedUpdate();
+			//FixedUpdate();
 
 			mScene->simulate(physx::fixed_dt);
 			mScene->fetchResults(true);
@@ -248,7 +248,7 @@ update_status ModulePhysics::Update(float dt)
 
 void ModulePhysics::FixedUpdate()
 {
-	App->scripting->GameUpdate(physx::fixed_dt);
+	//App->scripting->GameUpdate(physx::fixed_dt);
 }
 
 bool ModulePhysics::CleanUp()

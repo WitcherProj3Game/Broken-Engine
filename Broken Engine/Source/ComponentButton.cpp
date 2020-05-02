@@ -43,15 +43,20 @@ ComponentButton::ComponentButton(GameObject* gameObject) : Component(gameObject,
 	collider = { 0,0,0,0 };
 	color = idle_color;
 
-	canvas = (ComponentCanvas*)gameObject->AddComponent(Component::ComponentType::Canvas);
+	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = GO->parent->GetComponent<ComponentCanvas>();
+
+		if(canvas)
+			canvas->AddElement(this);
+	}
+
 	//texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
 
 	//font.init("Assets/Fonts/Dukas.ttf", font_size);
 	//font.path = "Assets/Fonts/Dukas.ttf";
 
 	func_name = "None";
-
-	canvas->AddElement(this);
 }
 
 ComponentButton::~ComponentButton()
@@ -65,6 +70,14 @@ ComponentButton::~ComponentButton()
 
 void ComponentButton::Update()
 {
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas->AddElement(this);
+	}
+	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
+		canvas = nullptr;
+
 	if (to_delete)
 		this->GetContainerGameObject()->RemoveComponent(this);
 }

@@ -25,7 +25,6 @@ public:
 	void Disable() override;
 
 	void UpdateParticles(float dt);
-	//void DrawComponent() override;
 	void DrawParticles();
 	void ChangeParticlesColor(float4 color);
 
@@ -79,6 +78,7 @@ private:
 	physx::PxParticleExt::IndexPool* indexPool;
 
 	uint validParticles = 0;
+	bool constants = false;
 
 	//Emitter properties
 	float3 emitterPosition = { 0,0,0 };
@@ -94,6 +94,12 @@ private:
 	bool emisionActive = true;
 	int duration = 1000;
 	uint emisionStart = 0;
+	bool rotationActive = false;
+	int rotationOvertime1[3] = { 0,0,0 };
+	int rotationOvertime2[3] = { 0,0,0 };
+	bool separateAxis = false;
+
+	//Animation
 	int tileSize_X = 1;
 	int tileSize_Y = 1;
 	int startFrame = 0;
@@ -114,6 +120,7 @@ private:
 	bool createdAnim = false;
 	uint colorDuration = 0;
 	float spawnClock = 0.0f;
+
 };
 BE_END_NAMESPACE
 

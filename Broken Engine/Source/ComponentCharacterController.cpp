@@ -101,6 +101,7 @@ void ComponentCharacterController::Update()
 
 		if (cTransform->updateValues || App->gui->isUsingGuizmo)
 		{
+			cTransform->updateValues = false;
 			float3 pos = cTransform->GetGlobalPosition();
 			controller->setFootPosition(physx::PxExtendedVec3(pos.x, pos.y, pos.z));
 		}

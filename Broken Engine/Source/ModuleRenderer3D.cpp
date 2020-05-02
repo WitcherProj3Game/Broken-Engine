@@ -336,11 +336,20 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	// --- Selected Object Outlining ---
 	HandleObjectOutlining();
 
+
 	// --- Draw ---
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+
+	if(m_RendererAlphaFunc == AlphaFunction::ONE_ONE_MINUS_SRC)
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	else if(m_RendererAlphaFunc == AlphaFunction::SRC_ONE_MINUS_SCR_ONE)
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+	else
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	DrawTransparentRenderMeshes();
+
+	
 
 	OPTICK_PUSH("Particles Rendering");
 	// -- Draw particles ---
@@ -519,39 +528,39 @@ void ModuleRenderer3D::DrawMesh(const float4x4 transform, const ResourceMesh* me
 	if (transform.IsFinite() && mesh && mat)
 	{
 
-		//if (mat->has_transparencies)
-		//{
-		//	// --- Add given instance to relevant vector ---
-		//	if (transparent_render_meshes.find(mesh->GetUID()) != transparent_render_meshes.end())
-		//	{
-		//		RenderMesh rmesh = RenderMesh(transform, mesh, mat, flags/*, color*/);
-		//		rmesh.deformable_mesh = deformable_mesh; // TEMPORAL!
-		//		rmesh.color = color;
+		if (mat->has_transparencies)
+		{
+			// --- Add given instance to relevant vector ---
+			if (transparent_render_meshes.find(mesh->GetUID()) != transparent_render_meshes.end())
+			{
+				RenderMesh rmesh = RenderMesh(transform, mesh, mat, flags/*, color*/);
+				rmesh.deformable_mesh = deformable_mesh; // TEMPORAL!
+				rmesh.color = color;
 
-		//		//// --- Search for Character Controller Component ---
-		//		//ComponentCharacterController* cct = App->scene_manager->GetSelectedGameObject()->GetComponent<ComponentCharacterController>();
+				//// --- Search for Character Controller Component ---
+				//ComponentCharacterController* cct = App->scene_manager->GetSelectedGameObject()->GetComponent<ComponentCharacterController>();
 
-		//		//// --- If Found, draw Character Controller shape ---
-		//		//if (cct && cct->IsEnabled())
-		//		//	cct->Draw();
+				//// --- If Found, draw Character Controller shape ---
+				//if (cct && cct->IsEnabled())
+				//	cct->Draw();
 
-		//		transparent_render_meshes[mesh->GetUID()].push_back(rmesh);
-		//	}
-		//	else
-		//	{
-		//		// --- Build new vector to store mesh's instances ---
-		//		std::vector<RenderMesh> new_vec;
+				transparent_render_meshes[mesh->GetUID()].push_back(rmesh);
+			}
+			else
+			{
+				// --- Build new vector to store mesh's instances ---
+				std::vector<RenderMesh> new_vec;
 
-		//		RenderMesh rmesh = RenderMesh(transform, mesh, mat, flags/*, color*/);
-		//		rmesh.deformable_mesh = deformable_mesh; // TEMPORAL!
-		//		rmesh.color = color;
+				RenderMesh rmesh = RenderMesh(transform, mesh, mat, flags/*, color*/);
+				rmesh.deformable_mesh = deformable_mesh; // TEMPORAL!
+				rmesh.color = color;
 
-		//		new_vec.push_back(rmesh);
-		//		transparent_render_meshes[mesh->GetUID()] = new_vec;
-		//	}
-		//}
-		//else
-		//{
+				new_vec.push_back(rmesh);
+				transparent_render_meshes[mesh->GetUID()] = new_vec;
+			}
+		}
+		else
+		{
 			// --- Add given instance to relevant vector ---
 			if (render_meshes.find(mesh->GetUID()) != render_meshes.end())
 			{
@@ -580,7 +589,7 @@ void ModuleRenderer3D::DrawMesh(const float4x4 transform, const ResourceMesh* me
 				new_vec.push_back(rmesh);
 				render_meshes[mesh->GetUID()] = new_vec;
 			}
-		//}
+		}
 	}
 }
 
@@ -751,36 +760,36 @@ void ModuleRenderer3D::DrawTransparentRenderMeshes()
 	if (wireframe)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	//// --- Sort meshes so we draw the most distant object to camera first and the closest last ---
-	//std::map<float, RenderMesh> sorted_meshes;
-	//std::vector<RenderMesh> to_draw;
+	// --- Sort meshes so we draw the most distant object to camera first and the closest last ---
+	std::map<float, RenderMesh> sorted_meshes;
+	std::vector<RenderMesh> to_draw;
 
-	//for (std::map<uint, std::vector<RenderMesh>>::const_iterator it = transparent_render_meshes.begin(); it != transparent_render_meshes.end(); ++it)
-	//{
+	for (std::map<uint, std::vector<RenderMesh>>::const_iterator it = transparent_render_meshes.begin(); it != transparent_render_meshes.end(); ++it)
+	{
 
-	//	for (uint i = 0; i < (*it).second.size(); ++i)
-	//	{
-	//		float distance = float3(active_camera->GetCameraPosition() - (*it).second[i].transform.TranslatePart()).Length();
+		for (uint i = 0; i < (*it).second.size(); ++i)
+		{
+			float distance = float3(active_camera->GetCameraPosition() - (*it).second[i].transform.TranslatePart()).Length();
 
-	//		if (sorted_meshes.find(distance) != sorted_meshes.end())
-	//		{
-	//			sorted_meshes[distance + 0.1f] = (*it).second[i];
-	//		}
-	//		else
-	//			sorted_meshes[distance] = (*it).second[i];
-	//	}
-	//}
+			if (sorted_meshes.find(distance) != sorted_meshes.end())
+			{
+				sorted_meshes[distance + 0.1f] = (*it).second[i];
+			}
+			else
+				sorted_meshes[distance] = (*it).second[i];
+		}
+	}
 
 
 
-	//// --- Copy to vector ---
-	//for (std::map<float, RenderMesh>::reverse_iterator it = sorted_meshes.rbegin(); it != sorted_meshes.rend(); ++it)
-	//{
-	//	to_draw.push_back((*it).second);
-	//}
+	// --- Copy to vector ---
+	for (std::map<float, RenderMesh>::reverse_iterator it = sorted_meshes.rbegin(); it != sorted_meshes.rend(); ++it)
+	{
+		to_draw.push_back((*it).second);
+	}
 
-	//// --- Draw transparent meshes in the correct order ---
-	//DrawRenderMesh(to_draw);
+	// --- Draw transparent meshes in the correct order ---
+	DrawRenderMesh(to_draw);
 
 	// --- DeActivate wireframe mode ---
 	if (wireframe)

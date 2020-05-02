@@ -35,6 +35,8 @@ struct BROKEN_API RenderMesh
 {
 	RenderMesh(float4x4 transform, const ResourceMesh* mesh, ResourceMaterial* mat, const RenderMeshFlags flags = 0/*, const Color& color = White*/) : transform(transform), resource_mesh(mesh), mat(mat), flags(flags)/*, color(color)*/ {}
 
+	RenderMesh() {};
+
 	float4x4 transform;
 	const ResourceMesh* resource_mesh = nullptr;
 	ResourceMaterial* mat = nullptr;
@@ -66,6 +68,13 @@ struct BROKEN_API RenderLine
 	float3 a;
 	float3 b;
 	Color color;
+};
+
+enum BROKEN_API AlphaFunction
+{
+	SRC_ONE_MINUS_SRC = 0,
+	ONE_ONE_MINUS_SRC,
+	SRC_ONE_MINUS_SCR_ONE
 };
 
 class BROKEN_API ModuleRenderer3D : public Module
@@ -108,13 +117,15 @@ public:
 	bool SetVSync(bool _vsync);
 	void SetActiveCamera(ComponentCamera* camera);
 	void SetCullingCamera(ComponentCamera* camera);
-	void SetGammaCorrection(float gammaCorr) { m_GammaCorrection = gammaCorr; }
-	void SetSceneAmbientColor(float3 color) { m_AmbientColor = color; }
+	void SetGammaCorrection(const float gammaCorr) { m_GammaCorrection = gammaCorr; }
+	void SetSceneAmbientColor(const float3 color) { m_AmbientColor = color; }
+	void SetRendererAlphaFunction(const AlphaFunction function) { m_RendererAlphaFunc = function; }
 
 	// --- Getters ---
 	bool GetVSync() const { return vsync; }
 	const float GetGammaCorrection() const { return m_GammaCorrection; }
 	const float3 GetSceneAmbientColor() const { return m_AmbientColor; }
+	const AlphaFunction GetRendererAlphaFunction() const { return m_RendererAlphaFunc; }
 
 private:
 
@@ -210,9 +221,13 @@ private:
 
 	//Lights vector
 	std::vector<ComponentLight*> m_LightsVec;
+
+	//Rendering General Options
 	float m_GammaCorrection = 2.0f;
 	float3 m_AmbientColor = float3::one;
+	AlphaFunction m_RendererAlphaFunc = SRC_ONE_MINUS_SRC;
 
+	//Other Generic Stuff
 	uint fbo = 0;
 	uint cubemapTexID = 0;
 	uint skyboxVAO = 0;

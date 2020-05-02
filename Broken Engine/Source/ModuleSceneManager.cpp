@@ -728,10 +728,11 @@ void ModuleSceneManager::CreateCylinder(float radius, float height, ResourceMesh
 void ModuleSceneManager::CreatePlane(float sizeX, float sizeY, float sizeZ, ResourceMesh* rmesh)
 {
 	// --- Create par shapes sphere ---
-	par_shapes_mesh* mesh = par_shapes_create_plane(1, 1);
+	par_shapes_mesh* mesh = par_shapes_create_plane(1,1);
 
 	if (mesh)
 	{
+		par_shapes_translate(mesh, -0.5, -0.5, 0);
 		par_shapes_scale(mesh, sizeX, sizeY, sizeZ);
 		LoadParMesh(mesh, rmesh, true);
 	}

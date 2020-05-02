@@ -112,7 +112,7 @@ bool PanelInspector::Draw()
 							{
 								if (ImGui::MenuItem("Confirm delete"))
 								{
-									EngineApp->selection->DeleteComponentToSelected();
+									EngineApp->selection->DeleteComponentToSelected((*it));
 
 								}
 								ImGui::EndMenu();

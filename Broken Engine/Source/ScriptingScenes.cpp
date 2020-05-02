@@ -50,7 +50,7 @@ uint ScriptingScenes::Instantiate(uint resource_UUID, float x, float y, float z,
 		go->GetComponent<ComponentTransform>()->SetRotation({ alpha, beta, gamma });
 		go->GetComponent<ComponentTransform>()->updateValues = true;
 		go->TransformGlobal();
-		go->GetComponent<ComponentTransform>()->updateValues = false;
+		//go->GetComponent<ComponentTransform>()->updateValues = false;
 
 		ret = go->GetUID();
 	}

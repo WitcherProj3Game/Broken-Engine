@@ -857,7 +857,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::SameLine();
 		if (!separateAxis) {
 			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-			ImGui::DragInt("##Z2", &rotationOvertime1[2]);
+			ImGui::DragInt("##Z1", &rotationOvertime1[2]);
 			if (constants) {
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);

@@ -57,6 +57,8 @@ void ComponentImage::Update()
 		canvas = GO->parent->GetComponent<ComponentCanvas>();
 		canvas->AddElement(this);
 	}
+	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
+		canvas = nullptr;
 
 	if (to_delete)
 		this->GetContainerGameObject()->RemoveComponent(this);

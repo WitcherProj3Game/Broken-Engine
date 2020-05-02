@@ -9,6 +9,7 @@
 #include "ModuleSceneManager.h"
 #include "ResourceScene.h"
 #include "ModuleEventManager.h"
+#include "ModuleTimeManager.h"
 #include "AutoCompleteFileGen.h"
 
 #include "ResourceScript.h"
@@ -846,6 +847,8 @@ update_status ModuleScripting::Update(float realDT)
 			(*it)->started = false;
 		}
 	}
+
+	GameUpdate(App->time->GetGameDt());
 	// Carles to Didac
 	// 1. You can use the "IsWhatever" functions of App to check the current game state.
 	// 2. "App->IsGameFirstFrame()" marks the first frame a GameUpdate() will happen, if you want to do anything right before the game plays in preparation

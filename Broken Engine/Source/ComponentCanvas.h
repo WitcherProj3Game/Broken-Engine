@@ -25,10 +25,13 @@ public:
 	json Save() const override;
 	void Load(json& node) override;
 	void CreateInspectorNode() override;
+	void UpdatePosition(float2& increment);
 
 public:
 	bool visible = true;
-	int priority = 0;
+	int priority = 0; //CHANGE TO BE ON EVERY UI ELEMENT
+	float2 position2D = { 0,0 };
+	ComponentCanvas* canvas = nullptr;
 
 private:
 	std::vector<Component*> elements;

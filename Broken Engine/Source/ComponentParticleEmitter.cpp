@@ -282,11 +282,24 @@ void ComponentParticleEmitter::DrawParticles()
 	if (!active || drawingIndices.empty())
 		return;
 
+	Plane cameraPlanes[6];
+	App->renderer3D->culling_camera->frustum.GetPlanes(cameraPlanes);
+
 	std::map<float, int>::iterator it = drawingIndices.begin();
 	while (it != drawingIndices.end())
 	{
 		int paco = (*it).second;
-		particles[paco]->Draw();
+		bool draw = true;
+		for (int i = 0; i < 6; ++i)
+		{
+			if (cameraPlanes[i].IsOnPositiveSide(particles[paco]->position))
+			{
+				draw = false;
+				break;
+			}
+		}
+		if (draw)
+			particles[paco]->Draw();
 		it++;
 	}
 	drawingIndices.clear();

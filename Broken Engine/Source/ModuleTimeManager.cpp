@@ -35,7 +35,7 @@ void ModuleTimeManager::PrepareUpdate() {
 	game_dt = realtime_dt = (float)Gametime_clock.Read() / 1000.0f;
 	Gametime_clock.Start();
 
-	game_dt = last_frame_ms / 1000.0f * Time_scale;
+	//game_dt = last_frame_ms / 1000.0f * Time_scale;
 
 	time += realtime_dt*Time_scale;
 
@@ -57,6 +57,8 @@ void ModuleTimeManager::PrepareUpdate() {
 			break;
 
 		case AppState::PLAY:
+			game_dt *= Time_scale;
+
 			if (gamePaused)
 			{
 				time -= realtime_dt;
@@ -68,6 +70,7 @@ void ModuleTimeManager::PrepareUpdate() {
 				//game_dt *= Time_scale;
 				gametime_passed += game_dt;
 			}
+
 
 			break;
 

@@ -41,8 +41,9 @@ void Particle::Draw()
 	float3 center = float3(position.x, position.y, position.z);
 
 	// --- Frame image with camera ---
+	float4x4 rot = float4x4::FromEulerXYZ(rotation.x, rotation.y, rotation.z);
 	float4x4 transform = transform.FromTRS(float3(position.x, position.y, position.z),
-		App->renderer3D->active_camera->GetOpenGLViewMatrix().RotatePart(),
+		App->renderer3D->active_camera->GetOpenGLViewMatrix().RotatePart() * rot,
 		float3(scale.x, scale.y, 1));
 
 	// --- Set Uniforms ---

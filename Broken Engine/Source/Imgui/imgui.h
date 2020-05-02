@@ -588,6 +588,7 @@ namespace ImGui
     // - You can also use SameLine(pos_x) to mimic simplified columns.
     // - The columns API is work-in-progress and rather lacking (columns are arguably the worst part of dear imgui at the moment!)
     IMGUI_API void          Columns(int count = 1, const char* id = NULL, bool border = true);
+    IMGUI_API int           CurveEditor(const char* label, float* values, int points_count, float& multiplier, const ImVec2& editor_size = ImVec2(-1, -1), ImU32 flags = 0, int* new_count = nullptr);
     IMGUI_API void          NextColumn();                                                       // next column, defaults to current row or next row if the current row is finished
     IMGUI_API int           GetColumnIndex();                                                   // get current column index
     IMGUI_API float         GetColumnWidth(int column_index = -1);                              // get column width (in pixels). pass -1 to use current column
@@ -1194,6 +1195,12 @@ enum ImGuiStyleVar_
     , ImGuiStyleVar_Count_ = ImGuiStyleVar_COUNT                        // [renamed in 1.60]
     , ImGuiStyleVar_ChildWindowRounding = ImGuiStyleVar_ChildRounding   // [renamed in 1.53]
 #endif
+};
+
+enum CurveEditorFlags
+{
+    NO_TANGENTS = 1 << 0,
+    SHOW_GRID = 1 << 1
 };
 
 // Flags for ColorEdit3() / ColorEdit4() / ColorPicker3() / ColorPicker4() / ColorButton()

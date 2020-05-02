@@ -229,13 +229,15 @@ json ComponentAnimation::Save() const
 	// --- Store path to component file ---
 	if (res_anim)
 		node["Resources"]["ResourceAnimation"] = std::string(res_anim->GetResourceFile());
-	
+
+	node["Animations"]["BlendTime"] = std::to_string(blend_time_value);
+	node["Animations"]["UseDefault"] = use_default_animation;
+
 	if (!res_animator)
 	{
 		// --- Saving animations ------------------
 		node["Animations"]["Size"] = std::to_string(animations.size());
-		node["Animations"]["BlendTime"] = std::to_string(blend_time_value);
-		node["Animations"]["UseDefault"] = use_default_animation;
+		
 
 		for (int i = 0; i < animations.size(); ++i)
 		{
@@ -283,6 +285,10 @@ void ComponentAnimation::Load(json& node)
 	LoadAnimator(true, uid);
 
 	//--------------------------------------------------------------------------------------------------------------------
+	std::string blend_time = node["Animations"]["BlendTime"].is_null() ? "0" : node["Animations"]["BlendTime"];
+	blend_time_value = std::stof(blend_time);
+
+	use_default_animation = node["Animations"]["UseDefault"].is_null() ? false : (bool)node["Animations"]["UseDefault"];
 
 	if (!res_animator)
 	{
@@ -290,12 +296,6 @@ void ComponentAnimation::Load(json& node)
 
 		std::string size = node["Animations"]["Size"].is_null() ? "0" : node["Animations"]["Size"];
 		int anim_size = std::stoi(size);
-
-		std::string blend_time = node["Animations"]["BlendTime"].is_null() ? "0" : node["Animations"]["BlendTime"];
-		blend_time_value = std::stof(blend_time);
-
-		use_default_animation = node["Animations"]["UseDefault"].is_null() ? false : (bool)node["Animations"]["UseDefault"];
-
 		for (int i = 0; i < anim_size; ++i)
 		{
 			std::string iterator = std::to_string(i);

@@ -375,3 +375,6 @@ Broken Engine/Game/BEG.exe
 
 # Optick temp folder
 enc_temp_folder/
+
+# Lua Autocomplete File
+Broken Engine/Game/snippets.json

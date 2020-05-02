@@ -59,7 +59,7 @@ void ComponentCircularBar::DrawCircle(Color color, bool axis, float _percentage)
 {
 	// --- Frame image with camera ---
 	float nearp = App->renderer3D->active_camera->GetNearPlane();
-	float3 pos = { position2D.x, position2D.y, nearp + 0.026f };
+	float3 pos = { position2D.x / App->gui->sceneWidth, position2D.y / App->gui->sceneHeight, nearp + 0.026f };
 	
 	float size_x = size2D.x, size_y = size2D.y;
 	if (axis == 0)								//X Axis
@@ -80,7 +80,8 @@ void ComponentCircularBar::DrawCircle(Color color, bool axis, float _percentage)
 	//float4x4 transform = transform.FromTRS(position, App->renderer3D->active_camera->GetOpenGLViewMatrix().RotatePart(), float3(new_size * 0.01f, 1.0f));
 
 	// --- Set Uniforms ---
-	uint shaderID = App->renderer3D->defaultShader->ID;
+	uint shaderID = App->renderer3D->UI_Shader->ID;
+	//uint shaderID = App->renderer3D->defaultShader->ID;
 	glUseProgram(shaderID);
 
 	GLint modelLoc = glGetUniformLocation(shaderID, "u_Model");
@@ -104,6 +105,7 @@ void ComponentCircularBar::DrawCircle(Color color, bool axis, float _percentage)
 	// --- Texturing & Coloring ---
 	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");
 	glUniform4f(vertexColorLocation, color.r, color.g, color.b, color.a);
+	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);
 	
 	int TextureLocation = glGetUniformLocation(shaderID, "u_UseTextures");
 	if (texture)
@@ -218,19 +220,19 @@ void ComponentCircularBar::CreateInspectorNode()
 	ImGui::Text("Position:");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("x##imageposition", &position2D.x, 0.01f);
+	ImGui::DragFloat("x##imageposition", &position2D.x);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("y##imageposition", &position2D.y, 0.01f);
+	ImGui::DragFloat("y##imageposition", &position2D.y);
 
 	// Size Planes
 	ImGui::Text("Bar Size:  ");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("x##imagesize", &size2D.x, 1.0f, 0.0f, INFINITY);
+	ImGui::DragFloat("x##imagesize", &size2D.x, 0.5f, 0.0f, INFINITY);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("y##imagesize", &size2D.y, 1.0f, 0.0f, INFINITY);
+	ImGui::DragFloat("y##imagesize", &size2D.y, 0.5f, 0.0f, INFINITY);
 
 	// Rotation
 	//ImGui::Text("Rotation:");
@@ -240,11 +242,11 @@ void ComponentCircularBar::CreateInspectorNode()
 
 	// Planes Colors
 	ImGui::Separator();
-	ImGui::ColorEdit4("##ColorP1", (float*)&colorP1, ImGuiColorEditFlags_NoInputs);
+	ImGui::ColorEdit4("##ColorP1", (float*)&colorP1, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 	ImGui::Text("BG color");
 
-	ImGui::ColorEdit4("##ColorP2", (float*)&colorP2, ImGuiColorEditFlags_NoInputs);
+	ImGui::ColorEdit4("##ColorP2", (float*)&colorP2, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 	ImGui::Text("Bar color");
 

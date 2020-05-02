@@ -493,12 +493,10 @@ void ModuleRecast::BuildTile(const InputGeom* m_geom, const int tx, const int ty
 	// Allocate voxel heightfield where we rasterize our input data to.
 	rcHeightfield* m_solid = rcAllocHeightfield();
 	if (!m_solid) {
-		std::lock_guard<std::mutex> lk(logMutex);
 		EX_ENGINE_CONSOLE_LOG("tileBuild: Failed to allocate solid heightfield.");
 		return;
 	}
-	if (!rcCreateHeightfield(&tile_ctx, *m_solid, m_cfg.width, m_cfg.height, m_cfg.bmin, m_cfg.bmax, m_cfg.cs, m_cfg.ch)) {
-		std::lock_guard<std::mutex> lk(logMutex);
+	if (!rcCreateHeightfield(&tile_ctx, *m_solid, tile_cfg.width, tile_cfg.height, tile_cfg.bmin, tile_cfg.bmax, tile_cfg.cs, tile_cfg.ch)) {
 		EX_ENGINE_CONSOLE_LOG("tileBuild: Could not create solid heightfield.");
 		return;
 	}
@@ -508,7 +506,6 @@ void ModuleRecast::BuildTile(const InputGeom* m_geom, const int tx, const int ty
 	// and array which can hold the max number of triangles you need to process.
 	uchar* m_triareas = new uchar[chunkyMesh->maxTrisPerChunk];
 	if (!m_triareas) {
-		std::lock_guard<std::mutex> lk(logMutex);
 		EX_ENGINE_CONSOLE_LOG("tileBuild: Out of memory 'm_triareas' (%d).", chunkyMesh->maxTrisPerChunk);
 		return;
 	}
@@ -534,11 +531,13 @@ void ModuleRecast::BuildTile(const InputGeom* m_geom, const int tx, const int ty
 		m_tileTriCount += nctris;
 
 		memset(m_triareas, 0, nctris * sizeof(unsigned char));
-		rcMarkWalkableTriangles(&tile_ctx, m_cfg.walkableSlopeAngle,
+		rcMarkWalkableTriangles(&tile_ctx, tile_cfg.walkableSlopeAngle,
 			verts, nverts, ctris, careas, nctris, m_triareas);
 
-		if (!rcRasterizeTriangles(&tile_ctx, verts, nverts, ctris, m_triareas, nctris, *m_solid, m_cfg.walkableClimb))
+		if (!rcRasterizeTriangles(&tile_ctx, verts, nverts, ctris, m_triareas, nctris, *m_solid, tile_cfg.walkableClimb)){
+			EX_ENGINE_CONSOLE_LOG("tileBuild: Could not rasterize triangles of tile x: %d, y: %d", tx, ty);
 			return;
+		}
 	}
 
 	delete[] m_triareas;
@@ -547,21 +546,19 @@ void ModuleRecast::BuildTile(const InputGeom* m_geom, const int tx, const int ty
 	// Once all geometry is rasterized, we do initial pass of filtering to
 	// remove unwanted overhangs caused by the conservative rasterization
 	// as well as filter spans where the character cannot possibly stand.
-	rcFilterLowHangingWalkableObstacles(&tile_ctx, m_cfg.walkableClimb, *m_solid);
-	rcFilterLedgeSpans(&tile_ctx, m_cfg.walkableHeight, m_cfg.walkableClimb, *m_solid);
-	rcFilterWalkableLowHeightSpans(&tile_ctx, m_cfg.walkableHeight, *m_solid);
+	rcFilterLowHangingWalkableObstacles(&tile_ctx, tile_cfg.walkableClimb, *m_solid);
+	rcFilterLedgeSpans(&tile_ctx, tile_cfg.walkableHeight, tile_cfg.walkableClimb, *m_solid);
+	rcFilterWalkableLowHeightSpans(&tile_ctx, tile_cfg.walkableHeight, *m_solid);
 
 	// Compact the heightfield so that it is faster to handle from now on.
 	// This will result more cache coherent data as well as the neighbours
 	// between walkable cells will be calculated.
 	rcCompactHeightfield* m_chf = rcAllocCompactHeightfield();
 	if (!m_chf) {
-		std::lock_guard<std::mutex> lk(logMutex);
 		EX_ENGINE_CONSOLE_LOG("tileBuild:  Out of memory 'chf'.");
 		return;
 	}
-	if (!rcBuildCompactHeightfield(&tile_ctx, m_cfg.walkableHeight, m_cfg.walkableClimb, *m_solid, *m_chf)) {
-		std::lock_guard<std::mutex> lk(logMutex);
+	if (!rcBuildCompactHeightfield(&tile_ctx, tile_cfg.walkableHeight, tile_cfg.walkableClimb, *m_solid, *m_chf)) {
 		EX_ENGINE_CONSOLE_LOG("tileBuild: Could not build compact data.");
 		return;
 	}
@@ -570,8 +567,7 @@ void ModuleRecast::BuildTile(const InputGeom* m_geom, const int tx, const int ty
 	m_solid = 0;
 
 	// Erode the walkable area by agent radius.
-	if (!rcErodeWalkableArea(&tile_ctx, m_cfg.walkableRadius, *m_chf)) {
-		std::lock_guard<std::mutex> lk(logMutex);
+	if (!rcErodeWalkableArea(&tile_ctx, tile_cfg.walkableRadius, *m_chf)) {
 		EX_ENGINE_CONSOLE_LOG("tileBuild: Could not erode.");
 		return;
 	}
@@ -610,14 +606,12 @@ void ModuleRecast::BuildTile(const InputGeom* m_geom, const int tx, const int ty
 
 	// Prepare for region partitioning, by calculating distance field along the walkable surface.
 	if (!rcBuildDistanceField(&tile_ctx, *m_chf)) {
-		std::lock_guard<std::mutex> lk(logMutex);
 		EX_ENGINE_CONSOLE_LOG("tileBuild: Could not build distance field.");
 		return;
 	}
 
 	// Partition the walkable surface into simple regions without holes.
-	if (!rcBuildRegions(&tile_ctx, *m_chf, m_cfg.borderSize, m_cfg.minRegionArea, m_cfg.mergeRegionArea)) {
-		std::lock_guard<std::mutex> lk(logMutex);
+	if (!rcBuildRegions(&tile_ctx, *m_chf, tile_cfg.borderSize, tile_cfg.minRegionArea, tile_cfg.mergeRegionArea)) {
 		EX_ENGINE_CONSOLE_LOG("tileBuild: Could not build watershed regions.");
 		return;
 	}
@@ -625,12 +619,10 @@ void ModuleRecast::BuildTile(const InputGeom* m_geom, const int tx, const int ty
 	// Create contours.
 	rcContourSet *m_cset = rcAllocContourSet();
 	if (!m_cset) {
-		std::lock_guard<std::mutex> lk(logMutex);
 		EX_ENGINE_CONSOLE_LOG("tileBuild: Out of memory 'cset'.");
 		return;
 	}
-	if (!rcBuildContours(&tile_ctx, *m_chf, m_cfg.maxSimplificationError, m_cfg.maxEdgeLen, *m_cset)) {
-		std::lock_guard<std::mutex> lk(logMutex);
+	if (!rcBuildContours(&tile_ctx, *m_chf, tile_cfg.maxSimplificationError, tile_cfg.maxEdgeLen, *m_cset)) {
 		EX_ENGINE_CONSOLE_LOG("tileBuild: Could not create contours.");
 		return;
 	}
@@ -642,12 +634,10 @@ void ModuleRecast::BuildTile(const InputGeom* m_geom, const int tx, const int ty
 	// Build polygon navmesh from the contours.
 	rcPolyMesh *m_pmesh = rcAllocPolyMesh();
 	if (!m_pmesh) {
-		std::lock_guard<std::mutex> lk(logMutex);
 		EX_ENGINE_CONSOLE_LOG("tileBuild: Out of memory 'pmesh'.");
 		return;
 	}
-	if (!rcBuildPolyMesh(&tile_ctx, *m_cset, m_cfg.maxVertsPerPoly, *m_pmesh)) {
-		std::lock_guard<std::mutex> lk(logMutex);
+	if (!rcBuildPolyMesh(&tile_ctx, *m_cset, tile_cfg.maxVertsPerPoly, *m_pmesh)) {
 		EX_ENGINE_CONSOLE_LOG("tileBuild: Could not triangulate contours.");
 		return;
 	}
@@ -655,15 +645,13 @@ void ModuleRecast::BuildTile(const InputGeom* m_geom, const int tx, const int ty
 	// Build detail mesh.
 	rcPolyMeshDetail *m_dmesh = rcAllocPolyMeshDetail();
 	if (!m_dmesh) {
-		std::lock_guard<std::mutex> lk(logMutex);
 		EX_ENGINE_CONSOLE_LOG("tileBuild: Out of memory 'dmesh'.");
 		return;
 	}
 
 	if (!rcBuildPolyMeshDetail(&tile_ctx, *m_pmesh, *m_chf,
-		m_cfg.detailSampleDist, m_cfg.detailSampleMaxError,
+		tile_cfg.detailSampleDist, tile_cfg.detailSampleMaxError,
 		*m_dmesh)) {
-		std::lock_guard<std::mutex> lk(logMutex);
 		EX_ENGINE_CONSOLE_LOG("tileBuild: Could build polymesh detail.");
 		return;
 	}
@@ -675,10 +663,9 @@ void ModuleRecast::BuildTile(const InputGeom* m_geom, const int tx, const int ty
 
 	unsigned char* navData = 0;
 	int navDataSize = 0;
-	if (m_cfg.maxVertsPerPoly <= DT_VERTS_PER_POLYGON) {
+	if (tile_cfg.maxVertsPerPoly <= DT_VERTS_PER_POLYGON) {
 		if (m_pmesh->nverts >= 0xffff) {
 			// The vertex indices are ushorts, and cannot point to more than 0xffff vertices.
-			std::lock_guard<std::mutex> lk(logMutex);
 			EX_ENGINE_CONSOLE_LOG("tileBuild: Too many vertices per tile %d (max: %d).", m_pmesh->nverts, 0xffff);
 			return;
 		}
@@ -720,12 +707,11 @@ void ModuleRecast::BuildTile(const InputGeom* m_geom, const int tx, const int ty
 		params.tileLayer = 0;
 		rcVcopy(params.bmin, m_pmesh->bmin);
 		rcVcopy(params.bmax, m_pmesh->bmax);
-		params.cs = m_cfg.cs;
-		params.ch = m_cfg.ch;
+		params.cs = tile_cfg.cs;
+		params.ch = tile_cfg.ch;
 		params.buildBvTree = true;
 
 		if (!EngineApp->detour->createNavMeshData(&params, &navData, &navDataSize)) {
-			std::lock_guard<std::mutex> lk(logMutex);
 			EX_ENGINE_CONSOLE_LOG("tileBuild: Could not build Detour navmesh.");
 			return;
 		}

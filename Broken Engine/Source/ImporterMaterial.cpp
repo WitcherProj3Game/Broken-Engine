@@ -145,7 +145,8 @@ Resource* ImporterMaterial::Load(const char* path) const
 		}
 
 		if (!file["AmbientColor"].is_null())
-			matColor = float4(file["AmbientColor"]["R"].get<float>(), file["AmbientColor"]["G"].get<float>(), file["AmbientColor"]["B"].get<float>(), file["AmbientColor"]["A"].get<float>());
+			matColor = float4(file["AmbientColor"]["R"].get<float>(), file["AmbientColor"]["G"].get<float>(), file["AmbientColor"]["B"].get<float>(), file["AmbientColor"]["A"].is_null() ? 1.0f : file["AmbientColor"]["A"].get<float>());
+		
 
 		if (!file["MaterialShininess"].is_null())
 			matShine = file["MaterialShininess"].get<float>();
@@ -180,7 +181,10 @@ Resource* ImporterMaterial::Load(const char* path) const
 			ResourceShader* shader = (ResourceShader*)App->resources->ImportAssets(IDataShader);
 
 			if (shader)
+			{
 				mat->shader = shader;
+				shader->GetAllUniforms(mat->uniforms);
+			}
 		}
 
 
@@ -214,7 +218,7 @@ Resource* ImporterMaterial::Load(const char* path) const
 
 				case GL_FLOAT:
 					mat->shader->FillUniform(uniform, name.c_str(), unitype);
-					uniform->value.intU = uniforms_node[iterator.key()]["x"].get<float>();
+					uniform->value.floatU = uniforms_node[iterator.key()]["x"].get<float>();
 					mat->shader->setUniform(name.c_str(), uniform->value, UniformType::floatU);
 					break;
 
@@ -311,6 +315,13 @@ void ImporterMaterial::Save(ResourceMaterial* mat) const
 	tmpgo->GetComponent<ComponentMeshRenderer>()->material = (ResourceMaterial*)App->resources->GetResource(mat->GetUID());
 
 	uint TexID = 0;
+
+	// --- Destroy texture first ---
+	uint prevTexID = mat->GetPreviewTexID();
+	glDeleteTextures(1, (GLuint*)&prevTexID);
+
+	App->fs->Remove(mat->previewTexPath.c_str());
+
 	mat->previewTexPath = App->renderer3D->RenderSceneToTexture(gos, TexID);
 	mat->SetPreviewTexID(TexID);
 

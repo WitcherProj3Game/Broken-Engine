@@ -4,6 +4,7 @@
 #include "ModuleFileSystem.h"
 #include "ModuleResourceManager.h"
 
+#include "Optick/include/optick.h"
 
 #include "PhysFS/include/physfs.h"
 #include "Assimp/include/cfileio.h"
@@ -91,8 +92,10 @@ bool ModuleFileSystem::Init(json& file) {
 }
 
 update_status ModuleFileSystem::PreUpdate(float dt) {
+	
+	OPTICK_CATEGORY("File System PreUpdate", Optick::Category::IO);
+	
 	// Wait for notification.
-
 	dwWaitStatus = WaitForMultipleObjects(1, dwChangeHandles,
 		FALSE, 0);
 

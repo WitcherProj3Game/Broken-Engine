@@ -15,6 +15,7 @@
 #include "ModuleSelection.h"
 #include "ModuleScripting.h"
 #include "ModuleGui.h"
+#include "ModuleTimeManager.h"
 
 #include "par/par_shapes.h"
 
@@ -42,12 +43,12 @@
 #include "Component.h"
 #include "ComponentButton.h"
 
-
-#include "mmgr/mmgr.h"
-
 #include "ComponentAudioSource.h"
 #include "ModuleAudio.h"
 #include "../Game/Assets/Sounds/Wwise_IDs.h"
+
+#include "Optick/include/optick.h"
+#include "mmgr/mmgr.h"
 
 
 #define TREE_UPDATE_PERIOD 1000
@@ -55,12 +56,12 @@
 using namespace Broken;
 // --- Event Manager Callbacks ---
 
-void ModuleSceneManager::ONResourceSelected(const Event& e) 
+void ModuleSceneManager::ONResourceSelected(const Event& e)
 {
 	App->selection->ClearSelection();
 }
 
-void ModuleSceneManager::ONGameObjectDestroyed(const Event& e) 
+void ModuleSceneManager::ONGameObjectDestroyed(const Event& e)
 {
 	for (GameObject* obj : App->scene_manager->GetRootGO()->childs) //all objects in scene
 	{
@@ -129,21 +130,26 @@ bool ModuleSceneManager::Start()
 
 update_status ModuleSceneManager::PreUpdate(float dt)
 {
-	
+	OPTICK_CATEGORY("Scene Manager PreUpdate", Optick::Category::Scene);
 	return UPDATE_CONTINUE;
 }
 
 update_status ModuleSceneManager::Update(float dt)
 {
-
+	OPTICK_CATEGORY("Scene Manager Update", Optick::Category::Scene);
+	OPTICK_PUSH("Root Objects Update");
 	root->Update(dt);
+	OPTICK_POP();
 
 	if (update_tree)
-		if ((SDL_GetTicks() - treeUpdateTimer) > TREE_UPDATE_PERIOD) {
+	{
+		if ((SDL_GetTicks() - treeUpdateTimer) > TREE_UPDATE_PERIOD)
+		{
 			treeUpdateTimer = SDL_GetTicks();
 			RedoOctree();
 			update_tree = false;
 		}
+	}
 
 	return UPDATE_CONTINUE;
 }
@@ -315,7 +321,7 @@ void ModuleSceneManager::RecursiveDrawQuadtree(QuadtreeNode* node) const
 		App->renderer3D->DrawAABB(node->box, Red);
 }
 
-void ModuleSceneManager::SelectFromRay(LineSegment& ray) 
+void ModuleSceneManager::SelectFromRay(LineSegment& ray)
 {
 	// --- Note all Game Objects are pushed into a map given distance so we can decide order later ---
 	if (currentScene)
@@ -446,6 +452,7 @@ void ModuleSceneManager::SetActiveScene(ResourceScene* scene)
 	if (scene)
 	{
 		App->selection->ClearSelection();
+		App->time->Gametime_clock.Stop();
 		//SelectedGameObject = nullptr;
 
 		// --- Unload current scene ---
@@ -488,16 +495,18 @@ void ModuleSceneManager::SetActiveScene(ResourceScene* scene)
 				App->scene_manager->SaveScene(App->scene_manager->temporalScene);
 			}
 		}
+		App->physics->physAccumulatedTime = 0.0f;//Reset Physics
+		App->time->Gametime_clock.Start();
 	}
 	else
 		ENGINE_CONSOLE_LOG("|[error]: Trying to load invalid scene");
 
 }
 
-GameObject* ModuleSceneManager::CreateEmptyGameObject() 
+GameObject* ModuleSceneManager::CreateEmptyGameObject(const char* name) 
 {
 	// --- Create New Game Object Name ---
-	std::string Name = "GameObject ";
+	std::string Name = name;
 	Name.append("(");
 	Name.append(std::to_string(go_count));
 	Name.append(")");
@@ -610,7 +619,7 @@ void ModuleSceneManager::LoadParMesh(par_shapes_mesh_s* mesh, ResourceMesh* new_
 	{
 		for (uint i = 0; i < new_mesh->VerticesSize - 2; i += 3)
 		{
-			// --- Tangents & Bitangents Calculations ---	
+			// --- Tangents & Bitangents Calculations ---
 			float3 tangent, bitangent;
 			CalculateTangentAndBitangent(new_mesh, i, tangent, bitangent);
 
@@ -797,32 +806,50 @@ void ModuleSceneManager::CreateCapsule(float radius, float height, ResourceMesh*
 
 GameObject * ModuleSceneManager::LoadCube()
 {
-	return LoadPrimitiveObject(cube->GetUID());
+	GameObject* obj = LoadPrimitiveObject(cube->GetUID());
+	std::string name = "Cube (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadPlane()
 {
-	return LoadPrimitiveObject(plane->GetUID());
+	GameObject* obj = LoadPrimitiveObject(plane->GetUID());
+	std::string name = "Plane (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadSphere()
 {
-	return LoadPrimitiveObject(sphere->GetUID());
+	GameObject* obj = LoadPrimitiveObject(sphere->GetUID());
+	std::string name = "Sphere (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadCylinder()
 {
-	return LoadPrimitiveObject(cylinder->GetUID());
+	GameObject* obj = LoadPrimitiveObject(cylinder->GetUID());
+	std::string name = "Cylinder (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadDisk()
 {
-	return LoadPrimitiveObject(disk->GetUID());
+	GameObject* obj = LoadPrimitiveObject(disk->GetUID());
+	std::string name = "Disk (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadCapsule()
 {
-	return LoadPrimitiveObject(capsule->GetUID());
+	GameObject* obj = LoadPrimitiveObject(capsule->GetUID());
+	std::string name = "Capsule (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadPrimitiveObject(uint PrimitiveMeshID)

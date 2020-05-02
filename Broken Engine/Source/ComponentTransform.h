@@ -23,13 +23,14 @@ public:
 
 	// --- Setters ---
 	void			SetPosition(float3 new_pos);
-	void			SetPosition(float x, float y, float z);
+	void			SetPosition(float x, float y, float z);	
+	void			SetGlobalPosition(float3 new_pos);
+	void			SetGlobalPosition(float x, float y, float z);
 	void			SetRotation(float3 euler_angles);
 	void			SetRotation(Quat quat);
 	void			Scale(float x, float y, float z);
 	void			SetGlobalTransform(float4x4 new_transform);
 	void			OnUpdateTransform(const float4x4& ParentGlobal);
-	void			SetQuatRotation(Quat rotation);
 
 	void UpdateLocalTransform();
 
@@ -42,7 +43,7 @@ public:
 
 public:
 	bool update_transform = true;
-	bool updateValues = true;
+	bool updateValues = false;
 private:
 	//void UpdateLocalTransform();
 	void UpdateTRS();

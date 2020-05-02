@@ -8,6 +8,8 @@
 #include "JSONLoader.h"
 #include <vector>
 
+#include "Optick/include/optick.h"
+
 #include "mmgr/mmgr.h"
 
 #define BANKNAME_INIT "Assets/Sounds/Init.bnk"
@@ -20,7 +22,7 @@ ModuleAudio::ModuleAudio(bool start_enabled) : Module(start_enabled) {
 	name = "Audio";
 }
 
-ModuleAudio::~ModuleAudio() 
+ModuleAudio::~ModuleAudio()
 {
 	for (int i = 0; i < audioListenerList.size(); ++i)
 	{
@@ -56,6 +58,8 @@ bool ModuleAudio::Start()
 
 update_status ModuleAudio::PostUpdate(float dt)
 {
+	OPTICK_CATEGORY("Audio PostUpdate", Optick::Category::Audio);
+
 	AK::SoundEngine::RenderAudio();
 	if (App->GetAppState() == Broken::AppState::PAUSE)
 	{
@@ -95,7 +99,7 @@ void ModuleAudio::InitWwise()
 	AK::StreamMgr::GetDefaultDeviceSettings(deviceSettings);
 
 
-	
+
 
 	// Sound Engine
 	AkInitSettings l_InitSettings;
@@ -106,7 +110,7 @@ void ModuleAudio::InitWwise()
 	// Setting pool sizes for this game. Here, allow for user content; every game should determine its own optimal values.
 	l_InitSettings.uDefaultPoolSize = 2 * 1024 * 1024;
 	l_platInitSetings.uLEngineDefaultPoolSize = 4 * 1024 * 1024;
-	
+
 	// Music Engine
 	AkMusicSettings musicInit;
 	AK::MusicEngine::GetDefaultInitSettings(musicInit);
@@ -230,7 +234,7 @@ void ModuleAudio::Tests(AkGameObjectID id)
 
 	AkAuxSendValue reverb;
 	reverb.listenerID = AK_INVALID_GAME_OBJECT;
-	/*reverb.auxBusID = AK::AUX_BUSSES::REVERB;*/
+	//reverb.auxBusID = AK::AUX_BUSSES::REVERB;
 	reverb.fControlValue = 1.0f;
 
 	AK::SoundEngine::SetGameObjectAuxSendValues(id, NULL, 0);
@@ -338,7 +342,7 @@ void ModuleAudio::LoadEventsFromJson()
 	uint Id = 0;
 	std::string name;
 	json File = App->GetJLoader()->Load("Assets/Sounds/Main.json");
-	
+
 	json Events = File["SoundBanksInfo"]["SoundBanks"][0]["IncludedEvents"];
 	EventMap.begin();
 

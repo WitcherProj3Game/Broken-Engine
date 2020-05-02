@@ -90,6 +90,9 @@ void ComponentLight::SendUniforms(uint shaderID, uint lightIndex)
 	int attLoc = glGetUniformLocation(shaderID, (light_index_str + ".attenuationKLQ").c_str());
 	int cutoffLoc = glGetUniformLocation(shaderID, (light_index_str + ".InOutCutoff").c_str());
 	int LtypeLoc = glGetUniformLocation(shaderID, (light_index_str + ".LightType").c_str());
+	int distMultiLoc = glGetUniformLocation(shaderID, (light_index_str + ".distanceMultiplier").c_str());
+
+	//u_DistanceMultiplier distMultiLoc
 
 	
 	if ((!active || m_LightType == LightType::NONE || m_LightType == LightType::MAX_LIGHT_TYPES) && !m_SetToZero)
@@ -113,6 +116,9 @@ void ComponentLight::SendUniforms(uint shaderID, uint lightIndex)
 
 		// --- Passing Light Attenuation
 		glUniform3f(attLoc, 0.0f, 0.0f, 0.0f);
+
+		// --- Passing Light Distance Multiplicator ---
+		glUniform1f(distMultiLoc, 1.0f);
 
 		m_SetToZero = true;
 	}
@@ -142,6 +148,9 @@ void ComponentLight::SendUniforms(uint shaderID, uint lightIndex)
 
 		// --- Passing Light Attenuation
 		glUniform3f(attLoc, m_AttenuationKLQFactors.x, m_AttenuationKLQFactors.y, m_AttenuationKLQFactors.z);
+
+		// --- Passing Light Distance Multiplicator ---
+		glUniform1f(distMultiLoc, m_DistanceMultiplier);
 
 		if(m_SetToZero)
 			m_SetToZero = false;
@@ -251,9 +260,16 @@ void ComponentLight::CreateInspectorNode()
 	ImGui::Text("Intensity");
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 	ImGui::SetNextItemWidth(300.0f);
-	ImGui::SliderFloat("", &m_Intensity, 0.0f, 2.0f);
+	ImGui::SliderFloat("", &m_Intensity, 0.0f, 100.0f, "%.3f", 2.0f);
 	ImGui::NewLine();
 
+	// --- Distance Multiplier ---
+	ImGui::Text("Distance Multiplier");
+	ImGui::SameLine(); ImGui::SetNextItemWidth(65.0f);
+	ImGui::DragFloat("##DistMulti", &m_DistanceMultiplier, 0.1f, 0.1f, INFINITY, "%.4f");
+	ImGui::NewLine();
+
+	// --- Type-According Values ---
 	if (m_LightType == LightType::SPOTLIGHT)
 	{
 		// --- Cutoff ---
@@ -270,11 +286,11 @@ void ComponentLight::CreateInspectorNode()
 		// --- Attenuation ---	
 		ImGui::Separator(); ImGui::NewLine();
 		ImGui::Text("Constant Attenuation Value (K):"); ImGui::SameLine(); ImGui::SetNextItemWidth(65.0f);
-		ImGui::DragFloat("##AttK", &m_AttenuationKLQFactors.x, 0.001f, 0.000f, 2.0f);
+		ImGui::DragFloat("##AttK", &m_AttenuationKLQFactors.x, 0.001f, 0.000f);
 		ImGui::Text("Linear Attenuation Value (L):"); ImGui::SameLine(); ImGui::SetNextItemWidth(65.0f);
-		ImGui::DragFloat("##AttL", &m_AttenuationKLQFactors.y, 0.001f, 0.000f, 2.0f);
+		ImGui::DragFloat("##AttL", &m_AttenuationKLQFactors.y, 0.001f, 0.000f);
 		ImGui::Text("Quadratic Attenuation Value (Q):"); ImGui::SameLine(); ImGui::SetNextItemWidth(65.0f);
-		ImGui::DragFloat("##AttQ", &m_AttenuationKLQFactors.z, 0.00001f, 0.000000f, 2.0f, "%.5f");
+		ImGui::DragFloat("##AttQ", &m_AttenuationKLQFactors.z, 0.00001f, 0.000000f, 10.0f, "%.5f");
 
 		if (ImGui::Button("Default", { 57, 18 }))
 			m_AttenuationKLQFactors = float3(1.0f, 0.09f, 0.032f);
@@ -309,7 +325,7 @@ json ComponentLight::Save() const
 
 	node["Intensity"] = std::to_string(m_Intensity);
 	node["LightType"] = std::to_string((int)m_LightType);
-
+	node["DistanceMultiplier"] = std::to_string(m_DistanceMultiplier);
 
 	return node;
 }
@@ -336,6 +352,7 @@ void ComponentLight::Load(json& node)
 	std::string str_outCut = node["OuterCutoff"].is_null() ? "45" : node["OuterCutoff"];
 
 	std::string str_intensity = node["Intensity"].is_null() ? "0.5" : node["Intensity"];
+	std::string str_distMult = node["DistanceMultiplier"].is_null() ? "1.0" : node["DistanceMultiplier"];
 	std::string str_LType = node["LightType"].is_null() ? "1" : node["LightType"];
 
 	// --- Pass Strings to the needed Data Type
@@ -347,4 +364,5 @@ void ComponentLight::Load(json& node)
 
 	m_Intensity = std::stof(str_intensity);
 	m_LightType = (LightType)(std::stoi(str_LType));
+	m_DistanceMultiplier = std::stof(str_distMult);
 }

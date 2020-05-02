@@ -73,12 +73,13 @@ void ComponentButton::Draw()
 {
 	// --- Frame image with camera ---
 	float nearp = App->renderer3D->active_camera->GetNearPlane();
-	float3 pos = { position2D.x, position2D.y, nearp + 0.026f };
+	float3 pos = { position2D.x / App->gui->sceneWidth, position2D.y / App->gui->sceneHeight, nearp + 0.026f };
 	float3 size = { size2D.x / App->gui->sceneWidth, size2D.y / App->gui->sceneHeight, 1.0f };
 	float4x4 transform = transform.FromTRS(pos, Quat::identity, size);
 
 	// --- Set Uniforms ---
-	uint shaderID = App->renderer3D->defaultShader->ID;
+	uint shaderID = App->renderer3D->UI_Shader->ID;
+	//uint shaderID = App->renderer3D->defaultShader->ID;
 	glUseProgram(shaderID);
 
 	GLint modelLoc = glGetUniformLocation(shaderID, "u_Model");
@@ -101,6 +102,7 @@ void ComponentButton::Draw()
 	// --- Color & Texturing ---
 	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");
 	glUniform4f(vertexColorLocation, color.r, color.g, color.b, color.a);
+	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);
 
 	GameObject* gameObj = GetContainerGameObject();
 
@@ -205,9 +207,11 @@ void ComponentButton::Load(json& node)
 
 	texture = (ResourceTexture*)App->resources->GetResource(std::stoi(path));
 
-	if (texture == nullptr)
-		texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
-	texture->AddUser(GO);
+	//if (texture == nullptr)
+	//	texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
+	//
+	if (texture)
+		texture->AddUser(GO);
 
 	std::string visible_str = node["visible"].is_null() ? "0" : node["visible"];
 	std::string draggable_str = node["visible"].is_null() ? "0" : node["draggable"];
@@ -321,11 +325,8 @@ void ComponentButton::CreateInspectorNode()
 	ImGui::Text("Size:    ");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	if (ImGui::DragFloat("x##buttonsize", &size2D.x) && resize)
+	if (ImGui::DragFloat("x##buttonsize", &size2D.x, 1.0f, 0.0f, INFINITY) && resize)
 	{
-		if (size2D.x < 0.0f)
-			size2D.x = 0;
-
 		if (texture)
 		{
 			if (texture->Texture_height != 0 && texture->Texture_width != 0)
@@ -339,11 +340,8 @@ void ComponentButton::CreateInspectorNode()
 	}
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	if (ImGui::DragFloat("y##buttonsize", &size2D.y) && resize)
+	if (ImGui::DragFloat("y##buttonsize", &size2D.y, 1.0f, 0.0f, INFINITY) && resize)
 	{
-		if (size2D.y < 0.0f)
-			size2D.y = 0;
-
 		if (texture)
 		{
 			if (texture->Texture_height != 0 && texture->Texture_width != 0)
@@ -360,10 +358,10 @@ void ComponentButton::CreateInspectorNode()
 	ImGui::Text("Position:");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("x##buttonposition", &position2D.x, 0.01f);
+	ImGui::DragFloat("x##buttonposition", &position2D.x);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("y##buttonposition", &position2D.y, 0.01f);
+	ImGui::DragFloat("y##buttonposition", &position2D.y);
 
 	// Rotation
 	//ImGui::Text("Rotation:");
@@ -378,24 +376,6 @@ void ComponentButton::CreateInspectorNode()
 	ImGui::Text("Collider");
 	ImGui::SameLine();
 	ImGui::Checkbox("Visible##2", &collider_visible);
-
-	// Position
-	ImGui::Text("Position:");
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(60);
-	ImGui::DragInt("x##buttoncolliderposition", &collider.x, 0.001f);
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(60);
-	ImGui::DragInt("y##buttoncolliderposition", &collider.y, 0.001f);
-
-	// Size
-	ImGui::Text("Size:    ");
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(60);
-	ImGui::DragInt("x##buttoncollidersize", &collider.w);
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(60);
-	ImGui::DragInt("y##buttoncollidersize", &collider.h);
 
 	// ------------------------------------------
 
@@ -426,6 +406,14 @@ void ComponentButton::CreateInspectorNode()
 			}
 		}
 		ImGui::EndDragDropTarget();
+	}
+	if (ImGui::Button("Delete Texture"))
+	{
+		if (texture)
+		{
+			texture->Release();
+			texture = nullptr;
+		}
 	}
 
 	// Aspect Ratio
@@ -488,19 +476,19 @@ void ComponentButton::CreateInspectorNode()
 
 	// States (Colors)
 	ImGui::Separator();
-	ImGui::ColorEdit4("##Idle", (float*)&idle_color, ImGuiColorEditFlags_NoInputs);
+	ImGui::ColorEdit4("##Idle", (float*)&idle_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 	ImGui::Text("Idle");
 
-	ImGui::ColorEdit4("##Hovered", (float*)&hovered_color, ImGuiColorEditFlags_NoInputs);
+	ImGui::ColorEdit4("##Hovered", (float*)&hovered_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 	ImGui::Text("Hovered");
 
-	ImGui::ColorEdit4("##Selected", (float*)&selected_color, ImGuiColorEditFlags_NoInputs);
+	ImGui::ColorEdit4("##Selected", (float*)&selected_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 	ImGui::Text("Selected");
 
-	ImGui::ColorEdit4("##Locked", (float*)&locked_color, ImGuiColorEditFlags_NoInputs);
+	ImGui::ColorEdit4("##Locked", (float*)&locked_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 	ImGui::Text("Locked");
 

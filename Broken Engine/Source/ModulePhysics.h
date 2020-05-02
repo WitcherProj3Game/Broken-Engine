@@ -53,7 +53,7 @@ struct Layer {
 	bool active;
 	std::vector<bool> active_layers;
 	physx::PxU32 LayerGroup;
-	
+
 	void UpdateLayerGroup() {
 		physx::PxU32 ID = 0;
 
@@ -81,7 +81,7 @@ struct BROKEN_API UserIterator : physx::PxVolumeCache::Iterator
 {
 	virtual void processShapes(physx::PxU32 count, const physx::PxActorShape* actorShapePairs);
 
-	LayerMask layer; 
+	LayerMask layer;
 };
 
 struct BROKEN_API FilterCallback : physx::PxQueryFilterCallback {
@@ -100,6 +100,7 @@ class BROKEN_API ModulePhysics : public Broken::Module
 {
 public:
 	friend struct Layer;
+	friend struct ModuleSceneManager;
 
 	ModulePhysics(bool start_enabled = true);
 	~ModulePhysics();
@@ -121,12 +122,15 @@ public:
 	void SimulatePhysics(float dt, float speed = 1.0f);
 
 	void addActor(physx::PxRigidActor* actor, GameObject* gameObject);
+	void AddParticleActor(physx::PxActor* actor, GameObject* gameObject);
 
 	void UpdateActorLayer(const physx::PxRigidActor* actor, const LayerMask* LayerMask);
+	void UpdateParticleActorLayer(physx::PxActor* actor, const LayerMask* LayerMask);
 
 	void UpdateActorsGroupFilter(LayerMask* updateLayer);
 
-	bool DeleteActor(physx::PxRigidActor* actor);
+	bool DeleteActor(physx::PxRigidActor* actor, bool dynamic = false);
+	bool DeleteActor(physx::PxActor* actor);
 
 	void DeleteActors(GameObject* go = nullptr);
 
@@ -156,17 +160,19 @@ public:
 
 	std::vector<Layer> layer_list;
 	std::map<physx::PxRigidActor*, GameObject*> actors;
+	std::map<physx::PxActor*, GameObject*> particleActors;
+
 	std::vector<uint>* detected_objects;
-	std::map<ResourceMesh *,physx::PxBase*> cooked_meshes;
+	std::map<ResourceMesh*, physx::PxBase*> cooked_meshes;
 	std::map<ResourceMesh*, physx::PxBase*> cooked_convex;
 	physx::PxVolumeCache* cache;
 	UserIterator iter;
 
+	float physAccumulatedTime = 0.0f;
 	FilterCallback filterCallback;
 
 private:
 	PhysxSimulationEvents* simulationEventsCallback = nullptr;
-	float physAccumulatedTime = 0.0f;
 	bool loaded = false;
 	float3 materialDesc = float3(1.0f, 1.0f, 0.0f);
 	float gravity = 9.8;

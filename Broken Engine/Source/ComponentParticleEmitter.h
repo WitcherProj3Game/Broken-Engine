@@ -121,9 +121,6 @@ private:
 	uint colorDuration = 0;
 	float spawnClock = 0.0f;
 
-	//Curves
-	std::vector<float> pointsCurve; 
-	float multiplier = 1.0f;
 };
 BE_END_NAMESPACE
 

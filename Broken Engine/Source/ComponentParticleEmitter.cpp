@@ -49,13 +49,6 @@ ComponentParticleEmitter::ComponentParticleEmitter(GameObject* ContainerGO) :Com
 
 	float4 whiteColor(1, 1, 1, 1);
 	colors.push_back(whiteColor);
-
-	pointsCurve.push_back(0.0f);
-	pointsCurve.push_back(0.0f);
-	pointsCurve.push_back(0.6f);
-	pointsCurve.push_back(0.4f);
-	pointsCurve.push_back(1.0f);
-	pointsCurve.push_back(1.0f);
 }
 
 ComponentParticleEmitter::~ComponentParticleEmitter()
@@ -188,23 +181,9 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 					continue;
 				}
 
-				float diff_time = (App->time->GetGameplayTimePassed() * 1000 - particles[i]->spawnTime);
-				if (diff_time > 0) {
-					for (int i = 0; i < pointsCurve.size() / 2 - 1; ++i) {
-						if (diff_time / particles[i]->lifeTime > pointsCurve[i * 2]) {
-							float p1_time = pointsCurve[i * 2] * particles[i]->lifeTime;
-							float p2_time = pointsCurve[i * 2 + 2] * particles[i]->lifeTime;
-							float p1_value = pointsCurve[i * 2 + 1] * multiplier;
-							float p2_value = pointsCurve[i * 2 + 3] * multiplier;
-							float scope = (p2_value - p1_value) / (p2_time - p1_time);
-							scaleOverTime = p1_value + scope * (diff_time - p1_time);
-						}
-					}
-				}
-
 				//Update particle position
-				particles[i]->scale.x = scaleOverTime;
-				particles[i]->scale.y = scaleOverTime;
+				particles[i]->scale.x += scaleOverTime * dt;
+				particles[i]->scale.y += scaleOverTime * dt;
 
 				particles[i]->position = float3(positionIt->x, positionIt->y, positionIt->z);
 
@@ -1006,15 +985,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	ImGui::Separator();
 
-	int new_count = pointsCurve.size() / 2;
-	float* data = &pointsCurve[0];
 	
-	ImGui::CurveEditor("##Curve Editor", data, pointsCurve.size() / 2, multiplier, ImVec2((int)ImGui::GetWindowWidth() - 50,150), SHOW_GRID | NO_TANGENTS, &new_count);
-	if (new_count * 2 != pointsCurve.size()) {
-		std::vector<float> auxCurve = { data, data + new_count * 2 };
-		pointsCurve.resize(auxCurve.size());
-		std::copy(auxCurve.begin(), auxCurve.end(), pointsCurve.begin());
-	}
 }
 
 double ComponentParticleEmitter::GetRandomValue(double min, double max) //EREASE IN THE FUTURE

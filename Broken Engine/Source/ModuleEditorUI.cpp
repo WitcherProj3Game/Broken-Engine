@@ -12,6 +12,7 @@
 // -- Modules --
 #include "ModuleGui.h"
 #include "ModuleSceneManager.h"
+#include "ModuleScripting.h"
 
 // -- Components --
 #include "GameObject.h"
@@ -26,7 +27,7 @@
 // -- Utilities --
 #include "EngineLog.h"
 #include "Panels.h"
-
+#include "AutoCompleteFileGen.h"
 #include "Optick/include/optick.h"
 #include "mmgr/mmgr.h"
 
@@ -118,6 +119,23 @@ update_status ModuleEditorUI::Update(float dt)
 			if (ImGui::MenuItem("Build Game")) {
 				panelBuild->SetOnOff(true);
 			}
+
+			if (ImGui::BeginMenu("Generate Autocomplete File"))
+			{
+				if (ImGui::MenuItem("With Variables Autocompleted on Enter"))
+				{
+					Broken::AutoCompleteFileGen ac_filegen;
+					ac_filegen.GenerateAutoCompleteFile(true);
+				}
+				if (ImGui::MenuItem("Only Variable Suggestion on Description"))
+				{
+					Broken::AutoCompleteFileGen ac_filegen;
+					ac_filegen.GenerateAutoCompleteFile(false);
+				}
+
+				ImGui::EndMenu();
+			}
+
 			ImGui::EndMenu();
 		}
 
@@ -174,32 +192,32 @@ update_status ModuleEditorUI::Update(float dt)
 
 				ImGui::EndMenu();
 			}
-			if (ImGui::BeginMenu("UI Elements")) 
+			if (ImGui::BeginMenu("UI Elements"))
 			{
-				if (ImGui::MenuItem("Canvas")) 
+				if (ImGui::MenuItem("Canvas"))
 				{
 					Broken::GameObject* canvas_go = EngineApp->scene_manager->CreateEmptyGameObject("Canvas");
 					Broken::ComponentCanvas* camera = (Broken::ComponentCanvas*)canvas_go->AddComponent(Broken::Component::ComponentType::Canvas);
 				}
-				if (ImGui::MenuItem("Image")) 
+				if (ImGui::MenuItem("Image"))
 				{
 					Broken::GameObject* image_go = EngineApp->scene_manager->CreateEmptyGameObject("Image");
 					Broken::ComponentImage* image = (Broken::ComponentImage*)image_go->AddComponent(Broken::Component::ComponentType::Image);
 				}
-				if (ImGui::MenuItem("Text")) 
+				if (ImGui::MenuItem("Text"))
 				{
 					Broken::GameObject* text_go = EngineApp->scene_manager->CreateEmptyGameObject("Text");
 					Broken::ComponentText* text = (Broken::ComponentText*)text_go->AddComponent(Broken::Component::ComponentType::Text);
 				}
-				if (ImGui::MenuItem("Button")) 
+				if (ImGui::MenuItem("Button"))
 				{
 					Broken::GameObject* button_go = EngineApp->scene_manager->CreateEmptyGameObject("Button");
 					Broken::ComponentText* button = (Broken::ComponentText*)button_go->AddComponent(Broken::Component::ComponentType::Button);
 				}
-				//if (ImGui::MenuItem("Checkbox")) 
+				//if (ImGui::MenuItem("Checkbox"))
 				//{
 				//}
-				//if (ImGui::MenuItem("Input Text")) 
+				//if (ImGui::MenuItem("Input Text"))
 				//{
 				//}
 				if (ImGui::MenuItem("Progress Bar"))
@@ -381,7 +399,7 @@ const Broken::json& ModuleEditorUI::SaveStatus() const {
 			config[panels[i]->GetName()] = false;
 		else
 			config[panels[i]->GetName()] = panels[i]->IsEnabled();
-	} 
+	}
 	return config;
 };
 

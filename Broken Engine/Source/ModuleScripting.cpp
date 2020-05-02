@@ -9,6 +9,7 @@
 #include "ModuleSceneManager.h"
 #include "ResourceScene.h"
 #include "ModuleEventManager.h"
+#include "AutoCompleteFileGen.h"
 
 #include "ResourceScript.h"
 #include "ComponentScript.h"

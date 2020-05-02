@@ -3,6 +3,7 @@
 #include "ModuleScripting.h"
 #include "ModuleSceneManager.h"
 #include "ModuleResourceManager.h"
+#include "ModuleAudio.h"
 #include "GameObject.h"
 #include "ImporterModel.h"
 #include "ScriptData.h"
@@ -24,6 +25,7 @@ void ScriptingScenes::LoadSceneFromScript(uint scene_UUID)
 	App->time->Gametime_clock.Stop();
 	App->scene_manager->SetActiveScene(scene);
 	App->physics->physAccumulatedTime = 0.0f;//Reset Physics
+	App->audio->StopAllAudioEvents(); //This will stop all events as a super quick implementation, but if we want something to be continuous between scenes then we will need to develop a small system in the module
 	App->time->Gametime_clock.Start();
 }
 

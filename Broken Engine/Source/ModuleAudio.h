@@ -57,6 +57,7 @@ private:
 	void InitWwise();
 	void TerminateWwise();
 	void LoadSoundBank(const char* path);
+	void CatchAllSoundBanks(std::vector<std::string> banks);
 	void LoadEventsFromJson();
 	void StopAllAudioEvents();
 	void ResumeAllAudioEvents();

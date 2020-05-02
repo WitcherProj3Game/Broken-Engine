@@ -40,6 +40,10 @@ public:
 	ResourceMesh* deformable_mesh = nullptr;
 
 	std::vector<ComponentBone*> bones;
+
+private:
+	mutable bool dmesh_aabb_updated = false;
+
 };
 BE_END_NAMESPACE
 #endif

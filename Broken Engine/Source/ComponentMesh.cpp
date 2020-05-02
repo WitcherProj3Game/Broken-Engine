@@ -65,8 +65,13 @@ void ComponentMesh::Update()
 
 const AABB& ComponentMesh::GetAABB() const
 {
-	if (deformable_mesh)
+	if (deformable_mesh) {
+		if (!dmesh_aabb_updated) {
+			deformable_mesh->CreateAABB();
+			dmesh_aabb_updated = true;
+		}
 		return deformable_mesh->aabb;
+	}
 	else if (resource_mesh)
 		return resource_mesh->aabb;
 	else
@@ -158,6 +163,8 @@ void ComponentMesh::AddBone(ComponentBone* bone)
 
 void ComponentMesh::UpdateDefMesh()
 {
+	dmesh_aabb_updated = false;
+
 	if (!deformable_mesh)
 	{
 		deformable_mesh = new ResourceMesh(App->GetRandom().Int(), "");
@@ -220,9 +227,6 @@ void ComponentMesh::UpdateDefMesh()
 			}*/
 		}
 	}
-
-	deformable_mesh->CreateAABB();
-
 	// --- Bind it ---
 	glBindVertexArray(deformable_mesh->VAO);
 

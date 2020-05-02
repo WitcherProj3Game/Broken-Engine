@@ -149,7 +149,7 @@ void ComponentButton::Draw()
 
 	// --- Collider ---
 	float2 screenpos = App->renderer3D->active_camera->WorldToScreen({ pos.x, -pos.y, pos.z });
-	collider = { (int)screenpos.x, (int)(screenpos.y - size2D.y), (int)size2D.x, (int)size2D.y };
+	collider = { (int)(screenpos.x - size2D.x/2), (int)(screenpos.y - size2D.y/2), (int)size2D.x, (int)size2D.y };
 
 	// Draw Collider
 	if (collider_visible && App->GetAppState() == AppState::EDITOR) //draw only in editor mode

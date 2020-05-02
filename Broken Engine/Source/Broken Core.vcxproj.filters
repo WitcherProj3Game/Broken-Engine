@@ -723,6 +723,9 @@
     <ClInclude Include="TranslatorUtilities.h">
       <Filter>Sources\BrokenEngine\Modules\Scripting Functions\SuperTranslator</Filter>
     </ClInclude>
+    <ClInclude Include="AutoCompleteFileGen.h">
+      <Filter>Sources\BrokenEngine\Tools</Filter>
+    </ClInclude>
     <ClInclude Include="ScriptingLighting.h">
       <Filter>Sources\BrokenEngine\Modules\Scripting Functions</Filter>
     </ClInclude>
@@ -1275,6 +1278,9 @@
       <Filter>Sources\BrokenEngine\Resources</Filter>
     </ClCompile>
     <ClCompile Include="TranslatorUtilities.cpp">
+      <Filter>Sources\BrokenEngine\Modules\Scripting Functions\SuperTranslator</Filter>
+    </ClCompile>
+    <ClCompile Include="AutoCompleteFileGen.cpp">
       <Filter>Sources\BrokenEngine\Tools</Filter>
     </ClCompile>
     <ClCompile Include="ScriptingLighting.cpp">

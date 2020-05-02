@@ -25,7 +25,6 @@ public:
 	void Disable() override;
 
 	void UpdateParticles(float dt);
-	//void DrawComponent() override;
 	void DrawParticles();
 	void ChangeParticlesColor(float4 color);
 
@@ -121,6 +120,10 @@ private:
 	bool createdAnim = false;
 	uint colorDuration = 0;
 	float spawnClock = 0.0f;
+
+	//Curves
+	std::vector<float> pointsCurve; 
+	float multiplier = 1.0f;
 };
 BE_END_NAMESPACE
 

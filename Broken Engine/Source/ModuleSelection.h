@@ -80,7 +80,7 @@ public:
 
 	void PasteComponentValuesToSelected();
 
-	void DeleteComponentToSelected();
+	void DeleteComponentToSelected(Component* component);
 
 	bool ComponentCanBePasted() const;
 

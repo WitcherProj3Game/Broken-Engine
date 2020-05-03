@@ -206,34 +206,19 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 		toPlay = true;
 	}
 
-	/*if (App->GetAppState() == AppState::PLAY && !toPlay && !App->time->gamePaused)
-	{
-		float3 pos, scale;
-		Quat rot;
-		globalMatrix.Decompose(pos, rot, scale);
 
-		physx::PxVec3 posi(pos.x, pos.y, pos.z);
-		physx::PxQuat quati(rot.x, rot.y, rot.z, rot.w);
-		physx::PxTransform transform(posi, quati);
-
-		RB->rigidBody->setGlobalPose(transform);
-
-		toPlay = true;
-	}*/
-	//float4x4 trans = float4x4::FromTRS(float3(transform.p.x, transform.p.y - globalMatrix.scaleY/2, transform.p.z), Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), cTransform->GetGlobalTransform().ExtractScale());
-
-	//REVIEW ADD QUATERNION OF PARENT/SCALE (CHECK)
 	transform = RB->rigidBody->getGlobalPose();
+	float3 position = float3(
+		(transform.p.x - globalMatrix.x) + cTransform->GetGlobalTransform().x,
+		(transform.p.y - globalMatrix.y) + cTransform->GetGlobalTransform().y,
+		(transform.p.z - globalMatrix.z) + cTransform->GetGlobalTransform().z);
 
-	float4x4 new_transform(Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), float3(transform.p.x, transform.p.y, transform.p.z));
-	float4x4 trans = new_transform - globalMatrix;
-	trans.Scale(float3(0,0,0));
-	float4x4 final = cTransform->GetGlobalTransform() + trans;
+	float4x4 new_transform = float4x4::FromTRS(
+		position,
+		Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), 
+		cTransform->GetGlobalTransform().Transposed().GetScale());
 
-	cTransform->SetGlobalTransform(final);
-	cTransform->SetPosition(cTransform->GetLocalTransform().x, cTransform->GetLocalTransform().y, cTransform->GetLocalTransform().z);
-	cTransform->SetRotation(Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
-	//globalMatrix = cTransform->GetGlobalTransform();
+	cTransform->SetGlobalTransform(new_transform);
 }
 
 json ComponentCollider::Save() const

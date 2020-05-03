@@ -41,6 +41,7 @@ private:
 
 class BROKEN_API ModuleAudio : public Module
 {
+	friend class ScriptingScenes;
 public:
 	ModuleAudio(bool start_enabled = true);
 	virtual ~ModuleAudio();

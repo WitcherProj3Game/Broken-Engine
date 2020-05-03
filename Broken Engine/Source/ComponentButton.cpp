@@ -43,15 +43,20 @@ ComponentButton::ComponentButton(GameObject* gameObject) : Component(gameObject,
 	collider = { 0,0,0,0 };
 	color = idle_color;
 
-	canvas = (ComponentCanvas*)gameObject->AddComponent(Component::ComponentType::Canvas);
+	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = GO->parent->GetComponent<ComponentCanvas>();
+
+		if(canvas)
+			canvas->AddElement(this);
+	}
+
 	//texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
 
 	//font.init("Assets/Fonts/Dukas.ttf", font_size);
 	//font.path = "Assets/Fonts/Dukas.ttf";
 
 	func_name = "None";
-
-	canvas->AddElement(this);
 }
 
 ComponentButton::~ComponentButton()
@@ -65,6 +70,14 @@ ComponentButton::~ComponentButton()
 
 void ComponentButton::Update()
 {
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas->AddElement(this);
+	}
+	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
+		canvas = nullptr;
+
 	if (to_delete)
 		this->GetContainerGameObject()->RemoveComponent(this);
 }
@@ -136,7 +149,7 @@ void ComponentButton::Draw()
 
 	// --- Collider ---
 	float2 screenpos = App->renderer3D->active_camera->WorldToScreen({ pos.x, -pos.y, pos.z });
-	collider = { (int)screenpos.x, (int)(screenpos.y - size2D.y), (int)size2D.x, (int)size2D.y };
+	collider = { (int)(screenpos.x - size2D.x/2), (int)(screenpos.y - size2D.y/2), (int)size2D.x, (int)size2D.y };
 
 	// Draw Collider
 	if (collider_visible && App->GetAppState() == AppState::EDITOR) //draw only in editor mode

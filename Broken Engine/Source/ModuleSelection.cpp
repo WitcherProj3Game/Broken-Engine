@@ -491,6 +491,7 @@ bool ModuleSelection::ComponentCanBePasted() const
 {
 	return (component_type != Component::ComponentType::Unknown);
 }
+
 void ModuleSelection::CopyComponentValues(Component* component)
 {
 	component_type = component->GetType();
@@ -503,8 +504,15 @@ void ModuleSelection::CopyComponentValues(Component* component)
 
 void ModuleSelection::PasteComponentValues(Component* component)
 {
-	if (component_type != Component::ComponentType::Unknown)
-		component->Load(component_node);
+	if (component_type == Component::ComponentType::Unknown || component_type != component->GetType())
+		return;
+
+	component->Load(component_node);
+
+	if (component_type == Component::ComponentType::Transform)
+	{
+		((ComponentTransform*)component)->updateValues = true;
+	}
 }
 
 void ModuleSelection::PasteComponentValuesToSelected()
@@ -512,16 +520,18 @@ void ModuleSelection::PasteComponentValuesToSelected()
 	for (GameObject* obj : *GetSelected())
 	{
 		if (Component * component = obj->HasComponent(component_type))
-			component->Load(component_node);
+		{
+			PasteComponentValues(component);
+		}
 	}
 }
 
-void ModuleSelection::DeleteComponentToSelected()
+void ModuleSelection::DeleteComponentToSelected(Component* component)
 {
 	for (GameObject* obj : *GetSelected())
 	{
-		if (Component * component = obj->HasComponent(component_type))
-			component->to_delete = true;
+		if (Component * c = obj->HasComponent(component->GetType()))
+			c->to_delete = true;
 	}
 
 }

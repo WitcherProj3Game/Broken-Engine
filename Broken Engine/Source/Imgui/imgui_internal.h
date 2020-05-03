@@ -1658,6 +1658,8 @@ struct ImGuiTabBar
         IM_ASSERT(tab->NameOffset != -1 && tab->NameOffset < TabsNames.Buf.Size);
         return TabsNames.Buf.Data + tab->NameOffset;
     }
+
+
 };
 
 //-----------------------------------------------------------------------------

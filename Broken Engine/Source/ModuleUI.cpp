@@ -12,6 +12,7 @@
 #include "ComponentButton.h"
 #include "ComponentCamera.h"
 #include "ResourceFont.h"
+#include "ResourceScene.h"
 
 #include "Optick/include/optick.h"
 
@@ -62,14 +63,24 @@ update_status ModuleUI::PreUpdate(float dt)
 	//#include "Optick/include/optick.h"
 	OrderCanvas(); //order canvas
 
-	for (GameObject* obj : App->scene_manager->GetRootGO()->childs) //all objects in scene
+	for (std::unordered_map<uint, GameObject*>::iterator it = App->scene_manager->currentScene->NoStaticGameObjects.begin(); it != App->scene_manager->currentScene->NoStaticGameObjects.end(); ++it)
 	{
-		if (obj->HasComponent(Component::ComponentType::Button)) //if has button component
+		if ((*it).second->HasComponent(Component::ComponentType::Button)) //if has button component
 		{
-			ComponentButton* element = (ComponentButton*)obj->HasComponent(Component::ComponentType::Button); //single component (change when able to have multiple components of same type)
+			ComponentButton* element = (ComponentButton*)(*it).second->HasComponent(Component::ComponentType::Button); //single component (change when able to have multiple components of same type)
 			element->UpdateState(); //update state
 		}
 	}
+
+	for (std::unordered_map<uint, GameObject*>::iterator it = App->scene_manager->currentScene->StaticGameObjects.begin(); it != App->scene_manager->currentScene->StaticGameObjects.end(); ++it)
+	{
+		if ((*it).second->HasComponent(Component::ComponentType::Button)) //if has button component
+		{
+			ComponentButton* element = (ComponentButton*)(*it).second->HasComponent(Component::ComponentType::Button); //single component (change when able to have multiple components of same type)
+			element->UpdateState(); //update state
+		}
+	}
+
 	return UPDATE_CONTINUE;
 }
 

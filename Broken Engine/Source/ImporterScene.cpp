@@ -87,10 +87,12 @@ void ImporterScene::SaveSceneToFile(ResourceScene* scene) const
 
 		for (uint i = 0; i < (*it).second->GetComponents().size(); ++i)
 		{
-			// --- Save Components to file ---
-			file[string_uid]["Components"][std::to_string((uint)(*it).second->GetComponents()[i]->GetType())] = (*it).second->GetComponents()[i]->Save();
-			file[string_uid]["Components"][std::to_string((uint)(*it).second->GetComponents()[i]->GetType())]["index"] = i;
-			file[string_uid]["Components"][std::to_string((uint)(*it).second->GetComponents()[i]->GetType())]["UID"] = (*it).second->GetComponents()[i]->GetUID();
+			if ((*it).second->GetComponents()[i] != nullptr) {
+				// --- Save Components to file ---
+				file[string_uid]["Components"][std::to_string((uint)(*it).second->GetComponents()[i]->GetType())] = (*it).second->GetComponents()[i]->Save();
+				file[string_uid]["Components"][std::to_string((uint)(*it).second->GetComponents()[i]->GetType())]["index"] = i;
+				file[string_uid]["Components"][std::to_string((uint)(*it).second->GetComponents()[i]->GetType())]["UID"] = (*it).second->GetComponents()[i]->GetUID();
+			}
 		}
 	}
 

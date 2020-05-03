@@ -1165,6 +1165,7 @@ void ComponentParticleEmitter::Play()
 	emisionActive = true;
 	emisionStart = App->time->GetGameplayTimePassed() * 1000;
 	spawnClock = emisionStart;
+	firstEmision = true;
 }
 
 void ComponentParticleEmitter::Stop()

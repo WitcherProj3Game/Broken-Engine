@@ -20,13 +20,8 @@ ComponentText::ComponentText(GameObject* gameObject) : Component(gameObject, Com
 	name = "Text";
 	visible = true;
 
-	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
-	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
-
-		if (canvas)
-			canvas->AddElement(this);
-	}
+	canvas = (ComponentCanvas*)gameObject->AddComponent(Component::ComponentType::Canvas);
+	canvas->AddElement(this);
 
 	font = App->resources->DefaultFont;
 	if (font)
@@ -36,7 +31,6 @@ ComponentText::ComponentText(GameObject* gameObject) : Component(gameObject, Com
 
 ComponentText::~ComponentText() 
 {
-
 	if (font && font->IsInMemory())
 	{
 		font->Release();
@@ -46,14 +40,6 @@ ComponentText::~ComponentText()
 
 void ComponentText::Update()
 {
-	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
-	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
-		canvas->AddElement(this);
-	}
-	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
-		canvas = nullptr;
-
 	if (to_delete)
 		this->GetContainerGameObject()->RemoveComponent(this);
 }

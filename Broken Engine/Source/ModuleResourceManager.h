@@ -122,6 +122,7 @@ public:
 	ResourceFolder* GetAssetsFolder();
 	uint GetFileFormatVersion();
 	uint GetDefaultMaterialUID();
+	const std::pair<uint, ResourceTexture*> GetTextureResourceByName(const char* texture_name);
 
 private:
 	void SaveResource(Resource* resource) const;

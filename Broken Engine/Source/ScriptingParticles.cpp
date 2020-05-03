@@ -4,13 +4,15 @@
 #include "Application.h"
 #include "ModuleScripting.h"
 #include "ModuleSceneManager.h"
+#include "ModuleResourceManager.h"
 
 // -- Components --
 #include "GameObject.h"
 #include "ComponentParticleEmitter.h"
 #include "ComponentDynamicRigidBody.h"
-#include "ResourceScene.h"
 
+// --- Others ---
+#include "ResourceScene.h"
 #include "ScriptData.h"
 
 using namespace Broken;
@@ -299,6 +301,27 @@ void ScriptingParticles::SetTextureByUUID(uint texture_UUID, uint gameobject_UUI
 	}
 	else
 		ENGINE_CONSOLE_LOG("[Script]: (SetTextureByUID) GameObject with UUID %d could not be found!", gameobject_UUID);
+}
+
+void ScriptingParticles::SetTextureByName(const char* texture_name, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	if (go)
+	{
+		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
+		if (emitter)
+		{
+			const std::pair<uint, ResourceTexture*> res_texture = App->resources->GetTextureResourceByName(texture_name);
+			if (res_texture.second)
+				emitter->SetTexture(res_texture.first);
+			else
+				ENGINE_CONSOLE_LOG("[Script]: (SetTextureByName) Texture passed was NULL!");
+		}
+		else
+			ENGINE_CONSOLE_LOG("[Script]: (SetTextureByName) Particle Emmiter component is NULL");
+	}
+	else
+		ENGINE_CONSOLE_LOG("[Script]: (SetTextureByName) GameObject with UUID %d could not be found!", gameobject_UUID);
 }
 
 void ScriptingParticles::SetParticlesRotationOverTime(int rotationOverTime, uint gameobject_UUID)

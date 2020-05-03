@@ -73,8 +73,7 @@ GameObject::~GameObject()
 }
 
 void GameObject::Update(float dt)
-{
-	// PHYSICS: TEMPORAL example, after updating transform, update collider
+{	// PHYSICS: TEMPORAL example, after updating transform, update collider
 	ComponentCollider* collider = GetComponent<ComponentCollider>();
 
 	OPTICK_PUSH("GameObjects - Colliders Update");
@@ -101,6 +100,8 @@ void GameObject::Update(float dt)
 		(*it)->Update(dt);
 	}
 	OPTICK_POP();
+
+	GetComponent<ComponentTransform>()->updateValues = false;
 }
 
 void GameObject::Draw()

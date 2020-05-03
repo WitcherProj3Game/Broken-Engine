@@ -1242,3 +1242,8 @@ void ComponentParticleEmitter::SetOffsetRotation(float x, float y, float z)
 	emitterRotation = Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD);
 	eulerRotation = rotation;
 }
+
+void ComponentParticleEmitter::SetParticlesColor(float4 color) {
+	colors[0] = color;
+	UpdateAllGradients();
+}

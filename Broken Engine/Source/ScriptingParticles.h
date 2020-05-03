@@ -35,7 +35,8 @@ public:
 	void SetScaleOverTime(float scale, uint gameobject_UUID);
 	
 	//Texture
-	void SetTexture(uint texture_UUID, uint gameobject_UUID);
+	void SetTextureByUUID(uint texture_UUID, uint gameobject_UUID);
+	void SetTextureByName(const char* texture_name, uint gameobject_UUID);
 
 	//Rotations
 	void SetParticlesRotationOverTime(int rotationOverTime, uint gameobject_UUID);

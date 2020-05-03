@@ -187,4 +187,6 @@ void ScriptingAudio::SetAudioTrigger(std::string trigger)
 		uint wwisegoid = sound->wwiseGO->id;
 		App->audio->SetAudioTrigger(wwisegoid, trigger);
 	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetAudioTrigger) Sound Emmiter component is NULL");
 }

@@ -50,12 +50,29 @@ ComponentParticleEmitter::ComponentParticleEmitter(GameObject* ContainerGO) :Com
 	float4 whiteColor(1, 1, 1, 1);
 	colors.push_back(whiteColor);
 
+
+	/*pointsCurve.push_back(0.0f);
 	pointsCurve.push_back(0.0f);
 	pointsCurve.push_back(0.0f);
-	pointsCurve.push_back(0.6f);
-	pointsCurve.push_back(0.4f);
+	pointsCurve.push_back(0.0f);
 	pointsCurve.push_back(1.0f);
 	pointsCurve.push_back(1.0f);
+
+	pointsCurve.push_back(-1.0f);
+	pointsCurve.push_back(-1.0f);
+	pointsCurve.push_back(1.0f);
+	pointsCurve.push_back(1.0f);
+	pointsCurve.push_back(1.1f);
+	pointsCurve.push_back(1.0f);*/
+	Point new_Point;
+	new_Point.next_tangent = float2(0.1f, 0.1f);
+	new_Point.p = float2(0.0f, 0.0f);
+	new_Point.prev_tangent = float2(0.0f, 0.0f);
+	pointsCurveTangents.push_back(new_Point);
+	new_Point.next_tangent = float2(0.0f,0.0f);
+	new_Point.p = float2(1.0f, 1.0f);
+	new_Point.prev_tangent = float2(-0.1f, -0.1f);
+	pointsCurveTangents.push_back(new_Point);
 }
 
 ComponentParticleEmitter::~ComponentParticleEmitter()
@@ -841,7 +858,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::SameLine();
 		if (!separateAxis) {
 			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-			ImGui::DragInt("##Z2", &rotationOvertime1[2]);
+			ImGui::DragInt("##Z1", &rotationOvertime1[2]);
 			if (constants) {
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
@@ -990,14 +1007,29 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	ImGui::Separator();
 
-	int new_count = pointsCurve.size() / 2;
-	float* data = &pointsCurve[0];
+	int num_points = pointsCurveTangents.size();
+	int new_count = num_points;
+	Point* data = pointsCurveTangents.data();
 	
-	ImGui::CurveEditor("##Curve Editor", data, pointsCurve.size() / 2, multiplier, ImVec2((int)ImGui::GetWindowWidth() - 50,150), SHOW_GRID | NO_TANGENTS, &new_count);
-	if (new_count * 2 != pointsCurve.size()) {
-		std::vector<float> auxCurve = { data, data + new_count * 2 };
-		pointsCurve.resize(auxCurve.size());
-		std::copy(auxCurve.begin(), auxCurve.end(), pointsCurve.begin());
+	int changed_idx = ImGui::CurveEditor("##Curve Editor", (float*)data, num_points, multiplier, ImVec2(230,200), SHOW_GRID, &new_count);
+	
+	if (new_count != pointsCurveTangents.size()) {
+		std::vector<Point> auxCurve = { data, data + new_count };
+		pointsCurveTangents.resize(auxCurve.size());
+		std::copy(auxCurve.begin(), auxCurve.end(), pointsCurveTangents.begin());
+	}
+
+	if(changed_idx >= 0){
+		for (int i = 1; i < new_count; ++i)
+		{
+			auto prev_p = pointsCurveTangents[i - 1].p;
+			auto next_p = pointsCurveTangents[i].p;
+			auto& tangent = pointsCurveTangents[i - 1].next_tangent;
+			auto& tangent2 = pointsCurveTangents[i].prev_tangent;
+			float half = 0.5f * (next_p.x - prev_p.x);
+			tangent = tangent.Normalized() * half;
+			tangent2 = tangent2.Normalized() * half;
+		}
 	}
 }
 

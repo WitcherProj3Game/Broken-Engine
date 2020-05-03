@@ -11,6 +11,14 @@ BE_BEGIN_NAMESPACE
 class Particle;
 class ResourceTexture;
 
+struct Point
+{
+	float2 prev_tangent;
+	float2 p;
+	float2 next_tangent;
+};
+
+
 class BROKEN_API ComponentParticleEmitter : public Component
 {
 	friend class ModuleParticles;
@@ -123,6 +131,7 @@ private:
 
 	//Curves
 	std::vector<float> pointsCurve; 
+	std::vector<Point> pointsCurveTangents; 
 	float multiplier = 1.0f;
 };
 BE_END_NAMESPACE

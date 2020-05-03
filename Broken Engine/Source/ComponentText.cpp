@@ -95,6 +95,7 @@ void ComponentText::Draw()
 	
 	glUniform1i(glGetUniformLocation(shaderID, "u_IsText"), 1);
 	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), color.r, color.g, color.b, color.a);
+	glUniform1f(glGetUniformLocation(shaderID, "u_GammaCorrection"), App->renderer3D->GetGammaCorrection());
 	glActiveTexture(GL_TEXTURE0);	
 
 	glBindVertexArray(font->VAO);

@@ -96,6 +96,7 @@ void ComponentImage::Draw()
 	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
 
 	// --- Color & Texturing ---
+	glUniform1f(glGetUniformLocation(shaderID, "u_GammaCorrection"), App->renderer3D->GetGammaCorrection());
 	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), img_color.x, img_color.y, img_color.z, img_color.w);
 	int TextureLocation = glGetUniformLocation(shaderID, "u_UseTextures");
 	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);

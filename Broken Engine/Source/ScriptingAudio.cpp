@@ -25,16 +25,12 @@
 
 using namespace Broken;
 
-ScriptingAudio::ScriptingAudio() {}
-
-ScriptingAudio::~ScriptingAudio() {}
-
 void ScriptingAudio::SetVolume(float volume, uint UID)
 {
 	GameObject* GO = App->scene_manager->currentScene->GetGOWithUID(UID);
-	if (GO) {
+	if (GO)
+	{
 		ComponentAudioSource* sound = GO->GetComponent<ComponentAudioSource>();
-
 		if (sound)
 			sound->SetVolume(volume);
 		else
@@ -50,8 +46,8 @@ void ScriptingAudio::PlayAudioEventGO(std::string event, uint UID)
 	if (GO)
 	{
 		ComponentAudioSource* sound = GO->GetComponent<ComponentAudioSource>();
-
-		if (sound) {
+		if (sound)
+		{
 			uint EventId = App->audio->EventMap[event];
 			sound->SetID(EventId);
 			sound->wwiseGO->PlayEvent(EventId);
@@ -70,7 +66,6 @@ void ScriptingAudio::StopAudioEventGO(std::string event, uint UID)
 	if (GO)
 	{
 		ComponentAudioSource* sound = GO->GetComponent<ComponentAudioSource>();
-
 		if (sound)
 		{
 			uint EventId = App->audio->EventMap[event];
@@ -88,12 +83,11 @@ void ScriptingAudio::StopAudioEventGO(std::string event, uint UID)
 void ScriptingAudio::PauseAudioEventGO(std::string event, uint UID)
 {
 	GameObject* GO = App->scene_manager->currentScene->GetGOWithUID(UID);
-
 	if (GO)
 	{
 		ComponentAudioSource* sound = GO->GetComponent<ComponentAudioSource>();
-
-		if (sound) {
+		if (sound)
+		{
 			uint EventId = App->audio->EventMap[event];
 			sound->SetID(EventId);
 			sound->wwiseGO->PauseEvent(EventId);
@@ -110,11 +104,11 @@ void ScriptingAudio::PauseAudioEventGO(std::string event, uint UID)
 void ScriptingAudio::ResumeAudioEventGO(std::string event,uint UID)
 {
 	GameObject* GO = App->scene_manager->currentScene->GetGOWithUID(UID);
-	ComponentAudioSource* sound = nullptr;
-	if (GO) {
-		sound = GO->GetComponent<ComponentAudioSource>();
-
-		if (sound) {
+	if (GO)
+	{
+		ComponentAudioSource* sound = GO->GetComponent<ComponentAudioSource>();
+		if (sound)
+		{
 			uint EventId = App->audio->EventMap[event];
 			sound->SetID(EventId);
 			sound->wwiseGO->ResumeEvent(EventId);
@@ -130,7 +124,6 @@ void ScriptingAudio::ResumeAudioEventGO(std::string event,uint UID)
 void ScriptingAudio::PlayAudioEvent(std::string event)
 {
 	ComponentAudioSource* sound = App->scripting->current_script->my_component->GetContainerGameObject()->GetComponent<ComponentAudioSource>();
-
 	if (sound)
 	{
 		uint EventId = App->audio->EventMap[event];
@@ -145,11 +138,9 @@ void ScriptingAudio::PlayAudioEvent(std::string event)
 void ScriptingAudio::StopAudioEvent(std::string event)
 {
 	ComponentAudioSource* sound = App->scripting->current_script->my_component->GetContainerGameObject()->GetComponent<ComponentAudioSource>();
-
 	if (sound)
 	{
 		uint EventId = App->audio->EventMap[event];
-
 		sound->SetID(EventId);
 		sound->wwiseGO->StopEvent(EventId);
 		sound->isPlaying = false;
@@ -161,11 +152,9 @@ void ScriptingAudio::StopAudioEvent(std::string event)
 void ScriptingAudio::PauseAudioEvent(std::string event)
 {
 	ComponentAudioSource* sound = App->scripting->current_script->my_component->GetContainerGameObject()->GetComponent<ComponentAudioSource>();
-
 	if (sound)
 	{
 		uint EventId = App->audio->EventMap[event];
-
 		sound->SetID(EventId);
 		sound->wwiseGO->PauseEvent(EventId);
 		sound->isPlaying = false;
@@ -178,11 +167,9 @@ void ScriptingAudio::PauseAudioEvent(std::string event)
 void ScriptingAudio::ResumeAudioEvent(std::string event)
 {
 	ComponentAudioSource* sound = App->scripting->current_script->my_component->GetContainerGameObject()->GetComponent<ComponentAudioSource>();
-
 	if (sound)
 	{
 		uint EventId = App->audio->EventMap[event];
-
 		sound->SetID(EventId);
 		sound->wwiseGO->ResumeEvent(EventId);
 		sound->isPlaying = true;
@@ -195,7 +182,6 @@ void ScriptingAudio::ResumeAudioEvent(std::string event)
 void ScriptingAudio::SetAudioTrigger(std::string trigger)
 {
 	ComponentAudioSource* sound = App->scripting->current_script->my_component->GetContainerGameObject()->GetComponent<ComponentAudioSource>();
-
 	if (sound)
 	{
 		uint wwisegoid = sound->wwiseGO->id;

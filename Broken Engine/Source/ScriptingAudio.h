@@ -6,11 +6,13 @@
 BE_BEGIN_NAMESPACE
 class BROKEN_API ScriptingAudio {
 public:
-	ScriptingAudio();
-	~ScriptingAudio();
+	ScriptingAudio() {}
+	~ScriptingAudio() {}
 
 public:
 	void SetVolume(float volume, uint UID);
+	void SetAudioTrigger(std::string trigger);
+	
 	void PlayAudioEventGO(std::string event, uint UID);
 	void StopAudioEventGO(std::string event, uint UID);
 	void PauseAudioEventGO(std::string event, uint UID);
@@ -20,8 +22,6 @@ public:
 	void StopAudioEvent(std::string event);
 	void PauseAudioEvent(std::string event);
 	void ResumeAudioEvent(std::string event);
-	void SetAudioTrigger(std::string trigger);
-
 };
 BE_END_NAMESPACE
 #endif // __SCRIPTINGAUDIO_H__

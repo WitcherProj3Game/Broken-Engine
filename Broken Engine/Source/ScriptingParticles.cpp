@@ -63,10 +63,9 @@ void ScriptingParticles::DeactivateParticleEmitter(uint gameobject_UUID) const
 
 void ScriptingParticles::PlayParticleEmitter(uint gameobject_UUID)
 {
-	GameObject* go = nullptr;
-	go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->Play();
@@ -79,10 +78,9 @@ void ScriptingParticles::PlayParticleEmitter(uint gameobject_UUID)
 
 void ScriptingParticles::StopParticleEmitter(uint gameobject_UUID)
 {
-	GameObject* go = nullptr;
-	go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->Stop();
@@ -96,8 +94,8 @@ void ScriptingParticles::StopParticleEmitter(uint gameobject_UUID)
 void ScriptingParticles::SetEmissionRateFromScript(float ms, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetEmisionRate(ms);
@@ -111,8 +109,8 @@ void ScriptingParticles::SetEmissionRateFromScript(float ms, uint gameobject_UUI
 void ScriptingParticles::SetParticlesPerCreationFromScript(int particlesAmount, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetParticlesPerCreation(particlesAmount);
@@ -126,8 +124,8 @@ void ScriptingParticles::SetParticlesPerCreationFromScript(int particlesAmount, 
 void ScriptingParticles::SetOffsetPosition(float x, float y, float z, uint gameobject_UUID) 
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetOffsetPosition(x,y,z);
@@ -141,8 +139,8 @@ void ScriptingParticles::SetOffsetPosition(float x, float y, float z, uint gameo
 void ScriptingParticles::SetOffsetRotation(float x, float y, float z, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetOffsetRotation(x,y,z);
@@ -156,8 +154,8 @@ void ScriptingParticles::SetOffsetRotation(float x, float y, float z, uint gameo
 void ScriptingParticles::SetParticleAcceleration(float x, float y, float z, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetExternalAcceleration(x, y, z);
@@ -171,8 +169,8 @@ void ScriptingParticles::SetParticleAcceleration(float x, float y, float z, uint
 void ScriptingParticles::SetParticleVelocityFromScript(float x, float y, float z, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetParticlesVelocity(x, y, z);
@@ -186,8 +184,8 @@ void ScriptingParticles::SetParticleVelocityFromScript(float x, float y, float z
 void ScriptingParticles::SetRandomParticleVelocity(float x, float y, float z, uint gameobject_UUID)
 {	
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetVelocityRF(x, y, z);
@@ -201,8 +199,8 @@ void ScriptingParticles::SetRandomParticleVelocity(float x, float y, float z, ui
 void ScriptingParticles::SetParticleLooping(bool active, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetLooping(active);
@@ -216,8 +214,8 @@ void ScriptingParticles::SetParticleLooping(bool active, uint gameobject_UUID)
 void ScriptingParticles::SetParticleDuration(int duration, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetDuration(duration);
@@ -231,8 +229,8 @@ void ScriptingParticles::SetParticleDuration(int duration, uint gameobject_UUID)
 void ScriptingParticles::SetParticleLifeTime(int ms, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetLifeTime(ms);
@@ -246,8 +244,8 @@ void ScriptingParticles::SetParticleLifeTime(int ms, uint gameobject_UUID)
 void ScriptingParticles::SetParticleScaleFromScript(float x, float y, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetParticlesScale(x, y);
@@ -261,8 +259,8 @@ void ScriptingParticles::SetParticleScaleFromScript(float x, float y, uint gameo
 void ScriptingParticles::SetRandomParticleScale(float randomFactor, uint gameobject_UUID)
 {	
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetParticlesScaleRF(randomFactor);
@@ -276,8 +274,8 @@ void ScriptingParticles::SetRandomParticleScale(float randomFactor, uint gameobj
 void ScriptingParticles::SetScaleOverTime(float scale, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetScaleOverTime(scale);
@@ -291,8 +289,8 @@ void ScriptingParticles::SetScaleOverTime(float scale, uint gameobject_UUID)
 void ScriptingParticles::SetTextureByUUID(uint texture_UUID, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetTexture(texture_UUID);
@@ -306,8 +304,8 @@ void ScriptingParticles::SetTextureByUUID(uint texture_UUID, uint gameobject_UUI
 void ScriptingParticles::SetParticlesRotationOverTime(int rotationOverTime, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetParticlesRotationOverTime(rotationOverTime);
@@ -317,11 +315,12 @@ void ScriptingParticles::SetParticlesRotationOverTime(int rotationOverTime, uint
 	else
 		ENGINE_CONSOLE_LOG("[Script]: (SetParticlesRotationOverTime) GameObject with UUID %d could not be found!", gameobject_UUID);
 }
+
 void ScriptingParticles::SetParticlesRandomRotationOverTime(int randomRotation, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetParticlesRandomRotationOverTime(randomRotation);
@@ -331,11 +330,12 @@ void ScriptingParticles::SetParticlesRandomRotationOverTime(int randomRotation, 
 	else
 		ENGINE_CONSOLE_LOG("[Script]: (SetParticlesRandomRotationOverTime) GameObject with UUID %d could not be found!", gameobject_UUID);
 }
+
 void ScriptingParticles::SetParticles3DRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetParticles3DRotationOverTime(rotationOverTimeX, rotationOverTimeY, rotationOverTimeZ);
@@ -345,11 +345,12 @@ void ScriptingParticles::SetParticles3DRotationOverTime(int rotationOverTimeX, i
 	else
 		ENGINE_CONSOLE_LOG("[Script]: (SetParticles3DRotationOverTime) GameObject with UUID %d could not be found!", gameobject_UUID);
 }
+
 void ScriptingParticles::SetParticles3DRandomRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->SetParticles3DRandomRotationOverTime(rotationOverTimeX, rotationOverTimeY, rotationOverTimeZ);
@@ -363,8 +364,8 @@ void ScriptingParticles::SetParticles3DRandomRotationOverTime(int rotationOverTi
 void ScriptingParticles::RemoveParticlesRandomRotation(uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 			emitter->RemoveParticlesRandomRotation();

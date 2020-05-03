@@ -1267,6 +1267,8 @@ void ComponentParticleEmitter::SetTexture(uint UID)
 
 		texture = (ResourceTexture*)App->resources->GetResource(UID);
 	}
+	else
+		ENGINE_CONSOLE_LOG("!(Particles - Set Texture): Couldn't find texture or was invalid to put in Particles");
 }
 
 

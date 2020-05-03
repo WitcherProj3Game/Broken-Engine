@@ -212,6 +212,14 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("RandomNumber", &ScriptingSystem::RandomNumber)
 		.addFunction("RandomNumberInRange", &ScriptingSystem::RandomNumberInRange)
 		.addFunction("RandomNumberList", &ScriptingSystem::RandomNumberList)
+		
+		.addFunction("MathFloatLerp", &ScriptingSystem::MathFloatLerp)
+		.addFunction("MathFloatInverseLerp", &ScriptingSystem::MathFloatInvLerp)
+		.addFunction("MathFloat2Lerp", &ScriptingSystem::MathFloat2Lerp)
+		.addFunction("MathFloat3Lerp", &ScriptingSystem::MathFloat3Lerp)
+		//.addFunction("MathFloat4Lerp", &ScriptingSystem::MathFloat4Lerp)
+		//.addFunction("MathQuatLerp", &ScriptingSystem::MathQuatLerp)
+		//.addFunction("MathQuatSlerp", &ScriptingSystem::MathQuatSlerp)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------

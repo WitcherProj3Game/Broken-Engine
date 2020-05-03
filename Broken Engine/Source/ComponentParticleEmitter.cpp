@@ -107,8 +107,6 @@ void ComponentParticleEmitter::Update()
 
 void ComponentParticleEmitter::Enable()
 {
-	active = true;
-
 	particleSystem = App->physics->mPhysics->createParticleSystem(maxParticles, perParticleRestOffset);
 	particleSystem->setMaxMotionDistance(100);
 
@@ -123,6 +121,7 @@ void ComponentParticleEmitter::Enable()
 	indexPool = physx::PxParticleExt::createIndexPool(maxParticles);
 
 	particleSystem->setExternalAcceleration(externalAcceleration);
+
 }
 
 void ComponentParticleEmitter::Disable()
@@ -139,15 +138,26 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 
 	// Create particle depending on the time
 	if (emisionActive && App->GetAppState() == AppState::PLAY && !App->time->gamePaused) {
-		if (App->time->GetGameplayTimePassed() * 1000 - spawnClock > emisionRate)
+		if (currentPlayTime - spawnClock > emisionRate)
 		{
-			uint newParticlesAmount = (App->time->GetGameplayTimePassed() * 1000 - spawnClock) / emisionRate;
-			CreateParticles(newParticlesAmount * particlesPerCreation);
+			uint newParticlesAmount = ((currentPlayTime - spawnClock) / emisionRate) * particlesPerCreation;
+			
+			if (!firstEmision)
+				CreateParticles(newParticlesAmount);
+			else
+			{
+				if (newParticlesAmount > particlesPerCreation)
+					CreateParticles(particlesPerCreation);
+				else
+					CreateParticles(newParticlesAmount);
+
+				firstEmision = false;
+			}
 		}
 
 		if (emisionActive && !loop)
 		{
-			if ((App->time->GetGameplayTimePassed() * 1000) - emisionStart > duration)
+			if ((currentPlayTime) - emisionStart > duration)
 				emisionActive = false;
 		}
 	}
@@ -175,7 +185,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 			if (*flagsIt & physx::PxParticleFlag::eVALID)
 			{
 				//Check if particle should die
-				if (App->time->GetGameplayTimePassed() * 1000 - particles[i]->spawnTime > particles[i]->lifeTime) {
+				if (currentPlayTime - particles[i]->spawnTime > particles[i]->lifeTime) {
 					indicesToErease.push_back(i);
 					particlesToRelease++;
 					continue;
@@ -209,7 +219,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 
 				//Choose Frame Animation
 				if (animation && particleMeshes.size() > 0) {
-					int time = App->time->GetGameplayTimePassed() * 1000 - particles[i]->spawnTime;
+					int time = currentPlayTime - particles[i]->spawnTime;
 					int index = (particleMeshes.size() * time) / (particles[i]->lifeTime / cycles);
 					particles[i]->plane = particleMeshes[(index + startFrame) % particleMeshes.size()];
 				}

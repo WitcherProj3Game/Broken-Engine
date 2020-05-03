@@ -207,6 +207,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 
 				float diff_time = (App->time->GetGameplayTimePassed() * 1000 - particles[i]->spawnTime);
 				if (diff_time > 0) {
+					float time = diff_time / particles[i]->lifeTime;
 					/*for (int i = 0; i < pointsCurve.size() / 2 - 1; ++i) {
 						if (diff_time / particles[i]->lifeTime > pointsCurve[i * 2]) {
 							float p1_time = pointsCurve[i * 2] * particles[i]->lifeTime;
@@ -218,13 +219,13 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 						}
 					}*/
 					if (App->GetAppState() == AppState::PLAY) {
-						for (int i = 0; i < pointsCurveTangents.size(); ++i) {
-							if (diff_time / particles[i]->lifeTime > pointsCurveTangents[i].p.x) {
-								float t = diff_time / particles[i]->lifeTime;
+						for (int i = 0; i < pointsCurveTangents.size() - 1; ++i) {
+							if (time > pointsCurveTangents[i].p.x && time < pointsCurveTangents[i + 1].p.x) {
 								float2 p1 = pointsCurveTangents[i].p;
 								float2 p2 = pointsCurveTangents[i].p + pointsCurveTangents[i].next_tangent;
 								float2 p3 = pointsCurveTangents[i + 1].p + pointsCurveTangents[i + 1].prev_tangent;
 								float2 p4 = pointsCurveTangents[i + 1].p;
+								float t = (time - p1.x) / (p4.x - p1.x);
 								float u = 1.0f - t;
 								float w1 = u * u * u;
 								float w2 = 3 * u * u * t;

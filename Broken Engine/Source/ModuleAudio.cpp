@@ -335,6 +335,20 @@ void WwiseGameObject::SetAudioSwitch(std::string SwitchGroup, std::string Switch
 
 }
 
+void WwiseGameObject::SetAudioTrigger(uint wwisegoId, std::string trigger)
+{
+	AK::SoundEngine::PostTrigger(trigger.c_str(), wwisegoId);
+}
+
+void WwiseGameObject::SetAudioRTPCValue(std::string RTPCName, int value, uint wwiseGOID)
+{
+
+	AKRESULT ret;
+	ret = AK::SoundEngine::SetRTPCValue(RTPCName.c_str(), value, wwiseGOID);
+	assert(ret == AK_Success);
+}
+
+
 void ModuleAudio::LoadEventsFromJson()
 {
 	std::vector<std::string> jsonlist;
@@ -382,7 +396,9 @@ void  ModuleAudio::PauseAllAudioEvents()
 	AK::SoundEngine::Suspend();
 }
 
-//void ModuleAudio::SetAudioTrigger(uint wwisegoId, std::string trigger)
-//{
-//	AK::SoundEngine::PostTrigger(trigger.c_str(), wwisegoId);
-//}
+void ModuleAudio::SetAudioState(std::string StateGroup, std::string State)
+{
+
+	AK::SoundEngine::SetState(StateGroup.c_str(),State.c_str());
+
+}

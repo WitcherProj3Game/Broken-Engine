@@ -20,8 +20,10 @@ public:
 	void StopAudioEvent(std::string event);
 	void PauseAudioEvent(std::string event);
 	void ResumeAudioEvent(std::string event);
-	//void SetAudioTrigger(std::string trigger);
+	void SetAudioTrigger(std::string trigger, uint GOUID);
 	void SetAudioSwitch(std::string SwitchGroup, std::string Switchstate, uint GOUID);
+	void SetAudioState(std::string StateGroup, std::string State);
+	void SetAudioRTPCValue(std::string RTPCName, int value, uint wwiseGOID);
 
 };
 BE_END_NAMESPACE

@@ -24,6 +24,8 @@ public:
 	WwiseGameObject* CreateAudioListener(uint id, const char* name, float3 position);
 	void SetAuxSends();
 	void SetAudioSwitch(std::string SwitchGroup, std::string Switchstate, uint wwiseGOID);
+	void SetAudioTrigger(uint wwisegoId, std::string trigger);
+	void SetAudioRTPCValue(std::string RTPCName, int value, uint wwiseGOID);
 
 public:
 	uint GetID();
@@ -49,7 +51,7 @@ public:
 	bool Start();
 	update_status PostUpdate(float dt);
 	bool CleanUp();
-	//void SetAudioTrigger(uint wwisegoId, std::string trigger);
+	void SetAudioState(std::string StateGroup, std::string State);
 
 private:
 	void InitWwise();
@@ -59,8 +61,7 @@ private:
 	void LoadEventsFromJson();
 	void StopAllAudioEvents();
 	void ResumeAllAudioEvents();
-	void PauseAllAudioEvents();
-	
+	void PauseAllAudioEvents();	
 
 public:
 	AkGameObjectID currentListenerID = 0;

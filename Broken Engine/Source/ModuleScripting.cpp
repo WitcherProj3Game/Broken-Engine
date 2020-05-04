@@ -370,6 +370,9 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("PauseAudioEventGO", &ScriptingAudio::PauseAudioEventGO)
 		.addFunction("ResumeAudioEventGO", &ScriptingAudio::ResumeAudioEventGO)
 		.addFunction("SetAudioSwitch", &ScriptingAudio::SetAudioSwitch)
+		.addFunction("SetAudioTrigger", &ScriptingAudio::SetAudioTrigger)
+		.addFunction("SetAudioState", &ScriptingAudio::SetAudioState)
+		.addFunction("SetAudioRTPCValue", &ScriptingAudio::SetAudioRTPCValue)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------

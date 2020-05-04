@@ -20,7 +20,8 @@ public:
 	void StopAudioEvent(std::string event);
 	void PauseAudioEvent(std::string event);
 	void ResumeAudioEvent(std::string event);
-	void SetAudioTrigger(std::string trigger);
+	//void SetAudioTrigger(std::string trigger);
+	void SetAudioSwitch(std::string SwitchGroup, std::string Switchstate, uint GOUID);
 
 };
 BE_END_NAMESPACE

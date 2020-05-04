@@ -13,10 +13,24 @@ namespace AK
 {
     namespace EVENTS
     {
-        static const AkUniqueID A = 84696446U;
-        static const AkUniqueID B = 84696445U;
-        static const AkUniqueID C = 84696444U;
+        static const AkUniqueID MUSICSWITCH = 1445037870U;
     } // namespace EVENTS
+
+    namespace SWITCHES
+    {
+        namespace MUSIC
+        {
+            static const AkUniqueID GROUP = 3991942870U;
+
+            namespace SWITCH
+            {
+                static const AkUniqueID DUMB = 2382162017U;
+                static const AkUniqueID SONG2 = 778469036U;
+                static const AkUniqueID WALK = 2108779966U;
+            } // namespace SWITCH
+        } // namespace MUSIC
+
+    } // namespace SWITCHES
 
     namespace GAME_PARAMETERS
     {
@@ -38,8 +52,6 @@ namespace AK
     {
         static const AkUniqueID INIT = 1355168291U;
         static const AkUniqueID A = 84696446U;
-        static const AkUniqueID B = 84696445U;
-        static const AkUniqueID C = 84696444U;
     } // namespace BANKS
 
     namespace BUSSES

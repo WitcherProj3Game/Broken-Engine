@@ -43,15 +43,17 @@ void Particle::Draw()
 	// --- Frame image with camera ---
 	float4x4 rot = float4x4::FromEulerXYZ(rotation.x, rotation.y, rotation.z);
 	float3x3 camRot = App->renderer3D->active_camera->GetOpenGLViewMatrix().RotatePart();
-	float4x4 finalRot = camRot * rot;
-
+	float4x4 finalRot = float4x4::identity;
+	
 	if (v_billboard)
 	{
-		finalRot.SetCol(0, { 1.0f, 0.0f, 0.0f, 0.0f });		
-		finalRot.SetCol(2, { 0.0f, 0.0f, 1.0f, 0.0f });
+		finalRot = camRot * rot;
+		finalRot.SetCol(1, { 0.0f, 1.0f, 0.0f, 0.0f });
 	}
 	else if (h_billboard)
-		finalRot.SetCol(1, { 0.0f, 1.0f, 0.0f, 0.0f });
+		finalRot.SetRotatePartX(-1.57f);
+	else
+		finalRot = camRot * rot;
 
 	// --- Set Uniforms ---
 	uint shaderID = App->renderer3D->defaultShader->ID;

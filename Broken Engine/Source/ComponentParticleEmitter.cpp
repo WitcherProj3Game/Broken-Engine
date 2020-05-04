@@ -369,6 +369,8 @@ json ComponentParticleEmitter::Save() const
 
 	node["Loop"] = loop;
 	node["Duration"] = std::to_string(duration);
+	node["HorizontalBill"] = std::to_string((int)horizontalBillboarding);
+	node["VerticalBill"] = std::to_string((int)verticalBillboarding);
 
 	node["particlesScaleX"] = std::to_string(particlesScale.x);
 	node["particlesScaleY"] = std::to_string(particlesScale.y);
@@ -564,6 +566,11 @@ void ComponentParticleEmitter::Load(json& node)
 	rotationOvertime2[2] = std::stof(rotationOvertime2_Z);
 	constants = std::stof(_constants);
 
+
+	std::string vert_billboard_str = node["VerticalBill"].is_null() ? "0" : node["VerticalBill"];
+	std::string hor_billboard_str = node["HorizontalBill"].is_null() ? "0" : node["HorizontalBill"];
+	horizontalBillboarding = std::stoi(hor_billboard_str);
+	verticalBillboarding = std::stoi(vert_billboard_str);
 }
 
 void ComponentParticleEmitter::CreateInspectorNode()
@@ -583,17 +590,6 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	ImGui::Text("Loop");
 
 	// --- Billboarding Type ---
-	if (ImGui::Checkbox("##PEVBill", &verticalBillboarding))
-	{
-		if (verticalBillboarding && horizontalBillboarding)
-			horizontalBillboarding = false;
-
-		ChangeParticlesBillboarding();
-	}
-	
-	ImGui::SameLine();
-	ImGui::Text("Vertical Billboarding");
-	
 	if (ImGui::Checkbox("##PEHBill", &horizontalBillboarding))
 	{
 		if (horizontalBillboarding && verticalBillboarding)
@@ -601,9 +597,20 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 		ChangeParticlesBillboarding();
 	}
-
+	
 	ImGui::SameLine();
 	ImGui::Text("Horizontal Billboarding");
+	
+	if (ImGui::Checkbox("##PEVBill", &verticalBillboarding))
+	{
+		if (verticalBillboarding && horizontalBillboarding)
+			horizontalBillboarding = false;
+
+		ChangeParticlesBillboarding();
+	}
+
+	ImGui::SameLine();
+	ImGui::Text("Vertical Billboarding");
 
 	// ------------------------------------------------------------------------
 	ImGui::NewLine();

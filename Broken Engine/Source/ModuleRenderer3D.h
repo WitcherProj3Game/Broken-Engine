@@ -120,12 +120,16 @@ public:
 	void SetGammaCorrection(const float gammaCorr) { m_GammaCorrection = gammaCorr; }
 	void SetSceneAmbientColor(const float3 color) { m_AmbientColor = color; }
 	void SetRendererAlphaFunction(const AlphaFunction function) { m_RendererAlphaFunc = function; }
+	void SetSkyboxColor(const float3 color) { m_SkyboxColor = color; }
+	void SetSkyboxExposure(const float value) { m_SkyboxExposure = value; }
 
 	// --- Getters ---
 	bool GetVSync() const { return vsync; }
 	const float GetGammaCorrection() const { return m_GammaCorrection; }
 	const float3 GetSceneAmbientColor() const { return m_AmbientColor; }
 	const AlphaFunction GetRendererAlphaFunction() const { return m_RendererAlphaFunc; }
+	const float3 GetSkyboxColor() const { return m_SkyboxColor; }
+	const float GetSkyboxExposure() const { return m_SkyboxExposure; }
 
 private:
 
@@ -226,6 +230,8 @@ private:
 	float m_GammaCorrection = 2.0f;
 	float3 m_AmbientColor = float3::one;
 	AlphaFunction m_RendererAlphaFunc = SRC_ONE_MINUS_SRC;
+	float3 m_SkyboxColor = float3::one;
+	float m_SkyboxExposure = 1.0f;
 
 	//Other Generic Stuff
 	uint fbo = 0;

@@ -64,6 +64,7 @@ private:
 	void CreateAnimation(uint rows, uint cols);
 
 	double GetRandomValue(double min, double max); //MUST EREASE IN THE FUTURE
+	void ChangeParticlesBillboarding();
 
 private:
 	physx::PxParticleSystem* particleSystem = nullptr;
@@ -98,6 +99,9 @@ private:
 	int rotationOvertime1[3] = { 0,0,0 };
 	int rotationOvertime2[3] = { 0,0,0 };
 	bool separateAxis = false;
+
+	bool verticalBillboarding = false;
+	bool horizontalBillboarding = false;
 
 	//Animation
 	int tileSize_X = 1;

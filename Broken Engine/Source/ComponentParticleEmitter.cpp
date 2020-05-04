@@ -295,6 +295,15 @@ void ComponentParticleEmitter::ChangeParticlesColor(float4 color)
 		particles[i]->color = color;
 }
 
+void ComponentParticleEmitter::ChangeParticlesBillboarding()
+{
+	for (int i = 0; i < maxParticles; ++i)
+	{
+		particles[i]->v_billboard = verticalBillboarding;
+		particles[i]->h_billboard = horizontalBillboarding;
+	}
+}
+
 json ComponentParticleEmitter::Save() const
 {
 	json node;
@@ -559,22 +568,50 @@ void ComponentParticleEmitter::Load(json& node)
 
 void ComponentParticleEmitter::CreateInspectorNode()
 {
-	ImGui::Text("Loop");
-	ImGui::SameLine();
+	// --- Delete Component ---
+	//if (ImGui::Button("Delete component"))
+	//	to_delete = true;
 
-	if (ImGui::Checkbox("##PELoop", &loop)) {
+
+	// --- Loop ---
+	ImGui::NewLine();
+	if (ImGui::Checkbox("##PELoop", &loop))
 		if (loop)
 			emisionActive = true;
+	
+	ImGui::SameLine();
+	ImGui::Text("Loop");
+
+	// --- Billboarding Type ---
+	if (ImGui::Checkbox("##PEVBill", &verticalBillboarding))
+	{
+		if (verticalBillboarding && horizontalBillboarding)
+			horizontalBillboarding = false;
+
+		ChangeParticlesBillboarding();
+	}
+	
+	ImGui::SameLine();
+	ImGui::Text("Vertical Billboarding");
+	
+	if (ImGui::Checkbox("##PEHBill", &horizontalBillboarding))
+	{
+		if (horizontalBillboarding && verticalBillboarding)
+			verticalBillboarding = false;
+
+		ChangeParticlesBillboarding();
 	}
 
+	ImGui::SameLine();
+	ImGui::Text("Horizontal Billboarding");
+
+	// ------------------------------------------------------------------------
+	ImGui::NewLine();
+	ImGui::Separator();
 	ImGui::Text("Duration");
 	ImGui::SameLine();
 	if (ImGui::DragInt("##PEDuration", &duration))
 		Play();
-
-	if (ImGui::Button("Delete component"))
-		to_delete = true;
-
 
 	//Emitter position
 	ImGui::Text("Position");
@@ -982,10 +1019,6 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 		ImGui::TreePop();
 	}
-
-	ImGui::Separator();
-
-	
 }
 
 double ComponentParticleEmitter::GetRandomValue(double min, double max) //EREASE IN THE FUTURE

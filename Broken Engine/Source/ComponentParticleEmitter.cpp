@@ -121,6 +121,7 @@ void ComponentParticleEmitter::Enable()
 	indexPool = physx::PxParticleExt::createIndexPool(maxParticles);
 
 	particleSystem->setExternalAcceleration(externalAcceleration);
+	active = true;
 
 }
 
@@ -301,8 +302,12 @@ void ComponentParticleEmitter::ChangeParticlesColor(float4 color)
 {
 	color /= 255.0f;
 
+	colors[0] = color;
+	UpdateAllGradients();
+
 	for (int i = 0; i < maxParticles; ++i)
 		particles[i]->color = color;
+
 }
 
 json ComponentParticleEmitter::Save() const
@@ -1251,9 +1256,4 @@ void ComponentParticleEmitter::SetOffsetRotation(float x, float y, float z)
 	//emitterRotation = emitterRotation * quatrot;
 	emitterRotation = Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD);
 	eulerRotation = rotation;
-}
-
-void ComponentParticleEmitter::SetParticlesColor(float4 color) {
-	colors[0] = color;
-	UpdateAllGradients();
 }

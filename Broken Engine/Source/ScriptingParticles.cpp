@@ -281,11 +281,10 @@ void ScriptingParticles::SetParticleColor(float r, float g, float b, float a, ui
 	if (go) {
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
-			emitter->SetParticlesColor(float4(r, g, b, a)); 
+			emitter->ChangeParticlesColor(float4(r, g, b, a));
 		else
 			ENGINE_CONSOLE_LOG("[Script]: Particle Emmiter component is NULL");
 	}
 	else
 		ENGINE_CONSOLE_LOG("[Script]: GameObject with UUID %d could not be found!", gameobject_UUID);
-	}
 }

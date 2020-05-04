@@ -46,7 +46,6 @@ public:
 	void SetVelocityRF(float x, float y, float z);
 	void SetOffsetPosition(float x, float y, float z);
 	void SetOffsetRotation(float x, float y, float z);
-	void SetParticlesColor(float4 color);
 	void SetLooping(bool active);
 	void SetDuration(int duration);
 	void SetLifeTime(int ms);

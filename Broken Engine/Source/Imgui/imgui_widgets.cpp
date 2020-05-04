@@ -7791,7 +7791,8 @@ int ImGui::CurveEditor(const char* label
         ImVec2 point;
         if (flags & (int)CurveEditorFlags::NO_TANGENTS)
         {
-            point = ((ImVec2*)values)[point_idx];
+            point = ((ImVec2*)values)[1 + point_idx * 3];
+            //point = ((ImVec2*)values)[point_idx];
         }
         else
         {
@@ -7902,7 +7903,8 @@ int ImGui::CurveEditor(const char* label
         ImVec2* points;
         if (flags & (int)CurveEditorFlags::NO_TANGENTS)
         {
-            points = ((ImVec2*)values) + point_idx;
+            //points = ((ImVec2*)values) + point_idx;
+            points = ((ImVec2*)values) + 1 + point_idx * 3;
         }
         else
         {
@@ -7911,16 +7913,20 @@ int ImGui::CurveEditor(const char* label
 
         ImVec2 p_prev = points[0];
         ImVec2 p_last;
-        if ((flags & (int)CurveEditorFlags::NO_TANGENTS) == 0)
+        if ((flags & (int)CurveEditorFlags::NO_TANGENTS) == 0) {
             p_last = points[3];
-        else
-            p_last = points[sizeof(ImVec2) + points_count];
+        }
+        else {
+            p_last = points[3];
+            //p_last = points[sizeof(ImVec2) + points_count];
+        }
         ImVec2 tangent_last;
         ImVec2 tangent;
         ImVec2 p;
         if (flags & (int)CurveEditorFlags::NO_TANGENTS)
         {
-            p = points[1];
+            //p = points[1];
+            p = points[3];
         }
         else
         {
@@ -8080,13 +8086,29 @@ int ImGui::CurveEditor(const char* label
             if (handlePoint(p, 1))
             {
                 if (p.x <= p_prev.x) p.x = p_prev.x + 0.001f;
+                if (point_idx < points_count - 2 && p.x >= points[6].x)
+                {
+                    p.x = points[6].x - 0.001f;
+                }
+                points[3] = p;
+                changed_idx = point_idx + 1;
+            }
+            /*if (handlePoint(p_prev, 0))
+            {
+                if (p.x <= p_prev.x) p_prev.x = p.x - 0.001f;
+                points[0] = p_prev;
+                changed_idx = point_idx;
+            }
+            if (handlePoint(p, 1))
+            {
+                if (p.x <= p_prev.x) p.x = p_prev.x + 0.001f;
                 if (point_idx < points_count - 2 && p.x >= points[2].x)
                 {
                     p.x = points[2].x - 0.001f;
                 }
                 points[1] = p;
                 changed_idx = point_idx + 1;
-            }
+            }*/
         }
         //DRAW BEGIN & END LINES
         if (point_idx == 0)
@@ -8129,7 +8151,20 @@ int ImGui::CurveEditor(const char* label
         }
         else
         {
-            points[points_count] = new_p;
+            points[points_count * 3 + 0] = ImVec2(-0.2f, 0);
+            points[points_count * 3 + 1] = new_p;
+            points[points_count * 3 + 2] = ImVec2(0.2f, 0);;
+            ++* new_count;
+
+            auto compare = [](const void* a, const void* b) -> int
+            {
+                float fa = (((const ImVec2*)a) + 1)->x;
+                float fb = (((const ImVec2*)b) + 1)->x;
+                return fa < fb ? -1 : (fa > fb) ? 1 : 0;
+            };
+
+            qsort(values, points_count + 1, sizeof(ImVec2) * 3, compare);
+            /*points[points_count] = new_p;
             ++* new_count;
 
             auto compare = [](const void* a, const void* b) -> int
@@ -8139,7 +8174,7 @@ int ImGui::CurveEditor(const char* label
                 return fa < fb ? -1 : (fa > fb) ? 1 : 0;
             };
 
-            qsort(values, points_count + 1, sizeof(ImVec2), compare);
+            qsort(values, points_count + 1, sizeof(ImVec2), compare);*/
         }
     }
 
@@ -8158,10 +8193,16 @@ int ImGui::CurveEditor(const char* label
         }
         else
         {
-            for (int j = hovered_idx; j < points_count - 1; ++j)
+            for (int j = hovered_idx * 3; j < points_count * 3 - 3; j += 3)
+            {
+                points[j + 0] = points[j + 3];
+                points[j + 1] = points[j + 4];
+                points[j + 2] = points[j + 5];
+            }
+            /*for (int j = hovered_idx; j < points_count - 1; ++j)
             {
                 points[j] = points[j + 1];
-            }
+            }*/
         }
     }
 

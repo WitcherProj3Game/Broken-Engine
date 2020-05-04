@@ -10,13 +10,8 @@ BE_BEGIN_NAMESPACE
 
 class Particle;
 class ResourceTexture;
-
-struct Point
-{
-	float2 prev_tangent;
-	float2 p;
-	float2 next_tangent;
-};
+struct Point;
+class CurveEditor;
 
 
 class BROKEN_API ComponentParticleEmitter : public Component
@@ -58,7 +53,7 @@ public:
 	void SetDuration(int duration);
 	void SetLifeTime(int ms);
 	void SetParticlesScale(float x, float y);
-	void SetParticlesScaleRF(float randomFactor);
+	void SetParticlesScaleRF(float randomFactor1, float randomFactor2);
 	void UpdateActorLayer(const int* layerMask);
 
 private:
@@ -86,7 +81,6 @@ private:
 	physx::PxParticleExt::IndexPool* indexPool;
 
 	uint validParticles = 0;
-	bool constants = false;
 
 	//Emitter properties
 	float3 emitterPosition = { 0,0,0 };
@@ -117,7 +111,8 @@ private:
 	int particlesLifeTime = 1000;
 	float2 particlesScale = { 1,1 };
 	float scaleOverTime = 0.0f;
-	float particlesScaleRandomFactor = 1;
+	float particlesScaleRandomFactor1 = 1;
+	float particlesScaleRandomFactor2 = 1;
 	ResourceTexture* texture = nullptr;
 
 	//Colors
@@ -130,9 +125,11 @@ private:
 	float spawnClock = 0.0f;
 
 	//Curves
-	std::vector<float> pointsCurve; 
-	std::vector<Point> pointsCurveTangents; 
-	float multiplier = 1.0f;
+	std::vector<CurveEditor*> curves;
+	CurveEditor* scaleCurve = nullptr;
+	CurveEditor* rotateCurve = nullptr;
+	int rotationconstants = 0;
+	int scaleconstants = 0;
 };
 BE_END_NAMESPACE
 

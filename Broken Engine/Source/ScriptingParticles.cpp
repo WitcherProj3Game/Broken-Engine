@@ -260,14 +260,14 @@ void ScriptingParticles::SetParticleScaleFromScript(float x, float y, uint gameo
 		ENGINE_CONSOLE_LOG("[Script]: GameObject with UUID %d could not be found!", gameobject_UUID);
 }
 
-void ScriptingParticles::SetRandomParticleScale(float randomFactor, uint gameobject_UUID)
+void ScriptingParticles::SetRandomParticleScale(float randomFactor1, float randomFactor2, uint gameobject_UUID)
 {	
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 
 	if (go) {
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
-			emitter->SetParticlesScaleRF(randomFactor);
+			emitter->SetParticlesScaleRF(randomFactor1, randomFactor2);
 		else
 			ENGINE_CONSOLE_LOG("[Script]: Particle Emmiter component is NULL");
 	}

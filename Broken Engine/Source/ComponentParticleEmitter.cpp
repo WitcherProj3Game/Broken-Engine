@@ -21,6 +21,7 @@
 #include "ModuleSceneManager.h"
 
 #include "Particle.h"
+#include "CurveEditor.h"
 
 #include "PhysX_3.4/Include/extensions/PxDefaultAllocator.h"
 #include "PhysX_3.4/Include/extensions/PxDefaultErrorCallback.h"
@@ -48,31 +49,7 @@ ComponentParticleEmitter::ComponentParticleEmitter(GameObject* ContainerGO) :Com
 	App->renderer3D->particleEmitters.push_back(this);
 
 	float4 whiteColor(1, 1, 1, 1);
-	colors.push_back(whiteColor);
-
-
-	/*pointsCurve.push_back(0.0f);
-	pointsCurve.push_back(0.0f);
-	pointsCurve.push_back(0.0f);
-	pointsCurve.push_back(0.0f);
-	pointsCurve.push_back(1.0f);
-	pointsCurve.push_back(1.0f);
-
-	pointsCurve.push_back(-1.0f);
-	pointsCurve.push_back(-1.0f);
-	pointsCurve.push_back(1.0f);
-	pointsCurve.push_back(1.0f);
-	pointsCurve.push_back(1.1f);
-	pointsCurve.push_back(1.0f);*/
-	Point new_Point;
-	new_Point.next_tangent = float2(0.1f, 0.1f);
-	new_Point.p = float2(0.0f, 0.0f);
-	new_Point.prev_tangent = float2(0.0f, 0.0f);
-	pointsCurveTangents.push_back(new_Point);
-	new_Point.next_tangent = float2(0.0f,0.0f);
-	new_Point.p = float2(1.0f, 1.0f);
-	new_Point.prev_tangent = float2(-0.1f, -0.1f);
-	pointsCurveTangents.push_back(new_Point);
+	colors.push_back(whiteColor);	
 }
 
 ComponentParticleEmitter::~ComponentParticleEmitter()
@@ -104,10 +81,6 @@ ComponentParticleEmitter::~ComponentParticleEmitter()
 
 void ComponentParticleEmitter::Update()
 {
-	/*if (auxCurve.size() != 0) {
-		pointsCurve.resize(auxCurve.size());
-		std::copy(auxCurve.begin(), auxCurve.end(), pointsCurve.begin());
-	}*/
 
 	if (!animation || !createdAnim) {
 		if (particleMeshes.size() > 0) {
@@ -206,43 +179,12 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				}
 
 				float diff_time = (App->time->GetGameplayTimePassed() * 1000 - particles[i]->spawnTime);
-				if (diff_time > 0) {
-					float time = diff_time / particles[i]->lifeTime;
-					/*for (int i = 0; i < pointsCurve.size() / 2 - 1; ++i) {
-						if (diff_time / particles[i]->lifeTime > pointsCurve[i * 2]) {
-							float p1_time = pointsCurve[i * 2] * particles[i]->lifeTime;
-							float p2_time = pointsCurve[i * 2 + 2] * particles[i]->lifeTime;
-							float p1_value = pointsCurve[i * 2 + 1] * multiplier;
-							float p2_value = pointsCurve[i * 2 + 3] * multiplier;
-							float scope = (p2_value - p1_value) / (p2_time - p1_time);
-							scaleOverTime = p1_value + scope * (diff_time - p1_time);
-						}
-					}*/
-					if (App->GetAppState() == AppState::PLAY) {
-						for (int i = 0; i < pointsCurveTangents.size() - 1; ++i) {
-							if (time > pointsCurveTangents[i].p.x && time < pointsCurveTangents[i + 1].p.x) {
-								float2 p1 = pointsCurveTangents[i].p;
-								float2 p2 = pointsCurveTangents[i].p + pointsCurveTangents[i].next_tangent;
-								float2 p3 = pointsCurveTangents[i + 1].p + pointsCurveTangents[i + 1].prev_tangent;
-								float2 p4 = pointsCurveTangents[i + 1].p;
-								float t = (time - p1.x) / (p4.x - p1.x);
-								float u = 1.0f - t;
-								float w1 = u * u * u;
-								float w2 = 3 * u * u * t;
-								float w3 = 3 * u * t * t;
-								float w4 = t * t * t;
-								ImVec2 P(ImVec2(w1 * p1.x + w2 * p2.x + w3 * p3.x + w4 * p4.x, w1 * p1.y + w2 * p2.y + w3 * p3.y + w4 * p4.y));
 
-								ENGINE_CONSOLE_LOG("T:%f vy:%f vx:%f", t, P.y, P.x);
-								scaleOverTime = P.y * multiplier;
-							}
-						}
-					}
+				if (scaleconstants == 2) {
+					scaleOverTime = scaleCurve->GetCurrentValue(diff_time, particles[i]->lifeTime);
+					particles[i]->scale.x = scaleOverTime;
+					particles[i]->scale.y = scaleOverTime;
 				}
-
-				//Update particle position
-				particles[i]->scale.x = scaleOverTime;
-				particles[i]->scale.y = scaleOverTime;
 
 				particles[i]->position = float3(positionIt->x, positionIt->y, positionIt->z);
 
@@ -275,7 +217,11 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				else
 					particles[i]->plane = App->scene_manager->plane;
 
-				if(rotationOvertime1 != 0)
+				if (rotationconstants == 2) {
+					particles[i]->rotationSpeed.z = rotateCurve->GetCurrentValue(diff_time, particles[i]->lifeTime);
+				}
+
+				if (rotationOvertime1 != 0)
 					particles[i]->rotation += particles[i]->rotationSpeed * DEGTORAD * dt;
 
 			}
@@ -407,7 +353,8 @@ json ComponentParticleEmitter::Save() const
 	node["particlesScaleX"] = std::to_string(particlesScale.x);
 	node["particlesScaleY"] = std::to_string(particlesScale.y);
 
-	node["particleScaleRandomFactor"] = std::to_string(particlesScaleRandomFactor);
+	node["particleScaleRandomFactor1"] = std::to_string(particlesScaleRandomFactor1);
+	node["particleScaleRandomFactor2"] = std::to_string(particlesScaleRandomFactor2);
 
 	node["particleScaleOverTime"] = std::to_string(scaleOverTime);
 
@@ -423,7 +370,23 @@ json ComponentParticleEmitter::Save() const
 	node["rotationOvertime2"][0] = std::to_string(rotationOvertime2[0]);
 	node["rotationOvertime2"][1] = std::to_string(rotationOvertime2[1]);
 	node["rotationOvertime2"][2] = std::to_string(rotationOvertime2[2]);
-	node["constants"] = std::to_string(constants);
+	node["rotationconstants"] = std::to_string(rotationconstants);
+
+	node["num_curves"] = std::to_string(curves.size());
+	for (int i = 0; i < curves.size(); ++i) {
+		CurveEditor* curve = curves[i];
+		node["curves"][i]["num_points"] = std::to_string(curve->pointsCurveTangents.size());
+		node["curves"][i]["name"] = curve->name.c_str();
+		node["curves"][i]["type"] = std::to_string(curve->type);
+		for (int j = 0; j < curve->pointsCurveTangents.size(); ++j) {
+			node["curves"][i][std::to_string(j).c_str()]["PrevX"] = std::to_string(curve->pointsCurveTangents[j].prev_tangent.x);
+			node["curves"][i][std::to_string(j).c_str()]["PrevY"] = std::to_string(curve->pointsCurveTangents[j].prev_tangent.y);
+			node["curves"][i][std::to_string(j).c_str()]["PX"] = std::to_string(curve->pointsCurveTangents[j].p.x);
+			node["curves"][i][std::to_string(j).c_str()]["PY"] = std::to_string(curve->pointsCurveTangents[j].p.y);
+			node["curves"][i][std::to_string(j).c_str()]["NextX"] = std::to_string(curve->pointsCurveTangents[j].next_tangent.x);
+			node["curves"][i][std::to_string(j).c_str()]["NextY"] = std::to_string(curve->pointsCurveTangents[j].next_tangent.y);
+		}
+	}
 
 	return node;
 }
@@ -476,13 +439,15 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string LParticlesScaleX = node["particlesScaleX"].is_null() ? "1" : node["particlesScaleX"];
 	std::string LParticlesScaleY = node["particlesScaleY"].is_null() ? "1" : node["particlesScaleY"];
 
-	std::string LParticleScaleRandomFactor = node["particleScaleRandomFactor"].is_null() ? "1" : node["particleScaleRandomFactor"];
+	std::string LParticleScaleRandomFactor1 = node["particleScaleRandomFactor1"].is_null() ? "1" : node["particleScaleRandomFactor1"];
+	std::string LParticleScaleRandomFactor2 = node["particleScaleRandomFactor2"].is_null() ? "1" : node["particleScaleRandomFactor2"];
 
 	std::string LScaleOverTime = node["particleScaleOverTime"].is_null() ? "0" : node["particleScaleOverTime"];
 
 	std::string _num_colors = node["num_colors"].is_null() ? "0" : node["num_colors"];
 	std::string _num_gradients = node["num_gradients"].is_null() ? "0" : node["num_gradients"];
 	std::string _gradientDuration = node["grad_duration"].is_null() ? "0" : node["grad_duration"];
+	std::string _num_curves = node["num_curves"].is_null() ? "0" : node["num_curves"];
 
 
 	std::string _separateAxis = node["separateAxis"].is_null() ? "0" : node["separateAxis"];
@@ -492,7 +457,9 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string rotationOvertime2_X = node["rotationOvertime2"][0].is_null() ? "0" : node["rotationOvertime2"][0];
 	std::string rotationOvertime2_Y = node["rotationOvertime2"][1].is_null() ? "0" : node["rotationOvertime2"][1];
 	std::string rotationOvertime2_Z = node["rotationOvertime2"][2].is_null() ? "0" : node["rotationOvertime2"][2];
-	std::string _constants = node["constants"].is_null() ? "0" : node["constants"];
+	std::string _rotationconstants = node["rotationconstants"].is_null() ? "0" : node["rotationconstants"];
+
+
 
 	colorDuration = std::atoi(_gradientDuration.c_str());
 	int num = std::stof(_num_colors);
@@ -521,6 +488,33 @@ void ComponentParticleEmitter::Load(json& node)
 		std::string color_a = node["gradients"][i]["a"].is_null() ? "255" : node["gradients"][i]["a"];
 		float4 color = float4(std::stof(color_x), std::stof(color_y), std::stof(color_z), std::stof(color_a));
 		gradients.push_back(color);
+	}
+
+	num = std::stof(_num_curves);
+	for (int i = 0; i < num; ++i) {
+		std::string _num_points = node["curves"][i]["num_points"].is_null() ? "0" : node["curves"][i]["num_points"];
+		std::string name = node["curves"][i]["name"].is_null() ? "" : node["curves"][i]["name"];
+		std::string _type = node["curves"][i]["type"].is_null() ? "0" : node["curves"][i]["type"];
+		int points = std::stof(_num_points);
+		CurveEditor* curve = new CurveEditor(name.c_str(), (CurveType)(int)std::stof(_type));
+		for (int j = 0; j < points; ++j) {
+			std::string prev_tangentX = node["curves"][i][std::to_string(j).c_str()]["PrevX"].is_null() ? "0" : node["curves"][i][std::to_string(j).c_str()]["PrevX"];
+			std::string prev_tangentY = node["curves"][i][std::to_string(j).c_str()]["PrevY"].is_null() ? "0" : node["curves"][i][std::to_string(j).c_str()]["PrevY"];
+			std::string pX = node["curves"][i][std::to_string(j).c_str()]["PX"].is_null() ? "0" : node["curves"][i][std::to_string(j).c_str()]["PX"];
+			std::string pY = node["curves"][i][std::to_string(j).c_str()]["PY"].is_null() ? "0" : node["curves"][i][std::to_string(j).c_str()]["PY"];
+			std::string post_tangentX = node["curves"][i][std::to_string(j).c_str()]["NextX"].is_null() ? "0" : node["curves"][i][std::to_string(j).c_str()]["NextX"];
+			std::string post_tangentY = node["curves"][i][std::to_string(j).c_str()]["NextY"].is_null() ? "0" : node["curves"][i][std::to_string(j).c_str()]["NextY"];
+			Point p;
+			p.prev_tangent = float2(std::stof(prev_tangentX), std::stof(prev_tangentY));
+			p.p = float2(std::stof(pX), std::stof(pY));
+			p.next_tangent = float2(std::stof(post_tangentX), std::stof(post_tangentY));
+			curve->pointsCurveTangents.push_back(p);
+		}
+		curves.push_back(curve);
+	}
+	if (num > 0) {
+		scaleCurve = curves[0];
+		rotateCurve = curves[1];
 	}
 
 	if (!node["Loop"].is_null())
@@ -579,7 +573,8 @@ void ComponentParticleEmitter::Load(json& node)
 	particlesScale.x = std::stof(LParticlesScaleX);
 	particlesScale.y = std::stof(LParticlesScaleY);
 
-	particlesScaleRandomFactor = std::stof(LParticleScaleRandomFactor);
+	particlesScaleRandomFactor1 = std::stof(LParticleScaleRandomFactor1);
+	particlesScaleRandomFactor2 = std::stof(LParticleScaleRandomFactor2);
 
 	scaleOverTime = std::stof(LScaleOverTime);
 
@@ -596,8 +591,14 @@ void ComponentParticleEmitter::Load(json& node)
 	rotationOvertime2[0] = std::stof(rotationOvertime2_X);
 	rotationOvertime2[1] = std::stof(rotationOvertime2_Y);
 	rotationOvertime2[2] = std::stof(rotationOvertime2_Z);
-	constants = std::stof(_constants);
+	rotationconstants = std::stof(_rotationconstants);
 
+	if (curves.size() == 0) {
+		scaleCurve = new CurveEditor("scale", LINEAR);
+		rotateCurve = new CurveEditor("rotation", LINEAR);
+		curves.push_back(scaleCurve);
+		curves.push_back(rotateCurve);
+	}
 }
 
 void ComponentParticleEmitter::CreateInspectorNode()
@@ -876,14 +877,19 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::SameLine();
 		ImGui::Checkbox("##separateaxis", &separateAxis);
 		ImGui::Text("Ang. Vel:");
-		ImGui::SameLine();
 		if (!separateAxis) {
-			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-			ImGui::DragInt("##Z1", &rotationOvertime1[2]);
-			if (constants) {
+			if (rotationconstants == 2) {
+				rotateCurve->DrawCurveEditor(); //Draw Curve Editor
+			}
+			else {
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-				ImGui::DragInt("##Z2", &rotationOvertime2[2]);
+				ImGui::DragInt("##Z1", &rotationOvertime1[2]);
+				if (rotationconstants) {
+					ImGui::SameLine();
+					ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+					ImGui::DragInt("##Z2", &rotationOvertime2[2]);
+				}
 			}
 			ImGui::SameLine();
 			if (ImGui::SmallButton("v"))
@@ -902,7 +908,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			ImGui::SameLine();
 			if (ImGui::SmallButton("v"))
 				ImGui::OpenPopup("Component options");
-			if (constants) {
+			if (rotationconstants) {
 				ImGui::SetCursorPosX(cursor);
 				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 				ImGui::DragInt("##X1", &rotationOvertime2[0], 1, -1000, 1000);
@@ -917,13 +923,70 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 		if (ImGui::BeginPopup("Component options"))
 		{
-			if (ImGui::MenuItem("Constant", "", !constants))
+			if (ImGui::MenuItem("Constant", "", rotationconstants == 0 ? true : false))
 			{
-				constants = false;
+				rotationconstants = 0;
 			}
-			if (ImGui::MenuItem("Random Between two Constants", "", constants))
+			if (ImGui::MenuItem("Random Between two Constants", "", rotationconstants == 1 ? true : false))
 			{
-				constants = true;
+				rotationconstants = 1;
+			}
+			if (ImGui::MenuItem("Curve Editor", "", rotationconstants == 2 ? true : false))
+			{
+				rotationconstants = 2;
+			}
+			ImGui::EndPopup();
+		}
+
+		ImGui::TreePop();
+	}
+
+	ImGui::Separator();
+
+	if (ImGui::TreeNode("Scale over Lifetime"))
+	{
+		if (scaleconstants == 0) {
+			ImGui::Text("Scale");
+			ImGui::SameLine();
+			ImGui::Text("X");
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragFloat("##SParticlesScaleX", &particlesScale.x, 0.05f, 0.1f, 50.0f);
+			ImGui::SameLine();
+			ImGui::Text("Y");
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragFloat("##SParticlesScaleY", &particlesScale.y, 0.05f, 0.1f, 50.0f);
+		}
+		else if (scaleconstants == 1) {
+			ImGui::Text("Random Between:");
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragFloat("##SParticlesRandomScaleX", &particlesScaleRandomFactor1, 0.05f, 0.0f, 50.0f);
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragFloat("##SParticlesRandomScaleY", &particlesScaleRandomFactor2, 0.05f, 0.0f, 50.0f);
+		}
+		else if (scaleconstants == 2) {
+			scaleCurve->DrawCurveEditor();
+		}
+
+		ImGui::SameLine();
+		if (ImGui::SmallButton("v"))
+			ImGui::OpenPopup("Component options");
+
+		if (ImGui::BeginPopup("Component options"))
+		{
+			if (ImGui::MenuItem("Constant", "", scaleconstants == 0 ? true : false))
+			{
+				scaleconstants = 0;
+			}
+			if (ImGui::MenuItem("Random Between two Constants", "", scaleconstants == 1 ? true : false))
+			{
+				scaleconstants = 1;
+			}
+			if (ImGui::MenuItem("Curve Editor", "", scaleconstants == 2 ? true : false))
+			{
+				scaleconstants = 2;
 			}
 			ImGui::EndPopup();
 		}
@@ -965,32 +1028,6 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	if (ImGui::TreeNode("Renderer"))
 	{
-		//Scale
-		ImGui::Text("Scale");
-
-		//X
-		ImGui::Text("X");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragFloat("##SParticlesScaleX", &particlesScale.x, 0.05f, 0.1f, 50.0f);
-
-		ImGui::SameLine();
-		//Y
-		ImGui::Text("Y");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragFloat("##SParticlesScaleY", &particlesScale.y, 0.05f, 0.1f, 50.0f);
-
-		//Scale random factor
-		ImGui::Text("Scale random factor");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragFloat("##SParticlesRandomScaleX", &particlesScaleRandomFactor, 0.05f, 1.0f, 50.0f);
-
-		//Scale over time
-		ImGui::Text("Scale over time");
-		ImGui::DragFloat("##SParticlesScaleOverTime", &scaleOverTime, 0.005f, -50.0f, 50.0f);
-
 		// Image
 		ImGui::Text("Image");
 		ImGui::SameLine();
@@ -1028,29 +1065,6 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	ImGui::Separator();
 
-	int num_points = pointsCurveTangents.size();
-	int new_count = num_points;
-	Point* data = pointsCurveTangents.data();
-	
-	int changed_idx = ImGui::CurveEditor("##Curve Editor", (float*)data, num_points, multiplier, ImVec2(230,200), SHOW_GRID, &new_count);
-	
-	if (new_count != pointsCurveTangents.size()) {
-		std::vector<Point> auxCurve = { data, data + new_count };
-		pointsCurveTangents = auxCurve;
-	}
-
-	//if(changed_idx >= 0){
-		for (int i = 1; i < new_count; ++i)
-		{
-			auto prev_p = pointsCurveTangents[i - 1].p;
-			auto next_p = pointsCurveTangents[i].p;
-			auto& tangent = pointsCurveTangents[i - 1].next_tangent;
-			auto& tangent2 = pointsCurveTangents[i].prev_tangent;
-			float half = 0.5f * (next_p.x - prev_p.x);
-			tangent = tangent.Normalized() * half;
-			tangent2 = tangent2.Normalized() * half;
-		}
-	//}
 }
 
 double ComponentParticleEmitter::GetRandomValue(double min, double max) //EREASE IN THE FUTURE
@@ -1118,9 +1132,15 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 			particles[index[i]]->currentGradient = 0;
 
 			//Set scale
-			float randomScaleValue = GetRandomValue(1, particlesScaleRandomFactor);
-			particles[index[i]]->scale.x = particlesScale.x * randomScaleValue;
-			particles[index[i]]->scale.y = particlesScale.y * randomScaleValue;
+			if (scaleconstants == 1) {
+				float randomScaleValue = GetRandomValue(particlesScaleRandomFactor1, particlesScaleRandomFactor2);
+				particles[index[i]]->scale.x = particlesScale.x * randomScaleValue;
+				particles[index[i]]->scale.y = particlesScale.y * randomScaleValue;
+			}
+			else if (scaleconstants == 0) {
+				particles[index[i]]->scale.x = particlesScale.x;
+				particles[index[i]]->scale.y = particlesScale.y;
+			}
 
 			//Set Rotation
 			particles[index[i]]->rotation = float3::zero;
@@ -1134,7 +1154,11 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 				rot1 = float3(0, 0, (float)rotationOvertime1[2]);
 				rot2 = float3(0, 0, (float)rotationOvertime2[2]);
 			}
-			if (constants) {
+
+			if (rotationconstants == 0) {
+				particles[index[i]]->rotationSpeed = rot1;
+			}
+			if (rotationconstants == 1) {
 				if(rot1.x <= rot2.x)
 					particles[index[i]]->rotationSpeed.x = GetRandomValue(rot1.x, rot2.x);
 				else
@@ -1147,9 +1171,6 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 					particles[index[i]]->rotationSpeed.z = GetRandomValue(rot1.z, rot2.z);
 				else
 					particles[index[i]]->rotationSpeed.z = GetRandomValue(rot2.z, rot1.z);
-			}
-			else {
-				particles[index[i]]->rotationSpeed = rot1;
 			}
 
 		}
@@ -1281,9 +1302,10 @@ void ComponentParticleEmitter::SetParticlesScale(float x, float y)
 	particlesScale.y = y;
 }
 
-void ComponentParticleEmitter::SetParticlesScaleRF(float randomFactor)
+void ComponentParticleEmitter::SetParticlesScaleRF(float randomFactor1, float randomFactor2)
 {
-	particlesScaleRandomFactor = randomFactor;
+	particlesScaleRandomFactor1 = randomFactor1;
+	particlesScaleRandomFactor2 = randomFactor2;
 }
 
 void ComponentParticleEmitter::UpdateActorLayer(const int* layerMask)

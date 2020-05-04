@@ -719,6 +719,8 @@ const std::string & ModuleRenderer3D::RenderSceneToTexture(std::vector<GameObjec
 
 	SetActiveCamera(previous_cam);
 
+	PreUpdate(0.0f);
+
 	return out_path;
 }
 

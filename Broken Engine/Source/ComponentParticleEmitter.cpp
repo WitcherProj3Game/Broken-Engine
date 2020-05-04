@@ -281,7 +281,11 @@ void ComponentParticleEmitter::DrawParticles()
 			}
 		}
 		if (draw)
+		{
 			particles[paco]->Draw();
+			particles[paco]->h_billboard = horizontalBillboarding;
+			particles[paco]->v_billboard = verticalBillboarding;
+		}
 		it++;
 	}
 	drawingIndices.clear();
@@ -293,15 +297,6 @@ void ComponentParticleEmitter::ChangeParticlesColor(float4 color)
 
 	for (int i = 0; i < maxParticles; ++i)
 		particles[i]->color = color;
-}
-
-void ComponentParticleEmitter::ChangeParticlesBillboarding()
-{
-	for (int i = 0; i < maxParticles; ++i)
-	{
-		particles[i]->v_billboard = verticalBillboarding;
-		particles[i]->h_billboard = horizontalBillboarding;
-	}
 }
 
 json ComponentParticleEmitter::Save() const
@@ -591,23 +586,15 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	// --- Billboarding Type ---
 	if (ImGui::Checkbox("##PEHBill", &horizontalBillboarding))
-	{
 		if (horizontalBillboarding && verticalBillboarding)
 			verticalBillboarding = false;
 
-		ChangeParticlesBillboarding();
-	}
-	
 	ImGui::SameLine();
 	ImGui::Text("Horizontal Billboarding");
 	
 	if (ImGui::Checkbox("##PEVBill", &verticalBillboarding))
-	{
 		if (verticalBillboarding && horizontalBillboarding)
 			horizontalBillboarding = false;
-
-		ChangeParticlesBillboarding();
-	}
 
 	ImGui::SameLine();
 	ImGui::Text("Vertical Billboarding");
@@ -1234,7 +1221,7 @@ void ComponentParticleEmitter::SetVelocityRF(float x, float y, float z)
 
 void ComponentParticleEmitter::SetDuration(int duration)
 {
-	duration = duration;
+	this->duration = duration;
 }
 
 void ComponentParticleEmitter::SetLifeTime(int ms)

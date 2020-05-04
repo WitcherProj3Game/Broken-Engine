@@ -64,7 +64,6 @@ private:
 	void CreateAnimation(uint rows, uint cols);
 
 	double GetRandomValue(double min, double max); //MUST EREASE IN THE FUTURE
-	void ChangeParticlesBillboarding();
 
 private:
 	physx::PxParticleSystem* particleSystem = nullptr;

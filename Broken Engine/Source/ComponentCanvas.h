@@ -29,7 +29,7 @@ public:
 
 public:
 	bool visible = true;
-	int priority = 0;
+	int priority = 0; //CHANGE TO BE ON EVERY UI ELEMENT
 	float2 position2D = { 0,0 };
 	ComponentCanvas* canvas = nullptr;
 

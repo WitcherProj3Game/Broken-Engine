@@ -44,6 +44,8 @@ uniform int u_HasTransparencies = 0;
 uniform int u_IsText = 0;
 uniform sampler2D u_AlbedoTexture;
 
+uniform float u_GammaCorrection = 2.2;
+
 //------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------
 void main()
@@ -75,7 +77,7 @@ void main()
 	else if(u_UseTextures == 1)
 		out_color = vec4(v_Color.rgb * texture(u_AlbedoTexture, v_TexCoord).rgb, alpha);
 
-	//out_color = pow(out_color, vec4(vec3(1.0/u_GammaCorrection), 1.0));
+	out_color = pow(out_color, vec4(vec3(1.0/u_GammaCorrection), 1.0));
 }
 
 #endif //FRAGMENT_SHADER

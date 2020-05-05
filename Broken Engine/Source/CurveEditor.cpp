@@ -10,6 +10,7 @@ CurveEditor::CurveEditor(const char* _name, CurveType _type)
 {
 	name.append(_name);
 	type = _type;
+	current = type;
 }
 
 CurveEditor::~CurveEditor()

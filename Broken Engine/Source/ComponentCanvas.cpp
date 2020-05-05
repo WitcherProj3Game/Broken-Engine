@@ -152,7 +152,7 @@ void ComponentCanvas::UpdatePosition(float2& increment)
 			{
 				ComponentText* text = (ComponentText*)elements[i];
 				if (text->visible && text->GetActive())
-					text->position2D += increment/1.5;
+					text->position2D += increment/2;
 				continue;
 			}
 			else if (elements[i]->GetUIType() == Component::UIType::Image)

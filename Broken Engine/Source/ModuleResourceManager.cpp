@@ -1116,6 +1116,26 @@ uint ModuleResourceManager::GetDefaultMaterialUID()
 	return DefaultMaterial->GetUID();
 }
 
+ResourceTexture* ModuleResourceManager::GetTextureResourceByName(const char* texture_name) const
+{
+	ResourceTexture* ret = nullptr;
+
+	std::string name = texture_name;
+	for (std::map<uint, ResourceTexture*>::const_iterator it = textures.begin(); it != textures.end(); ++it)
+	{
+		if ((*it).second == nullptr)
+			continue;
+			
+		if (name.compare((*it).second->GetName()) == 0)
+		{
+			ret = (*it).second;
+			break;
+		}
+	}
+
+	return ret;
+}
+
 void ModuleResourceManager::SaveResource(Resource* resource) const {
 	Resource::ResourceType type = resource->GetType();
 	switch (type) {

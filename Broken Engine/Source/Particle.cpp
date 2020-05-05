@@ -42,14 +42,24 @@ void Particle::Draw()
 
 	// --- Frame image with camera ---
 	float4x4 rot = float4x4::FromEulerXYZ(rotation.x, rotation.y, rotation.z);
-	float4x4 transform = transform.FromTRS(float3(position.x, position.y, position.z),
-		App->renderer3D->active_camera->GetOpenGLViewMatrix().RotatePart() * rot,
-		float3(scale.x, scale.y, 1));
+	float3x3 camRot = App->renderer3D->active_camera->GetOpenGLViewMatrix().RotatePart();
+	float4x4 finalRot = float4x4::identity;
+	
+	if (v_billboard)
+	{
+		finalRot = camRot * rot;
+		finalRot.SetCol(1, { 0.0f, 1.0f, 0.0f, 0.0f });
+	}
+	else if (h_billboard)
+		finalRot.SetRotatePartX(-1.57f);
+	else
+		finalRot = camRot * rot;
 
 	// --- Set Uniforms ---
 	uint shaderID = App->renderer3D->defaultShader->ID;
 	glUseProgram(shaderID);
 
+	float4x4 transform = transform.FromTRS(float3(position.x, position.y, position.z), finalRot, float3(scale.x, scale.y, 1));
 	GLint modelLoc = glGetUniformLocation(shaderID, "u_Model");
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, transform.Transposed().ptr());
 

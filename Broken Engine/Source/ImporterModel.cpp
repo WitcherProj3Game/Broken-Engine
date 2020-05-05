@@ -631,6 +631,12 @@ GameObject* ImporterModel::InstanceOnCurrentScene(const char* model_path, Resour
 					go->model = (ResourceModel*)App->resources->ImportAssets(IData);
 				}
 
+				if (!file[it.key()]["Active"].is_null())
+					go->GetActive() = file[it.key()]["Active"];
+
+				if (!file[it.key()]["Static"].is_null())
+					go->Static = file[it.key()]["Static"];
+
 				// --- Retrieve GO's name ---
 				go->SetName(it.key().c_str());
 	
@@ -657,6 +663,9 @@ GameObject* ImporterModel::InstanceOnCurrentScene(const char* model_path, Resour
 				}
 
 				objects.push_back(go);
+
+				if (go->Static)
+					App->scene_manager->SetStatic(go, true, false);
 			}
 
 

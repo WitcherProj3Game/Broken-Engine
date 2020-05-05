@@ -889,33 +889,34 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::Text("X");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragFloat("##SRandomVelocity1X", &velocityRandomFactor1.x, 0.05f, -100.0f, velocityRandomFactor2.x);
-		ImGui::SameLine();
-		ImGui::Text("Y");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragFloat("##SRandomVelocity1Y", &velocityRandomFactor1.y, 0.05f, -100.0f, velocityRandomFactor2.y);
-		ImGui::SameLine();
-		ImGui::Text("Z");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragFloat("##SRandomVelocity1Z", &velocityRandomFactor1.z, 0.05f, -100.0f, velocityRandomFactor2.z);
+		ImGui::DragFloat("##SRandomVelocity1X", &velocityRandomFactor1.x, 0.05f, -100.0f, 100.0f);
+		ImGui::SameLine();																  
+		ImGui::Text("Y");																  
+		ImGui::SameLine();																  
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);						  
+		ImGui::DragFloat("##SRandomVelocity1Y", &velocityRandomFactor1.y, 0.05f, -100.0f, 100.0f);
+		ImGui::SameLine();																  
+		ImGui::Text("Z");																  
+		ImGui::SameLine();																  
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);						  
+		ImGui::DragFloat("##SRandomVelocity1Z", &velocityRandomFactor1.z, 0.05f, -100.0f, 100.0f);
 
 		ImGui::SetCursorPosX(cursor);
 		ImGui::Text(" ");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragFloat("##SRandomVelocity2X", &velocityRandomFactor2.x, 0.05f, velocityRandomFactor1.x, 100.0f);
-		ImGui::SameLine();
-		ImGui::Text(" ");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragFloat("##SRandomVelocity2Y", &velocityRandomFactor2.y, 0.05f, velocityRandomFactor1.y, 100.0f);
-		ImGui::SameLine();
-		ImGui::Text(" ");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragFloat("##SRandomVelocity2Z", &velocityRandomFactor2.z, 0.05f, velocityRandomFactor1.z, 100.0f);
+		ImGui::DragFloat("##SRandomVelocity2X", &velocityRandomFactor2.x, 0.05f, -100.0f, 100.0f);
+		ImGui::SameLine();														 
+		ImGui::Text(" ");														 
+		ImGui::SameLine();														 
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);				 
+		ImGui::DragFloat("##SRandomVelocity2Y", &velocityRandomFactor2.y, 0.05f, -100.0f, 100.0f);
+		ImGui::SameLine();														 
+		ImGui::Text(" ");														 
+		ImGui::SameLine();														 
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);				 
+		ImGui::DragFloat("##SRandomVelocity2Z", &velocityRandomFactor2.z, 0.05f, -100.0f, 100.0f);
+
 
 		ImGui::TreePop();
 	}
@@ -1224,9 +1225,10 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 		for (int i = 0; i < particlesToCreate; ++i) {
 
 			//Set velocity of the new particles
-			physx::PxVec3 velocity = physx::PxVec3(particlesVelocity.x + GetRandomValue(velocityRandomFactor1.x, velocityRandomFactor2.x),
-					particlesVelocity.y + GetRandomValue(velocityRandomFactor1.y, velocityRandomFactor2.y), 
-					particlesVelocity.z + GetRandomValue(velocityRandomFactor1.z, velocityRandomFactor2.z));
+			physx::PxVec3 velocity = physx::PxVec3(
+				particlesVelocity.x + ((velocityRandomFactor1.x < velocityRandomFactor2.x) ? GetRandomValue(velocityRandomFactor1.x, velocityRandomFactor2.x) : GetRandomValue(velocityRandomFactor2.x, velocityRandomFactor1.x)),
+				particlesVelocity.y + ((velocityRandomFactor1.y < velocityRandomFactor2.y) ? GetRandomValue(velocityRandomFactor1.y, velocityRandomFactor2.y) : GetRandomValue(velocityRandomFactor2.y, velocityRandomFactor1.y)),
+				particlesVelocity.z + ((velocityRandomFactor1.z < velocityRandomFactor2.z) ? GetRandomValue(velocityRandomFactor1.z, velocityRandomFactor2.z) : GetRandomValue(velocityRandomFactor2.z, velocityRandomFactor1.z)));
 
 			Quat velocityQuat = Quat(velocity.x, velocity.y, velocity.z, 0);
 

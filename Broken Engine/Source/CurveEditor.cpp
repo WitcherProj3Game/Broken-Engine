@@ -16,6 +16,20 @@ CurveEditor::~CurveEditor()
 {
 }
 
+void CurveEditor::Init()
+{
+	Point p;
+	p.prev_tangent = float2(0.f, 0.f);
+	p.p = float2(0.f, 0.f);
+	p.next_tangent = float2(0.1f, 0.1f);
+	pointsCurveTangents.push_back(p);
+
+	p.prev_tangent = float2(-0.1f, -0.1f);
+	p.p = float2(1.f, 1.f);
+	p.next_tangent = float2(1.f, 1.f);
+	pointsCurveTangents.push_back(p);
+}
+
 void CurveEditor::DrawCurveEditor()
 {
 	if (pointsCurveTangents.size() > 0) {

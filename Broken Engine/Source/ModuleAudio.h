@@ -41,6 +41,7 @@ private:
 
 class BROKEN_API ModuleAudio : public Module
 {
+	friend class ScriptingScenes;
 public:
 	ModuleAudio(bool start_enabled = true);
 	virtual ~ModuleAudio();
@@ -50,16 +51,19 @@ public:
 	update_status PostUpdate(float dt);
 	bool CleanUp();
 	void Tests(AkGameObjectID id);
+	void SetAudioTrigger(uint wwisegoId, std::string trigger);
 
 private:
 
 	void InitWwise();
 	void TerminateWwise();
 	void LoadSoundBank(const char* path);
+	void CatchAllSoundBanks(std::vector<std::string> banks);
 	void LoadEventsFromJson();
 	void StopAllAudioEvents();
 	void ResumeAllAudioEvents();
 	void PauseAllAudioEvents();
+	
 
 public:
 	AkGameObjectID currentListenerID = 0;

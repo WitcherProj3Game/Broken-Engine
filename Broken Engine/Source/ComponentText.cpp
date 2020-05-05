@@ -31,7 +31,6 @@ ComponentText::ComponentText(GameObject* gameObject) : Component(gameObject, Com
 
 ComponentText::~ComponentText() 
 {
-
 	if (font && font->IsInMemory())
 	{
 		font->Release();
@@ -41,6 +40,14 @@ ComponentText::~ComponentText()
 
 void ComponentText::Update()
 {
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas->AddElement(this);
+	}
+	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
+		canvas = nullptr;
+
 	if (to_delete)
 		this->GetContainerGameObject()->RemoveComponent(this);
 }
@@ -82,6 +89,7 @@ void ComponentText::Draw()
 	
 	glUniform1i(glGetUniformLocation(shaderID, "u_IsText"), 1);
 	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), color.r, color.g, color.b, color.a);
+	glUniform1f(glGetUniformLocation(shaderID, "u_GammaCorrection"), App->renderer3D->GetGammaCorrection());
 	glActiveTexture(GL_TEXTURE0);	
 
 	glBindVertexArray(font->VAO);

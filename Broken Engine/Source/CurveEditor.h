@@ -26,6 +26,7 @@ public:
 
 	CurveEditor(const char* name, CurveType type);
 	~CurveEditor();
+	void Init();
 
 	void DrawCurveEditor();
 	float GetCurrentValue(float cur_time, float max_time);

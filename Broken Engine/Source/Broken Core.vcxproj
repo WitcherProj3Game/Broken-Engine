@@ -138,6 +138,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="AutoCompleteFileGen.h" />
     <ClInclude Include="BrokenCore.h" />
     <ClInclude Include="BrokenEngineMain.h" />
     <ClInclude Include="ComponentButton.h" />
@@ -362,6 +363,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="AutoCompleteFileGen.cpp" />
     <ClCompile Include="BrokenCore.cpp" />
     <ClCompile Include="ComponentButton.cpp" />
     <ClCompile Include="ComponentCanvas.cpp" />

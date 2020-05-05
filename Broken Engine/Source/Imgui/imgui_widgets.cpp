@@ -7805,8 +7805,8 @@ int ImGui::CurveEditor(const char* label
 
     float from_x = window->StateStorage.GetFloat((ImGuiID)StorageValues::FROM_X, points_min.x);
     float from_y = window->StateStorage.GetFloat((ImGuiID)StorageValues::FROM_Y, points_min.y);
-    float width = window->StateStorage.GetFloat((ImGuiID)StorageValues::WIDTH, points_max.x - points_min.x);
-    float height = window->StateStorage.GetFloat((ImGuiID)StorageValues::HEIGHT, points_max.y - points_min.y);
+    float width = window->StateStorage.GetFloat((ImGuiID)StorageValues::WIDTH, 1.0f/*points_max.x - points_min.x*/);
+    float height = window->StateStorage.GetFloat((ImGuiID)StorageValues::HEIGHT, 1.0f/* points_max.y - points_min.y*/);
     window->StateStorage.SetFloat((ImGuiID)StorageValues::FROM_X, from_x);
     window->StateStorage.SetFloat((ImGuiID)StorageValues::FROM_Y, from_y);
     window->StateStorage.SetFloat((ImGuiID)StorageValues::WIDTH, width);

@@ -49,7 +49,18 @@ ComponentParticleEmitter::ComponentParticleEmitter(GameObject* ContainerGO) :Com
 	App->renderer3D->particleEmitters.push_back(this);
 
 	float4 whiteColor(1, 1, 1, 1);
-	colors.push_back(whiteColor);	
+	colors.push_back(whiteColor);
+
+	if (scaleCurve == nullptr) {
+		scaleCurve = new CurveEditor("##scale", LINEAR);
+		scaleCurve->Init();
+		curves.push_back(scaleCurve);
+	}
+	if (rotateCurve == nullptr) {
+		rotateCurve = new CurveEditor("##rotation", LINEAR);
+		rotateCurve->Init();
+		curves.push_back(rotateCurve);
+	}
 }
 
 ComponentParticleEmitter::~ComponentParticleEmitter()
@@ -72,11 +83,16 @@ ComponentParticleEmitter::~ComponentParticleEmitter()
 	texture->Release();
 
 
-	for (std::vector<ComponentParticleEmitter*>::iterator it = App->renderer3D->particleEmitters.begin(); it != App->renderer3D->particleEmitters.end(); it++)
+	for (std::vector<ComponentParticleEmitter*>::iterator it = App->renderer3D->particleEmitters.begin(); it != App->renderer3D->particleEmitters.end(); it++){
 		if ((*it) == this) {
 			App->renderer3D->particleEmitters.erase(it);
 			break;
 		}
+	}
+
+	for (int i = 0; i < curves.size(); ++i) {
+		delete curves[i];
+	}
 }
 
 void ComponentParticleEmitter::Update()
@@ -155,7 +171,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 	particleSystem->setSimulationFilterData(filterData);
 
 	//Update particles
-//lock SDK buffers of *PxParticleSystem* ps for reading
+	//lock SDK buffers of *PxParticleSystem* ps for reading
 	physx::PxParticleReadData* rd = particleSystem->lockParticleReadData();
 
 	std::vector<physx::PxU32> indicesToErease;
@@ -266,11 +282,27 @@ void ComponentParticleEmitter::DrawParticles()
 	if (!active || drawingIndices.empty())
 		return;
 
+	Plane cameraPlanes[6];
+	App->renderer3D->culling_camera->frustum.GetPlanes(cameraPlanes);
+
 	std::map<float, int>::iterator it = drawingIndices.begin();
 	while (it != drawingIndices.end())
 	{
 		int paco = (*it).second;
-		particles[paco]->Draw();
+
+		//Check if the particles are inside the frustum of the camera
+		bool draw = true;
+		for (int i = 0; i < 6; ++i)
+		{
+			//If the particles is on the positive side of one ore more planes, it's outside the frustum
+			if (cameraPlanes[i].IsOnPositiveSide(particles[paco]->position))
+			{
+				draw = false;
+				break;
+			}
+		}
+		if (draw)
+			particles[paco]->Draw();
 		it++;
 	}
 	drawingIndices.clear();
@@ -393,6 +425,14 @@ json ComponentParticleEmitter::Save() const
 
 void ComponentParticleEmitter::Load(json& node)
 {
+	for (int i = 0; i < curves.size(); ++i) {
+		delete curves[i];
+	}
+	curves.clear();
+	scaleCurve = nullptr;
+	rotateCurve = nullptr;
+	
+
 	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
 
 	//load the strings
@@ -458,6 +498,7 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string rotationOvertime2_Y = node["rotationOvertime2"][1].is_null() ? "0" : node["rotationOvertime2"][1];
 	std::string rotationOvertime2_Z = node["rotationOvertime2"][2].is_null() ? "0" : node["rotationOvertime2"][2];
 	std::string _rotationconstants = node["rotationconstants"].is_null() ? "0" : node["rotationconstants"];
+	std::string _scaleconstants = node["scaleconstants"].is_null() ? "0" : node["scaleconstants"];
 
 
 
@@ -592,11 +633,16 @@ void ComponentParticleEmitter::Load(json& node)
 	rotationOvertime2[1] = std::stof(rotationOvertime2_Y);
 	rotationOvertime2[2] = std::stof(rotationOvertime2_Z);
 	rotationconstants = std::stof(_rotationconstants);
+	scaleconstants = std::stof(_scaleconstants);
 
-	if (curves.size() == 0) {
-		scaleCurve = new CurveEditor("scale", LINEAR);
-		rotateCurve = new CurveEditor("rotation", LINEAR);
+	if (scaleCurve == nullptr) {
+		scaleCurve = new CurveEditor("##scale", LINEAR);
+		scaleCurve->Init();
 		curves.push_back(scaleCurve);
+	}
+	if (rotateCurve == nullptr) {
+		rotateCurve = new CurveEditor("##rotation", LINEAR);
+		rotateCurve->Init();
 		curves.push_back(rotateCurve);
 	}
 }
@@ -873,16 +919,20 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	if (ImGui::TreeNode("Rotation over Lifetime"))
 	{
-		ImGui::Text("Separate Axis");
-		ImGui::SameLine();
-		ImGui::Checkbox("##separateaxis", &separateAxis);
-		ImGui::Text("Ang. Vel:");
-		if (!separateAxis) {
-			if (rotationconstants == 2) {
-				rotateCurve->DrawCurveEditor(); //Draw Curve Editor
-			}
-			else {
-				ImGui::SameLine();
+		if (rotationconstants == 2) {
+			rotateCurve->DrawCurveEditor(); //Draw Curve Editor
+			ImGui::SameLine();
+			if (ImGui::SmallButton("v"))
+				ImGui::OpenPopup("Component options");
+		}
+		else {
+			ImGui::Text("Separate Axis");
+			ImGui::SameLine();
+			ImGui::Checkbox("##separateaxis", &separateAxis);
+			ImGui::Text("Ang. Vel:");
+			ImGui::SameLine();
+			int cursor = ImGui::GetCursorPosX();
+			if (!separateAxis) {
 				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 				ImGui::DragInt("##Z1", &rotationOvertime1[2]);
 				if (rotationconstants) {
@@ -890,36 +940,36 @@ void ComponentParticleEmitter::CreateInspectorNode()
 					ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 					ImGui::DragInt("##Z2", &rotationOvertime2[2]);
 				}
+				ImGui::SameLine();
+				if (ImGui::SmallButton("v"))
+					ImGui::OpenPopup("Component options");
 			}
-			ImGui::SameLine();
-			if (ImGui::SmallButton("v"))
-				ImGui::OpenPopup("Component options");
-		}
-		else {
-			int cursor = ImGui::GetCursorPosX();
-			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-			ImGui::DragInt("##X0", &rotationOvertime1[0], 1, -1000, 1000);
-			ImGui::SameLine();
-			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-			ImGui::DragInt("##Y0", &rotationOvertime1[1], 1, -1000, 1000);
-			ImGui::SameLine();
-			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-			ImGui::DragInt("##Z0", &rotationOvertime1[2], 1, -1000, 1000);
-			ImGui::SameLine();
-			if (ImGui::SmallButton("v"))
-				ImGui::OpenPopup("Component options");
-			if (rotationconstants) {
-				ImGui::SetCursorPosX(cursor);
+			else {
 				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-				ImGui::DragInt("##X1", &rotationOvertime2[0], 1, -1000, 1000);
+				ImGui::DragInt("##X0", &rotationOvertime1[0], 1, -1000, 1000);
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-				ImGui::DragInt("##Y1", &rotationOvertime2[1], 1, -1000, 1000);
+				ImGui::DragInt("##Y0", &rotationOvertime1[1], 1, -1000, 1000);
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-				ImGui::DragInt("##Z1", &rotationOvertime2[2], 1, -1000, 1000);
+				ImGui::DragInt("##Z0", &rotationOvertime1[2], 1, -1000, 1000);
+				ImGui::SameLine();
+				if (ImGui::SmallButton("v"))
+					ImGui::OpenPopup("Component options");
+				if (rotationconstants) {
+					ImGui::SetCursorPosX(cursor);
+					ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+					ImGui::DragInt("##X1", &rotationOvertime2[0], 1, -1000, 1000);
+					ImGui::SameLine();
+					ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+					ImGui::DragInt("##Y1", &rotationOvertime2[1], 1, -1000, 1000);
+					ImGui::SameLine();
+					ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+					ImGui::DragInt("##Z1", &rotationOvertime2[2], 1, -1000, 1000);
+				}
 			}
 		}
+		
 
 		if (ImGui::BeginPopup("Component options"))
 		{
@@ -960,6 +1010,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		}
 		else if (scaleconstants == 1) {
 			ImGui::Text("Random Between:");
+			ImGui::SameLine();
 			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 			ImGui::DragFloat("##SParticlesRandomScaleX", &particlesScaleRandomFactor1, 0.05f, 0.0f, 50.0f);
 			ImGui::SameLine();
@@ -1064,7 +1115,6 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	}
 
 	ImGui::Separator();
-
 }
 
 double ComponentParticleEmitter::GetRandomValue(double min, double max) //EREASE IN THE FUTURE

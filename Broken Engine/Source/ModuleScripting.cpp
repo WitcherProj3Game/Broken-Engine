@@ -9,6 +9,8 @@
 #include "ModuleSceneManager.h"
 #include "ResourceScene.h"
 #include "ModuleEventManager.h"
+#include "ModuleTimeManager.h"
+#include "AutoCompleteFileGen.h"
 
 #include "ResourceScript.h"
 #include "ComponentScript.h"
@@ -359,11 +361,13 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addConstructor<void(*) (void)>()
 
 		.addFunction("SetVolume", &ScriptingAudio::SetVolume)
+		.addFunction("SetAudioTrigger", &ScriptingAudio::SetAudioTrigger)
+
 		.addFunction("PlayAudioEvent", &ScriptingAudio::PlayAudioEvent)
 		.addFunction("StopAudioEvent", &ScriptingAudio::StopAudioEvent)
 		.addFunction("PauseAudioEvent", &ScriptingAudio::PauseAudioEvent)
 		.addFunction("ResumeAudioEvent", &ScriptingAudio::ResumeAudioEvent)
-		.addFunction("SetVolume", &ScriptingAudio::SetVolume)
+
 		.addFunction("PlayAudioEventGO", &ScriptingAudio::PlayAudioEventGO)
 		.addFunction("StopAudioEventGO", &ScriptingAudio::StopAudioEventGO)
 		.addFunction("PauseAudioEventGO", &ScriptingAudio::PauseAudioEventGO)
@@ -837,6 +841,8 @@ update_status ModuleScripting::Update(float realDT)
 			(*it)->started = false;
 		}
 	}
+
+	GameUpdate(App->time->GetGameDt());
 	// Carles to Didac
 	// 1. You can use the "IsWhatever" functions of App to check the current game state.
 	// 2. "App->IsGameFirstFrame()" marks the first frame a GameUpdate() will happen, if you want to do anything right before the game plays in preparation

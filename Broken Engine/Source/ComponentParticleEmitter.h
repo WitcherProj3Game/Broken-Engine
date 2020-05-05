@@ -80,6 +80,8 @@ private:
 	uint validParticles = 0;
 	bool constants = false;
 
+	bool firstEmision = true;
+
 	//Emitter properties
 	float3 emitterPosition = { 0,0,0 };
 	float3 eulerRotation = float3::zero;
@@ -120,7 +122,6 @@ private:
 	bool createdAnim = false;
 	uint colorDuration = 0;
 	float spawnClock = 0.0f;
-
 };
 BE_END_NAMESPACE
 

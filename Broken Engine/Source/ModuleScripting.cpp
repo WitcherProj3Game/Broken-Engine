@@ -331,6 +331,9 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 
 		.addFunction("SetParticlesScale", &ScriptingParticles::SetParticleScaleFromScript)
 		.addFunction("SetRandomParticlesScale", &ScriptingParticles::SetRandomParticleScale)
+
+		.addFunction("SetParticleColor", &ScriptingParticles::SetParticleColor)
+
 		.endClass()
 
 		// ----------------------------------------------------------------------------------

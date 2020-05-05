@@ -188,17 +188,17 @@ void GameObject::TransformGlobal()
 	float4x4 old_transform = transform->GetGlobalTransform();
 
 	if (parent)
-	transform->OnUpdateTransform(parent->GetComponent<ComponentTransform>()->GetGlobalTransform());
+		transform->OnUpdateTransform(parent->GetComponent<ComponentTransform>()->GetGlobalTransform());
 
 	ComponentCamera* camera = GetComponent<ComponentCamera>();
 
 	if (camera)
-	camera->OnUpdateTransform(transform->GetGlobalTransform());
+		camera->OnUpdateTransform(transform->GetGlobalTransform());
 
 	for (std::vector<GameObject*>::iterator tmp = childs.begin(); tmp != childs.end(); ++tmp)
 	{
 		(*tmp)->TransformGlobal();
-		if (GetComponent<ComponentTransform>()->updateValues)
+		if (transform->updateValues)
 			(*tmp)->GetComponent<ComponentTransform>()->updateValues = true;
 	}
 

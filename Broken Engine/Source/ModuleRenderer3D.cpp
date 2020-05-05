@@ -422,6 +422,15 @@ bool ModuleRenderer3D::CleanUp()
 void ModuleRenderer3D::LoadStatus(const json& file)
 {
 	m_GammaCorrection = file["Renderer3D"]["GammaCorrection"].is_null() ? 1.0f : file["Renderer3D"]["GammaCorrection"].get<float>();
+	m_SkyboxExposure = file["Renderer3D"]["SkyboxExposure"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxExposure"].get<float>();
+
+	int AlphaFuncValue = file["Renderer3D"]["AlphaFunc"].is_null() ? 1 : file["Renderer3D"]["AlphaFunc"].get<int>();
+	m_RendererAlphaFunc = (AlphaFunction)AlphaFuncValue;
+
+	float skybox_tintR = file["Renderer3D"]["SkyboxColorTint"]["R"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxColorTint"]["R"].get<float>();
+	float skybox_tintG = file["Renderer3D"]["SkyboxColorTint"]["G"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxColorTint"]["G"].get<float>();
+	float skybox_tintB = file["Renderer3D"]["SkyboxColorTint"]["B"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxColorTint"]["B"].get<float>();
+	m_SkyboxColor = float3(skybox_tintR, skybox_tintG, skybox_tintB);
 
 	float ambR = file["Renderer3D"]["SceneAmbientColor"]["R"].is_null() ? 1.0f : file["Renderer3D"]["SceneAmbientColor"]["R"].get<float>();
 	float ambG = file["Renderer3D"]["SceneAmbientColor"]["G"].is_null() ? 1.0f : file["Renderer3D"]["SceneAmbientColor"]["G"].get<float>();
@@ -434,6 +443,13 @@ const json& ModuleRenderer3D::SaveStatus() const
 	static json m_config;
 
 	m_config["GammaCorrection"] = m_GammaCorrection;
+	m_config["AlphaFunc"] = (int)m_RendererAlphaFunc;
+	m_config["SkyboxExposure"] = m_SkyboxExposure;
+	
+	m_config["SkyboxColorTint"]["R"] = m_SkyboxColor.x;
+	m_config["SkyboxColorTint"]["G"] = m_SkyboxColor.y;
+	m_config["SkyboxColorTint"]["B"] = m_SkyboxColor.z;
+	
 	m_config["SceneAmbientColor"]["R"] = m_AmbientColor.x;
 	m_config["SceneAmbientColor"]["G"] = m_AmbientColor.y;
 	m_config["SceneAmbientColor"]["B"] = m_AmbientColor.z;
@@ -1779,6 +1795,8 @@ void ModuleRenderer3D::DrawSkybox()
 	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
 
 	glUniform1f(glGetUniformLocation(SkyboxShader->ID, "u_GammaCorrection"), m_GammaCorrection);
+	glUniform1f(glGetUniformLocation(SkyboxShader->ID, "u_Exposure"), m_SkyboxExposure);
+	glUniform3f(glGetUniformLocation(SkyboxShader->ID, "u_Color"), m_SkyboxColor.x, m_SkyboxColor.y, m_SkyboxColor.z);
 
 	// skybox cube
 	glBindVertexArray(skyboxVAO);

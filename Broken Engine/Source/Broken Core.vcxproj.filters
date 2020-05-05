@@ -771,6 +771,9 @@
     <ClInclude Include="ScriptingMaterials.h">
       <Filter>Sources\BrokenEngine\Modules\Scripting Functions</Filter>
     </ClInclude>
+    <ClInclude Include="CurveEditor.h">
+      <Filter>Sources\BrokenEngine\Tools</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MathGeoLib\include\SystemInfo.cpp">
@@ -1309,6 +1312,9 @@
     </ClCompile>
     <ClCompile Include="ScriptingMaterials.cpp">
       <Filter>Sources\BrokenEngine\Modules\Scripting Functions</Filter>
+    </ClInclude>
+    <ClCompile Include="CurveEditor.cpp">
+      <Filter>Sources\BrokenEngine\Tools</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1053,7 +1053,7 @@ Resource* ModuleResourceManager::CreateResourceGivenUID(Resource::ResourceType t
 		resource = (Resource*)new ResourceFont(UID, source_file);
 		fonts[resource->GetUID()] = (ResourceFont*)resource;
 		break;
-	
+
 	case Resource::ResourceType::NAVMESH:
 		resource = (Resource*)new ResourceNavMesh(UID, source_file);
 		navmeshes[resource->GetUID()] = (ResourceNavMesh*)resource;
@@ -1112,12 +1112,13 @@ uint ModuleResourceManager::GetFileFormatVersion()
 	return fileFormatVersion;
 }
 
-// ----- Materials & Shaders Getter ----- 
+// ----- Materials & Shaders Getter -----
 uint ModuleResourceManager::GetDefaultMaterialUID()
 {
 	return DefaultMaterial->GetUID();
 }
 
+// ------------------------------------------------------ RESOURCES UTILITIES ------------------------------------------------------
 const std::pair<uint, ResourceMaterial*> ModuleResourceManager::GetDefaultMaterial()
 {
 	return { DefaultMaterial->GetUID(), DefaultMaterial };
@@ -1180,7 +1181,26 @@ const std::pair<uint, ResourceShader*> ModuleResourceManager::GetShaderByUUID(co
 		return { -1, nullptr };
 }
 
-// ------------------------------------------------------ RESOURCES UTILITIES ------------------------------------------------------
+ResourceTexture* ModuleResourceManager::GetTextureResourceByName(const char* texture_name) const
+{
+	ResourceTexture* ret = nullptr;
+
+	std::string name = texture_name;
+	for (std::map<uint, ResourceTexture*>::const_iterator it = textures.begin(); it != textures.end(); ++it)
+	{
+		if ((*it).second == nullptr)
+			continue;
+
+		if (name.compare((*it).second->GetName()) == 0)
+		{
+			ret = (*it).second;
+			break;
+		}
+	}
+
+	return ret;
+}
+
 void ModuleResourceManager::SaveResource(Resource* resource) const {
 	Resource::ResourceType type = resource->GetType();
 	switch (type) {
@@ -1545,7 +1565,7 @@ bool ModuleResourceManager::CleanUp()
 	static_assert(static_cast<int>(Resource::ResourceType::UNKNOWN) == 15, "Resource Clean Up needs to be updated");
 
 	// --- We finish all defer saves ---
-	for (std::map<Resource*, bool>::iterator it = resources_to_save.begin(); it != resources_to_save.end(); ++it) 
+	for (std::map<Resource*, bool>::iterator it = resources_to_save.begin(); it != resources_to_save.end(); ++it)
 		App->threading->ADDTASK(this, ModuleResourceManager::SaveResource, (*it).first);
 
 	App->threading->FinishProcessing();

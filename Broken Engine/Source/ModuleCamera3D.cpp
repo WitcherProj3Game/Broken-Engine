@@ -81,7 +81,7 @@ update_status ModuleCamera3D::Update(float dt)
 {
 	OPTICK_CATEGORY("Engine Camera Update", Optick::Category::Camera);
 
-	if (App->GetAppState() == AppState::EDITOR && App->gui->isSceneHovered) {
+	if (/*App->GetAppState() == AppState::EDITOR &&*/ App->gui->isSceneHovered) {
 		m_CameraSpeedDeltaTime = m_CameraSpeed * dt;
 		m_ScrollSpeedDeltaTime = m_ScrollSpeed * dt;
 		m_FinalSpeed = m_CameraSpeedDeltaTime * m_SpeedMultiplicator;
@@ -95,7 +95,7 @@ update_status ModuleCamera3D::Update(float dt)
 
 void ModuleCamera3D::UpdateCamera()
 {
-	if (App->GetAppState() == AppState::EDITOR && App->gui->isSceneHovered)
+	if (/*App->GetAppState() == AppState::EDITOR &&*/ App->gui->isSceneHovered)
 	{
 		float3 newPos(0, 0, 0);
 

@@ -313,7 +313,11 @@ void ComponentParticleEmitter::DrawParticles()
 			}
 		}
 		if (draw)
+		{
 			particles[paco]->Draw();
+			particles[paco]->h_billboard = horizontalBillboarding;
+			particles[paco]->v_billboard = verticalBillboarding;
+		}
 		it++;
 	}
 	drawingIndices.clear();
@@ -400,6 +404,8 @@ json ComponentParticleEmitter::Save() const
 
 	node["Loop"] = loop;
 	node["Duration"] = std::to_string(duration);
+	node["HorizontalBill"] = std::to_string((int)horizontalBillboarding);
+	node["VerticalBill"] = std::to_string((int)verticalBillboarding);
 
 	node["particlesScaleX"] = std::to_string(particlesScale.x);
 	node["particlesScaleY"] = std::to_string(particlesScale.y);
@@ -679,26 +685,51 @@ void ComponentParticleEmitter::Load(json& node)
 		rotateCurve->Init();
 		curves.push_back(rotateCurve);
 	}
+
+	std::string vert_billboard_str = node["VerticalBill"].is_null() ? "0" : node["VerticalBill"];
+	std::string hor_billboard_str = node["HorizontalBill"].is_null() ? "0" : node["HorizontalBill"];
+	horizontalBillboarding = std::stoi(hor_billboard_str);
+	verticalBillboarding = std::stoi(vert_billboard_str);
 }
 
 void ComponentParticleEmitter::CreateInspectorNode()
 {
-	ImGui::Text("Loop");
-	ImGui::SameLine();
+	// --- Delete Component ---
+	//if (ImGui::Button("Delete component"))
+	//	to_delete = true;
 
-	if (ImGui::Checkbox("##PELoop", &loop)) {
+
+	// --- Loop ---
+	ImGui::NewLine();
+	if (ImGui::Checkbox("##PELoop", &loop))
 		if (loop)
 			emisionActive = true;
-	}
 
+	ImGui::SameLine();
+	ImGui::Text("Loop");
+
+	// --- Billboarding Type ---
+	if (ImGui::Checkbox("##PEHBill", &horizontalBillboarding))
+		if (horizontalBillboarding && verticalBillboarding)
+			verticalBillboarding = false;
+
+	ImGui::SameLine();
+	ImGui::Text("Horizontal Billboarding");
+
+	if (ImGui::Checkbox("##PEVBill", &verticalBillboarding))
+		if (verticalBillboarding && horizontalBillboarding)
+			horizontalBillboarding = false;
+
+	ImGui::SameLine();
+	ImGui::Text("Vertical Billboarding");
+
+	// ------------------------------------------------------------------------
+	ImGui::NewLine();
+	ImGui::Separator();
 	ImGui::Text("Duration");
 	ImGui::SameLine();
 	if (ImGui::DragInt("##PEDuration", &duration))
 		Play();
-
-	if (ImGui::Button("Delete component"))
-		to_delete = true;
-
 
 	//Emitter position
 	ImGui::Text("Position");
@@ -1199,8 +1230,6 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 		ImGui::TreePop();
 	}
-
-	ImGui::Separator();
 }
 
 double ComponentParticleEmitter::GetRandomValue(double min, double max) //EREASE IN THE FUTURE
@@ -1419,7 +1448,7 @@ void ComponentParticleEmitter::SetVelocityRF(float3 rand1, float3 rand2)
 
 void ComponentParticleEmitter::SetDuration(int _duration)
 {
-	duration = _duration;
+	this->duration = duration;
 }
 
 void ComponentParticleEmitter::SetLifeTime(int ms)

@@ -116,6 +116,9 @@ private:
 	int rotationOvertime2[3] = { 0,0,0 };
 	bool separateAxis = false;
 
+	bool verticalBillboarding = false;
+	bool horizontalBillboarding = false;
+
 	//Animation
 	int tileSize_X = 1;
 	int tileSize_Y = 1;

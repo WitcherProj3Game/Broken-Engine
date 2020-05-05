@@ -1,6 +1,7 @@
 #include "Application.h"
 #include "CurveEditor.h"
 #include "Imgui/imgui.h"
+#include "Math.h"
 
 #include "mmgr/mmgr.h"
 

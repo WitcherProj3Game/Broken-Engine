@@ -2,8 +2,6 @@
 #define __COMPONENT_CURVE_EDITOR__
 
 #include "BrokenCore.h"
-#include "Math.h"
-
 
 BE_BEGIN_NAMESPACE
 

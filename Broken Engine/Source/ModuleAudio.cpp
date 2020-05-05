@@ -246,9 +246,9 @@ WwiseGameObject::~WwiseGameObject()
 
 void WwiseGameObject::SetPosition(float posX, float posY, float posZ, float frontX, float frontY, float frontZ, float topX, float topY, float topZ)
 {
-	position.X = -posX;
+	position.X = posX;
 	position.Y = posY;
-	position.Z = -posZ;
+	position.Z = posZ;
 
 	orientationFront.X = frontX;
 	orientationFront.Y = frontY;
@@ -345,7 +345,7 @@ void WwiseGameObject::SetAudioRTPCValue(std::string RTPCName, int value, uint ww
 
 	AKRESULT ret;
 	ret = AK::SoundEngine::SetRTPCValue(RTPCName.c_str(), value, wwiseGOID);
-	assert(ret == AK_Success);
+
 }
 
 

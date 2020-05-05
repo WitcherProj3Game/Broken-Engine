@@ -348,7 +348,10 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetParticles3DRotationOverTime", &ScriptingParticles::SetParticles3DRotationOverTime)
 		.addFunction("SetParticles3DRandomRotationOverTime", &ScriptingParticles::SetParticles3DRandomRotationOverTime)
 		.addFunction("RemoveParticlesRandomRotation", &ScriptingParticles::RemoveParticlesRandomRotation)
-			.endClass()
+
+		.addFunction("SetParticleColor", &ScriptingParticles::SetParticleColor)
+
+		.endClass()
 
 		// ----------------------------------------------------------------------------------
 		// LIGHTING

@@ -44,6 +44,7 @@ public:
 	void SetParticles3DRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ, uint gameobject_UUID);
 	void SetParticles3DRandomRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ, uint gameobject_UUID);
 	void RemoveParticlesRandomRotation(uint gameobject_UUID);
+	void SetParticleColor(float r, float g, float b, float a, uint gameobject_UUID);
 };
 BE_END_NAMESPACE
 #endif // __SCRIPTINGPARTICLES_H__

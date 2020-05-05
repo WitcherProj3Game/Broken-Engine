@@ -396,5 +396,19 @@ void ScriptingParticles::RemoveParticlesRandomRotation(uint gameobject_UUID)
 			ENGINE_CONSOLE_LOG("[Script]: (RemoveParticlesRandomRotation) Particle Emmiter component is NULL");
 	}
 	else
-		ENGINE_CONSOLE_LOG("[Script]: (RemoveParticlesRandomRotation) GameObject with UUID %d could not be found!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("[Script]: GameObject with UUID %d could not be found!", gameobject_UUID);
+}
+
+void ScriptingParticles::SetParticleColor(float r, float g, float b, float a, uint gameobject_UUID) {
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
+		if (emitter)
+			emitter->ChangeParticlesColor(float4(r, g, b, a));
+		else
+			ENGINE_CONSOLE_LOG("[Script]: Particle Emmiter component is NULL");
+	}
+	else
+		ENGINE_CONSOLE_LOG("[Script]: GameObject with UUID %d could not be found!", gameobject_UUID);
 }

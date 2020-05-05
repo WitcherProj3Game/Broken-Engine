@@ -117,19 +117,19 @@ public:
 	bool SetVSync(bool _vsync);
 	void SetActiveCamera(ComponentCamera* camera);
 	void SetCullingCamera(ComponentCamera* camera);
-	void SetGammaCorrection(const float gammaCorr) { m_GammaCorrection = gammaCorr; }
-	void SetSceneAmbientColor(const float3 color) { m_AmbientColor = color; }
-	void SetRendererAlphaFunction(const AlphaFunction function) { m_RendererAlphaFunc = function; }
-	void SetSkyboxColor(const float3 color) { m_SkyboxColor = color; }
-	void SetSkyboxExposure(const float value) { m_SkyboxExposure = value; }
+	void SetGammaCorrection(float gammaCorr) { m_GammaCorrection = gammaCorr; }
+	void SetSceneAmbientColor(const float3& color) { m_AmbientColor = color; }
+	void SetRendererAlphaFunction(AlphaFunction function) { m_RendererAlphaFunc = function; }
+	void SetSkyboxColor(const float3& color) { m_SkyboxColor = color; }
+	void SetSkyboxExposure(float value) { m_SkyboxExposure = value; }
 
 	// --- Getters ---
 	bool GetVSync() const { return vsync; }
-	const float GetGammaCorrection() const { return m_GammaCorrection; }
-	const float3 GetSceneAmbientColor() const { return m_AmbientColor; }
-	const AlphaFunction GetRendererAlphaFunction() const { return m_RendererAlphaFunc; }
-	const float3 GetSkyboxColor() const { return m_SkyboxColor; }
-	const float GetSkyboxExposure() const { return m_SkyboxExposure; }
+	float GetGammaCorrection() const { return m_GammaCorrection; }
+	float3 GetSceneAmbientColor() const { return m_AmbientColor; }
+	AlphaFunction GetRendererAlphaFunction() const { return m_RendererAlphaFunc; }
+	float3 GetSkyboxColor() const { return m_SkyboxColor; }
+	float GetSkyboxExposure() const { return m_SkyboxExposure; }
 
 private:
 

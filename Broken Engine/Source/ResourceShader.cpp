@@ -301,6 +301,7 @@ void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms)
 			|| strcmp(name, "u_AmbientColor") == 0
 			|| strcmp(name, "u_HasTransparencies") == 0
 			|| strcmp(name, "u_IsText") == 0
+			|| strcmp(name, "u_Exposure") == 0
 			|| std::string(name).find("u_BkLights") != std::string::npos
 			|| strcmp(name, "time") == 0)
 			continue;

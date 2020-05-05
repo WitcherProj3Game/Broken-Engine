@@ -10,7 +10,6 @@ BE_BEGIN_NAMESPACE
 
 class Particle;
 class ResourceTexture;
-struct Point;
 class CurveEditor;
 
 

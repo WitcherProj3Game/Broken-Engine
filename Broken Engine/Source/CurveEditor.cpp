@@ -1,7 +1,6 @@
 #include "Application.h"
 #include "CurveEditor.h"
 #include "Imgui/imgui.h"
-#include "Math.h"
 
 #include "mmgr/mmgr.h"
 
@@ -127,7 +126,7 @@ float CurveEditor::GetCurrentValue(float cur_time, float max_time) {
 	return ret;
 }
 
-void CurveEditor::SetPoints(std::vector<Point>* points)
+void CurveEditor::SetPoints(std::vector<Point>& points)
 {
-	pointsCurveTangents = *points;
+	pointsCurveTangents = points;
 }

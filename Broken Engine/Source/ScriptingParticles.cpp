@@ -13,6 +13,7 @@
 
 // --- Others ---
 #include "ResourceScene.h"
+#include "ResourceTexture.h"
 #include "ScriptData.h"
 
 using namespace Broken;
@@ -325,9 +326,9 @@ void ScriptingParticles::SetTextureByName(const char* texture_name, uint gameobj
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
 		{
-			const std::pair<uint, ResourceTexture*> res_texture = App->resources->GetTextureResourceByName(texture_name);
-			if (res_texture.second)
-				emitter->SetTexture(res_texture.first);
+			ResourceTexture* res_texture = App->resources->GetTextureResourceByName(texture_name);
+			if (res_texture)
+				emitter->SetTexture(res_texture->GetUID());
 			else
 				ENGINE_CONSOLE_LOG("[Script]: (SetTextureByName) Texture passed was NULL!");
 		}

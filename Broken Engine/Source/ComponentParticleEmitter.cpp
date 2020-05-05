@@ -155,7 +155,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 		if (currentPlayTime - spawnClock > emisionRate)
 		{
 			uint newParticlesAmount = ((currentPlayTime - spawnClock) / emisionRate) * particlesPerCreation;
-			
+
 			if (!firstEmision)
 				CreateParticles(newParticlesAmount);
 			else
@@ -450,7 +450,7 @@ void ComponentParticleEmitter::Load(json& node)
 	curves.clear();
 	scaleCurve = nullptr;
 	rotateCurve = nullptr;
-	
+
 
 	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
 
@@ -641,7 +641,7 @@ void ComponentParticleEmitter::Load(json& node)
 	particlesLifeTime1 = std::stof(LparticlesLifeTime1);
 	particlesLifeTime2 = std::stof(LparticlesLifeTime2);
 	lifetimeconstants = std::stof(_lifetimeconstants);
-	
+
 
 	duration = std::stoi(LDuration);
 
@@ -905,15 +905,15 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 		ImGui::DragFloat("##SRandomVelocity1X", &velocityRandomFactor1.x, 0.05f, -100.0f, 100.0f);
-		ImGui::SameLine();																  
-		ImGui::Text("Y");																  
-		ImGui::SameLine();																  
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);						  
+		ImGui::SameLine();
+		ImGui::Text("Y");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 		ImGui::DragFloat("##SRandomVelocity1Y", &velocityRandomFactor1.y, 0.05f, -100.0f, 100.0f);
-		ImGui::SameLine();																  
-		ImGui::Text("Z");																  
-		ImGui::SameLine();																  
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);						  
+		ImGui::SameLine();
+		ImGui::Text("Z");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 		ImGui::DragFloat("##SRandomVelocity1Z", &velocityRandomFactor1.z, 0.05f, -100.0f, 100.0f);
 
 		ImGui::SetCursorPosX(cursor);
@@ -921,15 +921,15 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 		ImGui::DragFloat("##SRandomVelocity2X", &velocityRandomFactor2.x, 0.05f, -100.0f, 100.0f);
-		ImGui::SameLine();														 
-		ImGui::Text(" ");														 
-		ImGui::SameLine();														 
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);				 
+		ImGui::SameLine();
+		ImGui::Text(" ");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 		ImGui::DragFloat("##SRandomVelocity2Y", &velocityRandomFactor2.y, 0.05f, -100.0f, 100.0f);
-		ImGui::SameLine();														 
-		ImGui::Text(" ");														 
-		ImGui::SameLine();														 
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);				 
+		ImGui::SameLine();
+		ImGui::Text(" ");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 		ImGui::DragFloat("##SRandomVelocity2Z", &velocityRandomFactor2.z, 0.05f, -100.0f, 100.0f);
 
 
@@ -1052,7 +1052,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 				}
 			}
 		}
-		
+
 
 		if (ImGui::BeginPopup("Component options"))
 		{
@@ -1417,9 +1417,9 @@ void ComponentParticleEmitter::SetVelocityRF(float3 rand1, float3 rand2)
 	velocityRandomFactor2 = physx::PxVec3(rand2.x, rand2.y, rand2.z);
 }
 
-void ComponentParticleEmitter::SetDuration(int duration)
+void ComponentParticleEmitter::SetDuration(int _duration)
 {
-	duration = duration;
+	duration = _duration;
 }
 
 void ComponentParticleEmitter::SetLifeTime(int ms)
@@ -1463,8 +1463,67 @@ void ComponentParticleEmitter::SetOffsetRotation(float x, float y, float z)
 	float3 difference = (rotation- eulerRotation) * DEGTORAD;
 	Quat quatrot = Quat::FromEulerXYZ(difference.x, difference.y, difference.z);
 
-
-	//emitterRotation = emitterRotation * quatrot;
 	emitterRotation = Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD);
 	eulerRotation = rotation;
+}
+
+void ComponentParticleEmitter::SetScale(float x, float y)
+{
+	particlesScale = { x,y };
+}
+
+void ComponentParticleEmitter::SetScaleOverTime(float scale)
+{
+	scaleOverTime = scale;
+}
+
+void ComponentParticleEmitter::SetTexture(uint UID)
+{
+	Resource* resource = App->resources->GetResource(UID, false);
+
+	if (resource && resource->GetType() == Resource::ResourceType::TEXTURE)
+	{
+		if (texture)
+			texture->Release();
+
+		texture = (ResourceTexture*)App->resources->GetResource(UID);
+	}
+	else
+		ENGINE_CONSOLE_LOG("!(Particles - Set Texture): Couldn't find texture or was invalid to put in Particles");
+}
+
+
+void ComponentParticleEmitter::SetParticlesRotationOverTime(int rotationOverTime)
+{
+	separateAxis = false;
+	rotationOvertime1[2] = rotationOverTime;
+}
+
+void ComponentParticleEmitter::SetParticlesRandomRotationOverTime(int randomRotation)
+{
+	rotationconstants = true;
+	separateAxis = false;
+	rotationOvertime2[2] = randomRotation;
+}
+
+void ComponentParticleEmitter::SetParticles3DRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ)
+{
+	separateAxis = true;
+	rotationOvertime1[0] = rotationOverTimeX;
+	rotationOvertime1[1] = rotationOverTimeY;
+	rotationOvertime1[2] = rotationOverTimeZ;
+}
+
+void ComponentParticleEmitter::SetParticles3DRandomRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ)
+{
+	rotationconstants = true;
+	separateAxis = true;
+	rotationOvertime2[0] = rotationOverTimeX;
+	rotationOvertime2[1] = rotationOverTimeY;
+	rotationOvertime2[2] = rotationOverTimeZ;
+}
+
+void ComponentParticleEmitter::RemoveParticlesRandomRotation()
+{
+	rotationconstants = false;
 }

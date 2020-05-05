@@ -40,6 +40,7 @@ public:
 
 
 	//Scripting functions
+	//Emitter
 	void Play();
 	void Stop();
 	void SetEmisionRate(float ms);
@@ -47,14 +48,26 @@ public:
 	void SetExternalAcceleration(float x, float y, float z);
 	void SetParticlesVelocity(float x, float y, float z);
 	void SetVelocityRF(float3 rand1, float3 rand2);
+	void SetLooping(bool active);
 	void SetOffsetPosition(float x, float y, float z);
 	void SetOffsetRotation(float x, float y, float z);
-	void SetLooping(bool active);
 	void SetDuration(int duration);
+
+	//Particles
 	void SetLifeTime(int ms);
 	void SetParticlesScale(float x, float y);
 	void SetParticlesScaleRF(float randomFactor1, float randomFactor2);
 	void UpdateActorLayer(const int* layerMask);
+	void SetScale(float x, float y);
+	void SetScaleOverTime(float scale);
+	void SetTexture(uint UID);
+
+	//Rotation
+	void SetParticlesRotationOverTime(int rotationOverTime);
+	void SetParticlesRandomRotationOverTime(int randomRotation);
+	void SetParticles3DRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ);
+	void SetParticles3DRandomRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ);
+	void RemoveParticlesRandomRotation();
 
 private:
 
@@ -92,9 +105,9 @@ private:
 	physx::PxVec3 size = { 0,0,0 };
 	float emisionRate = 500.0f;	//in milliseconds
 	physx::PxVec3 externalAcceleration = { 0,10,0 };
-	physx::PxVec3 particlesVelocity = { 10,10,0 };
+	physx::PxVec3 particlesVelocity = { 0,0,0 };
 	physx::PxVec3 velocityRandomFactor1 = { 5,5,5 };
-	physx::PxVec3 velocityRandomFactor2 = { 5,5,5 };
+	physx::PxVec3 velocityRandomFactor2 = { 0,0,0 };
 	bool loop = true;
 	bool emisionActive = true;
 	int duration = 1000;

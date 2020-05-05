@@ -29,9 +29,22 @@ public:
 	void SetParticleDuration(int duration, uint gameobject_UUID);
 	void SetParticleLifeTime(int ms, uint gameobject_UUID);
 
+	//Scale
 	void SetParticleScaleFromScript(float x, float y, uint gameobject_UUID);
 	void SetRandomParticleScale(float randomFactor1, float randomFactor2, uint gameobject_UUID);
 	void SetParticleColor(float r, float g, float b, float a, uint gameobject_UUID);
+	void SetScaleOverTime(float scale, uint gameobject_UUID);
+
+	//Texture
+	void SetTextureByUUID(uint texture_UUID, uint gameobject_UUID);
+	void SetTextureByName(const char* texture_name, uint gameobject_UUID);
+
+	//Rotations
+	void SetParticlesRotationOverTime(int rotationOverTime, uint gameobject_UUID);
+	void SetParticlesRandomRotationOverTime(int randomRotation, uint gameobject_UUID);
+	void SetParticles3DRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ, uint gameobject_UUID);
+	void SetParticles3DRandomRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ, uint gameobject_UUID);
+	void RemoveParticlesRandomRotation(uint gameobject_UUID);
 };
 BE_END_NAMESPACE
 #endif // __SCRIPTINGPARTICLES_H__

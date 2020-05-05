@@ -265,7 +265,7 @@ void ScriptingMaterials::SetMaterialByName(const char* mat_name, uint gameobject
 	if (FailSafeCheck("(SetMaterialByName)", gameobject_UUID, &mesh) == false)
 		return;
 
-	ResourceMaterial* new_mat = App->resources->GetMaterialByName(mat_name).second;
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(mat_name);
 	if (new_mat != nullptr)
 		mesh->material = new_mat;
 	else
@@ -278,7 +278,7 @@ void ScriptingMaterials::SetMaterialByUUID(uint mat_UUID, uint gameobject_UUID)
 	if (FailSafeCheck("(SetMaterialByUID)", gameobject_UUID, &mesh) == false)
 		return;
 
-	ResourceMaterial* new_mat = App->resources->GetMaterialByUUID(mat_UUID).second;
+	ResourceMaterial* new_mat = App->resources->GetMaterialByUUID(mat_UUID);
 	if (new_mat != nullptr)
 		mesh->material = new_mat;
 	else
@@ -320,7 +320,7 @@ int ScriptingMaterials::GetCurrentMaterialUUID(uint gameobject_UUID) const
 
 const char* ScriptingMaterials::GetMaterialNameByUUID(uint mat_UUID) const
 {
-	ResourceMaterial* new_mat = App->resources->GetMaterialByUUID(mat_UUID).second;
+	ResourceMaterial* new_mat = App->resources->GetMaterialByUUID(mat_UUID);
 	if (new_mat != nullptr)
 		return new_mat->GetName();
 	else
@@ -331,7 +331,7 @@ const char* ScriptingMaterials::GetMaterialNameByUUID(uint mat_UUID) const
 
 int ScriptingMaterials::GetMaterialUUIDByName(const char* mat_name) const
 {
-	ResourceMaterial* new_mat = App->resources->GetMaterialByName(mat_name).second;
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(mat_name);
 	if (new_mat != nullptr)
 		return new_mat->GetUID();
 	else
@@ -355,7 +355,7 @@ void ScriptingMaterials::SetShaderByName(const char* shader_name, uint gameobjec
 		return;
 	}
 
-	ResourceShader* new_shader = App->resources->GetShaderByName(shader_name).second;
+	ResourceShader* new_shader = App->resources->GetShaderByName(shader_name);
 	if (new_shader != nullptr)
 	{
 		mesh->material->shader = new_shader;
@@ -377,7 +377,7 @@ void ScriptingMaterials::SetShaderByUUID(uint shader_UUID, uint gameobject_UUID)
 		return;
 	}
 
-	ResourceShader* new_shader = App->resources->GetShaderByUUID(shader_UUID).second;
+	ResourceShader* new_shader = App->resources->GetShaderByUUID(shader_UUID);
 	if (new_shader != nullptr)
 	{
 		mesh->material->shader = new_shader;
@@ -389,7 +389,7 @@ void ScriptingMaterials::SetShaderByUUID(uint shader_UUID, uint gameobject_UUID)
 
 void ScriptingMaterials::SetShaderToMaterial(const char* shader_name, const char* material_name)
 {
-	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name);
 	
 	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
 	{
@@ -397,7 +397,7 @@ void ScriptingMaterials::SetShaderToMaterial(const char* shader_name, const char
 		return;
 	}	
 	
-	ResourceShader* new_shader = App->resources->GetShaderByName(shader_name).second;
+	ResourceShader* new_shader = App->resources->GetShaderByName(shader_name);
 	if (new_shader)
 	{
 		new_mat->shader = new_shader;
@@ -453,7 +453,7 @@ int ScriptingMaterials::GetCurrentShaderUUID(uint gameobject_UUID) const
 
 const char* ScriptingMaterials::GetShaderNameByUUID(uint shader_UUID) const
 {
-	ResourceShader* new_shader = App->resources->GetShaderByUUID(shader_UUID).second;
+	ResourceShader* new_shader = App->resources->GetShaderByUUID(shader_UUID);
 	if (new_shader != nullptr)
 		return new_shader->GetName();
 	else
@@ -464,7 +464,7 @@ const char* ScriptingMaterials::GetShaderNameByUUID(uint shader_UUID) const
 
 int ScriptingMaterials::GetShaderUUIDByName(const char* shader_name) const
 {
-	ResourceShader* new_shader = App->resources->GetShaderByName(shader_name).second;
+	ResourceShader* new_shader = App->resources->GetShaderByName(shader_name);
 	if (new_shader != nullptr)
 		return new_shader->GetUID();
 	else
@@ -477,7 +477,7 @@ int ScriptingMaterials::GetShaderUUIDByName(const char* shader_name) const
 // -------------------------------------------------------------------- SHADER UNIFORMS -------------------------------------------------------------------
 void ScriptingMaterials::SetUniformInt(const char* material_name, const char* unif_name, int value)
 {
-	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name);
 	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
 	{
 		ENGINE_CONSOLE_LOG("[Script]: (SetUniformInt) Material passed (%s) is null or Default (cannot be modified)", material_name);
@@ -497,7 +497,7 @@ void ScriptingMaterials::SetUniformInt(const char* material_name, const char* un
 
 void ScriptingMaterials::SetUniformFloat(const char* material_name, const char* unif_name, float value)
 {
-	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name);
 	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
 	{
 		ENGINE_CONSOLE_LOG("[Script]: (SetUniformFloat) Material passed (%s) is null or Default (cannot be modified)", material_name);
@@ -517,7 +517,7 @@ void ScriptingMaterials::SetUniformFloat(const char* material_name, const char* 
 
 void ScriptingMaterials::SetUniformVec2(const char* material_name, const char* unif_name, float x, float y)
 {
-	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name);
 	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
 	{
 		ENGINE_CONSOLE_LOG("[Script]: (SetUniformVec2) Material passed (%s) is null or Default (cannot be modified)", material_name);
@@ -537,7 +537,7 @@ void ScriptingMaterials::SetUniformVec2(const char* material_name, const char* u
 
 void ScriptingMaterials::SetUniformVec3(const char* material_name, const char* unif_name, float x, float y, float z)
 {
-	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name);
 	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
 	{
 		ENGINE_CONSOLE_LOG("[Script]: (SetUniformVec3) Material passed (%s) is null or Default (cannot be modified)", material_name);
@@ -557,7 +557,7 @@ void ScriptingMaterials::SetUniformVec3(const char* material_name, const char* u
 
 void ScriptingMaterials::SetUniformVec4(const char* material_name, const char* unif_name, float x, float y, float z, float w)
 {
-	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name);
 	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
 	{
 		ENGINE_CONSOLE_LOG("[Script]: (SetUniformVec4) Material passed (%s) is null or Default (cannot be modified)", material_name);
@@ -577,7 +577,7 @@ void ScriptingMaterials::SetUniformVec4(const char* material_name, const char* u
 
 void ScriptingMaterials::SetUniformBool(const char* material_name, const char* unif_name, bool value)
 {
-	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name).second;
+	ResourceMaterial* new_mat = App->resources->GetMaterialByName(material_name);
 	if (new_mat == nullptr || new_mat->GetUID() == App->resources->GetDefaultMaterialUID())
 	{
 		ENGINE_CONSOLE_LOG("[Script]: (SetUniformBool) Material passed (%s) is null or Default (cannot be modified)", material_name);
@@ -591,7 +591,7 @@ void ScriptingMaterials::SetUniformBool(const char* material_name, const char* u
 // ------ UNIFORM GETTERS ------
 int ScriptingMaterials::GetUniformInt(const char* material_name, const char* unif_name) const
 {
-	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name).second;
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
 	if (mat == nullptr)
 	{
 		ENGINE_CONSOLE_LOG("[Script]: (GetUniformInt) Material passed (%s) is null", material_name);
@@ -608,7 +608,7 @@ int ScriptingMaterials::GetUniformInt(const char* material_name, const char* uni
 
 float ScriptingMaterials::GetUniformFloat(const char* material_name, const char* unif_name) const
 {
-	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name).second;
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
 	if (mat == nullptr)
 	{
 		ENGINE_CONSOLE_LOG("[Script]: (GetUniformFloat) Material passed (%s) is null", material_name);
@@ -626,7 +626,7 @@ float ScriptingMaterials::GetUniformFloat(const char* material_name, const char*
 luabridge::LuaRef ScriptingMaterials::GetUniformVec2(const char* material_name, const char* unif_name, lua_State* L) const
 {
 	float2 vec = float2(-1.0f, -1.0f);
-	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name).second;
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
 
 	if (mat == nullptr)
 		ENGINE_CONSOLE_LOG("[Script]: (GetUniformVec2) Material passed (%s) is null", material_name);
@@ -649,7 +649,7 @@ luabridge::LuaRef ScriptingMaterials::GetUniformVec2(const char* material_name, 
 luabridge::LuaRef ScriptingMaterials::GetUniformVec3(const char* material_name, const char* unif_name, lua_State* L) const
 {
 	float3 vec = float3(-1.0f, -1.0f, -1.0f);
-	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name).second;
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
 	
 	if (mat == nullptr)
 		ENGINE_CONSOLE_LOG("[Script]: (GetUniformVec3) Material passed (%s) is null", material_name);
@@ -673,7 +673,7 @@ luabridge::LuaRef ScriptingMaterials::GetUniformVec3(const char* material_name, 
 luabridge::LuaRef ScriptingMaterials::GetUniformVec4(const char* material_name, const char* unif_name, lua_State* L) const
 {
 	float4 vec = float4(-1.0f, -1.0f, -1.0f, -1.0f);
-	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name).second;
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
 
 	if (mat == nullptr)
 		ENGINE_CONSOLE_LOG("[Script]: (GetUniformVec4) Material passed (%s) is null", material_name);

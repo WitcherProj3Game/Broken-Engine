@@ -1107,58 +1107,58 @@ ResourceFolder* ModuleResourceManager::GetAssetsFolder()
 	return AssetsFolder;
 }
 
-uint ModuleResourceManager::GetFileFormatVersion()
+uint ModuleResourceManager::GetFileFormatVersion() const
 {
 	return fileFormatVersion;
 }
 
 // ----- Materials & Shaders Getter -----
-uint ModuleResourceManager::GetDefaultMaterialUID()
+uint ModuleResourceManager::GetDefaultMaterialUID() const
 {
 	return DefaultMaterial->GetUID();
 }
 
 // ------------------------------------------------------ RESOURCES UTILITIES ------------------------------------------------------
-const std::pair<uint, ResourceMaterial*> ModuleResourceManager::GetDefaultMaterial()
+ResourceMaterial* ModuleResourceManager::GetDefaultMaterial() const
 {
-	return { DefaultMaterial->GetUID(), DefaultMaterial };
+	return DefaultMaterial;
 }
 
-const std::pair<uint, ResourceMaterial*> ModuleResourceManager::GetMaterialByName(const char* mat_name)
+ResourceMaterial* ModuleResourceManager::GetMaterialByName(const char* mat_name) const
 {
 	std::string name = mat_name;
 	if (name.compare(DefaultMaterial->GetName()) == 0)
-		return { DefaultMaterial->GetUID(), DefaultMaterial };
+		return DefaultMaterial;
 
-	std::map<uint, ResourceMaterial*>::iterator it = materials.begin();
+	std::map<uint, ResourceMaterial*>::const_iterator it = materials.begin();
 	for (; it != materials.end(); ++it)
 	{
 		if ((*it).second == nullptr || (*it).first == DefaultMaterial->GetUID())
 			continue;
 
 		if (name.compare((*it).second->GetName()) == 0)
-			return (*it);
+			return (*it).second;
 	}
 
-	return { -1, nullptr };
+	return nullptr;
 }
 
-const std::pair<uint, ResourceMaterial*> ModuleResourceManager::GetMaterialByUUID(const uint mat_UUID)
+ResourceMaterial* ModuleResourceManager::GetMaterialByUUID(const uint mat_UUID) const
 {
 	if(mat_UUID == DefaultMaterial->GetUID())
-		return { DefaultMaterial->GetUID(), DefaultMaterial };
+		return DefaultMaterial;
 
 	std::pair<uint, ResourceMaterial*> ret = (*materials.find(mat_UUID));
 	if (ret.second != nullptr)
-		return ret;
+		return ret.second;
 	else
-		return { -1, nullptr };
+		return nullptr;
 }
 
-const std::pair<uint, ResourceShader*> ModuleResourceManager::GetShaderByName(const char* shader_name)
+ResourceShader* ModuleResourceManager::GetShaderByName(const char* shader_name) const
 {
 	std::string name = shader_name;
-	std::map<uint, ResourceShader*>::iterator it = shaders.begin();
+	std::map<uint, ResourceShader*>::const_iterator it = shaders.begin();
 
 	for (; it != shaders.end(); ++it)
 	{
@@ -1166,19 +1166,19 @@ const std::pair<uint, ResourceShader*> ModuleResourceManager::GetShaderByName(co
 			continue;
 
 		if (name.compare((*it).second->GetName()) == 0)
-			return (*it);
+			return (*it).second;
 	}
 
-	return { -1, nullptr };
+	return nullptr;
 }
 
-const std::pair<uint, ResourceShader*> ModuleResourceManager::GetShaderByUUID(const uint mat_UUID)
+ResourceShader* ModuleResourceManager::GetShaderByUUID(const uint mat_UUID) const
 {
 	std::pair<uint, ResourceShader*> ret = (*shaders.find(mat_UUID));
 	if (ret.second != nullptr)
-		return ret;
+		return ret.second;
 	else
-		return { -1, nullptr };
+		return nullptr;
 }
 
 ResourceTexture* ModuleResourceManager::GetTextureResourceByName(const char* texture_name) const

@@ -120,13 +120,13 @@ public:
 
 	// --- Getters ---
 	ResourceFolder* GetAssetsFolder();
-	uint GetFileFormatVersion();
-	uint GetDefaultMaterialUID();
-	const std::pair<uint, ResourceMaterial*> GetDefaultMaterial();
-	const std::pair<uint, ResourceMaterial*> GetMaterialByName(const char* mat_name);
-	const std::pair<uint, ResourceMaterial*> GetMaterialByUUID(const uint mat_UUID);
-	const std::pair<uint, ResourceShader*> GetShaderByName(const char* shader_name);
-	const std::pair<uint, ResourceShader*> GetShaderByUUID(const uint mat_UUID);
+	uint GetFileFormatVersion() const;
+	uint GetDefaultMaterialUID() const;
+	ResourceMaterial* GetDefaultMaterial() const;
+	ResourceMaterial* GetMaterialByName(const char* mat_name) const;
+	ResourceMaterial* GetMaterialByUUID(uint mat_UUID) const;
+	ResourceShader* GetShaderByName(const char* shader_name) const;
+	ResourceShader* GetShaderByUUID(uint mat_UUID) const;
 	ResourceTexture* GetTextureResourceByName(const char* texture_name) const;
 
 private:

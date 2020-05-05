@@ -358,6 +358,9 @@ Broken Engine/Game/Assets/*/*
 
 # Shaders
 !Broken Engine/Game/Assets/Shaders/*.glsl
+!Broken Engine/Game/Assets/Shaders/WaterShaders/
+!Broken Engine/Game/Assets/Shaders/WaterShaders/*.glsl
+Broken Engine/Game/Assets/Shaders/WaterShaders/*.meta
 
 # Imgui Ini File
 Broken Engine/Game/imgui.ini

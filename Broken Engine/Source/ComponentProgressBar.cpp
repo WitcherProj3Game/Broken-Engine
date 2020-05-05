@@ -46,6 +46,14 @@ ComponentProgressBar::~ComponentProgressBar()
 
 void ComponentProgressBar::Update()
 {
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas->AddElement(this);
+	}
+	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
+		canvas = nullptr;
+
 	if (to_delete)
 		this->GetContainerGameObject()->RemoveComponent(this);
 }
@@ -95,6 +103,7 @@ void ComponentProgressBar::DrawPlane(Color color, float _percentage)
 	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
 
 	// --- Draw plane with given texture ---
+	glUniform1f(glGetUniformLocation(shaderID, "u_GammaCorrection"), App->renderer3D->GetGammaCorrection());
 	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");
 	glUniform4f(vertexColorLocation, color.r, color.g, color.b, color.a);
 	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);

@@ -12,7 +12,7 @@
         "Navigation": false,
         "Physics": true,
         "Project": true,
-        "Rendering": false,
+        "Rendering": true,
         "Resources": false,
         "Scene": true,
         "Settings": false,
@@ -199,9 +199,9 @@
     "Renderer3D": {
         "GammaCorrection": 1.8650000095367432,
         "SceneAmbientColor": {
-            "B": 1.0,
+            "R": 1.0,
             "G": 1.0,
-            "R": 1.0
+            "B": 1.0
         }
     },
     "Window": {
@@ -212,6 +212,6 @@
         "resizable": true,
         "sceneX": 480,
         "sceneY": 640,
-        "width": 1920
+        "width": 1440
     }
 }

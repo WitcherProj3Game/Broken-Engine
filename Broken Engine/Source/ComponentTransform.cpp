@@ -174,7 +174,6 @@ void ComponentTransform::Load(json& node)
 
 void ComponentTransform::CreateInspectorNode()
 {
-	updateValues = false;
 
 	// --- Transform Position ---
 	ImGui::Text("Position  ");

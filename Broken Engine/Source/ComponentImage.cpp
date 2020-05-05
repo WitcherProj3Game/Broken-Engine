@@ -31,13 +31,8 @@ ComponentImage::ComponentImage(GameObject* gameObject) : Component(gameObject, C
 	name = "Image";
 	visible = true;
 
-	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
-	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
-
-		if (canvas)
-			canvas->AddElement(this);
-	}
+	canvas = (ComponentCanvas*)gameObject->AddComponent(Component::ComponentType::Canvas);
+	canvas->AddElement(this);
 	//texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
 }
 
@@ -96,6 +91,7 @@ void ComponentImage::Draw()
 	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
 
 	// --- Color & Texturing ---
+	glUniform1f(glGetUniformLocation(shaderID, "u_GammaCorrection"), App->renderer3D->GetGammaCorrection());
 	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), img_color.x, img_color.y, img_color.z, img_color.w);
 	int TextureLocation = glGetUniformLocation(shaderID, "u_UseTextures");
 	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);

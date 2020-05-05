@@ -95,10 +95,16 @@ void ImporterPrefab::Save(ResourcePrefab* prefab) const
 			// --- Create GO Structure ---
 			file[prefab_gos[i]->GetName()];
 			file[prefab_gos[i]->GetName()]["UID"] = std::to_string(prefab_gos[i]->GetUID());
+			file[prefab_gos[i]->GetName()]["Active"] = prefab_gos[i]->GetActive();
+			file[prefab_gos[i]->GetName()]["Static"] = prefab_gos[i]->Static;
+			//file[prefab_gos[i]->GetName()]["Index"] = prefab_gos[i]->index;
+			//file[prefab_gos[i]->GetName()]["Navigation Static"] = prefab_gos[i]->navigationStatic;
+			//file[prefab_gos[i]->GetName()]["Navigation Area"] = prefab_gos[i]->navigationArea;
 			file[prefab_gos[i]->GetName()]["Parent"] = std::to_string(prefab_gos[i]->parent->GetUID());
 			file[prefab_gos[i]->GetName()]["Components"];
 			file[prefab_gos[i]->GetName()]["PrefabChild"] = true;
 			file[prefab_gos[i]->GetName()]["PrefabInstance"] = prefab_gos[i]->is_prefab_instance;
+
 
 			if (prefab_gos[i]->model)
 				file[prefab_gos[i]->GetName()]["Model"] = std::string(prefab_gos[i]->model->GetOriginalFile());
@@ -107,6 +113,8 @@ void ImporterPrefab::Save(ResourcePrefab* prefab) const
 			{
 				// --- Save Components to file ---
 				file[prefab_gos[i]->GetName()]["Components"][std::to_string((uint)prefab_gos[i]->GetComponents()[j]->GetType())] = prefab_gos[i]->GetComponents()[j]->Save();
+				//file[prefab_gos[i]->GetName()]["Components"][std::to_string((uint)prefab_gos[i]->GetComponents()[j]->GetType())]["index"] = i;
+				//file[prefab_gos[i]->GetName()]["Components"][std::to_string((uint)prefab_gos[i]->GetComponents()[j]->GetType())]["UID"] = prefab_gos[i]->GetComponents()[j]->GetUID();
 			}
 
 		}

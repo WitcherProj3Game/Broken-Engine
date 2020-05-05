@@ -20,13 +20,8 @@ ComponentText::ComponentText(GameObject* gameObject) : Component(gameObject, Com
 	name = "Text";
 	visible = true;
 
-	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
-	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
-
-		if (canvas)
-			canvas->AddElement(this);
-	}
+	canvas = (ComponentCanvas*)gameObject->AddComponent(Component::ComponentType::Canvas);
+	canvas->AddElement(this);
 
 	font = App->resources->DefaultFont;
 	if (font)
@@ -36,7 +31,6 @@ ComponentText::ComponentText(GameObject* gameObject) : Component(gameObject, Com
 
 ComponentText::~ComponentText() 
 {
-
 	if (font && font->IsInMemory())
 	{
 		font->Release();
@@ -95,6 +89,7 @@ void ComponentText::Draw()
 	
 	glUniform1i(glGetUniformLocation(shaderID, "u_IsText"), 1);
 	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), color.r, color.g, color.b, color.a);
+	glUniform1f(glGetUniformLocation(shaderID, "u_GammaCorrection"), App->renderer3D->GetGammaCorrection());
 	glActiveTexture(GL_TEXTURE0);	
 
 	glBindVertexArray(font->VAO);

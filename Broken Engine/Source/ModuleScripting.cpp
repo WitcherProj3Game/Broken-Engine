@@ -422,11 +422,13 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addConstructor<void(*) (void)>()
 
 		.addFunction("SetVolume", &ScriptingAudio::SetVolume)
+		.addFunction("SetAudioTrigger", &ScriptingAudio::SetAudioTrigger)
+
 		.addFunction("PlayAudioEvent", &ScriptingAudio::PlayAudioEvent)
 		.addFunction("StopAudioEvent", &ScriptingAudio::StopAudioEvent)
 		.addFunction("PauseAudioEvent", &ScriptingAudio::PauseAudioEvent)
 		.addFunction("ResumeAudioEvent", &ScriptingAudio::ResumeAudioEvent)
-		.addFunction("SetVolume", &ScriptingAudio::SetVolume)
+
 		.addFunction("PlayAudioEventGO", &ScriptingAudio::PlayAudioEventGO)
 		.addFunction("StopAudioEventGO", &ScriptingAudio::StopAudioEventGO)
 		.addFunction("PauseAudioEventGO", &ScriptingAudio::PauseAudioEventGO)

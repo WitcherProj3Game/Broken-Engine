@@ -30,13 +30,8 @@ ComponentCircularBar::ComponentCircularBar(GameObject* gameObject) : Component(g
 {
 	visible = true;
 	//texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
-	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
-	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
-
-		if(canvas)
-			canvas->AddElement(this);
-	}
+	canvas = (ComponentCanvas*)gameObject->AddComponent(Component::ComponentType::Canvas);
+	canvas->AddElement(this);
 }
 
 ComponentCircularBar::~ComponentCircularBar()
@@ -116,6 +111,7 @@ void ComponentCircularBar::DrawCircle(Color color, bool axis, float _percentage)
 	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
 
 	// --- Texturing & Coloring ---
+	glUniform1f(glGetUniformLocation(shaderID, "u_GammaCorrection"), App->renderer3D->GetGammaCorrection());
 	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");
 	glUniform4f(vertexColorLocation, color.r, color.g, color.b, color.a);
 	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);

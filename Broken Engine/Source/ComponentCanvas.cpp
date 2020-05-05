@@ -25,14 +25,6 @@ ComponentCanvas::ComponentCanvas(GameObject* gameObject) : Component(gameObject,
 	name = "Canvas";
 	visible = true;
 	App->ui_system->AddCanvas(this);
-
-	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
-	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
-
-		if (canvas)
-			canvas->AddElement(this);
-	}
 }
 
 ComponentCanvas::~ComponentCanvas()
@@ -61,14 +53,14 @@ void ComponentCanvas::Draw() const
 		// --- Draw elements inside canvas ---
 		for (int i = 0; i < elements.size(); i++)
 		{
-			if (elements[i]->GetType() == Component::ComponentType::Canvas)
-			{
-				ComponentCanvas* canvas = (ComponentCanvas*)elements[i];
-				if (canvas->visible && canvas->GetActive())
-					canvas->Draw();
-				continue;
-			}
-			else if (elements[i]->GetType() == Component::ComponentType::Text)
+			//if (elements[i]->GetType() == Component::ComponentType::Canvas)
+			//{
+			//	ComponentCanvas* canvas = (ComponentCanvas*)elements[i];
+			//	if (canvas->visible && canvas->GetActive())
+			//		canvas->Draw();
+			//	continue;
+			//}
+			if (elements[i]->GetType() == Component::ComponentType::Text)
 			{
 				ComponentText* text = (ComponentText*)elements[i];
 				if (text->visible && text->GetActive())
@@ -187,7 +179,7 @@ void ComponentCanvas::UpdatePosition(float2& increment)
 			{
 				ComponentText* text = (ComponentText*)elements[i];
 				if (text->visible && text->GetActive())
-					text->position2D += increment/1.5;
+					text->position2D += increment/2;
 				continue;
 			}
 			else if (elements[i]->GetType() == Component::ComponentType::Image)

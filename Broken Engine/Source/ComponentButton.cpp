@@ -43,13 +43,8 @@ ComponentButton::ComponentButton(GameObject* gameObject) : Component(gameObject,
 	collider = { 0,0,0,0 };
 	color = idle_color;
 
-	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
-	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
-
-		if(canvas)
-			canvas->AddElement(this);
-	}
+	canvas = (ComponentCanvas*)gameObject->AddComponent(Component::ComponentType::Canvas);			
+	canvas->AddElement(this);
 
 	//texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
 
@@ -113,6 +108,7 @@ void ComponentButton::Draw()
 	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
 
 	// --- Color & Texturing ---
+	glUniform1f(glGetUniformLocation(shaderID, "u_GammaCorrection"), App->renderer3D->GetGammaCorrection());
 	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");
 	glUniform4f(vertexColorLocation, color.r, color.g, color.b, color.a);
 	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);
@@ -149,7 +145,7 @@ void ComponentButton::Draw()
 
 	// --- Collider ---
 	float2 screenpos = App->renderer3D->active_camera->WorldToScreen({ pos.x, -pos.y, pos.z });
-	collider = { (int)screenpos.x, (int)(screenpos.y - size2D.y), (int)size2D.x, (int)size2D.y };
+	collider = { (int)(screenpos.x - size2D.x/2), (int)(screenpos.y - size2D.y/2), (int)size2D.x, (int)size2D.y };
 
 	// Draw Collider
 	if (collider_visible && App->GetAppState() == AppState::EDITOR) //draw only in editor mode

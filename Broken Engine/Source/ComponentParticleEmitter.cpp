@@ -824,12 +824,12 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	else {
 		bool changed = false;
 		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.3f);
-		if (ImGui::DragInt("##SParticlesLifetime1", &particlesLifeTime1, 3.0f, 0.0f, particlesLifeTime2)) {
+		if (ImGui::DragInt("##SParticlesLifetime1", &particlesLifeTime1, 3.0f, 0.0f, 10000.0f)) {
 			changed = true;
 		}
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.3f);
-		if(ImGui::DragInt("##SParticlesLifetime2", &particlesLifeTime2, 3.0f, particlesLifeTime1, 10000.0f)) {
+		if(ImGui::DragInt("##SParticlesLifetime2", &particlesLifeTime2, 3.0f, 0.0, 10000.0f)) {
 			changed = true;
 		}
 		if (changed) {

@@ -179,14 +179,73 @@ void ScriptingAudio::ResumeAudioEvent(std::string event)
 		ENGINE_CONSOLE_LOG("![Script]: (ResumeAudioEvent) Sound Emmiter component is NULL");
 }
 
-void ScriptingAudio::SetAudioTrigger(std::string trigger)
+void ScriptingAudio::SetAudioSwitch(std::string SwitchGroup, std::string Switchstate, uint GOUID)
 {
-	ComponentAudioSource* sound = App->scripting->current_script->my_component->GetContainerGameObject()->GetComponent<ComponentAudioSource>();
-	if (sound)
+	uint wwiseUID = 0;
+
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(GOUID);
+	if (go)
 	{
-		uint wwisegoid = sound->wwiseGO->id;
-		App->audio->SetAudioTrigger(wwisegoid, trigger);
+		ComponentAudioSource* sound = go->GetComponent<ComponentAudioSource>();
+		if (sound)
+		{
+			wwiseUID = sound->wwiseGO->id;
+			sound->wwiseGO->SetAudioSwitch(SwitchGroup, Switchstate, wwiseUID);
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (SetAudioSwitch) Sound Emmiter component is NULL");
 	}
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (SetAudioTrigger) Sound Emmiter component is NULL");
+		ENGINE_CONSOLE_LOG("![Script]: (SetAudioSwitch) GameObject with UID %d does not exist", GOUID);
+
+}
+
+void ScriptingAudio::SetAudioState(std::string StateGroup, std::string State)
+{
+
+	App->audio->SetAudioState(StateGroup, State);
+
+}
+
+void ScriptingAudio::SetAudioRTPCValue(std::string RTPCName, int value, uint wwiseGOID)
+{
+
+	uint wwiseUID = 0;
+
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(wwiseGOID);
+	if (go) 
+	{
+		ComponentAudioSource* sound = go->GetComponent<ComponentAudioSource>();
+		if (sound)
+		{
+			uint wwisegoid = sound->wwiseGO->id;
+			sound->wwiseGO->SetAudioRTPCValue(RTPCName, value, wwisegoid);
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (SetAudioRTPCValue) Sound Emmiter component is NULL");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetAudioRTPCValue) GameObject with UID %d does not exist", wwiseGOID);
+	
+
+}
+
+void ScriptingAudio::SetAudioTrigger(std::string trigger, uint GOUID)
+{
+	uint wwiseUID = 0;
+
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(GOUID);
+	if (go)
+	{
+		ComponentAudioSource* sound = go->GetComponent<ComponentAudioSource>();
+		if (sound)
+		{
+			uint wwisegoid = sound->wwiseGO->id;
+			sound->wwiseGO->SetAudioTrigger(wwisegoid, trigger);
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (SetAudioTrigger) Sound Emmiter component is NULL");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetAudioTrigger) GameObject with UID %d does not exist", GOUID);
 }

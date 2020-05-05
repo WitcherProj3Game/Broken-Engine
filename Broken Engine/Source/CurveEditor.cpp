@@ -79,13 +79,20 @@ float CurveEditor::GetCurrentValue(float cur_time, float max_time) {
 		float time = cur_time / max_time;
 		if (type == CurveType::LINEAR) {
 			for (int i = 0; i < pointsCurveTangents.size() - 1; ++i) {
-				if (time > pointsCurveTangents[i].p.x&& time < pointsCurveTangents[i + 1].p.x) {
+				if (time > pointsCurveTangents[i].p.x && time < pointsCurveTangents[i + 1].p.x) {
 					float p1_time = pointsCurveTangents[i].p.x * max_time;
 					float p2_time = pointsCurveTangents[i + 1].p.x * max_time;
 					float p1_value = pointsCurveTangents[i].p.y * multiplier;
 					float p2_value = pointsCurveTangents[i + 1].p.y * multiplier;
 					float scope = (p2_value - p1_value) / (p2_time - p1_time);
 					ret = p1_value + scope * (cur_time - p1_time);
+					break;
+				}
+				else if (time > pointsCurveTangents[i + 1].p.x) {
+					ret = pointsCurveTangents[i + 1].p.y * multiplier;
+				}
+				else if(time > pointsCurveTangents[i].p.x){
+					ret = pointsCurveTangents[i].p.y * multiplier;
 				}
 			}
 		}
@@ -105,6 +112,13 @@ float CurveEditor::GetCurrentValue(float cur_time, float max_time) {
 					ImVec2 P(ImVec2(w1 * p1.x + w2 * p2.x + w3 * p3.x + w4 * p4.x, w1 * p1.y + w2 * p2.y + w3 * p3.y + w4 * p4.y));
 
 					ret = P.y * multiplier;
+					break;
+				}
+				else if (time > pointsCurveTangents[i + 1].p.x) {
+					ret = pointsCurveTangents[i + 1].p.y * multiplier;
+				}
+				else if (time > pointsCurveTangents[i].p.x) {
+					ret = pointsCurveTangents[i].p.y * multiplier;
 				}
 			}
 		}

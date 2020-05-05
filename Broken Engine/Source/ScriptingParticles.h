@@ -23,7 +23,7 @@ public:
 
 	void SetParticleAcceleration(float x, float y, float z, uint gameobject_UUID);
 	void SetParticleVelocityFromScript(float x, float y, float z, uint gameobject_UUID);
-	void SetRandomParticleVelocity(float x, float y, float z, uint gameobject_UUID);
+	void SetRandomParticleVelocity(float x1, float y1, float z1, float x2, float y2, float z2, uint gameobject_UUID);
 
 	void SetParticleLooping(bool active, uint gameobject_UUID);
 	void SetParticleDuration(int duration, uint gameobject_UUID);

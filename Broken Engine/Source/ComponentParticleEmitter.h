@@ -46,7 +46,7 @@ public:
 	void SetParticlesPerCreation(int particlesAmount);
 	void SetExternalAcceleration(float x, float y, float z);
 	void SetParticlesVelocity(float x, float y, float z);
-	void SetVelocityRF(float x, float y, float z);
+	void SetVelocityRF(float3 rand1, float3 rand2);
 	void SetOffsetPosition(float x, float y, float z);
 	void SetOffsetRotation(float x, float y, float z);
 	void SetLooping(bool active);
@@ -90,8 +90,9 @@ private:
 	physx::PxVec3 size = { 0,0,0 };
 	float emisionRate = 500.0f;	//in milliseconds
 	physx::PxVec3 externalAcceleration = { 0,10,0 };
-	physx::PxVec3 particlesVelocity = { 0,0,0 };
-	physx::PxVec3 velocityRandomFactor = { 5,5,5 };
+	physx::PxVec3 particlesVelocity = { 10,10,0 };
+	physx::PxVec3 velocityRandomFactor1 = { 5,5,5 };
+	physx::PxVec3 velocityRandomFactor2 = { 5,5,5 };
 	bool loop = true;
 	bool emisionActive = true;
 	int duration = 1000;
@@ -105,15 +106,19 @@ private:
 	int tileSize_X = 1;
 	int tileSize_Y = 1;
 	int startFrame = 0;
-	int cycles = 1;
+	float cycles = 1;
 
 	//Particle properties
 	int particlesLifeTime = 1000;
+	int particlesLifeTime1 = 1000;
+	int particlesLifeTime2 = 1000;
 	float2 particlesScale = { 1,1 };
 	float scaleOverTime = 0.0f;
 	float particlesScaleRandomFactor1 = 1;
 	float particlesScaleRandomFactor2 = 1;
 	ResourceTexture* texture = nullptr;
+	int lifetimeconstants = 0;
+	int velocityconstants = 0;
 
 	//Colors
 	bool colorGradient = false;

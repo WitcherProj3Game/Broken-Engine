@@ -82,6 +82,8 @@ private:
 
 	uint validParticles = 0;
 
+	bool firstEmision = true;
+
 	//Emitter properties
 	float3 emitterPosition = { 0,0,0 };
 	float3 eulerRotation = float3::zero;

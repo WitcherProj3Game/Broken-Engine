@@ -833,7 +833,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			changed = true;
 		}
 		if (changed) {
-			particlesLifeTime = GetRandomValue(particlesLifeTime1, particlesLifeTime2);
+			particlesLifeTime = (particlesLifeTime1 < particlesLifeTime2) ? GetRandomValue(particlesLifeTime1, particlesLifeTime2): GetRandomValue(particlesLifeTime2, particlesLifeTime1);
 			UpdateAllGradients();
 		}
 	}

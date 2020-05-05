@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include "Resource.h"
+#include "UI_Element.h"
 
 BE_BEGIN_NAMESPACE
 
@@ -41,21 +42,34 @@ public:
 	// --- Components ---
 
 	template<typename TComponent>
-	TComponent* GetComponent() {
-
+	TComponent* GetComponent() 
+	{
 		for (uint i = 0; i < components.size(); ++i)
 		{
-		if (components[i] && components[i]->GetType() == TComponent::GetType())
+			if (components[i] && components[i]->GetType() == TComponent::GetType())
 				return ((TComponent*)(components[i]));
 		}
+		return nullptr;
+	}
 
+	UI_Element* GetComponentUI(Component::UIType type) 
+	{
+		for (uint i = 0; i < components.size(); ++i)
+		{
+			if (components[i] && components[i]->GetType() == Component::ComponentType::UI_Element)
+			{
+				UI_Element* elem = (UI_Element*)components[i];
+				if (elem->GetUIType() == type)
+					return elem;
+			}
+		}
 		return nullptr;
 	}
 
 
-	Component*		AddComponent(Component::ComponentType type, int index = -1);
+	Component*		AddComponent(Component::ComponentType type, int index = -1, Component::UIType ui_type = Component::UIType::UNKNOWN);
 	void			RemoveComponent(Component* comp);
-	Component*		HasComponent(Component::ComponentType type) const;
+	Component*		HasComponent(Component::ComponentType type, Component::UIType ui_type = Component::UIType::UNKNOWN) const;
 	std::vector<Component*>& GetComponents();
 	Component* GetComponentWithUID(uint UUID);
 

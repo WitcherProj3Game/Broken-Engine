@@ -2,7 +2,7 @@
 #define __COMPONENTBUTTON_H__
 #pragma once
 
-#include "Component.h"
+#include "UI_Element.h"
 #include "Color.h"
 #include "Math.h"
 #include "SDL/include/SDL_rect.h"
@@ -16,7 +16,7 @@ class ResourceTexture;
 class ComponentCanvas;
 class ComponentScript;
 
-class BROKEN_API ComponentButton : public Component
+class BROKEN_API ComponentButton : public UI_Element
 {
 public:
 	enum State
@@ -42,11 +42,8 @@ public:
 	void ChangeStateTo(State new_state) { state = new_state; }
 	void ChangeColorTo(Color new_color) { color = new_color; }
 
-	// UI Functions
-	void Scale(float2 size) { size2D = size; }
-	void Move(float2 pos) { position2D = pos; }
-	void Rotate(float rot) { rotation2D = rot; }
-	static inline Component::ComponentType GetType() { return Component::ComponentType::Button; }
+	static inline Component::ComponentType GetType() { return Component::ComponentType::UI_Element; }
+	static inline Component::UIType GetUIType() { return Component::UIType::Button; }
 
 	// --- Save & Load ---
 	json Save() const override;
@@ -55,15 +52,7 @@ public:
 	void SetNullptr();
 
 public:
-	bool visible = true;
-	bool interactable = true;
-	bool draggable = false;
 	bool resize = true;
-
-	float2 size2D = { 50,50 };
-	float2 position2D = { 0,0 };
-	float rotation2D = 0.0f;
-
 	State state = NOTHING;
 
 public:

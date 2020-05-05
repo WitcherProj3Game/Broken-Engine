@@ -15,12 +15,12 @@
 
 using namespace Broken;
 
-ComponentText::ComponentText(GameObject* gameObject) : Component(gameObject, Component::ComponentType::Text)
+ComponentText::ComponentText(GameObject* gameObject) : UI_Element(gameObject, Component::UIType::Text)
 {
 	name = "Text";
 	visible = true;
 
-	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
 	{
 		canvas = GO->parent->GetComponent<ComponentCanvas>();
 
@@ -34,7 +34,7 @@ ComponentText::ComponentText(GameObject* gameObject) : Component(gameObject, Com
 }
 
 
-ComponentText::~ComponentText() 
+ComponentText::~ComponentText()
 {
 
 	if (font && font->IsInMemory())
@@ -46,12 +46,12 @@ ComponentText::~ComponentText()
 
 void ComponentText::Update()
 {
-	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
 	{
 		canvas = GO->parent->GetComponent<ComponentCanvas>();
 		canvas->AddElement(this);
 	}
-	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
+	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas) && canvas)
 		canvas = nullptr;
 
 	if (to_delete)

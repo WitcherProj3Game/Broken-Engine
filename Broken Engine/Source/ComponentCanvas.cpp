@@ -1,4 +1,4 @@
-#include "ComponentCanvas.h"
+ #include "ComponentCanvas.h"
 #include "GameObject.h"
 #include "Application.h"
 #include "ModuleResourceManager.h"
@@ -20,15 +20,15 @@
 
 using namespace Broken;
 
-ComponentCanvas::ComponentCanvas(GameObject* gameObject) : Component(gameObject, Component::ComponentType::Canvas)
+ComponentCanvas::ComponentCanvas(GameObject* gameObject) : UI_Element(gameObject, Component::UIType::Canvas)
 {
 	name = "Canvas";
 	visible = true;
-	App->ui_system->AddCanvas(this);
+	App->ui_system->AddElement(this);
 
-	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
 	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas = (ComponentCanvas*)GO->parent->GetComponentUI(Component::UIType::Canvas);
 
 		if (canvas)
 			canvas->AddElement(this);
@@ -37,17 +37,17 @@ ComponentCanvas::ComponentCanvas(GameObject* gameObject) : Component(gameObject,
 
 ComponentCanvas::~ComponentCanvas()
 {
-	App->ui_system->RemoveCanvas(this);
+	App->ui_system->RemoveElement(this);
 }
 
 void ComponentCanvas::Update()
 {
-	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
 	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas = (ComponentCanvas*)GO->parent->GetComponentUI(Component::UIType::Canvas);
 		canvas->AddElement(this);
 	}
-	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
+	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas) && canvas)
 		canvas = nullptr;
 
 	if (to_delete)
@@ -61,55 +61,55 @@ void ComponentCanvas::Draw() const
 		// --- Draw elements inside canvas ---
 		for (int i = 0; i < elements.size(); i++)
 		{
-			if (elements[i]->GetType() == Component::ComponentType::Canvas)
+			if (elements[i]->GetUIType() == Component::UIType::Canvas)
 			{
 				ComponentCanvas* canvas = (ComponentCanvas*)elements[i];
 				if (canvas->visible && canvas->GetActive())
 					canvas->Draw();
 				continue;
 			}
-			else if (elements[i]->GetType() == Component::ComponentType::Text)
+			else if (elements[i]->GetUIType() == Component::UIType::Text)
 			{
 				ComponentText* text = (ComponentText*)elements[i];
 				if (text->visible && text->GetActive())
 					text->Draw();
 				continue;
 			}
-			else if (elements[i]->GetType() == Component::ComponentType::Image)
+			else if (elements[i]->GetUIType() == Component::UIType::Image)
 			{
 				ComponentImage* image = (ComponentImage*)elements[i];
 				if (image->visible && image->GetActive())
 					image->Draw();
 				continue;
 			}
-			else if (elements[i]->GetType() == Component::ComponentType::Button)
+			else if (elements[i]->GetUIType() == Component::UIType::Button)
 			{
 				ComponentButton* button = (ComponentButton*)elements[i];
 				if (button->visible && button->GetActive())
 					button->Draw();
 			}
-			//else if (elements[i]->GetType() == Component::ComponentType::CheckBox)
+			//else if (elements[i]->GetUIType() == Component::UIType::CheckBox)
 			//{
 			//	CheckBox* elem = (CheckBox*)elements[i];
 			//	if (elem->visible) 
 			//		elem->Draw();
 			//	continue;
 			//}
-			//else if (elements[i]->GetType() == Component::ComponentType::InputText)
+			//else if (elements[i]->GetUIType() == Component::UIType::InputText)
 			//{
 			//	InputText* elem = (InputText*)elements[i];
 			//	if (elem->visible) 
 			//		elem->Draw();
 			//	continue;
 			//}
-			else if (elements[i]->GetType() == Component::ComponentType::ProgressBar)
+			else if (elements[i]->GetUIType() == Component::UIType::ProgressBar)
 			{
 				ComponentProgressBar* bar = (ComponentProgressBar*)elements[i];
 				if (bar->visible && bar->GetActive())
 					bar->Draw();
 				continue;
 			}
-			else if (elements[i]->GetType() == Component::ComponentType::CircularBar)
+			else if (elements[i]->GetUIType() == Component::UIType::CircularBar)
 			{
 				ComponentCircularBar* cbar = (ComponentCircularBar*)elements[i];
 				if (cbar->visible && cbar->GetActive())
@@ -176,55 +176,55 @@ void ComponentCanvas::UpdatePosition(float2& increment)
 		// --- Draw elements inside canvas ---
 		for (int i = 0; i < elements.size(); i++)
 		{
-			if (elements[i]->GetType() == Component::ComponentType::Canvas)
+			if (elements[i]->GetUIType() == Component::UIType::Canvas)
 			{
 				ComponentCanvas* canvas = (ComponentCanvas*)elements[i];
 				if (canvas->visible && canvas->GetActive())
 					canvas->UpdatePosition(increment);
 				continue;
 			}
-			else if (elements[i]->GetType() == Component::ComponentType::Text)
+			else if (elements[i]->GetUIType() == Component::UIType::Text)
 			{
 				ComponentText* text = (ComponentText*)elements[i];
 				if (text->visible && text->GetActive())
 					text->position2D += increment/1.5;
 				continue;
 			}
-			else if (elements[i]->GetType() == Component::ComponentType::Image)
+			else if (elements[i]->GetUIType() == Component::UIType::Image)
 			{
 				ComponentImage* image = (ComponentImage*)elements[i];
 				if (image->visible && image->GetActive())
 					image->position2D += increment;
 				continue;
 			}
-			else if (elements[i]->GetType() == Component::ComponentType::Button)
+			else if (elements[i]->GetUIType() == Component::UIType::Button)
 			{
 				ComponentButton* button = (ComponentButton*)elements[i];
 				if (button->visible && button->GetActive())
 					button->position2D += increment;
 			}
-			//else if (elements[i]->GetType() == Component::ComponentType::CheckBox)
+			//else if (elements[i]->GetUIType() == Component::UIType::CheckBox)
 			//{
 			//	CheckBox* elem = (CheckBox*)elements[i];
 			//	if (elem->visible) 
 			//		elem->Draw();
 			//	continue;
 			//}
-			//else if (elements[i]->GetType() == Component::ComponentType::InputText)
+			//else if (elements[i]->GetUIType() == Component::UIType::InputText)
 			//{
 			//	InputText* elem = (InputText*)elements[i];
 			//	if (elem->visible) 
 			//		elem->Draw();
 			//	continue;
 			//}
-			else if (elements[i]->GetType() == Component::ComponentType::ProgressBar)
+			else if (elements[i]->GetUIType() == Component::UIType::ProgressBar)
 			{
 				ComponentProgressBar* bar = (ComponentProgressBar*)elements[i];
 				if (bar->visible && bar->GetActive())
 					bar->position2D += increment;
 				continue;
 			}
-			else if (elements[i]->GetType() == Component::ComponentType::CircularBar)
+			else if (elements[i]->GetUIType() == Component::UIType::CircularBar)
 			{
 				ComponentCircularBar* cbar = (ComponentCircularBar*)elements[i];
 				if (cbar->visible && cbar->GetActive())

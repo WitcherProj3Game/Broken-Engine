@@ -2,14 +2,14 @@
 #define __COMPONENTCANVAS_H__
 #pragma once
 
-#include "Component.h"
+#include "UI_Element.h"
 #include "Color.h"
 #include "Math.h"
 #include <vector>
 
 BE_BEGIN_NAMESPACE
 
-class BROKEN_API ComponentCanvas : public Component
+class BROKEN_API ComponentCanvas : public UI_Element
 {
 public:
 	ComponentCanvas(GameObject* gameObject);
@@ -18,23 +18,22 @@ public:
 	void Update() override;
 
 	void Draw() const;
-	void AddElement(Component* element) { elements.push_back(element); }
-	static inline Component::ComponentType GetType() { return Component::ComponentType::Canvas; }
+	void AddElement(UI_Element* element) { elements.push_back(element); }
+	static inline Component::ComponentType GetType() { return Component::ComponentType::UI_Element; }
+	static inline Component::UIType GetUIType() { return Component::UIType::Canvas; }
 
 	// --- Save & Load ---
 	json Save() const override;
 	void Load(json& node) override;
 	void CreateInspectorNode() override;
+
 	void UpdatePosition(float2& increment);
 
 public:
-	bool visible = true;
-	int priority = 0; //CHANGE TO BE ON EVERY UI ELEMENT
-	float2 position2D = { 0,0 };
 	ComponentCanvas* canvas = nullptr;
 
 private:
-	std::vector<Component*> elements;
+	std::vector<UI_Element*> elements;
 };
 
 BE_END_NAMESPACE

@@ -26,11 +26,11 @@
 
 using namespace Broken;
 
-ComponentCircularBar::ComponentCircularBar(GameObject* gameObject) : Component(gameObject, Component::ComponentType::CircularBar)
+ComponentCircularBar::ComponentCircularBar(GameObject* gameObject) : UI_Element(gameObject, Component::UIType::CircularBar)
 {
 	visible = true;
 	//texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
-	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::CircularBar))
 	{
 		canvas = GO->parent->GetComponent<ComponentCanvas>();
 
@@ -50,12 +50,12 @@ ComponentCircularBar::~ComponentCircularBar()
 
 void ComponentCircularBar::Update()
 {
-	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::CircularBar))
 	{
 		canvas = GO->parent->GetComponent<ComponentCanvas>();
 		canvas->AddElement(this);
 	}
-	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
+	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::CircularBar) && canvas)
 		canvas = nullptr;
 
 	if (to_delete)

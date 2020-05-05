@@ -15,14 +15,7 @@ public:
 		Mesh,
 		MeshRenderer,
 		Camera,
-		Canvas,
-		Image,
-		Text,
-		Button,
-		CheckBox,
-		InputText,
-		ProgressBar,
-		CircularBar,
+		UI_Element,
 		Script,
 		Bone,
 		Animation,
@@ -34,6 +27,19 @@ public:
 		AudioListener,
 		Light,
 		Unknown
+	};
+
+	enum class UIType
+	{
+		UNKNOWN = 0,
+		Canvas,
+		Image,
+		Text,
+		Button,
+		Checkbox,
+		InputText,
+		ProgressBar,
+		CircularBar
 	};
 
 public:

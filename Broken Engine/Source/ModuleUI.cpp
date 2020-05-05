@@ -7,6 +7,7 @@
 #include "ModuleGui.h"
 #include "ModuleRenderer3D.h"
 
+#include "UI_Element.h"
 #include "Component.h"
 #include "ComponentCanvas.h"
 #include "ComponentButton.h"
@@ -61,22 +62,22 @@ update_status ModuleUI::PreUpdate(float dt)
 {
 	OPTICK_CATEGORY("Game UI Update", Optick::Category::GameLogic);
 	//#include "Optick/include/optick.h"
-	OrderCanvas(); //order canvas
+	OrderElements(); //order canvas
 
 	for (std::unordered_map<uint, GameObject*>::iterator it = App->scene_manager->currentScene->NoStaticGameObjects.begin(); it != App->scene_manager->currentScene->NoStaticGameObjects.end(); ++it)
 	{
-		if ((*it).second->HasComponent(Component::ComponentType::Button)) //if has button component
+		if ((*it).second->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Button)) //if has button component
 		{
-			ComponentButton* element = (ComponentButton*)(*it).second->HasComponent(Component::ComponentType::Button); //single component (change when able to have multiple components of same type)
+			ComponentButton* element = (ComponentButton*)(*it).second->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Button); //single component (change when able to have multiple components of same type)
 			element->UpdateState(); //update state
 		}
 	}
 
 	for (std::unordered_map<uint, GameObject*>::iterator it = App->scene_manager->currentScene->StaticGameObjects.begin(); it != App->scene_manager->currentScene->StaticGameObjects.end(); ++it)
 	{
-		if ((*it).second->HasComponent(Component::ComponentType::Button)) //if has button component
+		if ((*it).second->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Button)) //if has button component
 		{
-			ComponentButton* element = (ComponentButton*)(*it).second->HasComponent(Component::ComponentType::Button); //single component (change when able to have multiple components of same type)
+			ComponentButton* element = (ComponentButton*)(*it).second->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Button); //single component (change when able to have multiple components of same type)
 			element->UpdateState(); //update state
 		}
 	}
@@ -129,10 +130,10 @@ void ModuleUI::Draw() const
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Draw UI
-	for (int i = 0; i < canvas.size(); i++)
+	for (int i = 0; i < elements.size(); i++)
 	{
-		if (canvas[i]->visible)
-			canvas[i]->Draw();
+		if (elements[i]->GetUIType() == Component::UIType::Canvas && elements[i]->visible)
+			elements[i]->Draw();
 	}
 
 	glPopAttrib();
@@ -149,13 +150,13 @@ void ModuleUI::Draw() const
 	App->renderer3D->active_camera = cam; //reset to previous active camera
 }
 
-void ModuleUI::RemoveCanvas(ComponentCanvas* c)
+void ModuleUI::RemoveElement(UI_Element* c)
 {
-	for (std::vector<ComponentCanvas*>::iterator it = canvas.begin(); it != canvas.end(); ++it)
+	for (std::vector<UI_Element*>::iterator it = elements.begin(); it != elements.end(); ++it)
 	{
 		if(*it && (*it)->GetContainerGameObject() && (*it)->GetContainerGameObject()->GetUID() == c->GetContainerGameObject()->GetUID())
 		{
-			canvas.erase(it);
+			elements.erase(it);
 			break;
 		}
 	}
@@ -163,7 +164,7 @@ void ModuleUI::RemoveCanvas(ComponentCanvas* c)
 
 void ModuleUI::Clear()
 {
-	canvas.clear();
+	elements.clear();
 }
 
 bool ModuleUI::CheckMousePos(SDL_Rect* collider) // 0,0 is top left corner
@@ -196,23 +197,23 @@ bool ModuleUI::CheckClick(bool draggable)
 	return false;
 }
 
-void ModuleUI::OrderCanvas()
+void ModuleUI::OrderElements()
 {
-	std::priority_queue<ComponentCanvas*, std::vector<ComponentCanvas*>, PrioritySort> ListOrder;
+	std::priority_queue<UI_Element*, std::vector<UI_Element*>, PrioritySort> ListOrder;
 
-	for (ComponentCanvas* node : canvas)
+	for (UI_Element* node : elements)
 		ListOrder.push(node);
 
-	canvas.clear();
+	elements.clear();
 
 	while (ListOrder.empty() == false)
 	{
-		canvas.push_back(ListOrder.top());
+		elements.push_back(ListOrder.top());
 		ListOrder.pop();
 	}
 }
 
-bool ModuleUI::PrioritySort::operator()(ComponentCanvas* const& node1, ComponentCanvas* const& node2) {
+bool ModuleUI::PrioritySort::operator()(UI_Element* const& node1, UI_Element* const& node2) {
 		if (node1->priority > node2->priority)
 			return true;
 		else

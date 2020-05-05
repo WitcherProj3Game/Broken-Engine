@@ -2,7 +2,7 @@
 #define __COMPONENTIMAGE_H__
 #pragma once
 
-#include "Component.h"
+#include "UI_Element.h"
 #include "Math.h"
 
 BE_BEGIN_NAMESPACE
@@ -10,7 +10,7 @@ BE_BEGIN_NAMESPACE
 class ComponentCanvas;
 class ResourceTexture;
 
-class BROKEN_API ComponentImage : public Component
+class BROKEN_API ComponentImage : public UI_Element
 {
 public:
 	ComponentImage(GameObject* gameObject);
@@ -20,12 +20,8 @@ public:
 
 	void Draw();
 
-	// UI Functions
-	void Scale(float2 size) { size2D = size; }
-	void Move(float2 pos) { position2D = pos; }
-	void Rotate(float rot) { rotation2D = rot; }
-
-	static inline Component::ComponentType GetType() { return Component::ComponentType::Image; }
+	static inline Component::ComponentType GetType() { return Component::ComponentType::UI_Element; }
+	static inline Component::UIType GetUIType() { return Component::UIType::Image; }
 
 	// --- Save & Load ---
 	json Save() const override;
@@ -33,13 +29,8 @@ public:
 	void CreateInspectorNode() override;
 
 public:
-	bool visible = true;
 	bool resize = true;
-
-	float2 size2D = { 50, 50 };
-	float2 position2D = { 0,0 };
 	float4 img_color = { 1.0f, 1.0f, 1.0f, 1.0f };
-	float rotation2D = 0.0f;
 
 public:
 	ComponentCanvas* canvas = nullptr;

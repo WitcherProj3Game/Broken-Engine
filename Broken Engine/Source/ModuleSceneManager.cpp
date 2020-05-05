@@ -65,9 +65,9 @@ void ModuleSceneManager::ONGameObjectDestroyed(const Event& e)
 {
 	for (GameObject* obj : App->scene_manager->GetRootGO()->childs) //all objects in scene
 	{
-		if (obj->HasComponent(Component::ComponentType::Button)) //if has button component
+		if (obj->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Button)) //if has button component
 		{
-			ComponentButton* button = (ComponentButton*)obj->HasComponent(Component::ComponentType::Button); //single component (change when able to have multiple components of same type)
+			ComponentButton* button = (ComponentButton*)obj->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Button); //single component (change when able to have multiple components of same type)
 			if (button->script_obj != nullptr && button->script_obj->GetUID() == e.go->GetUID())
 			{
 				button->SetNullptr();

@@ -26,12 +26,12 @@
 
 using namespace Broken;
 
-ComponentImage::ComponentImage(GameObject* gameObject) : Component(gameObject, Component::ComponentType::Image)
+ComponentImage::ComponentImage(GameObject* gameObject) : UI_Element(gameObject, Component::UIType::Image)
 {
 	name = "Image";
 	visible = true;
 
-	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
 	{
 		canvas = GO->parent->GetComponent<ComponentCanvas>();
 
@@ -52,12 +52,12 @@ ComponentImage::~ComponentImage()
 
 void ComponentImage::Update()
 {
-	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
 	{
 		canvas = GO->parent->GetComponent<ComponentCanvas>();
 		canvas->AddElement(this);
 	}
-	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
+	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas) && canvas)
 		canvas = nullptr;
 
 	if (to_delete)

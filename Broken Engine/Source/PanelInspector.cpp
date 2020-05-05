@@ -181,6 +181,7 @@ bool PanelInspector::Draw()
 			// MYTODO: Note currently you can not add the same type of component to a go (to be changed)
 
 			Broken::Component::ComponentType type = Broken::Component::ComponentType::Unknown;
+			Broken::Component::UIType ui_type = Broken::Component::UIType::UNKNOWN;
 
 			if (item_current == "Mesh")
 			{
@@ -194,22 +195,38 @@ bool PanelInspector::Draw()
 
 			else if (item_current == "UI Canvas")
 			{
-				type = Broken::Component::ComponentType::Canvas;
+				type = Broken::Component::ComponentType::UI_Element;
+				ui_type = Broken::Component::UIType::Canvas;
 			}
 
 			else if (item_current == "UI Image")
 			{
-				type = Broken::Component::ComponentType::Image;
+				type = Broken::Component::ComponentType::UI_Element;
+				ui_type = Broken::Component::UIType::Image;
 			}
 
 			else if (item_current == "UI Text")
 			{
-				type = Broken::Component::ComponentType::Text;
+				type = Broken::Component::ComponentType::UI_Element;
+				ui_type = Broken::Component::UIType::Text;
 			}
 
 			else if (item_current == "UI Button")
 			{
-				type = Broken::Component::ComponentType::Button;
+				type = Broken::Component::ComponentType::UI_Element;
+				ui_type = Broken::Component::UIType::Button;
+			}
+
+			else if (item_current == "UI ProgressBar")
+			{
+				type = Broken::Component::ComponentType::UI_Element;
+				ui_type = Broken::Component::UIType::ProgressBar;
+			}
+
+			else if (item_current == "UI CircularBar")
+			{
+				type = Broken::Component::ComponentType::UI_Element;
+				ui_type = Broken::Component::UIType::CircularBar;
 			}
 
 			else if (item_current == "Dynamic RigidBody")
@@ -238,7 +255,10 @@ bool PanelInspector::Draw()
 			{
 				for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 				{
-					obj->AddComponent(type);
+					if (type == Broken::Component::ComponentType::UI_Element)
+						obj->AddComponent(type, -1, ui_type);
+					else
+						obj->AddComponent(type);
 				}
 			}
 			item_current = items[0];

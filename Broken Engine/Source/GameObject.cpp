@@ -8,13 +8,14 @@
 #include "ModulePhysics.h"
 #include "ComponentAudioListener.h"
 #include "ComponentAudioSource.h"
+#include "ComponentCharacterController.h"
+#include "ComponentCollider.h"
+
+#include "UI_Element.h"
 #include "ComponentCanvas.h"
 #include "ComponentText.h"
 #include "ComponentImage.h"
 #include "ComponentButton.h"
-#include "ComponentCharacterController.h"
-#include "ComponentCollider.h"
-
 //#include "ComponentCheckBox.h"
 //#include "ComponentInputText.h"
 #include "ComponentProgressBar.h"
@@ -367,9 +368,9 @@ GameObject* GameObject::GetAnimGO(GameObject* GO)
 
 }
 
-Component * GameObject::AddComponent(Component::ComponentType type, int index)
+Component * GameObject::AddComponent(Component::ComponentType type, int index, Component::UIType ui_type)
 {
-	BROKEN_ASSERT(static_cast<int>(Component::ComponentType::Unknown) == 21, "Component Creation Switch needs to be updated");
+	BROKEN_ASSERT(static_cast<int>(Component::ComponentType::Unknown) == 15, "Component Creation Switch needs to be updated");
 	Component* component = nullptr;
 
 	// --- Check if there is already a component of the type given --- & if it can be repeated
@@ -419,51 +420,54 @@ Component * GameObject::AddComponent(Component::ComponentType type, int index)
 		case Component::ComponentType::Animation:
 			component = new ComponentAnimation(this);
 			break;
-
-		case Component::ComponentType::Canvas:
-			component = new ComponentCanvas(this);
-			break;
-
-		case Component::ComponentType::Text:
-			component = new ComponentText(this);
-			break;
-
-		case Component::ComponentType::Image:
-			component = new ComponentImage(this);
-			break;
-
-		case Component::ComponentType::Script:
-			component = new ComponentScript(this);
-			break;
-
-		case Component::ComponentType::Button:
-			component = new ComponentButton(this);
-			break;
-
 		case Component::ComponentType::CharacterController:
 			component = new ComponentCharacterController(this);
 			break;
-
-		//case Component::ComponentType::CheckBox:
-		//	component = new ComponentCheckBox(this);
-		//	break;
-
-		//case Component::ComponentType::InputText:
-		//	component = new ComponentInputText(this);
-		//	break;
-
-		case Component::ComponentType::ProgressBar:
-			component = new ComponentProgressBar(this);
-			break;
-
-		case Component::ComponentType::CircularBar:
-			component = new ComponentCircularBar(this);
+		case Component::ComponentType::Script:
+			component = new ComponentScript(this);
 			break;
 
 		//Lights
 		case Component::ComponentType::Light:
 			component = new ComponentLight(this);
 			break;
+
+		//UI_Elements
+		case Component::ComponentType::UI_Element:
+			switch (ui_type)
+			{
+			case Component::UIType::Canvas:
+				component = new ComponentCanvas(this);
+				break;
+
+			case Component::UIType::Text:
+				component = new ComponentText(this);
+				break;
+
+			case Component::UIType::Image:
+				component = new ComponentImage(this);
+				break;
+
+			case Component::UIType::Button:
+				component = new ComponentButton(this);
+				break;
+
+				//case Component::UIType::CheckBox:
+				//	component = new ComponentCheckBox(this);
+				//	break;
+
+				//case Component::UIType::InputText:
+				//	component = new ComponentInputText(this);
+				//	break;
+
+			case Component::UIType::ProgressBar:
+				component = new ComponentProgressBar(this);
+				break;
+
+			case Component::UIType::CircularBar:
+				component = new ComponentCircularBar(this);
+				break;
+			}
 		}
 
 		if (component)
@@ -516,7 +520,7 @@ void GameObject::RemoveComponent(Component* comp) {
 	}
 }
 
-Component* GameObject::HasComponent(Component::ComponentType type) const {
+Component* GameObject::HasComponent(Component::ComponentType type, Component::UIType ui_type) const {
 	// --- Search for given type of component ---
 	Component* component = nullptr;
 
@@ -524,6 +528,16 @@ Component* GameObject::HasComponent(Component::ComponentType type) const {
 	{
 		if (components[i] && components[i]->GetType() == type)
 		{
+			if (type == Component::ComponentType::UI_Element && ui_type != Component::UIType::UNKNOWN)
+			{
+				UI_Element* ui_comp = (UI_Element*)components[i];
+				if (ui_comp->GetUIType() == ui_type)
+				{
+					component = components[i];
+					break;
+				}
+			}
+
 			component = components[i];
 			break;
 		}

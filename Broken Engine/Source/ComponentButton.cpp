@@ -33,7 +33,7 @@
 
 using namespace Broken;
 
-ComponentButton::ComponentButton(GameObject* gameObject) : Component(gameObject, Component::ComponentType::Button)
+ComponentButton::ComponentButton(GameObject* gameObject) : UI_Element(gameObject, Component::UIType::Button)
 {
 	name = "Button";
 	visible = true;
@@ -43,9 +43,9 @@ ComponentButton::ComponentButton(GameObject* gameObject) : Component(gameObject,
 	collider = { 0,0,0,0 };
 	color = idle_color;
 
-	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
 	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas = (ComponentCanvas*)GO->parent->GetComponentUI(Component::UIType::Canvas);
 
 		if(canvas)
 			canvas->AddElement(this);
@@ -70,12 +70,13 @@ ComponentButton::~ComponentButton()
 
 void ComponentButton::Update()
 {
-	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
 	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
-		canvas->AddElement(this);
+		canvas = (ComponentCanvas*)GO->parent->GetComponentUI(Component::UIType::Canvas);
+		if (canvas != nullptr)
+			canvas->AddElement(this);
 	}
-	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
+	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas) && canvas)
 		canvas = nullptr;
 
 	if (to_delete)
@@ -333,6 +334,10 @@ void ComponentButton::CreateInspectorNode()
 
 	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
 	ImGui::Checkbox("Draggable", &draggable);
+	ImGui::Separator();
+
+	ImGui::SetNextItemWidth(100);
+	ImGui::InputInt("Priority", &priority);
 	ImGui::Separator();
 
 	// Size

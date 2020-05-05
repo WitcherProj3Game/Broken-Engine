@@ -768,6 +768,9 @@
     <ClInclude Include="Optick\include\optick_server.h">
       <Filter>Sources\BrokenEngine\3rd Party\Optick</Filter>
     </ClInclude>
+    <ClInclude Include="UI_Element.h">
+      <Filter>Sources\BrokenEngine\Game Objects\Components\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MathGeoLib\include\SystemInfo.cpp">

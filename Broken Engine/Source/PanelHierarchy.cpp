@@ -143,19 +143,19 @@ bool PanelHierarchy::Draw()
 			if (ImGui::BeginMenu("UI Element")) {
 				if (ImGui::MenuItem("Canvas")) {
 					Broken::GameObject* canvas_go = EngineApp->scene_manager->CreateEmptyGameObject("Canvas");
-					Broken::ComponentCanvas* camera = (Broken::ComponentCanvas*)canvas_go->AddComponent(Broken::Component::ComponentType::Canvas);
+					Broken::ComponentCanvas* camera = (Broken::ComponentCanvas*)canvas_go->AddComponent(Broken::Component::ComponentType::UI_Element, -1, Broken::Component::UIType::Canvas);
 				}
 				if (ImGui::MenuItem("Image")) {
 					Broken::GameObject* image_go = EngineApp->scene_manager->CreateEmptyGameObject("Image");
-					Broken::ComponentImage* image = (Broken::ComponentImage*)image_go->AddComponent(Broken::Component::ComponentType::Image);
+					Broken::ComponentImage* image = (Broken::ComponentImage*)image_go->AddComponent(Broken::Component::ComponentType::UI_Element, -1, Broken::Component::UIType::Image);
 				}
 				if (ImGui::MenuItem("Text")) {
 					Broken::GameObject* text_go = EngineApp->scene_manager->CreateEmptyGameObject("Text");
-					Broken::ComponentText* text = (Broken::ComponentText*)text_go->AddComponent(Broken::Component::ComponentType::Text);
+					Broken::ComponentText* text = (Broken::ComponentText*)text_go->AddComponent(Broken::Component::ComponentType::UI_Element, -1, Broken::Component::UIType::Text);
 				}
 				if (ImGui::MenuItem("Button")) {
 					Broken::GameObject* button_go = EngineApp->scene_manager->CreateEmptyGameObject("Button");
-					Broken::ComponentText* button = (Broken::ComponentText*)button_go->AddComponent(Broken::Component::ComponentType::Button);
+					Broken::ComponentText* button = (Broken::ComponentText*)button_go->AddComponent(Broken::Component::ComponentType::UI_Element, -1, Broken::Component::UIType::Button);
 				}
 				//if (ImGui::MenuItem("Checkbox")) {
 				//
@@ -166,12 +166,12 @@ bool PanelHierarchy::Draw()
 				if (ImGui::MenuItem("Progress Bar"))
 				{
 					Broken::GameObject* bar_go = EngineApp->scene_manager->CreateEmptyGameObject("ProgressBar");
-					Broken::ComponentProgressBar* bar = (Broken::ComponentProgressBar*)bar_go->AddComponent(Broken::Component::ComponentType::ProgressBar);
+					Broken::ComponentProgressBar* bar = (Broken::ComponentProgressBar*)bar_go->AddComponent(Broken::Component::ComponentType::UI_Element, -1, Broken::Component::UIType::ProgressBar);
 				}
 				if (ImGui::MenuItem("Circular Bar"))
 				{
 					Broken::GameObject* cbar_go = EngineApp->scene_manager->CreateEmptyGameObject("CircularBar");
-					Broken::ComponentProgressBar* cbar = (Broken::ComponentProgressBar*)cbar_go->AddComponent(Broken::Component::ComponentType::CircularBar);
+					Broken::ComponentProgressBar* cbar = (Broken::ComponentProgressBar*)cbar_go->AddComponent(Broken::Component::ComponentType::UI_Element, -1, Broken::Component::UIType::CircularBar);
 				}
 
 				ImGui::EndMenu();

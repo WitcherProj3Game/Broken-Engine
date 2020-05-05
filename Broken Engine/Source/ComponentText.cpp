@@ -19,10 +19,11 @@ ComponentText::ComponentText(GameObject* gameObject) : UI_Element(gameObject, Co
 {
 	name = "Text";
 	visible = true;
+	size2D = { 0.7f, 0.7f };
 
 	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
 	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas = (ComponentCanvas*)GO->parent->GetComponentUI(Component::UIType::Canvas);
 
 		if (canvas)
 			canvas->AddElement(this);
@@ -36,19 +37,21 @@ ComponentText::ComponentText(GameObject* gameObject) : UI_Element(gameObject, Co
 
 ComponentText::~ComponentText()
 {
-
 	if (font && font->IsInMemory())
 	{
 		font->Release();
 		font->RemoveUser(GO);
 	}
+
+	if (canvas)
+		canvas->RemoveElement(this);
 }
 
 void ComponentText::Update()
 {
 	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
 	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas = (ComponentCanvas*)GO->parent->GetComponentUI(Component::UIType::Canvas);
 		canvas->AddElement(this);
 	}
 	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas) && canvas)
@@ -154,6 +157,7 @@ json ComponentText::Save() const
 	json node;
 	node["Active"] = this->active;
 	node["visible"] = std::to_string(visible);
+	node["priority"] = std::to_string(priority);
 
 	node["position2Dx"] = std::to_string(position2D.x);
 	node["position2Dy"] = std::to_string(position2D.y);
@@ -183,7 +187,9 @@ void ComponentText::Load(json& node)
 
 	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
 	std::string visible_str = node["visible"].is_null() ? "0" : node["visible"];
+	std::string priority_str = node["priority"].is_null() ? "0" : node["priority"];
 	visible = bool(std::stoi(visible_str));
+	priority = int(std::stoi(priority_str));
 
 	std::string posx = node["position2Dx"].is_null() ? "0" : node["position2Dx"];
 	std::string posy = node["position2Dy"].is_null() ? "0" : node["position2Dy"];
@@ -236,6 +242,10 @@ void ComponentText::CreateInspectorNode()
 {
 	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
 	ImGui::Checkbox("Visible", &visible);
+	ImGui::Separator();
+
+	ImGui::SetNextItemWidth(100);
+	ImGui::InputInt("Priority", &priority);
 	ImGui::Separator();
 
 	ImGui::ColorEdit4("Color", (float*)&color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);

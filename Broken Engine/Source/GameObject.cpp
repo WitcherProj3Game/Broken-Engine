@@ -537,9 +537,11 @@ Component* GameObject::HasComponent(Component::ComponentType type, Component::UI
 					break;
 				}
 			}
-
-			component = components[i];
-			break;
+			else
+			{
+				component = components[i];
+				break;
+			}
 		}
 	}
 

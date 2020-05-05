@@ -18,10 +18,10 @@ public:
 	void Move(float2 pos) { position2D = pos; }
 	void Rotate(float rot) { rotation2D = rot; }
 
-	virtual void Draw() {};
+	virtual void Draw() = 0;
 	virtual json Save() const = 0;
-	virtual void Load(json& node) {};
-	virtual void CreateInspectorNode() {};
+	virtual void Load(json& node) = 0;
+	virtual void CreateInspectorNode() = 0;
 
 public:
 	bool visible = true;

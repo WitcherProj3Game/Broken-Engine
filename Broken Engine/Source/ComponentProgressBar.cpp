@@ -30,10 +30,12 @@ ComponentProgressBar::ComponentProgressBar(GameObject* gameObject) : UI_Element(
 {
 	name = "ProgressBar";
 	visible = true;
+	size2D = { 190, 25 };
+
 	//texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
 	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
 	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas = (ComponentCanvas*)GO->parent->GetComponentUI(Component::UIType::Canvas);
 
 		if (canvas)
 			canvas->AddElement(this);
@@ -47,13 +49,16 @@ ComponentProgressBar::~ComponentProgressBar()
 		texture->Release();
 		texture->RemoveUser(GO);
 	}
+
+	if (canvas)
+		canvas->RemoveElement(this);
 }
 
 void ComponentProgressBar::Update()
 {
 	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
 	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas = (ComponentCanvas*)GO->parent->GetComponentUI(Component::UIType::Canvas);
 		canvas->AddElement(this);
 	}
 	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas) && canvas)
@@ -144,6 +149,7 @@ json ComponentProgressBar::Save() const
 	json node;
 	node["Active"] = this->active;
 	node["visible"] = std::to_string(visible);
+	node["priority"] = std::to_string(priority);
 
 	node["Resources"]["ResourceTexture"];
 
@@ -175,7 +181,9 @@ void ComponentProgressBar::Load(json& node)
 {
 	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
 	std::string visible_str = node["visible"].is_null() ? "0" : node["visible"];
+	std::string priority_str = node["priority"].is_null() ? "0" : node["priority"];
 	visible = bool(std::stoi(visible_str));
+	priority = int(std::stoi(priority_str));
 
 	std::string path = node["Resources"]["ResourceTexture"].is_null() ? "0" : node["Resources"]["ResourceTexture"];
 	App->fs->SplitFilePath(path.c_str(), nullptr, &path);
@@ -215,6 +223,10 @@ void ComponentProgressBar::CreateInspectorNode()
 {
 	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
 	ImGui::Checkbox("Visible", &visible);
+	ImGui::Separator();
+
+	ImGui::SetNextItemWidth(100);
+	ImGui::InputInt("Priority", &priority);
 	ImGui::Separator();
 
 	// Percentage (test)

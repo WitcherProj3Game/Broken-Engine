@@ -11,14 +11,20 @@ BE_BEGIN_NAMESPACE
 
 class BROKEN_API ComponentCanvas : public UI_Element
 {
+	struct PrioritySort {
+		bool operator()(UI_Element* const& node1, UI_Element* const& node2);
+	};
+
 public:
 	ComponentCanvas(GameObject* gameObject);
 	virtual ~ComponentCanvas();
 
 	void Update() override;
 
-	void Draw() const;
+	void Draw();
 	void AddElement(UI_Element* element) { elements.push_back(element); }
+	void RemoveElement(UI_Element* element);
+
 	static inline Component::ComponentType GetType() { return Component::ComponentType::UI_Element; }
 	static inline Component::UIType GetUIType() { return Component::UIType::Canvas; }
 
@@ -28,6 +34,7 @@ public:
 	void CreateInspectorNode() override;
 
 	void UpdatePosition(float2& increment);
+	void OrderCanvas();
 
 public:
 	ComponentCanvas* canvas = nullptr;

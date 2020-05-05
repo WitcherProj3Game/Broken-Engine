@@ -212,6 +212,14 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("RandomNumber", &ScriptingSystem::RandomNumber)
 		.addFunction("RandomNumberInRange", &ScriptingSystem::RandomNumberInRange)
 		.addFunction("RandomNumberList", &ScriptingSystem::RandomNumberList)
+
+		.addFunction("MathFloatLerp", &ScriptingSystem::MathFloatLerp)
+		.addFunction("MathFloatInverseLerp", &ScriptingSystem::MathFloatInvLerp)
+		.addFunction("MathFloat2Lerp", &ScriptingSystem::MathFloat2Lerp)
+		.addFunction("MathFloat3Lerp", &ScriptingSystem::MathFloat3Lerp)
+		//.addFunction("MathFloat4Lerp", &ScriptingSystem::MathFloat4Lerp)
+		//.addFunction("MathQuatLerp", &ScriptingSystem::MathQuatLerp)
+		//.addFunction("MathQuatSlerp", &ScriptingSystem::MathQuatSlerp)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------
@@ -312,7 +320,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 
 		.addFunction("ActivateParticlesEmission", &ScriptingParticles::ActivateParticleEmitter)
 		.addFunction("DeactivateParticlesEmission", &ScriptingParticles::DeactivateParticleEmitter)
-		
+
 		.addFunction("PlayParticleEmitter", &ScriptingParticles::PlayParticleEmitter)
 		.addFunction("StopParticleEmitter", &ScriptingParticles::StopParticleEmitter)
 		.addFunction("SetEmissionRate", &ScriptingParticles::SetEmissionRateFromScript)
@@ -331,7 +339,19 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 
 		.addFunction("SetParticlesScale", &ScriptingParticles::SetParticleScaleFromScript)
 		.addFunction("SetRandomParticlesScale", &ScriptingParticles::SetRandomParticleScale)
-		.endClass()
+
+		.addFunction("SetParticleColor", &ScriptingParticles::SetParticleColor)
+		
+		.addFunction("SetScaleOverTime", &ScriptingParticles::SetScaleOverTime)
+		.addFunction("SetTextureByUID", &ScriptingParticles::SetTextureByUUID)
+		.addFunction("SetTextureByName", &ScriptingParticles::SetTextureByName)
+
+		.addFunction("SetParticlesRotationOverTime", &ScriptingParticles::SetParticlesRotationOverTime)
+		.addFunction("SetParticlesRandomRotationOverTime", &ScriptingParticles::SetParticlesRandomRotationOverTime)
+		.addFunction("SetParticles3DRotationOverTime", &ScriptingParticles::SetParticles3DRotationOverTime)
+		.addFunction("SetParticles3DRandomRotationOverTime", &ScriptingParticles::SetParticles3DRandomRotationOverTime)
+		.addFunction("RemoveParticlesRandomRotation", &ScriptingParticles::RemoveParticlesRandomRotation)
+			.endClass()
 
 		// ----------------------------------------------------------------------------------
 		// LIGHTING
@@ -765,7 +785,7 @@ void ModuleScripting::DeployScriptingGlobals()
 {
 	ENGINE_CONSOLE_LOG("Attempting to compile and run Globals.lua!");
 	std::string path = "Lua_Globals/Globals.lua"; // This is the relative path were the file must be, we do this to ensure we won't have problems with Assets folder and people trying to add this file as a script to a gameobject
-	
+
 	if (App->fs->Exists(path.c_str())) //If the file exists compile if not sound the alarm
 	{
 		std::string abs_path = GetScriptingBasePath();
@@ -906,7 +926,7 @@ update_status ModuleScripting::GameUpdate(float gameDT)
 						else
 						{
 							current_script->my_table_class["Update"]();	// Update is done on every iteration of the script as long as it remains active
-							
+
 							if(current_script != nullptr)
 								FillScriptInstanceComponentVars(current_script); // Show variables at runtime
 						}

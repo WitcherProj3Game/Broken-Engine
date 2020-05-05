@@ -73,8 +73,7 @@ GameObject::~GameObject()
 }
 
 void GameObject::Update(float dt)
-{
-	// PHYSICS: TEMPORAL example, after updating transform, update collider
+{	// PHYSICS: TEMPORAL example, after updating transform, update collider
 	ComponentCollider* collider = GetComponent<ComponentCollider>();
 
 	OPTICK_PUSH("GameObjects - Colliders Update");
@@ -101,6 +100,8 @@ void GameObject::Update(float dt)
 		(*it)->Update(dt);
 	}
 	OPTICK_POP();
+
+	GetComponent<ComponentTransform>()->updateValues = false;
 }
 
 void GameObject::Draw()
@@ -187,17 +188,17 @@ void GameObject::TransformGlobal()
 	float4x4 old_transform = transform->GetGlobalTransform();
 
 	if (parent)
-	transform->OnUpdateTransform(parent->GetComponent<ComponentTransform>()->GetGlobalTransform());
+		transform->OnUpdateTransform(parent->GetComponent<ComponentTransform>()->GetGlobalTransform());
 
 	ComponentCamera* camera = GetComponent<ComponentCamera>();
 
 	if (camera)
-	camera->OnUpdateTransform(transform->GetGlobalTransform());
+		camera->OnUpdateTransform(transform->GetGlobalTransform());
 
 	for (std::vector<GameObject*>::iterator tmp = childs.begin(); tmp != childs.end(); ++tmp)
 	{
 		(*tmp)->TransformGlobal();
-		if (GetComponent<ComponentTransform>()->updateValues)
+		if (transform->updateValues)
 			(*tmp)->GetComponent<ComponentTransform>()->updateValues = true;
 	}
 

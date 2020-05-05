@@ -1312,7 +1312,7 @@
     </ClCompile>
     <ClCompile Include="ScriptingMaterials.cpp">
       <Filter>Sources\BrokenEngine\Modules\Scripting Functions</Filter>
-    </ClInclude>
+    </ClCompile>
     <ClCompile Include="CurveEditor.cpp">
       <Filter>Sources\BrokenEngine\Tools</Filter>
     </ClCompile>

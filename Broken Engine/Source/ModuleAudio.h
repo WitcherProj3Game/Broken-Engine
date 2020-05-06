@@ -23,6 +23,9 @@ public:
 	WwiseGameObject* CreateAudioSource(uint id, const char* name, float3 position);
 	WwiseGameObject* CreateAudioListener(uint id, const char* name, float3 position);
 	void SetAuxSends();
+	void SetAudioSwitch(std::string SwitchGroup, std::string Switchstate, uint wwiseGOID);
+	void SetAudioTrigger(uint wwisegoId, std::string trigger);
+	void SetAudioRTPCValue(std::string RTPCName, int value, uint wwiseGOID);
 
 public:
 	uint GetID();
@@ -31,9 +34,8 @@ public:
 	float volume = 1.0f;
 	AkGameObjectID id = 0;
 	std::string name;
-private:
-	
 
+private:
 	AkVector position = { 0,0,0 };
 	AkVector orientationFront = { 0,0,0 };
 	AkVector orientationTop = { 0,0,0 };
@@ -50,24 +52,20 @@ public:
 	bool Start();
 	update_status PostUpdate(float dt);
 	bool CleanUp();
-	void Tests(AkGameObjectID id);
-	void SetAudioTrigger(uint wwisegoId, std::string trigger);
+	void SetAudioState(std::string StateGroup, std::string State);
 
 private:
-
 	void InitWwise();
 	void TerminateWwise();
 	void LoadSoundBank(const char* path);
-	void CatchAllSoundBanks(std::vector<std::string> banks);
+	void CatchAllSoundBanks(std::vector<std::string> *banks);
 	void LoadEventsFromJson();
 	void StopAllAudioEvents();
 	void ResumeAllAudioEvents();
-	void PauseAllAudioEvents();
-	
+	void PauseAllAudioEvents();	
 
 public:
 	AkGameObjectID currentListenerID = 0;
-	//unsigned long g_envMAP[255];
 	std::map <std::string, uint> EventMap;
 	std::vector<WwiseGameObject*> audioListenerList;
 	std::vector<WwiseGameObject*> audioSourceList;

@@ -70,11 +70,12 @@ void ComponentProgressBar::DrawPlane(Color color, float _percentage)
 {
 	// --- Frame image with camera ---
 	float nearp = App->renderer3D->active_camera->GetNearPlane();
-	float3 pos = { position2D.x / App->gui->sceneWidth, position2D.y / App->gui->sceneHeight, nearp + 0.026f };
-	
+
 	float size_x = ((size2D.x * _percentage) / 100);
 	float3 size = { size_x / App->gui->sceneWidth, size2D.y / App->gui->sceneHeight, 1.0f };
 
+	float3 pos = { (position2D.x + size_x / 2 - size2D.x / 2) / App->gui->sceneWidth, position2D.y / App->gui->sceneHeight, nearp + 0.026f };
+	
 	float4x4 transform = transform.FromTRS(pos, Quat::identity, size);
 
 	//float4x4 transform = transform.FromTRS(position, App->renderer3D->active_camera->GetOpenGLViewMatrix().RotatePart(), 

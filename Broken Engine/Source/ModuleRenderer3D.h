@@ -96,6 +96,7 @@ class BROKEN_API ModuleRenderer3D : public Module
 {
 	friend class ModuleResourceManager;
 	friend class ResourceMaterial;
+	friend class ComponentParticleEmitter;
 private:
 
 	GLenum BlendingTypesToOGL(BlendingTypes blending)
@@ -184,6 +185,7 @@ private:
 	void PickBlendingAutoFunction(BlendAutoFunction blend_func, BlendingEquations eq);
 	void PickBlendingManualFunction(BlendingTypes src, BlendingTypes dst, BlendingEquations eq);
 	void PickBlendingEquation(BlendingEquations eq);
+	void SetRendererBlending();
 
 	// --- Buffers ---
 	uint CreateBufferFromData(uint Targetbuffer, uint size, void* data) const;
@@ -257,6 +259,7 @@ public:
 	bool m_Draw_normalMapping_Lit = false;
 	bool m_Draw_normalMapping_Lit_Adv = false;
 	bool m_AutomaticBlendingFunc = true;
+	bool m_ChangedBlending = false;
 
 	uint rendertexture = 0;
 	uint depthMapTexture = 0;
@@ -279,7 +282,7 @@ private:
 	//Lights vector
 	std::vector<ComponentLight*> m_LightsVec;
 
-	//Rendering General Options
+	//Rendering Options
 	float m_GammaCorrection = 2.0f;
 	float3 m_AmbientColor = float3::one;
 	float3 m_SkyboxColor = float3::one;

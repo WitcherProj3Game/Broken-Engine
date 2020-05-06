@@ -62,6 +62,7 @@ void ResourceMaterial::SetBlending() const
 			return;
 
 		App->renderer3D->PickBlendingAutoFunction(m_MatAutoBlendFunc, m_MatBlendEq);
+		App->renderer3D->m_ChangedBlending = true;
 	}
 	else
 	{
@@ -73,6 +74,7 @@ void ResourceMaterial::SetBlending() const
 			return;
 
 		App->renderer3D->PickBlendingManualFunction(m_MatManualBlend_Src, m_MatManualBlend_Dst, m_MatBlendEq);
+		App->renderer3D->m_ChangedBlending = true;
 	}
 }
 
@@ -229,7 +231,7 @@ void ResourceMaterial::HandleTextureDisplay(ResourceTexture*& texture, bool& sav
 
 void ResourceMaterial::HandleBlendingSelector(bool& save_material)
 {
-	ImGui::Text("Rendering Blend Equation"); ImGui::SameLine();
+	ImGui::Text("Material Blend Equation"); ImGui::SameLine();
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 	ImGui::SetNextItemWidth(200.0f);
 
@@ -238,12 +240,12 @@ void ResourceMaterial::HandleBlendingSelector(bool& save_material)
 	int index = (int)m_MatBlendEq;
 	if (App->gui->HandleDropdownSelector(index, "##MAlphaEq", blendEq.data(), blendEq.size()))
 	{
-		m_MatBlendEq = (Broken::BlendingEquations)index;
+		m_MatBlendEq = (BlendingEquations)index;
 		save_material = true;
 	}
 
 	// --- Blend Auto Func ---
-	ImGui::Text("Rendering Blend Mode"); ImGui::SameLine();
+	ImGui::Text("Material Blend Mode"); ImGui::SameLine();
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 38.0f);
 	ImGui::SetNextItemWidth(200.0f);
 
@@ -251,7 +253,7 @@ void ResourceMaterial::HandleBlendingSelector(bool& save_material)
 	int index1 = (int)m_MatAutoBlendFunc;
 	if (App->gui->HandleDropdownSelector(index1, "##MAlphaAutoFunction", blendAutoF_Vec.data(), blendAutoF_Vec.size()))
 	{
-		m_MatAutoBlendFunc = (Broken::BlendAutoFunction)index1;
+		m_MatAutoBlendFunc = (BlendAutoFunction)index1;
 		save_material = true;
 	}
 
@@ -275,9 +277,9 @@ void ResourceMaterial::HandleBlendingSelector(bool& save_material)
 
 			std::vector<const char*> blendTypes_Vec = App->renderer3D->m_AlphaTypesVec;
 			int index2 = (int)m_MatManualBlend_Src;
-			if (App->gui->HandleDropdownSelector(index2, "##ManualAlphaSrc", blendTypes_Vec.data(), blendTypes_Vec.size()))
+			if (App->gui->HandleDropdownSelector(index2, "##MManualAlphaSrc", blendTypes_Vec.data(), blendTypes_Vec.size()))
 			{
-				m_MatManualBlend_Src = (Broken::BlendingTypes)index2;
+				m_MatManualBlend_Src = (BlendingTypes)index2;
 				save_material = true;
 			}
 
@@ -287,9 +289,9 @@ void ResourceMaterial::HandleBlendingSelector(bool& save_material)
 			ImGui::SetNextItemWidth(200.0f);
 
 			int index3 = (int)m_MatManualBlend_Dst;
-			if (App->gui->HandleDropdownSelector(index3, "##ManualAlphaDst", blendTypes_Vec.data(), blendTypes_Vec.size()))
+			if (App->gui->HandleDropdownSelector(index3, "##MManualAlphaDst", blendTypes_Vec.data(), blendTypes_Vec.size()))
 			{
-				m_MatManualBlend_Dst = (Broken::BlendingTypes)index3;
+				m_MatManualBlend_Dst = (BlendingTypes)index3;
 				save_material = true;
 			}
 

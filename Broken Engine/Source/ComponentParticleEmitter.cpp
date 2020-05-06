@@ -16,9 +16,9 @@
 #include "ModuleParticles.h"
 #include "ModuleTextures.h"
 #include "ModuleResourceManager.h"
-#include "ModuleRenderer3D.h"
 #include "ModuleFileSystem.h"
 #include "ModuleSceneManager.h"
+#include "ModuleGui.h"
 
 #include "Particle.h"
 #include "CurveEditor.h"
@@ -288,10 +288,37 @@ void ComponentParticleEmitter::SortParticles()
 	}
 }
 
+void ComponentParticleEmitter::SetEmitterBlending() const
+{
+	bool blendEq_Same = (m_PartBlEquation == App->renderer3D->GetRendererBlendingEquation());
+	if (m_PartAutoBlending)
+	{
+		if (m_PartBlendFunc == App->renderer3D->GetRendererBlendAutoFunction() && blendEq_Same)
+			return;
+
+		App->renderer3D->PickBlendingAutoFunction(m_PartBlendFunc, m_PartBlEquation);
+		App->renderer3D->m_ChangedBlending = true;
+	}
+	else
+	{
+		BlendingTypes src, dst;
+		App->renderer3D->GetRendererBlendingManualFunction(src, dst);
+
+		bool manualBlend_Same = (m_MPartBlend_Src == src && m_MPartBlend_Dst == dst);
+		if (manualBlend_Same && blendEq_Same)
+			return;
+
+		App->renderer3D->PickBlendingManualFunction(m_MPartBlend_Src, m_MPartBlend_Dst, m_PartBlEquation);
+		App->renderer3D->m_ChangedBlending = true;
+	}
+}
+
 void ComponentParticleEmitter::DrawParticles()
 {
 	if (!active || drawingIndices.empty())
 		return;
+
+	SetEmitterBlending();
 
 	Plane cameraPlanes[6];
 	App->renderer3D->culling_camera->frustum.GetPlanes(cameraPlanes);
@@ -312,10 +339,13 @@ void ComponentParticleEmitter::DrawParticles()
 				break;
 			}
 		}
+
 		if (draw)
 			particles[paco]->Draw();
+
 		it++;
 	}
+
 	drawingIndices.clear();
 }
 
@@ -438,6 +468,13 @@ json ComponentParticleEmitter::Save() const
 			node["curves"][i][std::to_string(j).c_str()]["NextY"] = std::to_string(curve->pointsCurveTangents[j].next_tangent.y);
 		}
 	}
+
+	// --- Blend Save ---
+	node["PartBlendEquation"] = (int)m_PartBlEquation;
+	node["PartBlendFunc"] = (int)m_PartBlendFunc;
+	node["PartMBlFuncSrc"] = (int)m_MPartBlend_Src;
+	node["PartMBlFuncDst"] = (int)m_MPartBlend_Dst;
+	node["PartAutoBlending"] = m_PartAutoBlending;
 
 	return node;
 }
@@ -679,6 +716,22 @@ void ComponentParticleEmitter::Load(json& node)
 		rotateCurve->Init();
 		curves.push_back(rotateCurve);
 	}
+
+	// --- Blending Load ---
+	if (!node["PartBlendFunc"].is_null())
+		m_PartBlendFunc = (BlendAutoFunction)node["PartBlendFunc"].get<int>();
+
+	if (!node["PartBlendEquation"].is_null())
+		m_PartBlEquation = (BlendingEquations)node["PartBlendEquation"].get<int>();
+
+	if (!node["PartMBlFuncSrc"].is_null())
+		m_MPartBlend_Src = (BlendingTypes)node["PartMBlFuncSrc"].get<int>();
+
+	if (!node["PartMBlFuncDst"].is_null())
+		m_MPartBlend_Dst = (BlendingTypes)node["PartMBlFuncDst"].get<int>();
+
+	if (!node["PartAutoBlending"].is_null())
+		m_PartAutoBlending = node["PartAutoBlending"].get<bool>();
 }
 
 void ComponentParticleEmitter::CreateInspectorNode()
@@ -1166,9 +1219,12 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	if (ImGui::TreeNode("Renderer"))
 	{
 		// Image
-		ImGui::Text("Image");
-		ImGui::SameLine();
+		ImGui::NewLine();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		ImGui::Text("Texture");
+		//ImGui::SameLine();
 
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		if (texture == nullptr)
 			ImGui::Image((ImTextureID)App->textures->GetDefaultTextureID(), ImVec2(100, 100), ImVec2(0, 1), ImVec2(1, 0)); //default texture
 		else
@@ -1193,15 +1249,101 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			ImGui::EndDragDropTarget();
 		}
 
+
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		ImGui::ColorEdit4("##PEParticle Color", (float*)&colors[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 		ImGui::Text("Start Color");
+
+		// --- Tree Node for Blending
+		ImGui::NewLine();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		if (ImGui::TreeNode("Particle Emitter Blending"))
+		{
+			HandleEditorBlendingSelector();
+			ImGui::TreePop();
+		}
+
+		ImGui::NewLine();
+		//ImGui::Separator();
 
 		ImGui::TreePop();
 	}
 
 	ImGui::Separator();
 }
+
+void ComponentParticleEmitter::HandleEditorBlendingSelector()
+{
+	ImGui::NewLine();
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+	ImGui::Text("Blend Equation");
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+	ImGui::SetNextItemWidth(200.0f);
+
+	// --- Blend Eq ---
+	std::vector<const char*> blendEq = App->renderer3D->m_BlendEquationFunctionsVec;
+	int index = (int)m_PartBlEquation;
+	if (App->gui->HandleDropdownSelector(index, "##PAlphaEq", blendEq.data(), blendEq.size()))
+		m_PartBlEquation = (BlendingEquations)index;
+
+	// --- Blend Auto Func ---
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+	ImGui::Text("Blend Mode"); ImGui::SameLine();
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 38.0f);
+	ImGui::SetNextItemWidth(200.0f);
+
+	std::vector<const char*> blendAutoF_Vec = App->renderer3D->m_BlendAutoFunctionsVec;
+	int index1 = (int)m_PartBlendFunc;
+	if (App->gui->HandleDropdownSelector(index1, "##PAlphaAutoFunction", blendAutoF_Vec.data(), blendAutoF_Vec.size()))
+		m_PartBlendFunc = (BlendAutoFunction)index1;
+
+	//Help Marker
+	std::string desc = "Stand. = SRC, 1-SRCALPH\nAdd. = ONE, ONE\nAddAlph. = SRC_ALPH, ONE\nMult. = DSTCOL, ZERO";
+	ImGui::SameLine();
+	App->gui->HelpMarker(desc.c_str());
+
+	// --- Blend Manual Function ---
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+	ImGui::Checkbox("Auto Alpha", &m_PartAutoBlending);
+	if (!m_PartAutoBlending)
+	{
+		//ImGui::Separator();
+		//ImGui::NewLine();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+		if (ImGui::TreeNodeEx("Manual Alpha", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			//Source
+			//ImGui::NewLine();
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
+			ImGui::Text("Source Alpha"); ImGui::SameLine();
+			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 45.0f);
+			ImGui::SetNextItemWidth(200.0f);
+
+			std::vector<const char*> blendTypes_Vec = App->renderer3D->m_AlphaTypesVec;
+			int index2 = (int)m_MPartBlend_Src;
+			if (App->gui->HandleDropdownSelector(index2, "##PManualAlphaSrc", blendTypes_Vec.data(), blendTypes_Vec.size()))
+				m_MPartBlend_Src = (BlendingTypes)index2;
+
+			//Destination
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
+			ImGui::Text("Destination Alpha"); ImGui::SameLine();
+			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+			ImGui::SetNextItemWidth(200.0f);
+
+			int index3 = (int)m_MPartBlend_Dst;
+			if (App->gui->HandleDropdownSelector(index3, "##PManualAlphaDst", blendTypes_Vec.data(), blendTypes_Vec.size()))
+				m_MPartBlend_Dst = (BlendingTypes)index3;
+
+			//Reference Function
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
+			if (ImGui::Button("Reference (Test Blend)", { 180, 18 })) App->gui->RequestBrowser("https://www.andersriggelsen.dk/glblendfunc.php");
+			ImGui::TreePop();
+		}
+	}
+}
+
+
 
 double ComponentParticleEmitter::GetRandomValue(double min, double max) //EREASE IN THE FUTURE
 {

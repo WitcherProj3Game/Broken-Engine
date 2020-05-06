@@ -372,18 +372,23 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	HandleObjectOutlining();
 
 	// --- Draw ---
-	glEnable(GL_BLEND);
-	if(m_AutomaticBlendingFunc)
-		PickBlendingAutoFunction(m_RendererBlendFunc, m_BlendEquation);
-	else
-		PickBlendingManualFunction(m_ManualBlend_Src, m_ManualBlend_Dst, m_BlendEquation);
+	glEnable(GL_BLEND);	
+	if(m_ChangedBlending)
+		SetRendererBlending(); //Set Blending to Renderer's Default
 
 	DrawTransparentRenderMeshes();
 
-	OPTICK_PUSH("Particles Rendering");
 	// -- Draw particles ---
+	OPTICK_PUSH("Particles Rendering");
 	for (int i = 0; i < particleEmitters.size(); ++i)
+	{
 		particleEmitters[i]->DrawParticles();
+
+		// --- Set Blending to Renderer's Default ---
+		if (m_ChangedBlending)
+			SetRendererBlending();
+	}
+
 	OPTICK_POP();
 
 	glDisable(GL_BLEND);
@@ -453,6 +458,7 @@ void ModuleRenderer3D::LoadStatus(const json& file)
 	m_GammaCorrection = file["Renderer3D"]["GammaCorrection"].is_null() ? 1.0f : file["Renderer3D"]["GammaCorrection"].get<float>();
 	m_SkyboxExposure = file["Renderer3D"]["SkyboxExposure"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxExposure"].get<float>();
 
+	m_AutomaticBlendingFunc = file["Renderer3D"]["RendAutoBlending"].is_null() ? true : file["Renderer3D"]["RendAutoBlending"].get<bool>();
 	int AlphaFuncValue = file["Renderer3D"]["AlphaFunc"].is_null() ? 1 : file["Renderer3D"]["AlphaFunc"].get<int>();
 	m_RendererBlendFunc = (BlendAutoFunction)AlphaFuncValue;
 
@@ -493,6 +499,8 @@ const json& ModuleRenderer3D::SaveStatus() const
 	m_config["SceneAmbientColor"]["R"] = m_AmbientColor.x;
 	m_config["SceneAmbientColor"]["G"] = m_AmbientColor.y;
 	m_config["SceneAmbientColor"]["B"] = m_AmbientColor.z;
+
+	m_config["RendAutoBlending"] = m_AutomaticBlendingFunc;
 
 	return m_config;
 }
@@ -1028,13 +1036,9 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
 		if (!mesh->mat->has_culling)
 			glEnable(GL_CULL_FACE);
 
-		if (mesh->mat->has_transparencies)
-		{
-			if (m_AutomaticBlendingFunc)
-				PickBlendingAutoFunction(m_RendererBlendFunc, m_BlendEquation);
-			else
-				PickBlendingManualFunction(m_ManualBlend_Src, m_ManualBlend_Dst, m_BlendEquation);
-		}
+		// --- Set Blending to Renderer's Default ---
+		if (m_ChangedBlending)
+			SetRendererBlending();
 
 		// --- Set color back to default ---
 		glUniform4f(glGetUniformLocation(shader, "u_Color"), 1.0f, 1.0f, 1.0f, 1.0f);
@@ -1203,6 +1207,16 @@ void ModuleRenderer3D::CreateFramebuffer()
 // ---------------------------------------------------------------------------------------------
 // ------------------------------ Utilities ----------------------------------------------------
 // ---------------------------------------------------------------------------------------------
+void ModuleRenderer3D::SetRendererBlending()
+{
+	if (m_AutomaticBlendingFunc)
+		PickBlendingAutoFunction(m_RendererBlendFunc, m_BlendEquation);
+	else
+		PickBlendingManualFunction(m_ManualBlend_Src, m_ManualBlend_Dst, m_BlendEquation);
+
+	m_ChangedBlending = false;
+}
+
 void ModuleRenderer3D::PickBlendingEquation(BlendingEquations eq)
 {
 	switch (eq)

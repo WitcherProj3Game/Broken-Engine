@@ -168,6 +168,8 @@ Resource* ImporterMaterial::Load(const char* path) const
 		if (!file["MatManualAlphaFuncDst"].is_null())
 			mat->m_MatManualBlend_Dst = (BlendingTypes)file["MatManualAlphaFuncDst"].get<int>();
 
+		if (!file["MatAutoBlending"].is_null())
+			mat->m_AutoBlending = file["MatAutoBlending"].get<bool>();
 
 		Importer::ImportData IDataDiff(diffuse_texture_path.c_str());
 
@@ -440,6 +442,7 @@ void ImporterMaterial::Save(ResourceMaterial* mat) const
 	file["MatBlendEquation"] = (int)mat->m_MatBlendEq;
 	file["MatManualAlphaFuncSrc"] = (int)mat->m_MatManualBlend_Src;
 	file["MatManualAlphaFuncDst"] = (int)mat->m_MatManualBlend_Dst;
+	file["MatAutoBlending"] = mat->m_AutoBlending;
 
 	if (mat->m_DiffuseResTexture)
 		file["ResourceDiffuse"] = mat->m_DiffuseResTexture->GetOriginalFile();

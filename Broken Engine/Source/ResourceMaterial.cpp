@@ -55,10 +55,25 @@ void ResourceMaterial::FreeMemory()
 
 void ResourceMaterial::SetBlending() const
 {
+	bool blendEq_Same = (m_MatBlendEq == App->renderer3D->GetRendererBlendingEquation());
 	if (m_AutoBlending)
+	{
+		if(m_MatAutoBlendFunc == App->renderer3D->GetRendererBlendAutoFunction() && blendEq_Same)
+			return;
+
 		App->renderer3D->PickBlendingAutoFunction(m_MatAutoBlendFunc, m_MatBlendEq);
+	}
 	else
+	{
+		BlendingTypes src, dst;
+		App->renderer3D->GetRendererBlendingManualFunction(src, dst);
+
+		bool manualBlend_Same = (m_MatManualBlend_Src == src && m_MatManualBlend_Dst == dst);
+		if (manualBlend_Same && blendEq_Same)
+			return;
+
 		App->renderer3D->PickBlendingManualFunction(m_MatManualBlend_Src, m_MatManualBlend_Dst, m_MatBlendEq);
+	}
 }
 
 void ResourceMaterial::CreateInspectorNode()
@@ -107,15 +122,10 @@ void ResourceMaterial::CreateInspectorNode()
 	// --- Bools ---
 	ImGui::Text("Use Textures");
 	ImGui::SameLine();
-	if(ImGui::Checkbox("##CB", &m_UseTexture)) 
-		save_material = true;
-
+	if(ImGui::Checkbox("##CB", &m_UseTexture)) save_material = true;
 	ImGui::SameLine();
-
 	if (ImGui::Checkbox("Transparencies", &has_transparencies)) save_material = true;
-
 	ImGui::SameLine();
-
 	if (ImGui::Checkbox("Culling", &has_culling)) save_material = true;
 
 	// --- Color ---
@@ -133,173 +143,88 @@ void ResourceMaterial::CreateInspectorNode()
 		save_material = true;
 
 	// --- Print Texture Width and Height (Diffuse) ---
-	uint textSizeX = 0, textSizeY = 0;
-	ImGui::NewLine();
-	if (m_DiffuseResTexture)
-	{
-		textSizeX = m_DiffuseResTexture->Texture_width;
-		textSizeY = m_DiffuseResTexture->Texture_height;
-	}
-
-	ImGui::Text(std::to_string(textSizeX).c_str());
-	ImGui::SameLine();
-	ImGui::Text(std::to_string(textSizeY).c_str());
-
-	// --- Texture Preview
-	if (m_DiffuseResTexture)
-		ImGui::ImageButton((void*)(uint)m_DiffuseResTexture->GetPreviewTexID(), ImVec2(20, 20));
-	else
-		ImGui::ImageButton(NULL, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 2);
-
-	// --- Handle drag & drop (Diffuse Texture) ---
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("resource"))
-		{
-			uint UID = *(const uint*)payload->Data;
-			Resource* resource = App->resources->GetResource(UID, false);
-
-			if (resource && resource->GetType() == Resource::ResourceType::TEXTURE)
-			{
-				if (m_DiffuseResTexture)
-					m_DiffuseResTexture->Release();
-
-				m_DiffuseResTexture = (ResourceTexture*)App->resources->GetResource(UID);
-				save_material = true;
-			}
-		}
-
-		ImGui::EndDragDropTarget();
-	}
-
-	ImGui::SameLine();
-	ImGui::Text("Albedo");
-
-	ImGui::SameLine();
-	if (ImGui::Button("UnuseDiff", { 77, 18 }) && m_DiffuseResTexture)
-	{
-		//m_DiffuseResTexture->RemoveUser(GetContainerGameObject());
-		m_DiffuseResTexture->Release();
-		m_DiffuseResTexture = nullptr;
-		save_material = true;
-	}
-
+	HandleTextureDisplay(m_DiffuseResTexture, save_material, "Diffuse", "UnuseDiff");
 
 	// --- Print Texture Width and Height (Specular)
-	textSizeX = textSizeY = 0;
-	ImGui::NewLine();
-	if (m_SpecularResTexture)
-	{
-		textSizeX = m_SpecularResTexture->Texture_width;
-		textSizeY = m_SpecularResTexture->Texture_height;
-	}
-
-	ImGui::Text(std::to_string(textSizeX).c_str());
-	ImGui::SameLine();
-	ImGui::Text(std::to_string(textSizeY).c_str());
-
-
-	if (m_SpecularResTexture)
-		ImGui::ImageButton((void*)(uint)m_SpecularResTexture->GetPreviewTexID(), ImVec2(20, 20));
-	else
-		ImGui::ImageButton(NULL, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 2);
-
-	// --- Handle drag & drop (Specular Texture)
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("resource"))
-		{
-			uint UID = *(const uint*)payload->Data;
-			Resource* resource = App->resources->GetResource(UID, false);
-
-			if (resource && resource->GetType() == Resource::ResourceType::TEXTURE)
-			{
-				if (m_SpecularResTexture)
-					m_SpecularResTexture->Release();
-
-				m_SpecularResTexture = (ResourceTexture*)App->resources->GetResource(UID);
-				save_material = true;
-			}
-		}
-
-		ImGui::EndDragDropTarget();
-	}
-
-	ImGui::SameLine();
-	ImGui::Text("Specular");
-
-	ImGui::SameLine();
-	if (ImGui::Button("UnuseSpec", { 77, 18 }) && m_SpecularResTexture)
-	{
-		//m_SpecularResTexture->RemoveUser(GetContainerGameObject());
-		m_SpecularResTexture->Release();
-		m_SpecularResTexture = nullptr;
-		save_material = true;
-	}
+	HandleTextureDisplay(m_SpecularResTexture, save_material, "Specular", "UnuseSpec");
 
 	// --- Print Texture Width and Height (Normal)
-	textSizeX = textSizeY = 0;
-	ImGui::NewLine();
-	if (m_NormalResTexture)
-	{
-		textSizeX = m_NormalResTexture->Texture_width;
-		textSizeY = m_NormalResTexture->Texture_height;
-	}
-
-	ImGui::Text(std::to_string(textSizeX).c_str());
-	ImGui::SameLine();
-	ImGui::Text(std::to_string(textSizeY).c_str());
-
-
-	if (m_NormalResTexture)
-		ImGui::ImageButton((void*)(uint)m_NormalResTexture->GetPreviewTexID(), ImVec2(20, 20));
-	else
-		ImGui::ImageButton(NULL, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 2);
-
-	// --- Handle drag & drop (Normal Texture)
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("resource"))
-		{
-			uint UID = *(const uint*)payload->Data;
-			Resource* resource = App->resources->GetResource(UID, false);
-
-			if (resource && resource->GetType() == Resource::ResourceType::TEXTURE)
-			{
-				if (m_NormalResTexture)
-					m_NormalResTexture->Release();
-
-				m_NormalResTexture = (ResourceTexture*)App->resources->GetResource(UID);
-				save_material = true;
-			}
-		}
-
-		ImGui::EndDragDropTarget();
-	}
-
-	ImGui::SameLine();
-	ImGui::Text("Normal Map");
-
-	ImGui::SameLine();
-	if (ImGui::Button("UnuseNorm", { 77, 18 }) && m_NormalResTexture)
-	{
-		//m_NormalResTexture->RemoveUser(GetContainerGameObject());
-		m_NormalResTexture->Release();
-		m_NormalResTexture = nullptr;
-		save_material = true;
-	}
+	HandleTextureDisplay(m_NormalResTexture, save_material, "Normal", "UnuseNorm");
 
 	// --- Tree Node for Blending
 	ImGui::NewLine();
 	ImGui::Separator();
+
 	if (ImGui::TreeNode("Material Blending"))
 	{
 		HandleBlendingSelector(save_material);
 		ImGui::TreePop();
 	}
 
+	ImGui::NewLine();
+	ImGui::Separator();
+
 	if (save_material)
 		App->resources->DeferSave(this);
+}
+
+void ResourceMaterial::HandleTextureDisplay(ResourceTexture*& texture, bool& save_material, const char* texture_name, const char* unuse_label, GameObject* container)
+{
+	// Show Texture Size
+	uint textSizeX = 0, textSizeY = 0;
+	ImGui::NewLine();
+	if (texture)
+	{
+		textSizeX = texture->Texture_width;
+		textSizeY = texture->Texture_height;
+	}
+
+	ImGui::Text(std::to_string(textSizeX).c_str());
+	ImGui::SameLine();
+	ImGui::Text(std::to_string(textSizeY).c_str());
+
+	// Show Texture Image
+	if (texture)
+		ImGui::ImageButton((void*)(uint)texture->GetPreviewTexID(), ImVec2(20, 20));
+	else
+		ImGui::ImageButton(NULL, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 2);
+
+	// Handle drag & drop
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("resource"))
+		{
+			uint UID = *(const uint*)payload->Data;
+			Resource* resource = App->resources->GetResource(UID, false);
+
+			if (resource && resource->GetType() == Resource::ResourceType::TEXTURE)
+			{
+				if (texture)
+					texture->Release();
+
+				texture = (ResourceTexture*)App->resources->GetResource(UID);
+				save_material = true;
+			}
+		}
+
+		ImGui::EndDragDropTarget();
+	}
+
+	// Show Texture Name
+	ImGui::SameLine();
+	ImGui::Text(texture_name);
+
+	// Unuse Texture
+	ImGui::SameLine();
+	if (ImGui::Button(unuse_label, { 77, 18 }) && texture)
+	{
+		if(container)
+			texture->RemoveUser(container);
+		
+		texture->Release();
+		texture = nullptr;
+		save_material = true;
+	}
 }
 
 void ResourceMaterial::HandleBlendingSelector(bool& save_material)
@@ -308,7 +233,7 @@ void ResourceMaterial::HandleBlendingSelector(bool& save_material)
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 	ImGui::SetNextItemWidth(200.0f);
 
-	std::map<uint, ResourceMaterial*> sadasd = App->resources->materials;
+	// --- Blend Eq ---
 	std::vector<const char*> blendEq = App->renderer3D->m_BlendEquationFunctionsVec;
 	int index = (int)m_MatBlendEq;
 	if (App->gui->HandleDropdownSelector(index, "##MAlphaEq", blendEq.data(), blendEq.size()))
@@ -317,6 +242,7 @@ void ResourceMaterial::HandleBlendingSelector(bool& save_material)
 		save_material = true;
 	}
 
+	// --- Blend Auto Func ---
 	ImGui::Text("Rendering Blend Mode"); ImGui::SameLine();
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 38.0f);
 	ImGui::SetNextItemWidth(200.0f);
@@ -334,7 +260,7 @@ void ResourceMaterial::HandleBlendingSelector(bool& save_material)
 	ImGui::SameLine();
 	App->gui->HelpMarker(desc.c_str());
 
-	// --- Set Alpha Manual Function ---
+	// --- Blend Manual Function ---
 	ImGui::Checkbox("Automatic Alpha Selection", &m_AutoBlending);
 	if (!m_AutoBlending)
 	{

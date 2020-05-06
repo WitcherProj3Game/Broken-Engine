@@ -38,6 +38,8 @@ private:
 	// --- Draw Functiions accessed by main Draw ---
 	void DrawMesh(ResourceMesh& mesh) const;
 
+	void HandleBlendSelector();
+
 public:
 
 	bool draw_vertexnormals = false;

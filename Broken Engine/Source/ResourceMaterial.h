@@ -13,6 +13,8 @@ struct Uniform;
 
 class BROKEN_API ResourceMaterial : public Resource 
 {
+	friend class ComponentMeshRenderer;
+	friend class ImporterMaterial;
 public:
 	ResourceMaterial(uint UID, const char* source_file);
 	~ResourceMaterial();
@@ -32,6 +34,7 @@ private:
 	void OnDelete() override;
 	void Repath() override;
 	void HandleBlendingSelector(bool& save_material);
+	void HandleTextureDisplay(ResourceTexture*& texture, bool& save_material, const char* texture_name, const char* unuse_label, GameObject* container = nullptr);
 
 public:
 

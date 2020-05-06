@@ -145,8 +145,7 @@ Resource* ImporterMaterial::Load(const char* path) const
 		}
 
 		if (!file["AmbientColor"].is_null())
-			matColor = float4(file["AmbientColor"]["R"].get<float>(), file["AmbientColor"]["G"].get<float>(), file["AmbientColor"]["B"].get<float>(), file["AmbientColor"]["A"].is_null() ? 1.0f : file["AmbientColor"]["A"].get<float>());
-		
+			matColor = float4(file["AmbientColor"]["R"].get<float>(), file["AmbientColor"]["G"].get<float>(), file["AmbientColor"]["B"].get<float>(), file["AmbientColor"]["A"].is_null() ? 1.0f : file["AmbientColor"]["A"].get<float>());	
 
 		if (!file["MaterialShininess"].is_null())
 			matShine = file["MaterialShininess"].get<float>();
@@ -156,6 +155,19 @@ Resource* ImporterMaterial::Load(const char* path) const
 
 		if (!file["Culling"].is_null())
 			mat->has_culling = file["Culling"].get<bool>();
+
+		if (!file["MatAlphaFunc"].is_null())
+			mat->m_MatAutoBlendFunc = (BlendAutoFunction)file["MatAlphaFunc"].get<int>();
+
+		if (!file["MatBlendEquation"].is_null())
+			mat->m_MatBlendEq = (BlendingEquations)file["MatBlendEquation"].get<int>();
+
+		if (!file["MatManualAlphaFuncSrc"].is_null())
+			mat->m_MatManualBlend_Src = (BlendingTypes)file["MatManualAlphaFuncSrc"].get<int>();
+
+		if (!file["MatManualAlphaFuncDst"].is_null())
+			mat->m_MatManualBlend_Dst = (BlendingTypes)file["MatManualAlphaFuncDst"].get<int>();
+
 
 		Importer::ImportData IDataDiff(diffuse_texture_path.c_str());
 
@@ -423,6 +435,11 @@ void ImporterMaterial::Save(ResourceMaterial* mat) const
 	file["MaterialShininess"] = mat->m_Shininess;
 	file["Transparencies"] = mat->has_transparencies;
 	file["Culling"] = mat->has_culling;
+
+	file["MatAlphaFunc"] = (int)mat->m_MatAutoBlendFunc;
+	file["MatBlendEquation"] = (int)mat->m_MatBlendEq;
+	file["MatManualAlphaFuncSrc"] = (int)mat->m_MatManualBlend_Src;
+	file["MatManualAlphaFuncDst"] = (int)mat->m_MatManualBlend_Dst;
 
 	if (mat->m_DiffuseResTexture)
 		file["ResourceDiffuse"] = mat->m_DiffuseResTexture->GetOriginalFile();

@@ -65,6 +65,7 @@ bool PanelRendering::Draw()
 		if (ImGui::TreeNodeEx("GENERAL SETTINGS", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GeneralRendererSettings(makeChanges);
+			ImGui::NewLine();
 			ImGui::TreePop();
 		}
 
@@ -79,6 +80,7 @@ bool PanelRendering::Draw()
 		if (ImGui::TreeNode("BLENDING SETTINGS"))
 		{
 			BlendingSettings(makeChanges);
+			ImGui::NewLine();
 			ImGui::TreePop();
 		}
 
@@ -93,6 +95,7 @@ bool PanelRendering::Draw()
 		if (ImGui::TreeNode("SKYBOX SETTINGS"))
 		{
 			SkyboxSettings(makeChanges);
+			ImGui::NewLine();
 			ImGui::TreePop();
 		}		
 
@@ -189,18 +192,20 @@ void PanelRendering::BlendingSettings(bool& makeChanges)
 	EngineApp->gui->HelpMarker(desc.c_str());
 
 	// --- Set Alpha Manual Function ---
-	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+	ImGui::NewLine();
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
 	ImGui::Checkbox("Automatic Alpha Selection", &EngineApp->renderer3D->m_AutomaticBlendingFunc);
 	if (!EngineApp->renderer3D->m_AutomaticBlendingFunc)
 	{
-		ImGui::Separator();
+		//ImGui::Separator();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
 		if (ImGui::TreeNodeEx("Manual Alpha", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			//Source
-			ImGui::NewLine();
-			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+			//ImGui::NewLine();
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
 			ImGui::Text("Source Alpha"); ImGui::SameLine();
-			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 45.0f);
+			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 55.0f);
 			ImGui::SetNextItemWidth(200.0f);
 
 			std::vector<const char*> blendTypes_Vec = EngineApp->renderer3D->m_AlphaTypesVec;
@@ -212,9 +217,9 @@ void PanelRendering::BlendingSettings(bool& makeChanges)
 			}
 
 			//Destination
-			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
 			ImGui::Text("Destination Alpha");
-			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
 			ImGui::SetNextItemWidth(200.0f);
 
 			int index3 = (int)m_CurrentAlphaDst;
@@ -224,7 +229,7 @@ void PanelRendering::BlendingSettings(bool& makeChanges)
 				makeChanges = true;
 			}
 
-			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
 			if (ImGui::Button("Reference (Test Blend)", { 180, 18 })) EngineApp->gui->RequestBrowser("https://www.andersriggelsen.dk/glblendfunc.php");
 			ImGui::TreePop();
 		}

@@ -231,6 +231,8 @@ void ResourceMaterial::HandleTextureDisplay(ResourceTexture*& texture, bool& sav
 
 void ResourceMaterial::HandleBlendingSelector(bool& save_material)
 {
+	ImGui::NewLine();
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
 	ImGui::Text("Material Blend Equation"); ImGui::SameLine();
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 	ImGui::SetNextItemWidth(200.0f);
@@ -245,6 +247,7 @@ void ResourceMaterial::HandleBlendingSelector(bool& save_material)
 	}
 
 	// --- Blend Auto Func ---
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
 	ImGui::Text("Material Blend Mode"); ImGui::SameLine();
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 38.0f);
 	ImGui::SetNextItemWidth(200.0f);
@@ -263,14 +266,18 @@ void ResourceMaterial::HandleBlendingSelector(bool& save_material)
 	App->gui->HelpMarker(desc.c_str());
 
 	// --- Blend Manual Function ---
+	ImGui::NewLine();
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
 	ImGui::Checkbox("Automatic Alpha Selection", &m_AutoBlending);
 	if (!m_AutoBlending)
 	{
-		ImGui::Separator();
+		//ImGui::Separator();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
 		if (ImGui::TreeNodeEx("Manual Alpha", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			//Source
-			ImGui::NewLine();
+			//ImGui::NewLine();
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
 			ImGui::Text("Source Alpha"); ImGui::SameLine();
 			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 45.0f);
 			ImGui::SetNextItemWidth(200.0f);
@@ -284,6 +291,7 @@ void ResourceMaterial::HandleBlendingSelector(bool& save_material)
 			}
 
 			//Destination
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
 			ImGui::Text("Destination Alpha"); ImGui::SameLine();
 			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 			ImGui::SetNextItemWidth(200.0f);
@@ -295,7 +303,8 @@ void ResourceMaterial::HandleBlendingSelector(bool& save_material)
 				save_material = true;
 			}
 
-			ImGui::NewLine();
+			//ImGui::NewLine();
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
 			if (ImGui::Button("Reference (Test Blend)", { 180, 18 })) App->gui->RequestBrowser("https://www.andersriggelsen.dk/glblendfunc.php");
 			ImGui::TreePop();
 		}

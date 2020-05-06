@@ -22,7 +22,7 @@ enum BROKEN_API CurveType {
 class BROKEN_API CurveEditor
 {
 public:
-	CurveEditor(const char* name, CurveType type);
+	CurveEditor(const char* name, CurveType type, int _multiplier = 1.0);
 	~CurveEditor();
 	void Init();
 
@@ -35,9 +35,9 @@ public:
 	std::vector<Point> pointsCurveTangents;
 	CurveType type = LINEAR;
 	std::string name;
+	float multiplier = 1.0f;
 
 private:
-	float multiplier = 1.0f;
 	int current = 0;
 };
 BE_END_NAMESPACE

@@ -339,6 +339,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 
 	// --- Draw ---
 	glEnable(GL_BLEND);
+	//glBlendEquation(GL_FUNC_SUBTRACT);
 
 	if(m_RendererAlphaFunc == AlphaFunction::ONE_ONE_MINUS_SRC)
 		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -1550,11 +1551,12 @@ void ModuleRenderer3D::CreateDefaultShaders()
 		"#ifdef VERTEX_SHADER \n"
 		"layout (location = 0) in vec3 position; \n"
 		"out vec3 TexCoords; \n"
-		"uniform mat4 view; \n"
-		"uniform mat4 projection; \n"
+		"uniform mat4 u_View; \n"
+		"uniform mat4 u_Proj; \n"
+		"uniform mat4 u_Model; \n"
 		"void main(){ \n"
 		"TexCoords = position * vec3(1,-1,1); \n"
-		"gl_Position = projection * view * vec4(position, 1.0); \n"
+		"gl_Position = u_Proj * u_View * u_Model * vec4(position, 1.0); \n"
 		"}\n"
 		"#endif //VERTEX_SHADER\n"
 		;
@@ -1768,8 +1770,17 @@ void ModuleRenderer3D::DrawSkybox()
 	glDepthMask(GL_FALSE);
 
 	float3 prevpos = active_camera->frustum.Pos();
+	float3 prevup = App->renderer3D->active_camera->frustum.Up();
+	float3 prevfront = App->renderer3D->active_camera->frustum.Front();
 
 	App->renderer3D->active_camera->frustum.SetPos(float3::zero);
+
+	math::Quat rotationX = math::Quat::RotateAxisAngle(float3::unitY, skyboxangle.x * DEGTORAD);
+	math::Quat rotationY = math::Quat::RotateAxisAngle(App->renderer3D->active_camera->frustum.WorldRight(), skyboxangle.y * DEGTORAD);
+	math::Quat finalRotation = rotationX * rotationY;
+
+	App->renderer3D->active_camera->frustum.SetUp(finalRotation.Mul(App->renderer3D->active_camera->frustum.Up()).Normalized());
+	App->renderer3D->active_camera->frustum.SetFront(finalRotation.Mul(App->renderer3D->active_camera->frustum.Front()).Normalized());
 
 	SkyboxShader->use();
 	// draw skybox as last
@@ -1809,6 +1820,9 @@ void ModuleRenderer3D::DrawSkybox()
 	defaultShader->use();
 
 	App->renderer3D->active_camera->frustum.SetPos(prevpos);
+	App->renderer3D->active_camera->frustum.SetUp(prevup);
+	App->renderer3D->active_camera->frustum.SetFront(prevfront);
+
 	glDepthMask(GL_TRUE);
 }
 

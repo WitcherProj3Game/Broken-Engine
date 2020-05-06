@@ -7784,8 +7784,6 @@ int ImGui::CurveEditor(const char* label
         return -1;
     }
 
-    ImVec2 points_min(FLT_MAX, FLT_MAX);
-    ImVec2 points_max(-FLT_MAX, -FLT_MAX);
     for (int point_idx = 0; point_idx < points_count; ++point_idx)
     {
         ImVec2 point;
@@ -7798,13 +7796,10 @@ int ImGui::CurveEditor(const char* label
         {
             point = ((ImVec2*)values)[1 + point_idx * 3];
         }
-        points_max = ImMax(points_max, point);
-        points_min = ImMin(points_min, point);
     }
-    points_max.y = ImMax(points_max.y, points_min.y + 0.0001f);
 
-    float from_x = window->StateStorage.GetFloat((ImGuiID)StorageValues::FROM_X, points_min.x);
-    float from_y = window->StateStorage.GetFloat((ImGuiID)StorageValues::FROM_Y, points_min.y);
+    float from_x = window->StateStorage.GetFloat((ImGuiID)StorageValues::FROM_X, 0.0f);
+    float from_y = window->StateStorage.GetFloat((ImGuiID)StorageValues::FROM_Y, 0.0f);
     float width = window->StateStorage.GetFloat((ImGuiID)StorageValues::WIDTH, 1.0f/*points_max.x - points_min.x*/);
     float height = window->StateStorage.GetFloat((ImGuiID)StorageValues::HEIGHT, 1.0f/* points_max.y - points_min.y*/);
     window->StateStorage.SetFloat((ImGuiID)StorageValues::FROM_X, from_x);

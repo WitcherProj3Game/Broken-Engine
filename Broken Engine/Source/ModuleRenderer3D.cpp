@@ -49,8 +49,42 @@ using namespace Broken;
 // ---------------------------------------------------------------------------------------------
 // ------------------------------ Module -------------------------------------------------------
 // ---------------------------------------------------------------------------------------------
-ModuleRenderer3D::ModuleRenderer3D(bool start_enabled) : Module(start_enabled) {
+ModuleRenderer3D::ModuleRenderer3D(bool start_enabled) : Module(start_enabled)
+{
 	name = "Renderer3D";
+
+	//Auto Blend Functions
+	m_BlendAutoFunctionsVec.push_back("STANDARD INTERPOLATIVE");
+	m_BlendAutoFunctionsVec.push_back("ADDITIVE");
+	m_BlendAutoFunctionsVec.push_back("ADDITIVE ALPHA AFFECTED");
+	m_BlendAutoFunctionsVec.push_back("MULTIPLICATIVE");
+
+	//Blending Equations
+	m_BlendEquationFunctionsVec.push_back("ADD (Standard)");
+	m_BlendEquationFunctionsVec.push_back("SUBTRACT");
+	m_BlendEquationFunctionsVec.push_back("REVERSE_SUBTRACT");
+	m_BlendEquationFunctionsVec.push_back("MIN");
+	m_BlendEquationFunctionsVec.push_back("MAX");
+
+	//Manual Blend Functions
+	m_AlphaTypesVec.push_back("GL_ZERO");
+	m_AlphaTypesVec.push_back("GL_ONE");
+	m_AlphaTypesVec.push_back("GL_SRC_COLOR");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_SRC_COLOR");
+
+	m_AlphaTypesVec.push_back("GL_DST_COLOR");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_DST_COLOR");
+	m_AlphaTypesVec.push_back("GL_SRC_ALPHA (Standard)");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_SRC_ALPHA (Standard)");
+
+	m_AlphaTypesVec.push_back("GL_DST_ALPHA");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_DST_ALPHA");
+	m_AlphaTypesVec.push_back("GL_CONSTANT_COLOR");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_CONSTANT_COLOR");
+
+	m_AlphaTypesVec.push_back("GL_CONSTANT_ALPHA");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_CONSTANT_ALPHA");
+	m_AlphaTypesVec.push_back("GL_SRC_ALPHA_SATURATE");
 }
 
 // Destructor
@@ -344,7 +378,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	else
 		PickBlendingManualFunction(m_ManualBlend_Src, m_ManualBlend_Dst, m_BlendEquation);
 
-	DrawTransparentRenderMeshes();	
+	DrawTransparentRenderMeshes();
 
 	OPTICK_PUSH("Particles Rendering");
 	// -- Draw particles ---
@@ -867,6 +901,9 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
 		// --- Transparency Uniform ---
 		glUniform1i(glGetUniformLocation(shader, "u_HasTransparencies"), (int)mesh->mat->has_transparencies);
 
+		if (mesh->mat->has_transparencies)
+			mesh->mat->SetBlending();
+
 		if (!mesh->mat->has_culling)
 			glDisable(GL_CULL_FACE);
 
@@ -990,6 +1027,14 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
 
 		if (!mesh->mat->has_culling)
 			glEnable(GL_CULL_FACE);
+
+		if (mesh->mat->has_transparencies)
+		{
+			if (m_AutomaticBlendingFunc)
+				PickBlendingAutoFunction(m_RendererBlendFunc, m_BlendEquation);
+			else
+				PickBlendingManualFunction(m_ManualBlend_Src, m_ManualBlend_Dst, m_BlendEquation);
+		}
 
 		// --- Set color back to default ---
 		glUniform4f(glGetUniformLocation(shader, "u_Color"), 1.0f, 1.0f, 1.0f, 1.0f);

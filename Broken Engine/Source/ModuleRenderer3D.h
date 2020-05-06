@@ -95,7 +95,7 @@ enum class BROKEN_API BlendingEquations
 class BROKEN_API ModuleRenderer3D : public Module
 {
 	friend class ModuleResourceManager;
-
+	friend class ResourceMaterial;
 private:
 
 	GLenum BlendingTypesToOGL(BlendingTypes blending)
@@ -261,6 +261,11 @@ public:
 	uint rendertexture = 0;
 	uint depthMapTexture = 0;
 
+	//Blend Functions chars vector (for names)
+	std::vector<const char*> m_BlendAutoFunctionsVec;
+	std::vector<const char*> m_BlendEquationFunctionsVec;
+	std::vector<const char*> m_AlphaTypesVec;
+
 private:
 
 	std::map<uint, std::vector<RenderMesh>> render_meshes;
@@ -277,11 +282,12 @@ private:
 	//Rendering General Options
 	float m_GammaCorrection = 2.0f;
 	float3 m_AmbientColor = float3::one;
+	float3 m_SkyboxColor = float3::one;
+	float m_SkyboxExposure = 1.0f;
+
 	BlendAutoFunction m_RendererBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
 	BlendingTypes m_ManualBlend_Src = BlendingTypes::SRC_ALPHA, m_ManualBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
 	BlendingEquations m_BlendEquation = BlendingEquations::ADD;
-	float3 m_SkyboxColor = float3::one;
-	float m_SkyboxExposure = 1.0f;
 
 	//Other Generic Stuff
 	uint fbo = 0;

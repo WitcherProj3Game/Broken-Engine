@@ -2,7 +2,6 @@
 
 // -- Modules --
 #include "Application.h"
-#include "ModuleRenderer3D.h"
 #include "ModuleGui.h"
 #include "ModuleFileSystem.h"
 #include "ModuleResourceManager.h"
@@ -54,6 +53,14 @@ void ResourceMaterial::FreeMemory()
 	uniforms.clear();
 }
 
+void ResourceMaterial::SetBlending() const
+{
+	if (m_AutoBlending)
+		App->renderer3D->PickBlendingAutoFunction(m_MatAutoBlendFunc, m_MatBlendEq);
+	else
+		App->renderer3D->PickBlendingManualFunction(m_MatManualBlend_Src, m_MatManualBlend_Dst, m_MatBlendEq);
+}
+
 void ResourceMaterial::CreateInspectorNode()
 {
 	bool save_material = false;
@@ -68,6 +75,7 @@ void ResourceMaterial::CreateInspectorNode()
 	ImGui::Text("Shader");
 	ImGui::SameLine();
 
+	// --- Shader ---
 	if (shader)
 	{
 		const char* item_current = shader->GetName();
@@ -96,6 +104,7 @@ void ResourceMaterial::CreateInspectorNode()
 		DisplayAndUpdateUniforms();
 	}
 
+	// --- Bools ---
 	ImGui::Text("Use Textures");
 	ImGui::SameLine();
 	if(ImGui::Checkbox("##CB", &m_UseTexture)) 
@@ -280,8 +289,89 @@ void ResourceMaterial::CreateInspectorNode()
 		save_material = true;
 	}
 
+	// --- Tree Node for Blending
+	ImGui::NewLine();
+	ImGui::Separator();
+	if (ImGui::TreeNode("Material Blending"))
+	{
+		HandleBlendingSelector(save_material);
+		ImGui::TreePop();
+	}
+
 	if (save_material)
 		App->resources->DeferSave(this);
+}
+
+void ResourceMaterial::HandleBlendingSelector(bool& save_material)
+{
+	ImGui::Text("Rendering Blend Equation"); ImGui::SameLine();
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+	ImGui::SetNextItemWidth(200.0f);
+
+	std::map<uint, ResourceMaterial*> sadasd = App->resources->materials;
+	std::vector<const char*> blendEq = App->renderer3D->m_BlendEquationFunctionsVec;
+	int index = (int)m_MatBlendEq;
+	if (App->gui->HandleDropdownSelector(index, "##MAlphaEq", blendEq.data(), blendEq.size()))
+	{
+		m_MatBlendEq = (Broken::BlendingEquations)index;
+		save_material = true;
+	}
+
+	ImGui::Text("Rendering Blend Mode"); ImGui::SameLine();
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 38.0f);
+	ImGui::SetNextItemWidth(200.0f);
+
+	std::vector<const char*> blendAutoF_Vec = App->renderer3D->m_BlendAutoFunctionsVec;
+	int index1 = (int)m_MatAutoBlendFunc;
+	if (App->gui->HandleDropdownSelector(index1, "##MAlphaAutoFunction", blendAutoF_Vec.data(), blendAutoF_Vec.size()))
+	{
+		m_MatAutoBlendFunc = (Broken::BlendAutoFunction)index1;
+		save_material = true;
+	}
+
+	//Help Marker
+	std::string desc = "Stand. = SRC, 1-SRCALPH\nAdd. = ONE, ONE\nAddAlph. = SRC_ALPH, ONE\nMult. = DSTCOL, ZERO";
+	ImGui::SameLine();
+	App->gui->HelpMarker(desc.c_str());
+
+	// --- Set Alpha Manual Function ---
+	ImGui::Checkbox("Automatic Alpha Selection", &m_AutoBlending);
+	if (!m_AutoBlending)
+	{
+		ImGui::Separator();
+		if (ImGui::TreeNodeEx("Manual Alpha", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			//Source
+			ImGui::NewLine();
+			ImGui::Text("Source Alpha"); ImGui::SameLine();
+			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 45.0f);
+			ImGui::SetNextItemWidth(200.0f);
+
+			std::vector<const char*> blendTypes_Vec = App->renderer3D->m_AlphaTypesVec;
+			int index2 = (int)m_MatManualBlend_Src;
+			if (App->gui->HandleDropdownSelector(index2, "##ManualAlphaSrc", blendTypes_Vec.data(), blendTypes_Vec.size()))
+			{
+				m_MatManualBlend_Src = (Broken::BlendingTypes)index2;
+				save_material = true;
+			}
+
+			//Destination
+			ImGui::Text("Destination Alpha"); ImGui::SameLine();
+			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+			ImGui::SetNextItemWidth(200.0f);
+
+			int index3 = (int)m_MatManualBlend_Dst;
+			if (App->gui->HandleDropdownSelector(index3, "##ManualAlphaDst", blendTypes_Vec.data(), blendTypes_Vec.size()))
+			{
+				m_MatManualBlend_Dst = (Broken::BlendingTypes)index3;
+				save_material = true;
+			}
+
+			ImGui::NewLine();
+			if (ImGui::Button("Reference (Test Blend)", { 180, 18 })) App->gui->RequestBrowser("https://www.andersriggelsen.dk/glblendfunc.php");
+			ImGui::TreePop();
+		}
+	}
 }
 
 

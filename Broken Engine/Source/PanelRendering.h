@@ -18,6 +18,9 @@ private:
 
 	void SetupValues();
 	void SetRendererValues();
+	void BlendingSettings(bool& makeChanges);
+	void GeneralRendererSettings(bool& makeChanges);
+	void SkyboxSettings(bool& makeChanges);
 
 private:
 
@@ -28,13 +31,10 @@ private:
 	float m_SkyboxExposureValue = 1.0f;
 
 	//Alpha Functions
-	std::vector<const char*> m_BlendAutoFunctions;
-	std::vector<const char*> m_BlendEquationFunctions;
 	Broken::BlendAutoFunction m_CurrBlendAutoFunc = Broken::BlendAutoFunction::STANDARD_INTERPOLATIVE;
 	Broken::BlendingEquations m_CurrBlendEquation = Broken::BlendingEquations::ADD;
 
 	//Alpha Manual Functions
-	std::vector<const char*> m_AlphaTypesVec;
 	Broken::BlendingTypes m_CurrentAlphaSrc = Broken::BlendingTypes::SRC_ALPHA;
 	Broken::BlendingTypes m_CurrentAlphaDst = Broken::BlendingTypes::ONE_MINUS_SRC_ALPHA;
 };

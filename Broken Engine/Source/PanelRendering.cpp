@@ -53,15 +53,7 @@ bool PanelRendering::Draw()
 	static bool makeChanges = false;
 
 	// --- Values Set up ---
-	m_GammaCorretionValue = EngineApp->renderer3D->GetGammaCorrection();
-	m_AmbientColorValue = EngineApp->renderer3D->GetSceneAmbientColor();
-
-	m_CurrBlendAutoFunc = EngineApp->renderer3D->GetRendererBlendAutoFunction();
-	EngineApp->renderer3D->GetRendererBlendingManualFunction(m_CurrentAlphaSrc, m_CurrentAlphaDst);
-	m_CurrBlendEquation = EngineApp->renderer3D->GetRendererBlendingEquation();
-
-	m_SkyboxColorValue = EngineApp->renderer3D->GetSkyboxColor();
-	m_SkyboxExposureValue = EngineApp->renderer3D->GetSkyboxExposure();
+	SetupValues();
 
 	// --- ImGui Context ---
 	ImGui::SetCurrentContext(EngineApp->gui->getImgUICtx());
@@ -92,10 +84,10 @@ bool PanelRendering::Draw()
 		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		ImGui::SetNextItemWidth(200.0f);
 
-		static int index3 = 0;
-		if (HandleDropdownSelector(index3, "##AlphaEq", m_BlendEquationFunctions))
+		static int index = (int)m_CurrBlendEquation;
+		if (HandleDropdownSelector(index, "##AlphaEq", m_BlendEquationFunctions))
 		{
-			m_CurrBlendEquation = (Broken::BlendingEquations)index3;
+			m_CurrBlendEquation = (Broken::BlendingEquations)index;
 			makeChanges = true;
 		}
 
@@ -103,10 +95,10 @@ bool PanelRendering::Draw()
 		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		ImGui::SetNextItemWidth(200.0f);
 
-		static int index = 0;
-		if (HandleDropdownSelector(index, "##AlphaAutoFunction", m_BlendAutoFunctions))
+		static int index1 = (int)m_CurrBlendAutoFunc;
+		if (HandleDropdownSelector(index1, "##AlphaAutoFunction", m_BlendAutoFunctions))
 		{
-			m_CurrBlendAutoFunc = (Broken::BlendAutoFunction)index;
+			m_CurrBlendAutoFunc = (Broken::BlendAutoFunction)index1;
 			makeChanges = true;
 		}
 
@@ -127,10 +119,10 @@ bool PanelRendering::Draw()
 				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 				ImGui::SetNextItemWidth(200.0f);
 
-				static int index1 = 0;
-				if (HandleDropdownSelector(index1, "##ManualAlphaSrc", m_AlphaTypesVec))
+				static int index2 = (int)m_CurrentAlphaSrc;
+				if (HandleDropdownSelector(index2, "##ManualAlphaSrc", m_AlphaTypesVec))
 				{
-					m_CurrentAlphaSrc = (Broken::BlendingTypes)index1;
+					m_CurrentAlphaSrc = (Broken::BlendingTypes)index2;
 					makeChanges = true;
 				}
 
@@ -139,13 +131,14 @@ bool PanelRendering::Draw()
 				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 				ImGui::SetNextItemWidth(200.0f);
 
-				static int index2 = 0;
-				if (HandleDropdownSelector(index2, "##ManualAlphaDst", m_AlphaTypesVec))
+				static int index3 = (int)m_CurrentAlphaDst;
+				if (HandleDropdownSelector(index3, "##ManualAlphaDst", m_AlphaTypesVec))
 				{
-					m_CurrentAlphaDst = (Broken::BlendingTypes)index2;
+					m_CurrentAlphaDst = (Broken::BlendingTypes)index3;
 					makeChanges = true;
 				}
 
+				if (ImGui::Button("Reference (Test Blend)", { 77, 18 })) EngineApp->gui->RequestBrowser("https://www.andersriggelsen.dk/glblendfunc.php");
 				ImGui::TreePop();
 			}
 		}
@@ -174,20 +167,38 @@ bool PanelRendering::Draw()
 	ImGui::End();	
 	if (makeChanges)
 	{
-		EngineApp->renderer3D->SetSkyboxColor(m_SkyboxColorValue);
-		EngineApp->renderer3D->SetSkyboxExposure(m_SkyboxExposureValue);
-
-		EngineApp->renderer3D->SetRendererBlendingAutoFunction(m_CurrBlendAutoFunc);
-		EngineApp->renderer3D->SetRendererBlendingManualFunction(m_CurrentAlphaSrc, m_CurrentAlphaDst);
-		EngineApp->renderer3D->SetRendererBlendingEquation(m_CurrBlendEquation);
-
-		EngineApp->renderer3D->SetGammaCorrection(m_GammaCorretionValue);
-		EngineApp->renderer3D->SetSceneAmbientColor(m_AmbientColorValue);
-
+		SetRendererValues();
 		makeChanges = false;
 	}
 
 	return false;
+}
+
+
+void PanelRendering::SetupValues()
+{
+	m_GammaCorretionValue = EngineApp->renderer3D->GetGammaCorrection();
+	m_AmbientColorValue = EngineApp->renderer3D->GetSceneAmbientColor();
+
+	m_CurrBlendAutoFunc = EngineApp->renderer3D->GetRendererBlendAutoFunction();
+	EngineApp->renderer3D->GetRendererBlendingManualFunction(m_CurrentAlphaSrc, m_CurrentAlphaDst);
+	m_CurrBlendEquation = EngineApp->renderer3D->GetRendererBlendingEquation();
+
+	m_SkyboxColorValue = EngineApp->renderer3D->GetSkyboxColor();
+	m_SkyboxExposureValue = EngineApp->renderer3D->GetSkyboxExposure();
+}
+
+void PanelRendering::SetRendererValues()
+{
+	EngineApp->renderer3D->SetSkyboxColor(m_SkyboxColorValue);
+	EngineApp->renderer3D->SetSkyboxExposure(m_SkyboxExposureValue);
+
+	EngineApp->renderer3D->SetRendererBlendingAutoFunction(m_CurrBlendAutoFunc);
+	EngineApp->renderer3D->SetRendererBlendingManualFunction(m_CurrentAlphaSrc, m_CurrentAlphaDst);
+	EngineApp->renderer3D->SetRendererBlendingEquation(m_CurrBlendEquation);
+
+	EngineApp->renderer3D->SetGammaCorrection(m_GammaCorretionValue);
+	EngineApp->renderer3D->SetSceneAmbientColor(m_AmbientColorValue);
 }
 
 void PanelRendering::HelpMarker(const char* desc1)

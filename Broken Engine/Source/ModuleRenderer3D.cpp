@@ -268,6 +268,7 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 	return UPDATE_CONTINUE;
 }
 
+
 // PostUpdate present buffer to screen
 update_status ModuleRenderer3D::PostUpdate(float dt)
 {
@@ -336,20 +337,14 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	// --- Selected Object Outlining ---
 	HandleObjectOutlining();
 
-
 	// --- Draw ---
 	glEnable(GL_BLEND);
-
-	if(m_RendererAlphaFunc == AlphaFunction::ONE_ONE_MINUS_SRC)
-		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	else if(m_RendererAlphaFunc == AlphaFunction::SRC_ONE_MINUS_SCR_ONE)
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+	if(m_AutomaticBlendingFunc)
+		PickBlendingAutoFunction(m_RendererBlendFunc, m_BlendEquation);
 	else
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		PickBlendingManualFunction(m_ManualBlend_Src, m_ManualBlend_Dst, m_BlendEquation);
 
-	DrawTransparentRenderMeshes();
-
-	
+	DrawTransparentRenderMeshes();	
 
 	OPTICK_PUSH("Particles Rendering");
 	// -- Draw particles ---
@@ -425,7 +420,15 @@ void ModuleRenderer3D::LoadStatus(const json& file)
 	m_SkyboxExposure = file["Renderer3D"]["SkyboxExposure"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxExposure"].get<float>();
 
 	int AlphaFuncValue = file["Renderer3D"]["AlphaFunc"].is_null() ? 1 : file["Renderer3D"]["AlphaFunc"].get<int>();
-	m_RendererAlphaFunc = (AlphaFunction)AlphaFuncValue;
+	m_RendererBlendFunc = (BlendAutoFunction)AlphaFuncValue;
+
+	int BlendEqValue = file["Renderer3D"]["BlendEquation"].is_null() ? 1 : file["Renderer3D"]["BlendEquation"].get<int>();
+	m_BlendEquation = (BlendingEquations)BlendEqValue;
+
+	int M_AlphaFuncValueSrc = file["Renderer3D"]["ManualAlphaFuncSrc"].is_null() ? 1 : file["Renderer3D"]["ManualAlphaFuncSrc"].get<int>();
+	int M_AlphaFuncValueDst = file["Renderer3D"]["ManualAlphaFuncDst"].is_null() ? 1 : file["Renderer3D"]["ManualAlphaFuncDst"].get<int>();
+	m_ManualBlend_Src = (BlendingTypes)m_RendererBlendFunc;
+	m_ManualBlend_Dst = (BlendingTypes)m_RendererBlendFunc;
 
 	float skybox_tintR = file["Renderer3D"]["SkyboxColorTint"]["R"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxColorTint"]["R"].get<float>();
 	float skybox_tintG = file["Renderer3D"]["SkyboxColorTint"]["G"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxColorTint"]["G"].get<float>();
@@ -443,7 +446,10 @@ const json& ModuleRenderer3D::SaveStatus() const
 	static json m_config;
 
 	m_config["GammaCorrection"] = m_GammaCorrection;
-	m_config["AlphaFunc"] = (int)m_RendererAlphaFunc;
+	m_config["AlphaFunc"] = (int)m_RendererBlendFunc;
+	m_config["ManualAlphaFuncSrc"] = (int)m_ManualBlend_Src;
+	m_config["ManualAlphaFuncDst"] = (int)m_ManualBlend_Dst;
+	m_config["BlendEquation"] = (int)m_BlendEquation;
 	m_config["SkyboxExposure"] = m_SkyboxExposure;
 	
 	m_config["SkyboxColorTint"]["R"] = m_SkyboxColor.x;
@@ -1027,8 +1033,6 @@ void ModuleRenderer3D::SendShaderUniforms(uint shader)
 	glUniform1i(glGetUniformLocation(shader, "u_HasSpecularTexture"), 0);
 	glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 0);
 
-
-
 	if (shader == defaultShader->ID)
 	{
 		// --- Send Lights ---
@@ -1154,6 +1158,61 @@ void ModuleRenderer3D::CreateFramebuffer()
 // ---------------------------------------------------------------------------------------------
 // ------------------------------ Utilities ----------------------------------------------------
 // ---------------------------------------------------------------------------------------------
+void ModuleRenderer3D::PickBlendingEquation(BlendingEquations eq)
+{
+	switch (eq)
+	{
+		case (BlendingEquations::ADD):
+			glBlendEquation(GL_FUNC_ADD);
+			break;
+		case (BlendingEquations::SUBTRACT):
+			glBlendEquation(GL_FUNC_SUBTRACT);
+			break;
+		case (BlendingEquations::REVERSE_SUBTRACT):
+			glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+			break;
+		case (BlendingEquations::MIN):
+			glBlendEquation(GL_MIN);
+			break;
+		case (BlendingEquations::MAX):
+			glBlendEquation(GL_MAX);
+			break;
+		default:
+			glBlendEquation(GL_FUNC_ADD);
+			break;
+	}
+}
+
+void ModuleRenderer3D::PickBlendingAutoFunction(BlendAutoFunction blend_func, BlendingEquations eq)
+{
+	switch (blend_func)
+	{
+		case (BlendAutoFunction::STANDARD_INTERPOLATIVE):
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			break;
+		case (BlendAutoFunction::ADDITIVE):
+			glBlendFunc(GL_ONE, GL_ONE);
+			break;
+		case(BlendAutoFunction::ADDITIVE_ALPHA_AFFECTED):
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+			break;
+		case(BlendAutoFunction::MULTIPLICATIVE):
+			glBlendFunc(GL_DST_COLOR, GL_ZERO);
+			break;
+		default:
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			break;
+	}
+
+	PickBlendingEquation(eq);
+}
+
+void  ModuleRenderer3D::PickBlendingManualFunction(BlendingTypes src, BlendingTypes dst, BlendingEquations eq)
+{
+	glBlendFunc(BlendingTypesToOGL(src), BlendingTypesToOGL(dst));
+	PickBlendingEquation(eq);
+}
+
 void ModuleRenderer3D::HandleObjectOutlining()
 {
 	// --- Selected Object Outlining ---
@@ -1195,7 +1254,6 @@ void ModuleRenderer3D::HandleObjectOutlining()
 void ModuleRenderer3D::UpdateGLCapabilities() const
 {
 	// --- Enable/Disable OpenGL Capabilities ---
-
 	if (!depth)
 		glDisable(GL_DEPTH_TEST);
 	else

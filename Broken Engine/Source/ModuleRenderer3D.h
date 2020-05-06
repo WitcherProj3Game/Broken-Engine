@@ -70,16 +70,57 @@ struct BROKEN_API RenderLine
 	Color color;
 };
 
-enum BROKEN_API AlphaFunction
+enum BROKEN_API BlendAutoFunction
 {
-	SRC_ONE_MINUS_SRC = 0,
-	ONE_ONE_MINUS_SRC,
-	SRC_ONE_MINUS_SCR_ONE
+	STANDARD_INTERPOLATIVE = 0,	// == SRC_AL, ONE_MINUS_SRC_AL
+	ADDITIVE,					// == ONE, ONE
+	ADDITIVE_ALPHA_AFFECTED,	// == SRC_AL, ONE
+	MULTIPLICATIVE				// == DST_COL, ZERO
 };
+
+enum BROKEN_API BlendingTypes
+{
+	ZERO = 0, ONE, SRC_COLOR, ONE_MINUS_SRC_COLOR,
+	DST_COLOR, ONE_MINUS_DST_COLOR, SRC_ALPHA, ONE_MINUS_SRC_ALPHA,
+	DST_ALPHA, ONE_MINUS_DST_ALPHA, CONSTANT_COLOR, ONE_MINUS_CONSTANT_COLOR,
+	CONSTANT_ALPHA, ONE_MINUS_CONSTANT_ALPHA, SRC_ALPHA_SATURATE
+};
+
+enum BROKEN_API BlendingEquations
+{
+	ADD = 0, SUBTRACT, REVERSE_SUBTRACT, MIN, MAX
+};
+
 
 class BROKEN_API ModuleRenderer3D : public Module
 {
 	friend class ModuleResourceManager;
+
+private:
+
+	GLenum BlendingTypesToOGL(BlendingTypes blending)
+	{
+		switch (blending)
+		{
+			case ZERO:						return GL_ZERO;
+			case ONE:						return GL_ONE;
+			case SRC_COLOR:					return GL_SRC_COLOR;
+			case ONE_MINUS_SRC_COLOR:		return GL_ONE_MINUS_SRC_COLOR;
+			case DST_COLOR:					return GL_DST_COLOR;
+			case ONE_MINUS_DST_COLOR:		return GL_ONE_MINUS_DST_COLOR;
+			case SRC_ALPHA:					return GL_SRC_ALPHA;
+			case ONE_MINUS_SRC_ALPHA:		return GL_ONE_MINUS_SRC_ALPHA;
+			case DST_ALPHA:					return GL_DST_ALPHA;
+			case ONE_MINUS_DST_ALPHA:		return GL_ONE_MINUS_DST_ALPHA;
+			case CONSTANT_COLOR:			return GL_CONSTANT_COLOR;
+			case ONE_MINUS_CONSTANT_COLOR:	return GL_ONE_MINUS_CONSTANT_COLOR;
+			case CONSTANT_ALPHA:			return GL_CONSTANT_ALPHA;
+			case ONE_MINUS_CONSTANT_ALPHA:	return GL_ONE_MINUS_CONSTANT_ALPHA;
+			case SRC_ALPHA_SATURATE:		return GL_SRC_ALPHA_SATURATE;
+			default:						return GL_SRC_ALPHA;
+		}
+	}
+
 public:
 
 	// --- Module ---
@@ -92,7 +133,6 @@ public:
 	bool CleanUp() override;
 	virtual void LoadStatus(const json& file);
 	virtual const json& SaveStatus() const;
-
 
 	void OnResize(int width, int height);
 
@@ -119,7 +159,9 @@ public:
 	void SetCullingCamera(ComponentCamera* camera);
 	void SetGammaCorrection(float gammaCorr) { m_GammaCorrection = gammaCorr; }
 	void SetSceneAmbientColor(const float3& color) { m_AmbientColor = color; }
-	void SetRendererAlphaFunction(AlphaFunction function) { m_RendererAlphaFunc = function; }
+	void SetRendererBlendingAutoFunction(BlendAutoFunction function) { m_RendererBlendFunc = function; }
+	void SetRendererBlendingEquation(BlendingEquations eq) { m_BlendEquation = eq; }
+	void SetRendererBlendingManualFunction(BlendingTypes src, BlendingTypes dst) { m_ManualBlend_Src = src;  m_ManualBlend_Dst = dst; }
 	void SetSkyboxColor(const float3& color) { m_SkyboxColor = color; }
 	void SetSkyboxExposure(float value) { m_SkyboxExposure = value; }
 
@@ -127,7 +169,9 @@ public:
 	bool GetVSync() const { return vsync; }
 	float GetGammaCorrection() const { return m_GammaCorrection; }
 	float3 GetSceneAmbientColor() const { return m_AmbientColor; }
-	AlphaFunction GetRendererAlphaFunction() const { return m_RendererAlphaFunc; }
+	BlendAutoFunction GetRendererBlendAutoFunction() const { return m_RendererBlendFunc; }
+	BlendingEquations GetRendererBlendingEquation() { return m_BlendEquation; }
+	void GetRendererBlendingManualFunction(BlendingTypes& src, BlendingTypes& dst) const { src = m_ManualBlend_Src; dst = m_ManualBlend_Dst; }
 	float3 GetSkyboxColor() const { return m_SkyboxColor; }
 	float GetSkyboxExposure() const { return m_SkyboxExposure; }
 
@@ -137,6 +181,9 @@ private:
 	void UpdateGLCapabilities() const;
 	void HandleObjectOutlining();
 	void CreateGrid(float target_distance);
+	void PickBlendingAutoFunction(BlendAutoFunction blend_func, BlendingEquations eq);
+	void PickBlendingManualFunction(BlendingTypes src, BlendingTypes dst, BlendingEquations eq);
+	void PickBlendingEquation(BlendingEquations eq);
 
 	// --- Buffers ---
 	uint CreateBufferFromData(uint Targetbuffer, uint size, void* data) const;
@@ -209,6 +256,7 @@ public:
 	bool m_Draw_normalMapping = false;
 	bool m_Draw_normalMapping_Lit = false;
 	bool m_Draw_normalMapping_Lit_Adv = false;
+	bool m_AutomaticBlendingFunc = true;
 
 	uint rendertexture = 0;
 	uint depthMapTexture = 0;
@@ -229,7 +277,9 @@ private:
 	//Rendering General Options
 	float m_GammaCorrection = 2.0f;
 	float3 m_AmbientColor = float3::one;
-	AlphaFunction m_RendererAlphaFunc = SRC_ONE_MINUS_SRC;
+	BlendAutoFunction m_RendererBlendFunc = STANDARD_INTERPOLATIVE;
+	BlendingTypes m_ManualBlend_Src = SRC_ALPHA, m_ManualBlend_Dst = ONE_MINUS_SRC_ALPHA;
+	BlendingEquations m_BlendEquation = ADD;
 	float3 m_SkyboxColor = float3::one;
 	float m_SkyboxExposure = 1.0f;
 

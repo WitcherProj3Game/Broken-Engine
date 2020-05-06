@@ -10,9 +10,38 @@
 
 PanelRendering::PanelRendering(char* name) : Panel(name)
 {
-	m_AlphaFunctionsVec.push_back("SRC_ONE_MINUS_SRC");
-	m_AlphaFunctionsVec.push_back("ONE_ONE_MINUS_SRC");
-	m_AlphaFunctionsVec.push_back("SRC_ONE_MINUS_SCR_ONE");
+	//Auto Blend Functions
+	m_BlendAutoFunctions.push_back("STANDARD INTERPOLATIVE");
+	m_BlendAutoFunctions.push_back("ADDITIVE");
+	m_BlendAutoFunctions.push_back("ADDITIVE ALPHA AFFECTED");
+	m_BlendAutoFunctions.push_back("MULTIPLICATIVE");
+
+	//Blending Equations
+	m_BlendEquationFunctions.push_back("ADD (Standard)");
+	m_BlendEquationFunctions.push_back("SUBTRACT");
+	m_BlendEquationFunctions.push_back("REVERSE_SUBTRACT");
+	m_BlendEquationFunctions.push_back("MIN");
+	m_BlendEquationFunctions.push_back("MAX");
+
+	//Manual Blend Functions
+	m_AlphaTypesVec.push_back("GL_ZERO");
+	m_AlphaTypesVec.push_back("GL_ONE");
+	m_AlphaTypesVec.push_back("GL_SRC_COLOR");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_SRC_COLOR");
+
+	m_AlphaTypesVec.push_back("GL_DST_COLOR");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_DST_COLOR");
+	m_AlphaTypesVec.push_back("GL_SRC_ALPHA (Standard)");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_SRC_ALPHA (Standard)");
+
+	m_AlphaTypesVec.push_back("GL_DST_ALPHA");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_DST_ALPHA");
+	m_AlphaTypesVec.push_back("GL_CONSTANT_COLOR");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_CONSTANT_COLOR");
+
+	m_AlphaTypesVec.push_back("GL_CONSTANT_ALPHA");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_CONSTANT_ALPHA");
+	m_AlphaTypesVec.push_back("GL_SRC_ALPHA_SATURATE");
 }
 
 PanelRendering::~PanelRendering()
@@ -26,7 +55,11 @@ bool PanelRendering::Draw()
 	// --- Values Set up ---
 	m_GammaCorretionValue = EngineApp->renderer3D->GetGammaCorrection();
 	m_AmbientColorValue = EngineApp->renderer3D->GetSceneAmbientColor();
-	m_CurrentAlphaFunc = EngineApp->renderer3D->GetRendererAlphaFunction();
+
+	m_CurrBlendAutoFunc = EngineApp->renderer3D->GetRendererBlendAutoFunction();
+	EngineApp->renderer3D->GetRendererBlendingManualFunction(m_CurrentAlphaSrc, m_CurrentAlphaDst);
+	m_CurrBlendEquation = EngineApp->renderer3D->GetRendererBlendingEquation();
+
 	m_SkyboxColorValue = EngineApp->renderer3D->GetSkyboxColor();
 	m_SkyboxExposureValue = EngineApp->renderer3D->GetSkyboxExposure();
 
@@ -38,6 +71,7 @@ bool PanelRendering::Draw()
 	// --- ImGui Panel ---
 	if (ImGui::Begin(name, &enabled, settingsFlags))
 	{
+		// --------------------
 		// --- Gamma Correction ---
 		ImGui::Text("Gamma Correction");
 		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
@@ -50,28 +84,73 @@ bool PanelRendering::Draw()
 		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		if(ImGui::ColorEdit4("##AmbientColor", (float*)&m_AmbientColorValue, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar)) makeChanges = true;
 		ImGui::NewLine();
+		ImGui::Separator();
 
-		// --- Set Alpha Function ---		
-		const char* item_current = m_AlphaFunctionsVec[(uint)m_CurrentAlphaFunc];
-		if (ImGui::BeginCombo("##AlphaFunction", item_current))
+		// --------------------
+		// --- Set Alpha Auto Function ---
+		ImGui::Text("Rendering Blend Equation"); ImGui::SameLine();
+		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		ImGui::SetNextItemWidth(200.0f);
+
+		static int index3 = 0;
+		if (HandleDropdownSelector(index3, "##AlphaEq", m_BlendEquationFunctions))
 		{
-			for (uint i = 0; i < m_AlphaFunctionsVec.size(); ++i)
+			m_CurrBlendEquation = (Broken::BlendingEquations)index3;
+			makeChanges = true;
+		}
+
+		ImGui::Text("Rendering Blend Mode"); ImGui::SameLine();
+		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		ImGui::SetNextItemWidth(200.0f);
+
+		static int index = 0;
+		if (HandleDropdownSelector(index, "##AlphaAutoFunction", m_BlendAutoFunctions))
+		{
+			m_CurrBlendAutoFunc = (Broken::BlendAutoFunction)index;
+			makeChanges = true;
+		}
+
+		//Help Marker
+		std::string desc = "Stand. = SRC, 1-SRCALPH\nAdd. = ONE, ONE\nAddAlph. = SRC_ALPH, ONE\nMult. = DSTCOL, ZERO";
+		ImGui::SameLine();
+		HelpMarker(desc.c_str());
+
+		// --- Set Alpha Manual Function ---
+		ImGui::Checkbox("Automatic Alpha Selection", &EngineApp->renderer3D->m_AutomaticBlendingFunc);
+		if (!EngineApp->renderer3D->m_AutomaticBlendingFunc)
+		{
+			ImGui::Separator();
+			if (ImGui::TreeNodeEx("Manual Alpha", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				bool is_selected = (item_current == m_AlphaFunctionsVec[i]);
-				if (ImGui::Selectable(m_AlphaFunctionsVec[i], is_selected))
+				//Source
+				ImGui::Text("Source Alpha"); ImGui::SameLine();
+				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+				ImGui::SetNextItemWidth(200.0f);
+
+				static int index1 = 0;
+				if (HandleDropdownSelector(index1, "##ManualAlphaSrc", m_AlphaTypesVec))
 				{
-					item_current = m_AlphaFunctionsVec[i];
-					m_CurrentAlphaFunc = (Broken::AlphaFunction)i;
+					m_CurrentAlphaSrc = (Broken::BlendingTypes)index1;
 					makeChanges = true;
 				}
 
-				if (is_selected)
-					ImGui::SetItemDefaultFocus();
-			}
+				//Destination
+				ImGui::Text("Destination Alpha"); ImGui::SameLine();
+				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+				ImGui::SetNextItemWidth(200.0f);
 
-			ImGui::EndCombo();
+				static int index2 = 0;
+				if (HandleDropdownSelector(index2, "##ManualAlphaDst", m_AlphaTypesVec))
+				{
+					m_CurrentAlphaDst = (Broken::BlendingTypes)index2;
+					makeChanges = true;
+				}
+
+				ImGui::TreePop();
+			}
 		}
 
+		// --------------------
 		// --- Skybox Stuff ---
 		ImGui::NewLine();
 		ImGui::Separator();
@@ -92,13 +171,16 @@ bool PanelRendering::Draw()
 		ImGui::NewLine();
 	}
 
-	ImGui::End();
-	
+	ImGui::End();	
 	if (makeChanges)
 	{
 		EngineApp->renderer3D->SetSkyboxColor(m_SkyboxColorValue);
 		EngineApp->renderer3D->SetSkyboxExposure(m_SkyboxExposureValue);
-		EngineApp->renderer3D->SetRendererAlphaFunction(m_CurrentAlphaFunc);
+
+		EngineApp->renderer3D->SetRendererBlendingAutoFunction(m_CurrBlendAutoFunc);
+		EngineApp->renderer3D->SetRendererBlendingManualFunction(m_CurrentAlphaSrc, m_CurrentAlphaDst);
+		EngineApp->renderer3D->SetRendererBlendingEquation(m_CurrBlendEquation);
+
 		EngineApp->renderer3D->SetGammaCorrection(m_GammaCorretionValue);
 		EngineApp->renderer3D->SetSceneAmbientColor(m_AmbientColorValue);
 
@@ -106,4 +188,44 @@ bool PanelRendering::Draw()
 	}
 
 	return false;
+}
+
+void PanelRendering::HelpMarker(const char* desc1)
+{
+	ImGui::TextDisabled("(?)");
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::BeginTooltip();
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+		ImGui::TextUnformatted(desc1);
+		ImGui::PopTextWrapPos();
+		ImGui::EndTooltip();
+	}
+}
+
+bool PanelRendering::HandleDropdownSelector(int& index, const char* combo_name, std::vector<const char*> options_strvec)
+{
+	bool ret = false;
+
+	const char* item_current = options_strvec[index];
+	if (ImGui::BeginCombo(combo_name, item_current))
+	{
+		for (uint i = 0; i < options_strvec.size(); ++i)
+		{
+			bool is_selected = (item_current == options_strvec[i]);
+			if (ImGui::Selectable(options_strvec[i], is_selected))
+			{
+				item_current = options_strvec[i];
+				index = i;
+				ret = true;
+			}
+
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
+		}
+
+		ImGui::EndCombo();
+	}
+
+	return ret;
 }

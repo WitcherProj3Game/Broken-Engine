@@ -720,18 +720,28 @@ void ComponentParticleEmitter::Load(json& node)
 	// --- Blending Load ---
 	if (!node["PartBlendFunc"].is_null())
 		m_PartBlendFunc = (BlendAutoFunction)node["PartBlendFunc"].get<int>();
+	else
+		m_PartBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
 
 	if (!node["PartBlendEquation"].is_null())
 		m_PartBlEquation = (BlendingEquations)node["PartBlendEquation"].get<int>();
+	else
+		m_PartBlEquation = BlendingEquations::ADD;
 
 	if (!node["PartMBlFuncSrc"].is_null())
 		m_MPartBlend_Src = (BlendingTypes)node["PartMBlFuncSrc"].get<int>();
+	else
+		m_MPartBlend_Src = BlendingTypes::SRC_ALPHA;
 
 	if (!node["PartMBlFuncDst"].is_null())
 		m_MPartBlend_Dst = (BlendingTypes)node["PartMBlFuncDst"].get<int>();
+	else
+		m_MPartBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
 
 	if (!node["PartAutoBlending"].is_null())
 		m_PartAutoBlending = node["PartAutoBlending"].get<bool>();
+	else
+		m_PartAutoBlending = true;
 }
 
 void ComponentParticleEmitter::CreateInspectorNode()

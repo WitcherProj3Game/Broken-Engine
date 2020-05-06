@@ -145,31 +145,49 @@ Resource* ImporterMaterial::Load(const char* path) const
 		}
 
 		if (!file["AmbientColor"].is_null())
-			matColor = float4(file["AmbientColor"]["R"].get<float>(), file["AmbientColor"]["G"].get<float>(), file["AmbientColor"]["B"].get<float>(), file["AmbientColor"]["A"].is_null() ? 1.0f : file["AmbientColor"]["A"].get<float>());	
+			matColor = float4(file["AmbientColor"]["R"].get<float>(), file["AmbientColor"]["G"].get<float>(), file["AmbientColor"]["B"].get<float>(), file["AmbientColor"]["A"].is_null() ? 1.0f : file["AmbientColor"]["A"].get<float>());
+		else
+			matColor = float4::one;
 
 		if (!file["MaterialShininess"].is_null())
 			matShine = file["MaterialShininess"].get<float>();
+		else
+			matShine = 1.5f;
 
 		if (!file["Transparencies"].is_null())
 			mat->has_transparencies = file["Transparencies"].get<bool>();
+		else
+			mat->has_transparencies = false;
 
 		if (!file["Culling"].is_null())
 			mat->has_culling = file["Culling"].get<bool>();
+		else
+			mat->has_culling = true;
 
 		if (!file["MatAlphaFunc"].is_null())
 			mat->m_MatAutoBlendFunc = (BlendAutoFunction)file["MatAlphaFunc"].get<int>();
+		else
+			mat->m_MatAutoBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
 
 		if (!file["MatBlendEquation"].is_null())
 			mat->m_MatBlendEq = (BlendingEquations)file["MatBlendEquation"].get<int>();
+		else
+			mat->m_MatBlendEq = BlendingEquations::ADD;
 
 		if (!file["MatManualAlphaFuncSrc"].is_null())
 			mat->m_MatManualBlend_Src = (BlendingTypes)file["MatManualAlphaFuncSrc"].get<int>();
+		else
+			mat->m_MatManualBlend_Src = BlendingTypes::SRC_ALPHA;
 
 		if (!file["MatManualAlphaFuncDst"].is_null())
 			mat->m_MatManualBlend_Dst = (BlendingTypes)file["MatManualAlphaFuncDst"].get<int>();
+		else
+			mat->m_MatManualBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
 
 		if (!file["MatAutoBlending"].is_null())
 			mat->m_AutoBlending = file["MatAutoBlending"].get<bool>();
+		else
+			mat->m_AutoBlending = true;
 
 		Importer::ImportData IDataDiff(diffuse_texture_path.c_str());
 

@@ -223,7 +223,7 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 
 json ComponentCollider::Save() const
 {
-	ENGINE_CONSOLE_LOG("Saved");
+	//ENGINE_CONSOLE_LOG("Saved");
 	json node;
 
 	node["Active"] = this->active;

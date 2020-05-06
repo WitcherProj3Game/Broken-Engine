@@ -372,7 +372,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	HandleObjectOutlining();
 
 	// --- Draw ---
-	glEnable(GL_BLEND);	
+	glEnable(GL_BLEND);
 	if(m_ChangedBlending)
 		SetRendererBlending(); //Set Blending to Renderer's Default
 
@@ -491,11 +491,11 @@ const json& ModuleRenderer3D::SaveStatus() const
 	m_config["ManualAlphaFuncDst"] = (int)m_ManualBlend_Dst;
 	m_config["BlendEquation"] = (int)m_BlendEquation;
 	m_config["SkyboxExposure"] = m_SkyboxExposure;
-	
+
 	m_config["SkyboxColorTint"]["R"] = m_SkyboxColor.x;
 	m_config["SkyboxColorTint"]["G"] = m_SkyboxColor.y;
 	m_config["SkyboxColorTint"]["B"] = m_SkyboxColor.z;
-	
+
 	m_config["SceneAmbientColor"]["R"] = m_AmbientColor.x;
 	m_config["SceneAmbientColor"]["G"] = m_AmbientColor.y;
 	m_config["SceneAmbientColor"]["B"] = m_AmbientColor.z;
@@ -909,6 +909,14 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
 		// --- Transparency Uniform ---
 		glUniform1i(glGetUniformLocation(shader, "u_HasTransparencies"), (int)mesh->mat->has_transparencies);
 
+		int skyboxUnifLoc = glGetUniformLocation(shader, "skybox");
+		if (skyboxUnifLoc != -1)
+		{
+			glUniform1i(skyboxUnifLoc, 0);
+			glActiveTexture(GL_TEXTURE0 + 0);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexID);
+		}
+
 		if (mesh->mat->has_transparencies)
 			mesh->mat->SetBlending();
 
@@ -1082,10 +1090,12 @@ void ModuleRenderer3D::SendShaderUniforms(uint shader)
 	glUniform1i(glGetUniformLocation(shader, "u_HasSpecularTexture"), 0);
 	glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 0);
 
-	if (shader == defaultShader->ID)
+
+	int lightsNumLoc = glGetUniformLocation(shader, "u_LightsNumber");
+	if (shader == defaultShader->ID || lightsNumLoc != -1)
 	{
 		// --- Send Lights ---
-		glUniform1i(glGetUniformLocation(shader, "u_LightsNumber"), m_LightsVec.size());
+		glUniform1i(lightsNumLoc, m_LightsVec.size());
 		for (uint i = 0; i < m_LightsVec.size(); ++i)
 			m_LightsVec[i]->SendUniforms(shader, i);
 	}
@@ -1723,13 +1733,13 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	const char* fragmentUIShader =
 		R"(#version 440 core
 			#define FRAGMENT_SHADER
-			#ifdef FRAGMENT_SHADER			
+			#ifdef FRAGMENT_SHADER
 			out vec4 out_color;
 			in vec2 v_TexCoord;
 			in vec4 v_Color;
 			uniform int u_UseTextures = 0;
 			uniform int u_HasTransparencies = 0;
-			uniform sampler2D u_AlbedoTexture;			
+			uniform sampler2D u_AlbedoTexture;
 			void main()
 			{
 				float alpha = 1.0;
@@ -1740,10 +1750,10 @@ void ModuleRenderer3D::CreateDefaultShaders()
 					else
 						alpha = texture(u_AlbedoTexture, v_TexCoord).a * v_Color.a;
 				}
-			
+
 				if (alpha < 0.004)
-					discard;			
-			
+					discard;
+
 				if (u_UseTextures == 0 || (u_UseTextures == 1 && u_HasTransparencies == 0 && texture(u_AlbedoTexture, v_TexCoord).a < 0.1))
 					out_color = vec4(v_Color.rgb, alpha);
 				else if (u_UseTextures == 1)

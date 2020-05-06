@@ -25,6 +25,8 @@ ResourceScene::ResourceScene(uint UID, const char* source_file) : Resource(Resou
 
 	previewTexID = App->gui->sceneTexID;
 
+	octreeBox = AABB(float3(-100, -100, -100), float3(100, 100, 100));
+	
 }
 
 ResourceScene::~ResourceScene()
@@ -36,7 +38,7 @@ ResourceScene::~ResourceScene()
 bool ResourceScene::LoadInMemory() 
 {
 	// --- Load scene game objects ---
-
+	
 	if (NoStaticGameObjects.size() == 0 && App->fs->Exists(resource_file.c_str()))
 	{
 		// --- Load Scene/model file ---
@@ -44,6 +46,25 @@ bool ResourceScene::LoadInMemory()
 
 		// --- Delete buffer data ---
 		if (!file.is_null()) {
+
+			//Load AABB of the scene octree
+			bool treeSaved = false;
+
+			//If there's no AABB saved, we'll store the indices of the static GOs here, 
+			//enclose all their AABBs to the octree, and them insert them into it
+			std::vector<int> staticObjectsIndices;
+
+			if (file["octreeBox"].is_null())
+				octreeBox = AABB(float3(-100, -100, -100), float3(100, 100, 100));
+			else
+			{
+				octreeBox = AABB(float3(file["octreeBox"]["minX"], file["octreeBox"]["minY"], file["octreeBox"]["minZ"]),
+									float3(file["octreeBox"]["maxX"], file["octreeBox"]["maxY"], file["octreeBox"]["maxZ"]));
+
+				App->scene_manager->tree.SetBoundaries(octreeBox);
+				treeSaved = true;
+			}
+
 			std::vector<GameObject*> objects;
 
 			// --- Iterate main nodes ---
@@ -51,7 +72,7 @@ bool ResourceScene::LoadInMemory()
 			{
 				// --- Retrieve GO's UID ---
 				std::string uid = it.key().c_str();
-				if (uid == "Navigation Data")
+				if (uid == "Navigation Data" || uid == "octreeBox")
 					continue;
 
 				// --- Create a Game Object for each node ---
@@ -129,8 +150,10 @@ bool ResourceScene::LoadInMemory()
 
 				objects.push_back(go);
 
-				if (go->Static)
-					App->scene_manager->SetStatic(go, true, false);
+				if (go->Static) 
+				{
+					staticObjectsIndices.push_back(objects.size()-1); //store iterator
+				}
 
 				Event e;
 				e.type = Event::EventType::GameObject_loaded;
@@ -164,6 +187,26 @@ bool ResourceScene::LoadInMemory()
 
 				ite++;
 			}
+
+			//AKI CABESA AKI
+			if (!treeSaved)
+			{
+				//Enclose all the go AABBs into the box of the tree
+				for (int i = 0; i < staticObjectsIndices.size(); i++) {
+					if (!octreeBox.Intersects( objects[staticObjectsIndices[i]]->GetOBB().MinimalEnclosingAABB()))
+						octreeBox.Enclose(objects[staticObjectsIndices[i]]->GetAABB());
+				}
+
+				App->scene_manager->tree.SetBoundaries(octreeBox);
+
+			}
+
+			for (int i = 0; i < staticObjectsIndices.size(); i++)
+			{
+				App->scene_manager->SetStatic(objects[staticObjectsIndices[i]], true, false);
+			}
+
+			///
 
 			App->scene_manager->GetRootGO()->childs.clear();
 			// --- Parent Game Objects / Build Hierarchy ---

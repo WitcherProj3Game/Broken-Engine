@@ -73,7 +73,7 @@ bool PanelRendering::Draw()
 
 		// --- Scene Ambient Color ---
 		ImGui::Text("Ambient Color");
-		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 31.0f);
 		if(ImGui::ColorEdit4("##AmbientColor", (float*)&m_AmbientColorValue, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar)) makeChanges = true;
 		ImGui::NewLine();
 		ImGui::Separator();
@@ -92,7 +92,7 @@ bool PanelRendering::Draw()
 		}
 
 		ImGui::Text("Rendering Blend Mode"); ImGui::SameLine();
-		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 38.0f);
 		ImGui::SetNextItemWidth(200.0f);
 
 		static int index1 = (int)m_CurrBlendAutoFunc;
@@ -117,7 +117,7 @@ bool PanelRendering::Draw()
 				//Source
 				ImGui::NewLine();
 				ImGui::Text("Source Alpha"); ImGui::SameLine();
-				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 45.0f);
 				ImGui::SetNextItemWidth(200.0f);
 
 				static int index2 = (int)m_CurrentAlphaSrc;
@@ -154,7 +154,7 @@ bool PanelRendering::Draw()
 
 		// --- Skybox Exposure ---
 		ImGui::Text("Skybox Exposure");
-		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
 		ImGui::SetNextItemWidth(200.0f);
 		if(ImGui::SliderFloat("##SkyboxEXP", &m_SkyboxExposureValue, 0.1f, 5.0f)) makeChanges = true;
 		ImGui::NewLine();

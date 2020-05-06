@@ -162,6 +162,7 @@
     <ClInclude Include="Components.h" />
     <ClInclude Include="ComponentScript.h" />
     <ClInclude Include="ComponentTransform.h" />
+    <ClInclude Include="CurveEditor.h" />
     <ClInclude Include="EngineLog.h" />
     <ClInclude Include="Errors.h" />
     <ClInclude Include="GameObject.h" />
@@ -384,6 +385,7 @@
     <ClCompile Include="ComponentProgressBar.cpp" />
     <ClCompile Include="ComponentScript.cpp" />
     <ClCompile Include="ComponentTransform.cpp" />
+    <ClCompile Include="CurveEditor.cpp" />
     <ClCompile Include="EngineLog.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="glad\src\glad.c" />

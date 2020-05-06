@@ -85,7 +85,7 @@ bool PanelRendering::Draw()
 		ImGui::SetNextItemWidth(200.0f);
 
 		static int index = (int)m_CurrBlendEquation;
-		if (HandleDropdownSelector(index, "##AlphaEq", m_BlendEquationFunctions))
+		if (EngineApp->gui->HandleDropdownSelector(index, "##AlphaEq", m_BlendEquationFunctions.data(), m_BlendEquationFunctions.size()))
 		{
 			m_CurrBlendEquation = (Broken::BlendingEquations)index;
 			makeChanges = true;
@@ -96,7 +96,7 @@ bool PanelRendering::Draw()
 		ImGui::SetNextItemWidth(200.0f);
 
 		static int index1 = (int)m_CurrBlendAutoFunc;
-		if (HandleDropdownSelector(index1, "##AlphaAutoFunction", m_BlendAutoFunctions))
+		if (EngineApp->gui->HandleDropdownSelector(index1, "##AlphaAutoFunction", m_BlendAutoFunctions.data(), m_BlendAutoFunctions.size()))
 		{
 			m_CurrBlendAutoFunc = (Broken::BlendAutoFunction)index1;
 			makeChanges = true;
@@ -105,7 +105,7 @@ bool PanelRendering::Draw()
 		//Help Marker
 		std::string desc = "Stand. = SRC, 1-SRCALPH\nAdd. = ONE, ONE\nAddAlph. = SRC_ALPH, ONE\nMult. = DSTCOL, ZERO";
 		ImGui::SameLine();
-		HelpMarker(desc.c_str());
+		EngineApp->gui->HelpMarker(desc.c_str());
 
 		// --- Set Alpha Manual Function ---
 		ImGui::Checkbox("Automatic Alpha Selection", &EngineApp->renderer3D->m_AutomaticBlendingFunc);
@@ -115,12 +115,13 @@ bool PanelRendering::Draw()
 			if (ImGui::TreeNodeEx("Manual Alpha", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				//Source
+				ImGui::NewLine();
 				ImGui::Text("Source Alpha"); ImGui::SameLine();
 				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 				ImGui::SetNextItemWidth(200.0f);
 
 				static int index2 = (int)m_CurrentAlphaSrc;
-				if (HandleDropdownSelector(index2, "##ManualAlphaSrc", m_AlphaTypesVec))
+				if (EngineApp->gui->HandleDropdownSelector(index2, "##ManualAlphaSrc", m_AlphaTypesVec.data(), m_AlphaTypesVec.size()))
 				{
 					m_CurrentAlphaSrc = (Broken::BlendingTypes)index2;
 					makeChanges = true;
@@ -132,13 +133,14 @@ bool PanelRendering::Draw()
 				ImGui::SetNextItemWidth(200.0f);
 
 				static int index3 = (int)m_CurrentAlphaDst;
-				if (HandleDropdownSelector(index3, "##ManualAlphaDst", m_AlphaTypesVec))
+				if (EngineApp->gui->HandleDropdownSelector(index3, "##ManualAlphaDst", m_AlphaTypesVec.data(), m_AlphaTypesVec.size()))
 				{
 					m_CurrentAlphaDst = (Broken::BlendingTypes)index3;
 					makeChanges = true;
 				}
 
-				if (ImGui::Button("Reference (Test Blend)", { 77, 18 })) EngineApp->gui->RequestBrowser("https://www.andersriggelsen.dk/glblendfunc.php");
+				ImGui::NewLine();
+				if (ImGui::Button("Reference (Test Blend)", { 180, 18 })) EngineApp->gui->RequestBrowser("https://www.andersriggelsen.dk/glblendfunc.php");
 				ImGui::TreePop();
 			}
 		}
@@ -199,44 +201,4 @@ void PanelRendering::SetRendererValues()
 
 	EngineApp->renderer3D->SetGammaCorrection(m_GammaCorretionValue);
 	EngineApp->renderer3D->SetSceneAmbientColor(m_AmbientColorValue);
-}
-
-void PanelRendering::HelpMarker(const char* desc1)
-{
-	ImGui::TextDisabled("(?)");
-	if (ImGui::IsItemHovered())
-	{
-		ImGui::BeginTooltip();
-		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-		ImGui::TextUnformatted(desc1);
-		ImGui::PopTextWrapPos();
-		ImGui::EndTooltip();
-	}
-}
-
-bool PanelRendering::HandleDropdownSelector(int& index, const char* combo_name, std::vector<const char*> options_strvec)
-{
-	bool ret = false;
-
-	const char* item_current = options_strvec[index];
-	if (ImGui::BeginCombo(combo_name, item_current))
-	{
-		for (uint i = 0; i < options_strvec.size(); ++i)
-		{
-			bool is_selected = (item_current == options_strvec[i]);
-			if (ImGui::Selectable(options_strvec[i], is_selected))
-			{
-				item_current = options_strvec[i];
-				index = i;
-				ret = true;
-			}
-
-			if (is_selected)
-				ImGui::SetItemDefaultFocus();
-		}
-
-		ImGui::EndCombo();
-	}
-
-	return ret;
 }

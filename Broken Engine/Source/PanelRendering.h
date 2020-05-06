@@ -16,8 +16,6 @@ public:
 
 private:
 
-	void HelpMarker(const char* desc1);
-	bool HandleDropdownSelector(int& index, const char* combo_name, std::vector<const char*> options_strvec);
 	void SetupValues();
 	void SetRendererValues();
 

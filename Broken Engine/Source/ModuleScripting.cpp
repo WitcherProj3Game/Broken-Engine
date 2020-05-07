@@ -775,7 +775,7 @@ void ModuleScripting::DeployScriptingGlobals()
 	if (App->fs->Exists(path.c_str())) //If the file exists compile if not sound the alarm
 	{
 		std::string abs_path = App->fs->GetWorkingDirectory();
-		abs_path += path;
+		abs_path += '/' + path;
 
 		//Now, Compile&Run in LUA
 		bool compiled = luaL_dofile(L, abs_path.c_str());

@@ -684,7 +684,6 @@ void PanelProject::DrawFile(Broken::Resource* resource, uint i, uint row, ImVec2
 		else {
 			// Construct absolute path for ShellExecute function
 			std::string abs_path = EngineApp->fs->GetWorkingDirectory();
-			abs_path += '/';
 
 			abs_path += resource->GetOriginalFile();
 			EngineApp->fs->NormalizePath(abs_path);

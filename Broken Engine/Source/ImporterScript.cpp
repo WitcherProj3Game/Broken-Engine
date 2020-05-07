@@ -22,7 +22,6 @@ Resource* ImporterScript::Import(ImportData& IData) const {
 
 	// Construct absolute path (Lua virtual machine needs to have the absolute path of the script in order to compile it)
 	std::string abs_path = App->fs->GetWorkingDirectory();
-	abs_path += '/';
 	
 	abs_path += IData.path;
 	App->fs->NormalizePath(abs_path);
@@ -56,7 +55,6 @@ Resource* ImporterScript::Load(const char* path) const {
 
 	//Construct absolute path (Lua virtual machine needs to have the absolute path of the script in order to compile it)
 	std::string abs_path = App->fs->GetWorkingDirectory();
-	abs_path += '/';
 
 	abs_path += path;
 	App->fs->NormalizePath(abs_path);

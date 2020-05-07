@@ -26,6 +26,7 @@ ModuleFileSystem::ModuleFileSystem(bool start_enabled, const char* game_path) : 
 	char buf[256];
 	GetCurrentDirectoryA(256, buf);
 	working_directory = buf;
+	working_directory += '/';
 	PHYSFS_init(base_path);
 	SDL_free(base_path);
 

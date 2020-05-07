@@ -457,8 +457,7 @@ void ModuleRenderer3D::LoadStatus(const json& file)
 {
 	m_GammaCorrection = file["Renderer3D"]["GammaCorrection"].is_null() ? 1.0f : file["Renderer3D"]["GammaCorrection"].get<float>();
 	m_SkyboxExposure = file["Renderer3D"]["SkyboxExposure"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxExposure"].get<float>();
-
-	m_AutomaticBlendingFunc = file["Renderer3D"]["RendAutoBlending"].is_null() ? true : file["Renderer3D"]["RendAutoBlending"].get<bool>();
+	m_AutomaticBlendingFunc = file["Renderer3D"].find("RendAutoBlending") == file["Renderer3D"].end() ? true : file["Renderer3D"]["RendAutoBlending"].get<bool>();
 	int AlphaFuncValue = file["Renderer3D"]["AlphaFunc"].is_null() ? 1 : file["Renderer3D"]["AlphaFunc"].get<int>();
 	m_RendererBlendFunc = (BlendAutoFunction)AlphaFuncValue;
 

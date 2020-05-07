@@ -713,7 +713,7 @@ void ModuleScripting::CompileDebugging()
 	std::string working_dir = App->fs->GetWorkingDirectory();
 	App->fs->NormalizePath(working_dir);
 
-	debug_path = working_dir + "Lua_Debug";
+	debug_path = working_dir + "/Lua_Debug";
 
 	luabridge::getGlobalNamespace(L)
 		.beginNamespace("Scripting")

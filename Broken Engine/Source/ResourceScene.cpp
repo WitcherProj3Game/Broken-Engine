@@ -101,6 +101,14 @@ bool ResourceScene::LoadInMemory()
 					uint type_uint = std::stoi(type_string);
 					Component::ComponentType type = (Component::ComponentType)type_uint;
 
+					Component::UIType uitype = Component::UIType::UNKNOWN;
+					if (type == Component::ComponentType::UI_Element)
+					{
+						std::string uitype_string = it2.key();
+						uint uitype_uint = std::stoi(uitype_string);
+						uitype = (Component::UIType)uitype_uint;
+					}
+
 					// --- and index ---
 					int c_index = -1;
 					json index = components[it2.key()]["index"];
@@ -111,7 +119,7 @@ bool ResourceScene::LoadInMemory()
 					Component* component = nullptr;
 
 					// --- Create/Retrieve Component ---
-					component = go->AddComponent(type, c_index);
+					component = go->AddComponent(type, c_index, uitype);
 
 					// --- Load Component Data ---
 					if (component) 

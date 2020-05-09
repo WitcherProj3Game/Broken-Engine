@@ -25,8 +25,7 @@ public:
 	void AddElement(UI_Element* element) { elements.push_back(element); }
 	void RemoveElement(UI_Element* element);
 
-	static inline Component::ComponentType GetType() { return Component::ComponentType::UI_Element; }
-	static inline Component::UIType GetUIType() { return Component::UIType::Canvas; }
+	static inline Component::ComponentType GetType() { return Component::ComponentType::Canvas; }
 
 	// --- Save & Load ---
 	json Save() const override;

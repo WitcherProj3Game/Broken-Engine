@@ -42,8 +42,7 @@ public:
 	void ChangeStateTo(State new_state) { state = new_state; }
 	void ChangeColorTo(Color new_color) { color = new_color; }
 
-	static inline Component::ComponentType GetType() { return Component::ComponentType::UI_Element; }
-	static inline Component::UIType GetUIType() { return Component::UIType::Button; }
+	static inline Component::ComponentType GetType() { return Component::ComponentType::Button; }
 
 	// --- Save & Load ---
 	json Save() const override;

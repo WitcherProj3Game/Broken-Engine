@@ -15,15 +15,15 @@
 
 using namespace Broken;
 
-ComponentText::ComponentText(GameObject* gameObject) : UI_Element(gameObject, Component::UIType::Text)
+ComponentText::ComponentText(GameObject* gameObject) : UI_Element(gameObject, Component::ComponentType::Text)
 {
 	name = "Text";
 	visible = true;
 	size2D = { 0.7f, 0.7f };
 
-	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
+	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
 	{
-		canvas = (ComponentCanvas*)GO->parent->GetComponentUI(Component::UIType::Canvas);
+		canvas = (ComponentCanvas*)GO->parent->GetComponent<ComponentCanvas>();
 
 		if (canvas)
 			canvas->AddElement(this);
@@ -49,12 +49,12 @@ ComponentText::~ComponentText()
 
 void ComponentText::Update()
 {
-	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
 	{
-		canvas = (ComponentCanvas*)GO->parent->GetComponentUI(Component::UIType::Canvas);
+		canvas = (ComponentCanvas*)GO->parent->GetComponent<ComponentCanvas>();
 		canvas->AddElement(this);
 	}
-	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas) && canvas)
+	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
 		canvas = nullptr;
 
 	if (to_delete)

@@ -66,18 +66,18 @@ update_status ModuleUI::PreUpdate(float dt)
 
 	for (std::unordered_map<uint, GameObject*>::iterator it = App->scene_manager->currentScene->NoStaticGameObjects.begin(); it != App->scene_manager->currentScene->NoStaticGameObjects.end(); ++it)
 	{
-		if ((*it).second->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Button)) //if has button component
+		if ((*it).second->HasComponent(Component::ComponentType::Button)) //if has button component
 		{
-			ComponentButton* element = (ComponentButton*)(*it).second->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Button); //single component (change when able to have multiple components of same type)
+			ComponentButton* element = (ComponentButton*)(*it).second->HasComponent(Component::ComponentType::Button); //single component (change when able to have multiple components of same type)
 			element->UpdateState(); //update state
 		}
 	}
 
 	for (std::unordered_map<uint, GameObject*>::iterator it = App->scene_manager->currentScene->StaticGameObjects.begin(); it != App->scene_manager->currentScene->StaticGameObjects.end(); ++it)
 	{
-		if ((*it).second->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Button)) //if has button component
+		if ((*it).second->HasComponent(Component::ComponentType::Button)) //if has button component
 		{
-			ComponentButton* element = (ComponentButton*)(*it).second->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Button); //single component (change when able to have multiple components of same type)
+			ComponentButton* element = (ComponentButton*)(*it).second->HasComponent(Component::ComponentType::Button); //single component (change when able to have multiple components of same type)
 			element->UpdateState(); //update state
 		}
 	}
@@ -132,7 +132,7 @@ void ModuleUI::Draw() const
 	// Draw UI
 	for (int i = 0; i < elements.size(); i++)
 	{
-		if (elements[i]->GetUIType() == Component::UIType::Canvas && elements[i]->visible)
+		if (elements[i]->GetType() == Component::ComponentType::Canvas && elements[i]->visible)
 			elements[i]->Draw();
 	}
 

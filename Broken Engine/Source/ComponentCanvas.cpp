@@ -21,15 +21,15 @@
 
 using namespace Broken;
 
-ComponentCanvas::ComponentCanvas(GameObject* gameObject) : UI_Element(gameObject, Component::UIType::Canvas)
+ComponentCanvas::ComponentCanvas(GameObject* gameObject) : UI_Element(gameObject, Component::ComponentType::Canvas)
 {
 	name = "Canvas";
 	visible = true;
 	App->ui_system->AddElement(this);
 
-	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
+	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
 	{
-		canvas = (ComponentCanvas*)GO->parent->GetComponentUI(Component::UIType::Canvas);
+		canvas = (ComponentCanvas*)GO->parent->GetComponent<ComponentCanvas>();
 
 		if (canvas)
 			canvas->AddElement(this);
@@ -52,12 +52,12 @@ void ComponentCanvas::Update()
 {
 	OrderCanvas(); //order elements inside canvas by priority
 
-	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
 	{
-		canvas = (ComponentCanvas*)GO->parent->GetComponentUI(Component::UIType::Canvas);
+		canvas = (ComponentCanvas*)GO->parent->GetComponent<ComponentCanvas>();
 		canvas->AddElement(this);
 	}
-	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas) && canvas)
+	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
 		canvas = nullptr;
 
 	if (to_delete)
@@ -141,55 +141,55 @@ void ComponentCanvas::UpdatePosition(float2& increment)
 		// --- Draw elements inside canvas ---
 		for (int i = 0; i < elements.size(); i++)
 		{
-			if (elements[i]->GetUIType() == Component::UIType::Canvas)
+			if (elements[i]->GetType() == Component::ComponentType::Canvas)
 			{
 				ComponentCanvas* canvas = (ComponentCanvas*)elements[i];
 				if (canvas->visible && canvas->GetActive())
 					canvas->UpdatePosition(increment);
 				continue;
 			}
-			else if (elements[i]->GetUIType() == Component::UIType::Text)
+			else if (elements[i]->GetType() == Component::ComponentType::Text)
 			{
 				ComponentText* text = (ComponentText*)elements[i];
 				if (text->visible && text->GetActive())
-					text->position2D += increment/2;
+					text->position2D += increment / 2;
 				continue;
 			}
-			else if (elements[i]->GetUIType() == Component::UIType::Image)
+			else if (elements[i]->GetType() == Component::ComponentType::Image)
 			{
 				ComponentImage* image = (ComponentImage*)elements[i];
 				if (image->visible && image->GetActive())
 					image->position2D += increment;
 				continue;
 			}
-			else if (elements[i]->GetUIType() == Component::UIType::Button)
+			else if (elements[i]->GetType() == Component::ComponentType::Button)
 			{
 				ComponentButton* button = (ComponentButton*)elements[i];
 				if (button->visible && button->GetActive())
 					button->position2D += increment;
 			}
-			//else if (elements[i]->GetUIType() == Component::UIType::CheckBox)
+			//else if (elements[i]->GetType() == Component::ComponentType::CheckBox)
 			//{
 			//	CheckBox* elem = (CheckBox*)elements[i];
 			//	if (elem->visible) 
 			//		elem->Draw();
 			//	continue;
 			//}
-			//else if (elements[i]->GetUIType() == Component::UIType::InputText)
+			//else if (elements[i]->GetType() == Component::ComponentType::InputText)
 			//{
 			//	InputText* elem = (InputText*)elements[i];
 			//	if (elem->visible) 
 			//		elem->Draw();
 			//	continue;
 			//}
-			else if (elements[i]->GetUIType() == Component::UIType::ProgressBar)
+			else if (elements[i]->GetType() == Component::ComponentType::ProgressBar)
 			{
 				ComponentProgressBar* bar = (ComponentProgressBar*)elements[i];
 				if (bar->visible && bar->GetActive())
 					bar->position2D += increment;
 				continue;
 			}
-			else if (elements[i]->GetUIType() == Component::UIType::CircularBar)
+			else if (elements[i]->GetType() == Component::ComponentType::CircularBar)
 			{
 				ComponentCircularBar* cbar = (ComponentCircularBar*)elements[i];
 				if (cbar->visible && cbar->GetActive())

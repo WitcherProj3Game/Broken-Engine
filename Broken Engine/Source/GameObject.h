@@ -52,24 +52,9 @@ public:
 		return nullptr;
 	}
 
-	UI_Element* GetComponentUI(Component::UIType type) 
-	{
-		for (uint i = 0; i < components.size(); ++i)
-		{
-			if (components[i] && components[i]->GetType() == Component::ComponentType::UI_Element)
-			{
-				UI_Element* elem = (UI_Element*)components[i];
-				if (elem->GetUIType() == type)
-					return elem;
-			}
-		}
-		return nullptr;
-	}
-
-
-	Component*		AddComponent(Component::ComponentType type, int index = -1, Component::UIType ui_type = Component::UIType::UNKNOWN);
+	Component*		AddComponent(Component::ComponentType type, int index = -1);
 	void			RemoveComponent(Component* comp);
-	Component*		HasComponent(Component::ComponentType type, Component::UIType ui_type = Component::UIType::UNKNOWN) const;
+	Component*		HasComponent(Component::ComponentType type) const;
 	std::vector<Component*>& GetComponents();
 	Component* GetComponentWithUID(uint UUID);
 

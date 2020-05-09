@@ -24,8 +24,7 @@ public:
 	void Update() override;
 	void Draw();
 
-	static inline Component::ComponentType GetType() { return Component::ComponentType::UI_Element; }
-	static inline Component::UIType GetUIType() { return Component::UIType::Text; }
+	static inline Component::ComponentType GetType() { return Component::ComponentType::Text; }
 
 	void SetText(const char* new_text) { text = new_text; }
 

@@ -20,8 +20,7 @@ public:
 
 	void Draw();
 
-	static inline Component::ComponentType GetType() { return Component::ComponentType::UI_Element; }
-	static inline Component::UIType GetUIType() { return Component::UIType::Image; }
+	static inline Component::ComponentType GetType() { return Component::ComponentType::Image; }
 
 	// --- Save & Load ---
 	json Save() const override;

@@ -26,16 +26,16 @@
 
 using namespace Broken;
 
-ComponentProgressBar::ComponentProgressBar(GameObject* gameObject) : UI_Element(gameObject, Component::UIType::ProgressBar)
+ComponentProgressBar::ComponentProgressBar(GameObject* gameObject) : UI_Element(gameObject, Component::ComponentType::ProgressBar)
 {
 	name = "ProgressBar";
 	visible = true;
 	size2D = { 190, 25 };
 
 	//texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
-	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
+	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
 	{
-		canvas = (ComponentCanvas*)GO->parent->GetComponentUI(Component::UIType::Canvas);
+		canvas = (ComponentCanvas*)GO->parent->GetComponent<ComponentCanvas>();
 
 		if (canvas)
 			canvas->AddElement(this);
@@ -56,12 +56,12 @@ ComponentProgressBar::~ComponentProgressBar()
 
 void ComponentProgressBar::Update()
 {
-	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas))
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
 	{
-		canvas = (ComponentCanvas*)GO->parent->GetComponentUI(Component::UIType::Canvas);
+		canvas = (ComponentCanvas*)GO->parent->GetComponent<ComponentCanvas>();
 		canvas->AddElement(this);
 	}
-	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::UI_Element, Component::UIType::Canvas) && canvas)
+	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
 		canvas = nullptr;
 
 	if (to_delete)

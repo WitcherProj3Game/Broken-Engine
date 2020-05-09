@@ -27,8 +27,7 @@ public:
 	void Load(json& node) override;
 	void CreateInspectorNode() override;
 
-	static inline Component::ComponentType GetType() { return Component::ComponentType::UI_Element; };
-	static inline Component::UIType GetUIType() { return Component::UIType::CircularBar; }
+	static inline Component::ComponentType GetType() { return Component::ComponentType::CircularBar; }
 
 	//Scripting function
 	void SetPercentage(float p) { percentage = p; }

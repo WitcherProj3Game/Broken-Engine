@@ -48,7 +48,7 @@ bool PanelRendering::Draw()
 		// --- Scene Ambient Color ---
 		ImGui::Text("Ambient Color");
 		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
-		if(ImGui::ColorEdit4("##AmbientColor", (float*)&m_AmbientColorValue, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar)) makeChanges = true;
+		if(ImGui::ColorEdit3("##AmbientColor", (float*)&m_AmbientColorValue, ImGuiColorEditFlags_NoInputs)) makeChanges = true;
 		ImGui::NewLine();
 
 		// --- Set Alpha Function ---		

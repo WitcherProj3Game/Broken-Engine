@@ -61,8 +61,13 @@ Resource* ImporterScene::Load(const char* path) const
 void ImporterScene::SaveSceneToFile(ResourceScene* scene) const
 {
 	// --- Save Scene/Model to file ---
-
 	json file;
+
+	//Save Scene Color
+	float3 sceneColor = scene->GetSceneAmbientColor();
+	file["SceneAmbientColor"]["R"] = sceneColor.x;
+	file["SceneAmbientColor"]["G"] = sceneColor.y;
+	file["SceneAmbientColor"]["B"] = sceneColor.z;
 
 	for (std::unordered_map<uint, GameObject*>::iterator it = scene->NoStaticGameObjects.begin(); it != scene->NoStaticGameObjects.end(); ++it)
 	{

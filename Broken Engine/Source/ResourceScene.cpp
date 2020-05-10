@@ -9,6 +9,7 @@
 #include "ModuleUI.h"
 #include "ModuleScripting.h"
 #include "ModulePhysics.h"
+#include "ModuleRenderer3D.h"
 
 #include "GameObject.h"
 
@@ -36,7 +37,6 @@ ResourceScene::~ResourceScene()
 bool ResourceScene::LoadInMemory() 
 {
 	// --- Load scene game objects ---
-
 	if (NoStaticGameObjects.size() == 0 && App->fs->Exists(resource_file.c_str()))
 	{
 		// --- Load Scene/model file ---
@@ -51,7 +51,7 @@ bool ResourceScene::LoadInMemory()
 			{
 				// --- Retrieve GO's UID ---
 				std::string uid = it.key().c_str();
-				if (uid == "Navigation Data")
+				if (uid == "Navigation Data" || uid == "SceneAmbientColor")
 					continue;
 
 				// --- Create a Game Object for each node ---
@@ -227,9 +227,25 @@ bool ResourceScene::LoadInMemory()
 			App->detour->setDefaultValues();
 			App->detour->clearNavMesh();
 		}
+
+
+		// --- Load Scene Color ---
+		float3 sceneColor = float3::one;
+
+		if (file.find("SceneAmbientColor") != file.end())
+		{
+			json fileCol = file["SceneAmbientColor"];
+
+			if (fileCol.find("R") != fileCol.end() && fileCol.find("G") != fileCol.end() && fileCol.find("B") != fileCol.end())
+				sceneColor = float3(fileCol["R"].get<float>(), fileCol["G"].get<float>(), fileCol["B"].get<float>());
+			else
+				sceneColor = float3::one;
+		}
+		else
+			sceneColor = float3::one;
+
+		App->renderer3D->SetSceneAmbientColor(sceneColor);
 	}
-
-
 
 	return true;
 }

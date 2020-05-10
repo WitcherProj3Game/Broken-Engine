@@ -97,13 +97,13 @@ bool PanelRendering::Draw()
 			SkyboxSettings(makeChanges);
 			ImGui::NewLine();
 			ImGui::TreePop();
-		}		
+		}
 
 		//ImGui::NewLine();
 		ImGui::Separator();
 	}
 
-	ImGui::End();	
+	ImGui::End();
 	if (makeChanges)
 	{
 		SetRendererValues();

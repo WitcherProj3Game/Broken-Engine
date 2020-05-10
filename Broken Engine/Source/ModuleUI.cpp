@@ -154,7 +154,7 @@ void ModuleUI::RemoveElement(UI_Element* c)
 {
 	for (std::vector<UI_Element*>::iterator it = elements.begin(); it != elements.end(); ++it)
 	{
-		if(*it && (*it)->GetContainerGameObject() && (*it)->GetContainerGameObject()->GetUID() == c->GetContainerGameObject()->GetUID())
+		if(*it && *it == c)
 		{
 			elements.erase(it);
 			break;

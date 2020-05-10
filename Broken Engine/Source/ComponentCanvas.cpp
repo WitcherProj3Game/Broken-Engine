@@ -82,7 +82,7 @@ void ComponentCanvas::RemoveElement(UI_Element* elem)
 	{
 		for (std::vector<UI_Element*>::iterator it = elements.begin(); it != elements.end(); ++it)
 		{
-			if (*it && (*it)->GetContainerGameObject() && (*it)->GetContainerGameObject()->GetUID() == elem->GetContainerGameObject()->GetUID())
+			if (*it && *it == elem)
 			{
 				elements.erase(it);
 				break;

@@ -91,6 +91,9 @@ bool ModuleRenderer3D::Init(json& file)
 		}
 	}
 
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+
 	// --- z values from 0 to 1 and not -1 to 1, more precision in far ranges ---
 	glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
@@ -1549,14 +1552,14 @@ void ModuleRenderer3D::CreateDefaultShaders()
 		"#version 460 core \n"
 		"#define VERTEX_SHADER \n"
 		"#ifdef VERTEX_SHADER \n"
-		"layout (location = 0) in vec3 position; \n"
+		"layout (location = 0) in vec3 a_Position; \n"
 		"out vec3 TexCoords; \n"
 		"uniform mat4 u_View; \n"
 		"uniform mat4 u_Proj; \n"
 		"uniform mat4 u_Model; \n"
 		"void main(){ \n"
-		"TexCoords = position * vec3(1,-1,1); \n"
-		"gl_Position = u_Proj * u_View * u_Model * vec4(position, 1.0); \n"
+		"TexCoords = a_Position * vec3(1,-1,1); \n"
+		"gl_Position = u_Proj * u_View * u_Model * vec4(a_Position, 1.0); \n"
 		"}\n"
 		"#endif //VERTEX_SHADER\n"
 		;
@@ -1770,17 +1773,18 @@ void ModuleRenderer3D::DrawSkybox()
 	glDepthMask(GL_FALSE);
 
 	float3 prevpos = active_camera->frustum.Pos();
-	float3 prevup = App->renderer3D->active_camera->frustum.Up();
-	float3 prevfront = App->renderer3D->active_camera->frustum.Front();
+	//float3 prevup = App->renderer3D->active_camera->frustum.Up();
+	//float3 prevfront = App->renderer3D->active_camera->frustum.Front();
 
 	App->renderer3D->active_camera->frustum.SetPos(float3::zero);
 
 	math::Quat rotationX = math::Quat::RotateAxisAngle(float3::unitY, skyboxangle.x * DEGTORAD);
-	math::Quat rotationY = math::Quat::RotateAxisAngle(App->renderer3D->active_camera->frustum.WorldRight(), skyboxangle.y * DEGTORAD);
-	math::Quat finalRotation = rotationX * rotationY;
+	math::Quat rotationY = math::Quat::RotateAxisAngle(float3::unitX, skyboxangle.y * DEGTORAD);
+	math::Quat rotationZ = math::Quat::RotateAxisAngle(float3::unitZ, skyboxangle.z * DEGTORAD);
+	math::Quat finalRotation = rotationX * rotationY * rotationZ;
 
-	App->renderer3D->active_camera->frustum.SetUp(finalRotation.Mul(App->renderer3D->active_camera->frustum.Up()).Normalized());
-	App->renderer3D->active_camera->frustum.SetFront(finalRotation.Mul(App->renderer3D->active_camera->frustum.Front()).Normalized());
+	//App->renderer3D->active_camera->frustum.SetUp(finalRotation.Mul(App->renderer3D->active_camera->frustum.Up()).Normalized());
+	//App->renderer3D->active_camera->frustum.SetFront(finalRotation.Mul(App->renderer3D->active_camera->frustum.Front()).Normalized());
 
 	SkyboxShader->use();
 	// draw skybox as last
@@ -1798,6 +1802,12 @@ void ModuleRenderer3D::DrawSkybox()
 		0.0f, f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, -1.0f,
 		0.0f, 0.0f, nearp, 0.0f);
+
+	float4x4 model = float4x4::identity;
+	model = model.FromQuat(finalRotation);
+
+	GLint modelLoc = glGetUniformLocation(App->renderer3D->SkyboxShader->ID, "u_Model");
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.ptr());
 
 	GLint viewLoc = glGetUniformLocation(App->renderer3D->SkyboxShader->ID, "u_View");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view.ptr());
@@ -1820,8 +1830,8 @@ void ModuleRenderer3D::DrawSkybox()
 	defaultShader->use();
 
 	App->renderer3D->active_camera->frustum.SetPos(prevpos);
-	App->renderer3D->active_camera->frustum.SetUp(prevup);
-	App->renderer3D->active_camera->frustum.SetFront(prevfront);
+	//App->renderer3D->active_camera->frustum.SetUp(prevup);
+	//App->renderer3D->active_camera->frustum.SetFront(prevfront);
 
 	glDepthMask(GL_TRUE);
 }

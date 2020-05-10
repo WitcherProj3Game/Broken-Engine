@@ -95,6 +95,8 @@ bool PanelProject::Draw()
 		// --- Draw Explorer ---
 		ImGui::SameLine();
 
+		projectFlags &= ~(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
 		if (ImGui::BeginChild("AssetsExplorer", ImVec2(ImGui::GetWindowSize().x * 0.9f, ImGui::GetWindowSize().y), true, projectFlags)) {
 
 			if (currentDirectory == nullptr)

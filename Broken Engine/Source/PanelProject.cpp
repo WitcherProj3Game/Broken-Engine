@@ -217,107 +217,30 @@ void PanelProject::CreateResourceHandlingPopup()
 	// --- Delete resource ---
 	if (selected && !selected->has_parent && EngineApp->input->GetKey(SDL_SCANCODE_DELETE) == Broken::KEY_DOWN)
 		delete_selected = true;
-	//ImGui::SetCurrentContext(EngineApp->gui->getImgUICtx());
-	// Call the more complete ShowExampleMenuFile which we use in various places of this demo
+
 	if (ImGui::IsMouseClicked(1) && ImGui::IsWindowHovered(ImGuiHoveredFlags_::ImGuiHoveredFlags_ChildWindows))
 		ImGui::OpenPopup("Resources");
 
 	if (ImGui::BeginPopup("Resources"))
 	{
-		//ImGui::MenuItem("(dummy menu)", NULL, false, false);
-		//if (ImGui::MenuItem("New")) {}
-		//if (ImGui::MenuItem("Open", "Ctrl+O")) {}
-
 
 		if (ImGui::BeginMenu("Create"))
 		{
 			if (ImGui::MenuItem("Folder"))
-			{
-				std::string resource_name;
-				resource_name = *(EngineApp->resources->GetNewUniqueName(Broken::Resource::ResourceType::FOLDER));
-
-				Broken::Resource* new_folder = EngineApp->resources->CreateResource(Broken::Resource::ResourceType::FOLDER, std::string(currentDirectory->GetResourceFile()).append(resource_name).c_str());
-				Broken::ImporterFolder* IFolder = EngineApp->resources->GetImporter<Broken::ImporterFolder>();
-
-				EngineApp->resources->AddResourceToFolder(new_folder);
-
-				resource_name.pop_back();
-				// --- Create meta ---
-				Broken::ImporterMeta* IMeta = EngineApp->resources->GetImporter<Broken::ImporterMeta>();
-				Broken::ResourceMeta* meta = (Broken::ResourceMeta*)EngineApp->resources->CreateResourceGivenUID(Broken::Resource::ResourceType::META, std::string(currentDirectory->GetResourceFile()).append(resource_name).c_str(), new_folder->GetUID());
-
-				if (meta)
-					IMeta->Save(meta);
-
-				IFolder->Save((Broken::ResourceFolder*)new_folder);
-			}
+				createFolder = true;
 
 			if (ImGui::MenuItem("Material"))
-			{
-				std::string resource_name;
-				resource_name = *(EngineApp->resources->GetNewUniqueName(Broken::Resource::ResourceType::MATERIAL));
-
-				Broken::Resource* new_material = EngineApp->resources->CreateResource(Broken::Resource::ResourceType::MATERIAL, std::string(currentDirectory->GetResourceFile()).append(resource_name).c_str());
-				Broken::ImporterMaterial* IMat = EngineApp->resources->GetImporter<Broken::ImporterMaterial>();
-
-				EngineApp->resources->AddResourceToFolder(new_material);
-
-				// --- Create meta ---
-				Broken::ImporterMeta* IMeta = EngineApp->resources->GetImporter<Broken::ImporterMeta>();
-				Broken::ResourceMeta* meta = (Broken::ResourceMeta*)EngineApp->resources->CreateResourceGivenUID(Broken::Resource::ResourceType::META, new_material->GetResourceFile(), new_material->GetUID());
-
-				if (meta)
-					IMeta->Save(meta);
-
-				IMat->Save((Broken::ResourceMaterial*)new_material);
-			}
+				createMaterial = true;
 
 			if (ImGui::MenuItem("Shader"))
-			{
-				std::string resource_name;
-				resource_name = *(EngineApp->resources->GetNewUniqueName(Broken::Resource::ResourceType::SHADER));
-
-				Broken::Resource* new_shader = EngineApp->resources->CreateResource(Broken::Resource::ResourceType::SHADER, std::string(currentDirectory->GetResourceFile()).append(resource_name).c_str());
-				Broken::ImporterShader* IShader = EngineApp->resources->GetImporter<Broken::ImporterShader>();
-				Broken::ResourceShader* shader = (Broken::ResourceShader*)new_shader;
-				shader->ReloadAndCompileShader();
-
-				EngineApp->resources->AddResourceToFolder(new_shader);
-
-				// --- Create meta ---
-				Broken::ImporterMeta* IMeta = EngineApp->resources->GetImporter<Broken::ImporterMeta>();
-				Broken::ResourceMeta* meta = (Broken::ResourceMeta*)EngineApp->resources->CreateResourceGivenUID(Broken::Resource::ResourceType::META, new_shader->GetOriginalFile(), new_shader->GetUID());
-
-				if (meta)
-					IMeta->Save(meta);
-
-				IShader->Save((Broken::ResourceShader*)new_shader);
-			}
+				createShader = true;
 
 			if (ImGui::MenuItem("Script"))
-			{
-				createScript = true;
-			}
+				createScript = true;	
 
 			if (ImGui::MenuItem("Scene"))
-			{
-				std::string resource_name;
-				resource_name = *(EngineApp->resources->GetNewUniqueName(Broken::Resource::ResourceType::SCENE));
-
-				Broken::Resource* new_scene = EngineApp->resources->CreateResource(Broken::Resource::ResourceType::SCENE, std::string(currentDirectory->GetResourceFile()).append(resource_name).c_str());
-				Broken::ImporterScene* IScene = EngineApp->resources->GetImporter<Broken::ImporterScene>();
-
-				EngineApp->resources->AddResourceToFolder(new_scene);
-
-				// --- Create meta ---
-				Broken::ImporterMeta* IMeta = EngineApp->resources->GetImporter<Broken::ImporterMeta>();
-				Broken::ResourceMeta* meta = (Broken::ResourceMeta*)EngineApp->resources->CreateResourceGivenUID(Broken::Resource::ResourceType::META, new_scene->GetResourceFile(), new_scene->GetUID());
-
-				if (meta)
-					IMeta->Save(meta);
-
-				IScene->SaveSceneToFile((Broken::ResourceScene*)new_scene);
-			}
+				createScene = true;
+			
 
 			ImGui::EndMenu();
 		}
@@ -411,6 +334,152 @@ void PanelProject::CreateResourceHandlingPopup()
 			ImGui::CloseCurrentPopup();
 
 		createScript = false;
+		ImGui::EndPopup();
+	}
+
+	if (createScene)
+		ImGui::OpenPopup("Create new scene");
+
+	if (ImGui::BeginPopupModal("Create new scene", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+
+		static char scene_name[50] = "NewScene";
+		if (ImGui::InputText("NewScene", scene_name, 50, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll)) {
+
+			Broken::Resource* new_scene = EngineApp->resources->CreateResource(Broken::Resource::ResourceType::SCENE, std::string(currentDirectory->GetResourceFile()).append(scene_name).append(".scene").c_str());
+			Broken::ImporterScene* IScene = EngineApp->resources->GetImporter<Broken::ImporterScene>();
+
+			EngineApp->resources->AddResourceToFolder(new_scene);
+
+			// --- Create meta ---
+			Broken::ImporterMeta* IMeta = EngineApp->resources->GetImporter<Broken::ImporterMeta>();
+			Broken::ResourceMeta* meta = (Broken::ResourceMeta*)EngineApp->resources->CreateResourceGivenUID(Broken::Resource::ResourceType::META, new_scene->GetResourceFile(), new_scene->GetUID());
+
+			if (meta)
+				IMeta->Save(meta);
+
+			IScene->SaveSceneToFile((Broken::ResourceScene*)new_scene);
+
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SetItemDefaultFocus();
+		ImGui::NewLine();
+		ImGui::Separator();
+
+		if (ImGui::Button("Close", ImVec2(300, 0)))
+			ImGui::CloseCurrentPopup();
+
+		createScene = false;
+		ImGui::EndPopup();
+	}
+
+	if (createMaterial)
+		ImGui::OpenPopup("Create new material");
+
+	if (ImGui::BeginPopupModal("Create new material", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+
+		static char mat_name[50] = "NewMaterial";
+		if (ImGui::InputText("NewMaterial", mat_name, 50, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll)) {
+
+			Broken::Resource* new_mat = EngineApp->resources->CreateResource(Broken::Resource::ResourceType::MATERIAL, std::string(currentDirectory->GetResourceFile()).append(mat_name).append(".mat").c_str());
+			Broken::ImporterMaterial* IMat = EngineApp->resources->GetImporter<Broken::ImporterMaterial>();
+
+			EngineApp->resources->AddResourceToFolder(new_mat);
+
+			// --- Create meta ---
+			Broken::ImporterMeta* IMeta = EngineApp->resources->GetImporter<Broken::ImporterMeta>();
+			Broken::ResourceMeta* meta = (Broken::ResourceMeta*)EngineApp->resources->CreateResourceGivenUID(Broken::Resource::ResourceType::META, new_mat->GetResourceFile(), new_mat->GetUID());
+
+			if (meta)
+				IMeta->Save(meta);
+
+			IMat->Save((Broken::ResourceMaterial*)new_mat);
+
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SetItemDefaultFocus();
+		ImGui::NewLine();
+		ImGui::Separator();
+
+		if (ImGui::Button("Close", ImVec2(300, 0)))
+			ImGui::CloseCurrentPopup();
+
+		createMaterial = false;
+		ImGui::EndPopup();
+	}
+
+	if (createFolder)
+		ImGui::OpenPopup("Create new folder");
+
+	if (ImGui::BeginPopupModal("Create new folder", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+
+		static char folder_name[50] = "NewFolder";
+		if (ImGui::InputText("NewFolder", folder_name, 50, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll)) {
+
+			Broken::Resource* new_folder = EngineApp->resources->CreateResource(Broken::Resource::ResourceType::FOLDER, std::string(currentDirectory->GetResourceFile()).append(folder_name).append("/").c_str());
+			Broken::ImporterFolder* IFolder = EngineApp->resources->GetImporter<Broken::ImporterFolder>();
+
+			//EngineApp->resources->AddResourceToFolder(new_folder);
+
+			// --- Create meta ---
+			Broken::ImporterMeta* IMeta = EngineApp->resources->GetImporter<Broken::ImporterMeta>();
+			Broken::ResourceMeta* meta = (Broken::ResourceMeta*)EngineApp->resources->CreateResourceGivenUID(Broken::Resource::ResourceType::META, new_folder->GetResourceFile(), new_folder->GetUID());
+
+			if (meta)
+				IMeta->Save(meta);
+
+			IFolder->Save((Broken::ResourceFolder*)new_folder);
+
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SetItemDefaultFocus();
+		ImGui::NewLine();
+		ImGui::Separator();
+
+		if (ImGui::Button("Close", ImVec2(300, 0)))
+			ImGui::CloseCurrentPopup();
+
+		createFolder = false;
+		ImGui::EndPopup();
+	}
+
+	if (createShader)
+		ImGui::OpenPopup("Create new shader");
+
+	if (ImGui::BeginPopupModal("Create new shader", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+
+		static char shader_name[50] = "NewShader";
+		if (ImGui::InputText("NewShader", shader_name, 50, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll)) {
+
+			Broken::Resource* new_shader = EngineApp->resources->CreateResource(Broken::Resource::ResourceType::SHADER, std::string(currentDirectory->GetResourceFile()).append(shader_name).append(".glsl").c_str());
+			Broken::ImporterShader* IShader = EngineApp->resources->GetImporter<Broken::ImporterShader>();
+			Broken::ResourceShader* shader = (Broken::ResourceShader*)new_shader;
+			shader->ReloadAndCompileShader();
+
+			//EngineApp->resources->AddResourceToFolder(new_shader);
+
+			// --- Create meta ---
+			Broken::ImporterMeta* IMeta = EngineApp->resources->GetImporter<Broken::ImporterMeta>();
+			Broken::ResourceMeta* meta = (Broken::ResourceMeta*)EngineApp->resources->CreateResourceGivenUID(Broken::Resource::ResourceType::META, new_shader->GetResourceFile(), new_shader->GetUID());
+
+			if (meta)
+				IMeta->Save(meta);
+
+			IShader->Save((Broken::ResourceShader*)new_shader);
+
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SetItemDefaultFocus();
+		ImGui::NewLine();
+		ImGui::Separator();
+
+		if (ImGui::Button("Close", ImVec2(300, 0)))
+			ImGui::CloseCurrentPopup();
+
+		createShader = false;
 		ImGui::EndPopup();
 	}
 }

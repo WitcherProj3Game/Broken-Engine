@@ -431,10 +431,19 @@ void ModuleRenderer3D::LoadStatus(const json& file)
 	int AlphaFuncValue = file["Renderer3D"]["AlphaFunc"].is_null() ? 1 : file["Renderer3D"]["AlphaFunc"].get<int>();
 	m_RendererAlphaFunc = (AlphaFunction)AlphaFuncValue;
 
+	if (file["Renderer3D"].find("SkyboxRotation") != file["Renderer3D"].end())
+	{
+		skyboxangle.x = file["Renderer3D"]["SkyboxRotation"]["X"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["X"].get<float>();
+		skyboxangle.y = file["Renderer3D"]["SkyboxRotation"]["Y"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["Y"].get<float>();
+		skyboxangle.z = file["Renderer3D"]["SkyboxRotation"]["Z"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["Z"].get<float>();
+	}
+
 	float skybox_tintR = file["Renderer3D"]["SkyboxColorTint"]["R"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxColorTint"]["R"].get<float>();
 	float skybox_tintG = file["Renderer3D"]["SkyboxColorTint"]["G"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxColorTint"]["G"].get<float>();
 	float skybox_tintB = file["Renderer3D"]["SkyboxColorTint"]["B"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxColorTint"]["B"].get<float>();
 	m_SkyboxColor = float3(skybox_tintR, skybox_tintG, skybox_tintB);
+
+
 
 	float ambR = file["Renderer3D"]["SceneAmbientColor"]["R"].is_null() ? 1.0f : file["Renderer3D"]["SceneAmbientColor"]["R"].get<float>();
 	float ambG = file["Renderer3D"]["SceneAmbientColor"]["G"].is_null() ? 1.0f : file["Renderer3D"]["SceneAmbientColor"]["G"].get<float>();
@@ -449,6 +458,10 @@ const json& ModuleRenderer3D::SaveStatus() const
 	m_config["GammaCorrection"] = m_GammaCorrection;
 	m_config["AlphaFunc"] = (int)m_RendererAlphaFunc;
 	m_config["SkyboxExposure"] = m_SkyboxExposure;
+	m_config["SkyboxRotation"]["X"] = skyboxangle.x;
+	m_config["SkyboxRotation"]["Y"] = skyboxangle.y;
+	m_config["SkyboxRotation"]["Z"] = skyboxangle.z;
+
 	
 	m_config["SkyboxColorTint"]["R"] = m_SkyboxColor.x;
 	m_config["SkyboxColorTint"]["G"] = m_SkyboxColor.y;

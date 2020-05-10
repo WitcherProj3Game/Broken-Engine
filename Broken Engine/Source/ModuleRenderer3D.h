@@ -118,7 +118,7 @@ public:
 	void SetActiveCamera(ComponentCamera* camera);
 	void SetCullingCamera(ComponentCamera* camera);
 	void SetGammaCorrection(float gammaCorr) { m_GammaCorrection = gammaCorr; }
-	void SetSceneAmbientColor(const float3& color) { m_AmbientColor = color; }
+	void SetSceneAmbientColor(const float3& color);
 	void SetRendererAlphaFunction(AlphaFunction function) { m_RendererAlphaFunc = function; }
 	void SetSkyboxColor(const float3& color) { m_SkyboxColor = color; }
 	void SetSkyboxExposure(float value) { m_SkyboxExposure = value; }

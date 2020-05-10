@@ -3,6 +3,7 @@
 
 #include "Resource.h"
 #include <unordered_map>
+#include "Math.h"
 
 BE_BEGIN_NAMESPACE
 class GameObject;
@@ -23,12 +24,18 @@ public:
 	GameObject* GetGOWithName(const char* GO_name);
 	GameObject* GetGOWithUID(uint UID);
 
+	const float3 GetSceneAmbientColor() const { return m_SceneColor; }
+	void SetSceneAmbientColor(float3 color) { m_SceneColor = color; }
+
 	std::unordered_map<uint,GameObject*> NoStaticGameObjects;
 	std::unordered_map<uint, GameObject*> StaticGameObjects;
 
 private:
+
 	void OnOverwrite() override;
 	void OnDelete() override;
+
+	float3 m_SceneColor = float3::one;
 };
 BE_END_NAMESPACE
 #endif //__RESOURCE_SCENE_H__

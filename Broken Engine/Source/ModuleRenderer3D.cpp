@@ -6,12 +6,12 @@
 #include "ModuleGui.h"
 #include "ModuleSceneManager.h"
 #include "ModuleCamera3D.h"
-#include "ModuleResourceManager.h"
 #include "ModuleUI.h"
 #include "ModuleParticles.h"
 #include "ModuleTextures.h"
 #include "ModuleTimeManager.h"
 #include "ModuleSelection.h"
+#include "ModuleResourceManager.h"
 
 // -- Components --
 #include "GameObject.h"
@@ -28,11 +28,10 @@
 
 // -- Resources --
 #include "ResourceShader.h"
-#include "ResourceShader.h"
 #include "ResourceMesh.h"
 #include "ResourceMaterial.h"
 #include "ResourceTexture.h"
-
+#include "ResourceScene.h"
 #include "ImporterShader.h"
 
 #include "OpenGL.h"
@@ -477,6 +476,12 @@ void ModuleRenderer3D::OnResize(int width, int height)
 // ---------------------------------------------------------------------------------------------
 // ------------------------------ Setters ------------------------------------------------------
 // ---------------------------------------------------------------------------------------------
+void ModuleRenderer3D::SetSceneAmbientColor(const float3& color)
+{
+	m_AmbientColor = color;
+	App->scene_manager->currentScene->SetSceneAmbientColor(color);
+}
+
 bool ModuleRenderer3D::SetVSync(bool _vsync)
 {
 	bool ret = true;

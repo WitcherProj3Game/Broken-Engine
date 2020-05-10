@@ -256,7 +256,7 @@ void ComponentCharacterController::Delete()
 
 json ComponentCharacterController::Save() const
 {
-	ENGINE_CONSOLE_LOG("Saved");
+	//ENGINE_CONSOLE_LOG("Saved");
 
 	json node;
 

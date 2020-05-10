@@ -6,11 +6,12 @@
 
 using namespace Broken;
 
-CurveEditor::CurveEditor(const char* _name, CurveType _type)
+CurveEditor::CurveEditor(const char* _name, CurveType _type, int _multiplier)
 {
 	name.append(_name);
 	type = _type;
 	current = type;
+	multiplier = _multiplier;
 }
 
 CurveEditor::~CurveEditor()
@@ -79,7 +80,7 @@ float CurveEditor::GetCurrentValue(float cur_time, float max_time) {
 		float time = cur_time / max_time;
 		if (type == CurveType::LINEAR) {
 			for (int i = 0; i < pointsCurveTangents.size() - 1; ++i) {
-				if (time > pointsCurveTangents[i].p.x && time < pointsCurveTangents[i + 1].p.x) {
+				if (time > pointsCurveTangents[i].p.x&& time < pointsCurveTangents[i + 1].p.x) {
 					float p1_time = pointsCurveTangents[i].p.x * max_time;
 					float p2_time = pointsCurveTangents[i + 1].p.x * max_time;
 					float p1_value = pointsCurveTangents[i].p.y * multiplier;
@@ -91,7 +92,7 @@ float CurveEditor::GetCurrentValue(float cur_time, float max_time) {
 				else if (time > pointsCurveTangents[i + 1].p.x) {
 					ret = pointsCurveTangents[i + 1].p.y * multiplier;
 				}
-				else if(time > pointsCurveTangents[i].p.x){
+				else if (time > pointsCurveTangents[i].p.x) {
 					ret = pointsCurveTangents[i].p.y * multiplier;
 				}
 			}

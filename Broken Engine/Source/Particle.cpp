@@ -74,7 +74,7 @@ void Particle::Draw()
 		f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
 		0.0f, f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, -1.0f,
-		position.x * 0.01f, position.y * 0.01f, nearp, 0.0f);
+		0.0f, 0.0f, nearp, 0.0f);
 
 	GLint projectLoc = glGetUniformLocation(shaderID, "u_Proj");
 	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());

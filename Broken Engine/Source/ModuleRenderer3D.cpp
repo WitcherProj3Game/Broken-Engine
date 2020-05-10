@@ -877,6 +877,14 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
 
 		// --- Transparency Uniform ---
 		glUniform1i(glGetUniformLocation(shader, "u_HasTransparencies"), (int)mesh->mat->has_transparencies);
+		
+		int skyboxUnifLoc = glGetUniformLocation(shader, "skybox");
+		if (skyboxUnifLoc != -1)
+		{
+			glUniform1i(skyboxUnifLoc, 0);
+			glActiveTexture(GL_TEXTURE0 + 0);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexID);
+		}
 
 		if (!mesh->mat->has_culling)
 			glDisable(GL_CULL_FACE);
@@ -1045,11 +1053,11 @@ void ModuleRenderer3D::SendShaderUniforms(uint shader)
 	glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 0);
 
 
-
-	if (shader == defaultShader->ID)
+	int lightsNumLoc = glGetUniformLocation(shader, "u_LightsNumber");
+	if (shader == defaultShader->ID || lightsNumLoc != -1)
 	{
 		// --- Send Lights ---
-		glUniform1i(glGetUniformLocation(shader, "u_LightsNumber"), m_LightsVec.size());
+		glUniform1i(lightsNumLoc, m_LightsVec.size());
 		for (uint i = 0; i < m_LightsVec.size(); ++i)
 			m_LightsVec[i]->SendUniforms(shader, i);
 	}

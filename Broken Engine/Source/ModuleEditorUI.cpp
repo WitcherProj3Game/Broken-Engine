@@ -104,9 +104,6 @@ update_status ModuleEditorUI::Update(float dt)
 	if (ImGui::BeginMainMenuBar()) {
 
 		if (ImGui::BeginMenu("File")) {
-			if (ImGui::MenuItem("Quit")) {
-				return UPDATE_STOP;
-			}
 
 			if (ImGui::MenuItem("Save Scene")) {
 				EngineApp->scene_manager->SaveScene(EngineApp->scene_manager->currentScene);
@@ -134,6 +131,10 @@ update_status ModuleEditorUI::Update(float dt)
 				}
 
 				ImGui::EndMenu();
+			}
+
+			if (ImGui::MenuItem("Quit")) {
+				return UPDATE_STOP;
 			}
 
 			ImGui::EndMenu();

@@ -455,29 +455,49 @@ bool ModuleRenderer3D::CleanUp()
 
 void ModuleRenderer3D::LoadStatus(const json& file)
 {
-	m_GammaCorrection = file["Renderer3D"]["GammaCorrection"].is_null() ? 1.0f : file["Renderer3D"]["GammaCorrection"].get<float>();
-	m_SkyboxExposure = file["Renderer3D"]["SkyboxExposure"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxExposure"].get<float>();
+	// --- General Stuff ---
+	m_GammaCorrection = file["Renderer3D"].find("GammaCorrection") == file["Renderer3D"].end() ? 1.0f : file["Renderer3D"]["GammaCorrection"].get<float>();
+	m_SkyboxExposure = file["Renderer3D"].find("SkyboxExposure") == file["Renderer3D"].end() ? 1.0f : file["Renderer3D"]["SkyboxExposure"].get<float>();
+
+	//Scene Color
+	if (file["Renderer3D"].find("SceneAmbientColor") != file["Renderer3D"].end())
+	{
+		if (file["Renderer3D"]["SceneAmbientColor"].find("R") != file["Renderer3D"]["SceneAmbientColor"].end() &&
+			file["Renderer3D"]["SceneAmbientColor"].find("G") != file["Renderer3D"]["SceneAmbientColor"].end() &&
+			file["Renderer3D"]["SceneAmbientColor"].find("B") != file["Renderer3D"]["SceneAmbientColor"].end())
+		{
+			m_AmbientColor = float3(file["Renderer3D"]["SceneAmbientColor"]["R"].get<float>(), file["Renderer3D"]["SceneAmbientColor"]["G"].get<float>(), file["Renderer3D"]["SceneAmbientColor"]["B"].get<float>());
+		}
+		else
+			m_AmbientColor = float3::one;
+	}
+	else
+		m_AmbientColor = float3::one;
+
+	//Skybox Color Tint
+	if (file["Renderer3D"].find("SkyboxColorTint") != file["Renderer3D"].end())
+	{
+		if (file["Renderer3D"]["SkyboxColorTint"].find("R") != file["Renderer3D"]["SkyboxColorTint"].end() &&
+			file["Renderer3D"]["SkyboxColorTint"].find("G") != file["Renderer3D"]["SkyboxColorTint"].end() &&
+			file["Renderer3D"]["SkyboxColorTint"].find("B") != file["Renderer3D"]["SkyboxColorTint"].end())
+		{
+			m_AmbientColor = float3(file["Renderer3D"]["SkyboxColorTint"]["R"].get<float>(), file["Renderer3D"]["SkyboxColorTint"]["G"].get<float>(), file["Renderer3D"]["SkyboxColorTint"]["B"].get<float>());
+		}
+		else
+			m_AmbientColor = float3::one;
+	}
+	else
+		m_AmbientColor = float3::one;
+
+
+	// --- Blending Stuff ---
 	m_AutomaticBlendingFunc = file["Renderer3D"].find("RendAutoBlending") == file["Renderer3D"].end() ? true : file["Renderer3D"]["RendAutoBlending"].get<bool>();
-	int AlphaFuncValue = file["Renderer3D"]["AlphaFunc"].is_null() ? 1 : file["Renderer3D"]["AlphaFunc"].get<int>();
-	m_RendererBlendFunc = (BlendAutoFunction)AlphaFuncValue;
+	m_RendererBlendFunc = file["Renderer3D"].find("AlphaFunc") == file["Renderer3D"].end() ? BlendAutoFunction::STANDARD_INTERPOLATIVE : (BlendAutoFunction)file["Renderer3D"]["AlphaFunc"].get<int>();
+	m_BlendEquation = file["Renderer3D"].find("BlendEquation") == file["Renderer3D"].end() ? BlendingEquations::ADD : (BlendingEquations)file["Renderer3D"]["BlendEquation"].get<int>();
 
-	int BlendEqValue = file["Renderer3D"]["BlendEquation"].is_null() ? 1 : file["Renderer3D"]["BlendEquation"].get<int>();
-	m_BlendEquation = (BlendingEquations)BlendEqValue;
 
-	int M_AlphaFuncValueSrc = file["Renderer3D"]["ManualAlphaFuncSrc"].is_null() ? 1 : file["Renderer3D"]["ManualAlphaFuncSrc"].get<int>();
-	int M_AlphaFuncValueDst = file["Renderer3D"]["ManualAlphaFuncDst"].is_null() ? 1 : file["Renderer3D"]["ManualAlphaFuncDst"].get<int>();
-	m_ManualBlend_Src = (BlendingTypes)m_RendererBlendFunc;
-	m_ManualBlend_Dst = (BlendingTypes)m_RendererBlendFunc;
-
-	float skybox_tintR = file["Renderer3D"]["SkyboxColorTint"]["R"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxColorTint"]["R"].get<float>();
-	float skybox_tintG = file["Renderer3D"]["SkyboxColorTint"]["G"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxColorTint"]["G"].get<float>();
-	float skybox_tintB = file["Renderer3D"]["SkyboxColorTint"]["B"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxColorTint"]["B"].get<float>();
-	m_SkyboxColor = float3(skybox_tintR, skybox_tintG, skybox_tintB);
-
-	float ambR = file["Renderer3D"]["SceneAmbientColor"]["R"].is_null() ? 1.0f : file["Renderer3D"]["SceneAmbientColor"]["R"].get<float>();
-	float ambG = file["Renderer3D"]["SceneAmbientColor"]["G"].is_null() ? 1.0f : file["Renderer3D"]["SceneAmbientColor"]["G"].get<float>();
-	float ambB = file["Renderer3D"]["SceneAmbientColor"]["B"].is_null() ? 1.0f : file["Renderer3D"]["SceneAmbientColor"]["B"].get<float>();
-	m_AmbientColor = float3(ambR, ambG, ambB);
+	m_ManualBlend_Src = file["Renderer3D"].find("ManualAlphaFuncSrc") == file["Renderer3D"].end() ? BlendingTypes::SRC_ALPHA : (BlendingTypes)file["Renderer3D"]["ManualAlphaFuncSrc"].get<int>();
+	m_ManualBlend_Dst = file["Renderer3D"].find("ManualAlphaFuncDst") == file["Renderer3D"].end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)file["Renderer3D"]["ManualAlphaFuncDst"].get<int>();
 }
 
 const json& ModuleRenderer3D::SaveStatus() const

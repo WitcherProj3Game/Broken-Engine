@@ -740,35 +740,15 @@ void ComponentParticleEmitter::Load(json& node)
 	}
 
 	// --- Blending Load ---
-	if (!node["PartBlendFunc"].is_null())
-		m_PartBlendFunc = (BlendAutoFunction)node["PartBlendFunc"].get<int>();
-	else
-		m_PartBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
+	m_PartBlendFunc = node.find("PartBlendFunc") == node.end() ? BlendAutoFunction::STANDARD_INTERPOLATIVE : (BlendAutoFunction)node["PartBlendFunc"].get<int>();
+	m_PartBlEquation = node.find("PartBlendEquation") == node.end() ? BlendingEquations::ADD : (BlendingEquations)node["PartBlendEquation"].get<int>();
+	m_MPartBlend_Src = node.find("PartMBlFuncSrc") == node.end() ? BlendingTypes::SRC_ALPHA : (BlendingTypes)node["PartMBlFuncSrc"].get<int>();
+	m_MPartBlend_Dst = node.find("PartMBlFuncDst") == node.end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)node["PartMBlFuncDst"].get<int>();
+	m_PartAutoBlending = node.find("PartAutoBlending") == node.end() ? true : node["PartAutoBlending"].get<bool>();
 
-	if (!node["PartBlendEquation"].is_null())
-		m_PartBlEquation = (BlendingEquations)node["PartBlendEquation"].get<int>();
-	else
-		m_PartBlEquation = BlendingEquations::ADD;
-
-	if (!node["PartMBlFuncSrc"].is_null())
-		m_MPartBlend_Src = (BlendingTypes)node["PartMBlFuncSrc"].get<int>();
-	else
-		m_MPartBlend_Src = BlendingTypes::SRC_ALPHA;
-
-	if (!node["PartMBlFuncDst"].is_null())
-		m_MPartBlend_Dst = (BlendingTypes)node["PartMBlFuncDst"].get<int>();
-	else
-		m_MPartBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
-
-	if (!node["PartAutoBlending"].is_null())
-		m_PartAutoBlending = node["PartAutoBlending"].get<bool>();
-	else
-		m_PartAutoBlending = true;
-
-	std::string vert_billboard_str = node["VerticalBill"].is_null() ? "0" : node["VerticalBill"];
-	std::string hor_billboard_str = node["HorizontalBill"].is_null() ? "0" : node["HorizontalBill"];
-	horizontalBillboarding = std::stoi(hor_billboard_str);
-	verticalBillboarding = std::stoi(vert_billboard_str);
+	// --- Vertical Billbaording ---
+	horizontalBillboarding = node.find("HorizontalBill") == node.end() ? false : node["HorizontalBill"].get<bool>();
+	verticalBillboarding = node.find("VerticalBill") == node.end() ? false : node["VerticalBill"].get<bool>();
 }
 
 void ComponentParticleEmitter::CreateInspectorNode()

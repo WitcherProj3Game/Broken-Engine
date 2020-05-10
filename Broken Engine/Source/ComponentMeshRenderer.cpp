@@ -256,7 +256,7 @@ void ComponentMeshRenderer::CreateInspectorNode()
 				ImGui::Text("Shininess");
 				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 				ImGui::SetNextItemWidth(300.0f);
-				if(ImGui::SliderFloat("", &material->m_Shininess, 1.0f, 500.00f, "%.3f", 1.5f)) save_material = true;
+				if(ImGui::SliderFloat("", &material->m_Shininess, -2.0f, 500.00f, "%.3f", 1.5f)) save_material = true;
 
 				//ImGui::Text("Shader Uniforms");
 
@@ -322,9 +322,4 @@ void ComponentMeshRenderer::CreateInspectorNode()
 	ImGui::Text("Drop Material");
 
 	ImGui::PopID();
-}
-
-void HandleBlendSelector()
-{
-
 }

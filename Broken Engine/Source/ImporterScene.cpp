@@ -64,6 +64,15 @@ void ImporterScene::SaveSceneToFile(ResourceScene* scene) const
 
 	json file;
 
+	//Before loading static objects, load the dimensions of the tree
+	file["octreeBox"]["minX"] = scene->octreeBox.MinX();
+	file["octreeBox"]["minY"] = scene->octreeBox.MinY();
+	file["octreeBox"]["minZ"] = scene->octreeBox.MinZ();
+
+	file["octreeBox"]["maxX"] = scene->octreeBox.MaxX();
+	file["octreeBox"]["maxY"] = scene->octreeBox.MaxY();
+	file["octreeBox"]["maxZ"] = scene->octreeBox.MaxZ();
+
 	for (std::unordered_map<uint, GameObject*>::iterator it = scene->NoStaticGameObjects.begin(); it != scene->NoStaticGameObjects.end(); ++it)
 	{
 		std::string string_uid = std::to_string((*it).second->GetUID());

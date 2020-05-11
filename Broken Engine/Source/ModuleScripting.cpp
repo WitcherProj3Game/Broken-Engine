@@ -815,6 +815,30 @@ void ModuleScripting::DeployScriptingGlobals()
 	}
 }
 
+//The purpose of this function is to initialize the scripting vars of an instantiated gameObject on creation
+void ModuleScripting::EmplaceEditorValues(ScriptInstance* script)
+{
+	std::string aux_str = "null";
+	for (std::vector<ScriptVar>::iterator it = script->my_component->script_variables.begin(); it != script->my_component->script_variables.end(); ++it)
+	{
+		if ((*it).changed_value) {
+			switch ((*it).type) {
+			case VarType::DOUBLE:
+				script->my_table_class[(*it).name.c_str()] = (*it).editor_value.as_double;
+				break;
+			case VarType::STRING:
+				aux_str = (*it).editor_value.as_string;
+				script->my_table_class[(*it).name.c_str()] = aux_str.c_str();
+				break;
+			case VarType::BOOLEAN:
+				script->my_table_class[(*it).name.c_str()] = (*it).editor_value.as_boolean;
+				break;
+			}
+			(*it).changed_value = false;
+		}
+	}
+}
+
 bool ModuleScripting::Init(json& file) {
 
 	//First, check if we are in a debuggable game build (managed inside the application)

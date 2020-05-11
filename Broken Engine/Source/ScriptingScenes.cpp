@@ -52,6 +52,11 @@ uint ScriptingScenes::Instantiate(uint resource_UUID, float x, float y, float z,
 		go->TransformGlobal();
 		//go->GetComponent<ComponentTransform>()->updateValues = false;
 
+		//Override the variables of the script with editor values
+		ComponentScript* component_script = go->GetComponent<ComponentScript>();
+		ScriptInstance* script_inst = App->scripting->GetScriptInstanceFromComponent(component_script);
+		App->scripting->EmplaceEditorValues(script_inst);
+
 		ret = go->GetUID();
 	}
 

@@ -1260,7 +1260,7 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 
 	if (validParticles < maxParticles)
 	{
-		Quat rotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
+		Quat rotation = GO->GetComponent<ComponentTransform>()->rotation /** emitterRotation*/;
 
 		if (particlesToCreate > maxParticles - validParticles)
 			particlesToCreate = maxParticles - validParticles;
@@ -1304,8 +1304,8 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 
 
 			Quat positionQuat = Quat(position.x, position.y, position.z, 0);
-			positionQuat = rotation * rotation.Conjugated();
-			positionBuffer[i] = physx::PxVec3(globalPosition.x, globalPosition.y, globalPosition.z);
+			positionQuat = rotation *positionQuat* rotation.Conjugated();
+			positionBuffer[i] =  physx::PxVec3(positionQuat.x, positionQuat.y, positionQuat.z);
 
 			particles[index[i]]->lifeTime = particlesLifeTime;
 			particles[index[i]]->spawnTime = spawnClock;

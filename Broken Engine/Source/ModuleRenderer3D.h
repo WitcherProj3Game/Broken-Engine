@@ -212,6 +212,7 @@ public:
 
 	uint rendertexture = 0;
 	uint depthMapTexture = 0;
+	float3 skyboxangle = float3::zero;
 
 private:
 

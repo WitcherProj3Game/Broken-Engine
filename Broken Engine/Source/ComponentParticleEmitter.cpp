@@ -1305,7 +1305,7 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 
 			Quat positionQuat = Quat(position.x, position.y, position.z, 0);
 			positionQuat = rotation *positionQuat* rotation.Conjugated();
-			positionBuffer[i] =  physx::PxVec3(positionQuat.x, positionQuat.y, positionQuat.z);
+			positionBuffer[i] =  physx::PxVec3(positionQuat.x+globalPosition.x, positionQuat.y+globalPosition.y, positionQuat.z+globalPosition.z);
 
 			particles[index[i]]->lifeTime = particlesLifeTime;
 			particles[index[i]]->spawnTime = spawnClock;

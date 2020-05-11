@@ -39,6 +39,9 @@ public:
 	void StopDebugging();
 	void CallbackScriptFunctionParam(ComponentScript* script_component, const ScriptFunc& function_to_call, uint id);
 	void DeployScriptingGlobals();
+
+	//The purpose of this function is to initialize the scripting vars of an instantiated gameObject on creation
+	void EmplaceEditorValues(ScriptInstance* script);
 	
 	void CleanUpInstances();
 

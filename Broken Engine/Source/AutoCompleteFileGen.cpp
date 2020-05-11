@@ -37,6 +37,8 @@ void AutoCompleteFileGen::EmplaceAnimationFunctions()
 	CurrentAnimationEnded.variables.push_back("gameObject_UID");
 
 	//GetCurrentFrame
+	SerializedFunction GetCurrentFrame("GetCurrentFrame", source.c_str());
+	GetCurrentFrame.variables.push_back("gameObject_UID");
 
 	//Pushback all functions
 	engine_functions.push_back(PlayAnimation);
@@ -44,6 +46,7 @@ void AutoCompleteFileGen::EmplaceAnimationFunctions()
 	engine_functions.push_back(SetCurrentAnimationSpeed);
 	engine_functions.push_back(SetBlendTime);
 	engine_functions.push_back(CurrentAnimationEnded);
+	engine_functions.push_back(GetCurrentFrame);
 }
 
 void AutoCompleteFileGen::EmplaceUserInterfaceFunctions()
@@ -257,6 +260,21 @@ void AutoCompleteFileGen::EmplaceSystemFunctions()
 	SerializedFunction RandomNumberList("RandomNumberList", source.c_str());
 	RandomNumberList.variables.push_back("listSize"); RandomNumberList.variables.push_back("min"); RandomNumberList.variables.push_back("max");
 
+	//MathFloatLerp
+	SerializedFunction MathFloatLerp("MathFloatLerp", source.c_str());
+	MathFloatLerp.variables.push_back("float_a"); MathFloatLerp.variables.push_back("float_b"); MathFloatLerp.variables.push_back("time");
+	//MathFloatInverseLerp
+	SerializedFunction MathFloatInverseLerp("MathFloatInverseLerp", source.c_str());
+	MathFloatInverseLerp.variables.push_back("float_a"); MathFloatInverseLerp.variables.push_back("float_b"); MathFloatInverseLerp.variables.push_back("x");
+	//MathFloat2Lerp
+	SerializedFunction MathFloat2Lerp("MathFloat2Lerp", source.c_str());
+	MathFloat2Lerp.variables.push_back("ax"); MathFloat2Lerp.variables.push_back("ay"); MathFloat2Lerp.variables.push_back("bx"); MathFloat2Lerp.variables.push_back("by");
+	MathFloat2Lerp.variables.push_back("ax");
+	//MathFloat3Lerp
+	SerializedFunction MathFloat3Lerp("MathFloat3Lerp", source.c_str());
+	MathFloat3Lerp.variables.push_back("ax"); MathFloat3Lerp.variables.push_back("ay"); MathFloat3Lerp.variables.push_back("az");
+	MathFloat3Lerp.variables.push_back("bx"); MathFloat3Lerp.variables.push_back("by"); MathFloat3Lerp.variables.push_back("bz"); MathFloat3Lerp.variables.push_back("time");
+
 	//PushBack all functions
 	engine_functions.push_back(LOG);
 	engine_functions.push_back(RealDT);
@@ -270,6 +288,11 @@ void AutoCompleteFileGen::EmplaceSystemFunctions()
 	engine_functions.push_back(RandomNumber);
 	engine_functions.push_back(RandomNumberInRange);
 	engine_functions.push_back(RandomNumberList);
+
+	engine_functions.push_back(MathFloatLerp);
+	engine_functions.push_back(MathFloatInverseLerp);
+	engine_functions.push_back(MathFloat2Lerp);
+	engine_functions.push_back(MathFloat3Lerp);
 }
 
 void AutoCompleteFileGen::EmplaceTransformFunctions()
@@ -321,10 +344,10 @@ void AutoCompleteFileGen::EmplaceGameObjectFunctions()
 	FindGameObject.variables.push_back("gameobject_name");
 	FindGameObject.description = "Returns the UID of the GameObject if it is found in the scene. This function searches using strings, only recomended to be called on Awake or Start since it consumes a lot of resources.";
 	
-	//FindChildGameObject
+
 	SerializedFunction FindChildGameObject("FindChildGameObject", source.c_str());
 	FindChildGameObject.variables.push_back("gameObject_name");
-	//FindChidGameObjectFromGO
+
 	SerializedFunction FindChidGameObjectFromGO("FindChidGameObjectFromGO", source.c_str());
 	FindChidGameObjectFromGO.variables.push_back("gameObject_name"); FindChidGameObjectFromGO.variables.push_back("gameObject_UID");
 
@@ -343,8 +366,6 @@ void AutoCompleteFileGen::EmplaceGameObjectFunctions()
 	SerializedFunction SetActiveGameObject("SetActiveGameObject", source.c_str());
 	SetActiveGameObject.variables.push_back("bool_active"); SetActiveGameObject.variables.push_back("gameObject_UID");
 	
-
-	//IsActive GameObject
 	SerializedFunction IsActive("IsActive", source.c_str());
 	IsActive.variables.push_back("gameObject_UID");
 
@@ -573,6 +594,33 @@ void AutoCompleteFileGen::EmplaceParticlesFunctions()
 	SerializedFunction SetRandomParticlesScale("SetRandomParticlesScale", source.c_str());
 	SetRandomParticlesScale.variables.push_back("randomFactor"); SetRandomParticlesScale.variables.push_back("gameObject_UID");
 
+	//SetScaleOverTime"
+	SerializedFunction SetScaleOverTime("SetScaleOverTime", source.c_str());
+	SetScaleOverTime.variables.push_back("scale"); SetScaleOverTime.variables.push_back("gameObject_UID");
+	//SetTextureByUID",
+	SerializedFunction SetTextureByUID("SetTextureByUID", source.c_str());
+	SetTextureByUID.variables.push_back("tex_UID"); SetTextureByUID.variables.push_back("gameObject_UID");
+	//SetTextureByName
+	SerializedFunction SetTextureByName("SetTextureByName", source.c_str());
+	SetTextureByName.variables.push_back("tex_name"); SetTextureByName.variables.push_back("gameObject_UID");
+
+	//"SetParticlesRotationOverTime"
+	SerializedFunction SetParticlesRotationOverTime("SetParticlesRotationOverTime", source.c_str());
+	SetParticlesRotationOverTime.variables.push_back("rotation_over_time"); SetParticlesRotationOverTime.variables.push_back("gameObject_UID");
+	//"SetParticlesRandomRotationOverTime"
+	SerializedFunction SetParticlesRandomRotationOverTime("SetParticlesRandomRotationOverTime", source.c_str());
+	SetParticlesRandomRotationOverTime.variables.push_back("random_rotation"); SetParticlesRandomRotationOverTime.variables.push_back("gameObject_UID");
+	//"SetParticles3DRotationOverTime"
+	SerializedFunction SetParticles3DRotationOverTime("SetParticles3DRotationOverTime", source.c_str());
+	SetParticles3DRotationOverTime.variables.push_back("rot_over_timeX"); SetParticles3DRotationOverTime.variables.push_back("rot_over_timeY"); 
+	SetParticles3DRotationOverTime.variables.push_back("rot_over_timeZ"); SetParticles3DRotationOverTime.variables.push_back("gameObject_UID");
+	//"SetParticles3DRandomRotationOverTime"
+	SerializedFunction SetParticles3DRandomRotationOverTime("SetParticles3DRandomRotationOverTime", source.c_str());
+	SetParticles3DRandomRotationOverTime.variables.push_back("rot_over_timeX"); SetParticles3DRandomRotationOverTime.variables.push_back("rot_over_timeY");
+	SetParticles3DRandomRotationOverTime.variables.push_back("rot_over_timeZ"); SetParticles3DRandomRotationOverTime.variables.push_back("gameObject_UID");
+	//"RemoveParticlesRandomRotation"
+	SerializedFunction RemoveParticlesRandomRotation("RemoveParticlesRandomRotation", source.c_str());
+	RemoveParticlesRandomRotation.variables.push_back("gameObject_UID");
 
 	//PushBack all functions
 	engine_functions.push_back(ActivateParticlesEmission);
@@ -596,6 +644,16 @@ void AutoCompleteFileGen::EmplaceParticlesFunctions()
 
 	engine_functions.push_back(SetParticlesScale);
 	engine_functions.push_back(SetRandomParticlesScale);
+
+	engine_functions.push_back(SetScaleOverTime);
+	engine_functions.push_back(SetTextureByUID);
+	engine_functions.push_back(SetTextureByName);
+
+	engine_functions.push_back(SetParticlesRotationOverTime);
+	engine_functions.push_back(SetParticlesRandomRotationOverTime);
+	engine_functions.push_back(SetParticles3DRotationOverTime);
+	engine_functions.push_back(SetParticles3DRandomRotationOverTime);
+	engine_functions.push_back(RemoveParticlesRandomRotation);
 }
 
 void AutoCompleteFileGen::EmplaceLightingFunctions()
@@ -661,7 +719,7 @@ void AutoCompleteFileGen::EmplaceAudioFunctions()
 	std::string source = "Audio";
 
 	SerializedFunction SetVolume("SetVolume", source.c_str());
-	SetVolume.variables.push_back("volume");
+	SetVolume.variables.push_back("volume"); SetVolume.variables.push_back("gameObject_UID");
 	
 	SerializedFunction PlayAudioEvent("PlayAudioEvent", source.c_str());
 	PlayAudioEvent.variables.push_back("event");
@@ -675,19 +733,32 @@ void AutoCompleteFileGen::EmplaceAudioFunctions()
 	SerializedFunction ResumeAudioEvent("ResumeAudioEvent", source.c_str());
 	ResumeAudioEvent.variables.push_back("event");
 
-	//PlayAudioEventGO
+
 	SerializedFunction PlayAudioEventGO("PlayAudioEventGO", source.c_str());
 	PlayAudioEventGO.variables.push_back("event"); PlayAudioEventGO.variables.push_back("gameObject_UID");
-	//StopAudioEventGO
+
 	SerializedFunction StopAudioEventGO("StopAudioEventGO", source.c_str());
 	StopAudioEventGO.variables.push_back("event"); StopAudioEventGO.variables.push_back("gameObject_UID");
-	//PauseAudioEventGO
+
 	SerializedFunction PauseAudioEventGO("PauseAudioEventGO", source.c_str());
 	PauseAudioEventGO.variables.push_back("event"); PauseAudioEventGO.variables.push_back("gameObject_UID");
-	//ResumeAudioEventGO
+
 	SerializedFunction ResumeAudioEventGO("ResumeAudioEventGO", source.c_str());
 	ResumeAudioEventGO.variables.push_back("event"); ResumeAudioEventGO.variables.push_back("gameObject_UID");
 	
+
+	//SetAudioSwitch
+	SerializedFunction SetAudioSwitch("SetAudioSwitch", source.c_str());
+	SetAudioSwitch.variables.push_back("string_SwitchGroup"); SetAudioSwitch.variables.push_back("string_SwitchState"); SetAudioSwitch.variables.push_back("gameObject_UID");
+	//SetAudioTrigger
+	SerializedFunction SetAudioTrigger("SetAudioTrigger", source.c_str());
+	SetAudioTrigger.variables.push_back("string_trigger"); SetAudioTrigger.variables.push_back("gameObject_UID");
+	//SetAudioState
+	SerializedFunction SetAudioState("SetAudioState", source.c_str());
+	SetAudioState.variables.push_back("stateGroup"); SetAudioState.variables.push_back("State");
+	//SetAudioRTPCValue
+	SerializedFunction SetAudioRTPCValue("SetAudioRTPCValue", source.c_str());
+	SetAudioRTPCValue.variables.push_back("RTPCName"); SetAudioRTPCValue.variables.push_back("gameObject_UID");
 
 	//PushBack all functions
 	engine_functions.push_back(SetVolume);

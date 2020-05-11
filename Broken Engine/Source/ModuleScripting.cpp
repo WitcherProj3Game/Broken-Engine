@@ -710,28 +710,10 @@ void ModuleScripting::CallbackScriptFunction(ComponentScript* script_component, 
 
 void ModuleScripting::CompileDebugging()
 {
-	std::string abs_path = App->fs->GetBasePath();
-	App->fs->NormalizePath(abs_path);
+	std::string working_dir = App->fs->GetWorkingDirectory();
+	App->fs->NormalizePath(working_dir);
 
-	std::size_t d_pos = 0;
-	d_pos = abs_path.find("Debug");
-	std::size_t r_pos = 0;
-	r_pos = abs_path.find("Release");
-
-	if (d_pos != 4294967295)  // If we are in DEBUG
-	{
-		abs_path = abs_path.substr(0, d_pos);
-		abs_path += "Game/";
-	}
-	else if (r_pos != 4294967295) // If we are in RELEASE
-	{
-		abs_path = abs_path.substr(0, r_pos);
-		abs_path += "Game/";
-	}
-
-	abs_path += "Lua_Debug";
-
-	debug_path = abs_path;
+	debug_path = working_dir + "/Lua_Debug";
 
 	luabridge::getGlobalNamespace(L)
 		.beginNamespace("Scripting")
@@ -792,7 +774,7 @@ void ModuleScripting::DeployScriptingGlobals()
 
 	if (App->fs->Exists(path.c_str())) //If the file exists compile if not sound the alarm
 	{
-		std::string abs_path = GetScriptingBasePath();
+		std::string abs_path = App->fs->GetWorkingDirectory();
 		abs_path += path;
 
 		//Now, Compile&Run in LUA
@@ -947,37 +929,6 @@ update_status ModuleScripting::GameUpdate(float gameDT)
 	previous_AppState = (_AppState)App->GetAppState();
 
 	return UPDATE_CONTINUE;
-}
-
-//Return the base path of the folder where the .exe file is found
-std::string ModuleScripting::GetScriptingBasePath()
-{
-	std::string ret = "";
-
-	ret = App->fs->GetBasePath();
-	App->fs->NormalizePath(ret);
-
-	//If we are in the build of the game we will skip this process
-	if (App->isGame == false)
-	{
-		std::size_t d_pos = 0;
-		d_pos = ret.find("Debug");
-		std::size_t r_pos = 0;
-		r_pos = ret.find("Release");
-
-		if (d_pos != 4294967295)  // If we are in DEBUG
-		{
-			ret = ret.substr(0, d_pos);
-			ret += "Game/";
-		}
-		else if (r_pos != 4294967295) // If we are in RELEASE
-		{
-			ret = ret.substr(0, r_pos);
-			ret += "Game/";
-		}
-	}
-
-	return ret;
 }
 
 void ModuleScripting::CleanUpInstances() {

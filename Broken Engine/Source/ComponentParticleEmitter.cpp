@@ -202,6 +202,8 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 	std::vector<physx::PxU32> indicesToErease;
 	uint particlesToRelease = 0;
 
+	float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
+
 	// access particle data from physx::PxParticleReadData
 	if (rd)
 	{
@@ -228,6 +230,10 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				}
 
 				particles[i]->position = float3(positionIt->x, positionIt->y, positionIt->z);
+				if (followEmitter)
+				{
+					particles[i]->position += globalPosition - particles[i]->emitterSpawnPosition;
+				}
 
 				if (colorGradient && gradients.size() > 0)
 				{
@@ -387,6 +393,8 @@ json ComponentParticleEmitter::Save() const
 	node["velocityRandomFactor2Z"] = std::to_string(velocityRandomFactor2.z);
 	node["velocityconstants"] = std::to_string(velocityconstants);
 
+	node["followEmitter"] = followEmitter;
+
 	node["particlesLifeTime"] = std::to_string(particlesLifeTime);
 
 	node["animation"] = std::to_string(animation);
@@ -514,6 +522,11 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string LparticlesLifeTime2 = node["particlesLifeTime2"].is_null() ? "0" : node["particlesLifeTime2"];
 	std::string _lifetimeconstants = node["lifetimeconstants"].is_null() ? "0" : node["lifetimeconstants"];
 
+	if (!node["followEmitter"].is_null())
+		followEmitter = node["followEmitter"];
+	else
+		followEmitter = true;
+
 	std::string LParticlesSize = node["particlesSize"].is_null() ? "0" : node["particlesSize"];
 
 	std::string _animation = node["animation"].is_null() ? "0" : node["animation"];
@@ -623,6 +636,8 @@ void ComponentParticleEmitter::Load(json& node)
 
 	if (texture)
 		texture->AddUser(GO);
+
+
 
 	//Pass the strings to the needed dada types
 	emitterPosition.x = std::stof(LpositionX);
@@ -865,6 +880,10 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	if (forceChanged)
 		particleSystem->setExternalAcceleration(externalAcceleration);
 
+
+	//Follow emitter
+	ImGui::Text("Follow emitter");
+	ImGui::Checkbox("##SFollow emitter", &followEmitter);
 
 	//Emision rate
 	ImGui::Text("Emision rate (ms)");
@@ -1313,6 +1332,7 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 			particles[index[i]]->texture = texture;
 			particles[index[i]]->gradientTimer = spawnClock;
 			particles[index[i]]->currentGradient = 0;
+			particles[index[i]]->emitterSpawnPosition = globalPosition;
 
 			//Set scale
 			if (scaleconstants == 1) {

@@ -32,6 +32,7 @@ public:
 	float3 scale = {1,1,1};
 	float3 rotationSpeed = { 0,0,0 };
 	float3 scaleSpeed = { 0,0,0 };
+	float3 emitterSpawnPosition = { 0,0,0 };
 
 	bool h_billboard = false;
 	bool v_billboard = false;

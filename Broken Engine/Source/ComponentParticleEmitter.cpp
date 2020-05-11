@@ -1260,7 +1260,7 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 
 	if (validParticles < maxParticles)
 	{
-		Quat rotation = GO->GetComponent<ComponentTransform>()->rotation /** emitterRotation*/;
+		Quat rotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
 
 		if (particlesToCreate > maxParticles - validParticles)
 			particlesToCreate = maxParticles - validParticles;

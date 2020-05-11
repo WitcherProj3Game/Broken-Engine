@@ -685,23 +685,7 @@ void PanelProject::DrawFile(Broken::Resource* resource, uint i, uint row, ImVec2
 		// Open resources and files with default program
 		else {
 			// Construct absolute path for ShellExecute function
-			std::string abs_path = EngineApp->fs->GetBasePath();
-
-			std::size_t d_pos = 0;
-			d_pos = abs_path.find("Debug");
-			std::size_t r_pos = 0;
-			r_pos = abs_path.find("Release");
-
-			if (d_pos != 4294967295)  // If we are in DEBUG
-			{
-				abs_path = abs_path.substr(0, d_pos);
-				abs_path += "Game/";
-			}
-			else if (r_pos != 4294967295) // If we are in RELEASE
-			{
-				abs_path = abs_path.substr(0, r_pos);
-				abs_path += "Game/";
-			}
+			std::string abs_path = EngineApp->fs->GetWorkingDirectory();
 
 			abs_path += resource->GetOriginalFile();
 			EngineApp->fs->NormalizePath(abs_path);

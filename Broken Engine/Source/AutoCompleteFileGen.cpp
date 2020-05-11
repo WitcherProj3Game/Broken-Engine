@@ -776,8 +776,8 @@ void AutoCompleteFileGen::EmplaceAudioFunctions()
 void AutoCompleteFileGen::EmplaceMaterialFunctions() {
 	std::string source = "Materials";
 
-	//Setters
-
+	// -------------------------------------------------------------------------------------------------------------------
+	// --- Setters ---
 	//SetTransparency
 	SerializedFunction SetTransparency("SetTransparency", source.c_str());
 	SetTransparency.variables.push_back("is_transparent"); SetTransparency.variables.push_back("gameObject_UUID");
@@ -802,14 +802,171 @@ void AutoCompleteFileGen::EmplaceMaterialFunctions() {
 	SerializedFunction SetColor("SetColor", source.c_str());
 	SetColor.variables.push_back("r"); SetColor.variables.push_back("g"); SetColor.variables.push_back("b"); SetColor.variables.push_back("a"); SetColor.variables.push_back("gameObject_UUID");
 
-	// MYTODO: Finish autocomplete for materials
+	// -------------------------------------------------------------------------------------------------------------------
+	// --- Getters ---
+	//GetTransparency
+	SerializedFunction GetTransparency("GetTransparency", source.c_str());
+	GetTransparency.variables.push_back("gameObject_UUID");
 
-	//PushBack all functions
+	//SetCulling
+	SerializedFunction GetCulling("GetCulling", source.c_str());
+	GetCulling.variables.push_back("gameObject_UUID");
+
+	//GetShininess
+	SerializedFunction GetShininess("GetShininess", source.c_str());
+	GetShininess.variables.push_back("gameObject_UUID");
+
+	//GetTextureUsage
+	SerializedFunction GetTextureUsage("GetTextureUsage", source.c_str());
+	GetTextureUsage.variables.push_back("gameObject_UUID");
+
+	//GetAlpha
+	SerializedFunction GetAlpha("GetAlpha", source.c_str());
+	GetAlpha.variables.push_back("gameObject_UUID");
+
+	//GetColor
+	SerializedFunction GetColor("GetColor", source.c_str());
+	GetColor.variables.push_back("gameObject_UUID");
+
+	// -------------------------------------------------------------------------------------------------------------------
+	// --- Get/Set Materials/Shaders ---
+	// SetMaterialByName
+	SerializedFunction SetMaterialByName("SetMaterialByName", source.c_str());
+	SetMaterialByName.variables.push_back("mat_name"); SetMaterialByName.variables.push_back("gameobject_UUID");
+
+	//SetMaterialByUUID
+	SerializedFunction SetMaterialByUUID("SetMaterialByUUID", source.c_str());
+	SetMaterialByUUID.variables.push_back("mat_UUID"); SetMaterialByUUID.variables.push_back("gameObject_UUID");
+
+	//GetCurrentMaterialName
+	SerializedFunction GetCurrentMaterialName("GetCurrentMaterialName", source.c_str());
+	GetCurrentMaterialName.variables.push_back("gameObject_UUID");
+
+	//GetCurrentMaterialUUID
+	SerializedFunction GetCurrentMaterialUUID("GetCurrentMaterialUUID", source.c_str());
+	GetCurrentMaterialUUID.variables.push_back("gameObject_UUID");
+
+	//GetMaterialNameByUUID
+	SerializedFunction GetMaterialNameByUUID("GetMaterialNameByUUID", source.c_str());
+	GetMaterialNameByUUID.variables.push_back("mat_UUID");
+
+	//GetMaterialUUIDByName
+	SerializedFunction GetMaterialUUIDByName("GetMaterialUUIDByName", source.c_str());
+	GetMaterialUUIDByName.variables.push_back("mat_name");
+
+	//SetShaderByName
+	SerializedFunction SetShaderByName("SetShaderByName", source.c_str());
+	SetShaderByName.variables.push_back("shader_name"); SetShaderByName.variables.push_back("gameobject_UUID");
+
+	//SetShaderByUUID
+	SerializedFunction SetShaderByUUID("SetShaderByUUID", source.c_str());
+	SetShaderByUUID.variables.push_back("shader_UUID"); SetShaderByUUID.variables.push_back("gameobject_UUID");
+
+	//SetShaderToMaterial
+	SerializedFunction SetShaderToMaterial("SetShaderToMaterial", source.c_str());
+	SetShaderToMaterial.variables.push_back("shader_name"); SetShaderToMaterial.variables.push_back("mat_name");
+
+	//GetCurrentShaderName
+	SerializedFunction GetCurrentShaderName("GetCurrentShaderName", source.c_str());
+	GetCurrentShaderName.variables.push_back("gameobject_UUID");
+
+	//GetCurrentShaderUUID
+	SerializedFunction GetCurrentShaderUUID("GetCurrentShaderUUID", source.c_str());
+	GetCurrentShaderUUID.variables.push_back("gameobject_UUID");
+
+	//GetShaderNameByUUID
+	SerializedFunction GetShaderNameByUUID("GetShaderNameByUUID", source.c_str());
+	GetShaderNameByUUID.variables.push_back("shader_UUID");
+
+	//GetShaderUUIDByName
+	SerializedFunction GetShaderUUIDByName("GetShaderUUIDByName", source.c_str());
+	GetShaderUUIDByName.variables.push_back("shader_name");
+
+	// -------------------------------------------------------------------------------------------------------------------
+	// --- Set Uniforms ---
+	//SetUniformInt
+	SerializedFunction SetUniformInt("SetUniformInt", source.c_str());
+	SetUniformInt.variables.push_back("material_name"); SetUniformInt.variables.push_back("unif_name"); SetUniformInt.variables.push_back("value");
+
+	//SetUniformFloat
+	SerializedFunction SetUniformFloat("SetUniformFloat", source.c_str());
+	SetUniformFloat.variables.push_back("material_name"); SetUniformFloat.variables.push_back("unif_name"); SetUniformFloat.variables.push_back("value");
+
+	//SetUniformVec2
+	SerializedFunction SetUniformVec2("SetUniformVec2", source.c_str());
+	SetUniformVec2.variables.push_back("material_name"); SetUniformVec2.variables.push_back("unif_name"); SetUniformVec2.variables.push_back("x"); SetUniformVec2.variables.push_back("y");
+
+	//SetUniformVec3
+	SerializedFunction SetUniformVec3("SetUniformVec3", source.c_str());
+	SetUniformVec3.variables.push_back("material_name"); SetUniformVec3.variables.push_back("unif_name"); SetUniformVec3.variables.push_back("x"); SetUniformVec3.variables.push_back("y"); SetUniformVec3.variables.push_back("z");
+
+	//SetUniformVec4
+	SerializedFunction SetUniformVec4("SetUniformVec4", source.c_str());
+	SetUniformVec4.variables.push_back("material_name"); SetUniformVec4.variables.push_back("unif_name"); SetUniformVec4.variables.push_back("x"); SetUniformVec4.variables.push_back("y"); SetUniformVec4.variables.push_back("z"); SetUniformVec4.variables.push_back("w");
+
+	//SetUniformBool
+	SerializedFunction SetUniformBool("SetUniformBool", source.c_str());
+	SetUniformBool.variables.push_back("material_name"); SetUniformBool.variables.push_back("unif_name"); SetUniformBool.variables.push_back("value");
+	
+	//GetUniformInt
+	SerializedFunction GetUniformInt("GetUniformInt", source.c_str());
+	GetUniformInt.variables.push_back("material_name"); GetUniformInt.variables.push_back("unif_name");
+
+	//GetUniformFloat
+	SerializedFunction GetUniformFloat("SetUniformFloat", source.c_str());
+	GetUniformFloat.variables.push_back("material_name"); GetUniformFloat.variables.push_back("unif_name");
+
+	//GetUniformVec2
+	SerializedFunction GetUniformVec2("GetUniformVec2", source.c_str());
+	GetUniformVec2.variables.push_back("material_name"); GetUniformVec2.variables.push_back("unif_name");
+
+	//GetUniformVec3
+	SerializedFunction GetUniformVec3("GetUniformVec3", source.c_str());
+	GetUniformVec3.variables.push_back("material_name"); GetUniformVec3.variables.push_back("unif_name");
+
+	//GetUniformVec4
+	SerializedFunction GetUniformVec4("GetUniformVec4", source.c_str());
+	GetUniformVec4.variables.push_back("material_name"); GetUniformVec4.variables.push_back("unif_name");
+
+
+	// -------------------------------------------------------------------------------------------------------------------
+	// --- PushBack all functions ---
 	engine_functions.push_back(SetTransparency);
 	engine_functions.push_back(SetCulling);
 	engine_functions.push_back(SetTextureUsage);
 	engine_functions.push_back(SetAlpha);
 	engine_functions.push_back(SetColor);
+	engine_functions.push_back(GetTransparency);
+	engine_functions.push_back(GetCulling);
+	engine_functions.push_back(GetTextureUsage);
+	engine_functions.push_back(GetAlpha);
+	engine_functions.push_back(GetColor);
+
+	engine_functions.push_back(SetMaterialByName);
+	engine_functions.push_back(SetMaterialByUUID);
+	engine_functions.push_back(GetCurrentMaterialName);
+	engine_functions.push_back(GetCurrentMaterialUUID);
+	engine_functions.push_back(GetMaterialNameByUUID);
+	engine_functions.push_back(GetMaterialUUIDByName);
+	engine_functions.push_back(SetShaderByName);
+	engine_functions.push_back(SetShaderByUUID);
+	engine_functions.push_back(SetShaderToMaterial);
+	engine_functions.push_back(GetCurrentShaderName);
+	engine_functions.push_back(GetCurrentShaderUUID);
+	engine_functions.push_back(GetShaderNameByUUID);
+	engine_functions.push_back(GetShaderUUIDByName);
+
+	engine_functions.push_back(SetUniformInt);
+	engine_functions.push_back(SetUniformFloat);
+	engine_functions.push_back(SetUniformVec2);
+	engine_functions.push_back(SetUniformVec3);
+	engine_functions.push_back(SetUniformVec4);
+	engine_functions.push_back(SetUniformBool);
+	engine_functions.push_back(GetUniformInt);
+	engine_functions.push_back(GetUniformFloat);
+	engine_functions.push_back(GetUniformVec2);
+	engine_functions.push_back(GetUniformVec3);
+	engine_functions.push_back(GetUniformVec4);
 }
 
 

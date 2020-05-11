@@ -40,9 +40,6 @@ public:
 	void CallbackScriptFunctionParam(ComponentScript* script_component, const ScriptFunc& function_to_call, uint id);
 	void DeployScriptingGlobals();
 	
-
-	std::string GetScriptingBasePath();
-
 	void CleanUpInstances();
 
 	bool Init(json& file) override;

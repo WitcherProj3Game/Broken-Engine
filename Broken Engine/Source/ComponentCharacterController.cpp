@@ -256,7 +256,7 @@ void ComponentCharacterController::Delete()
 
 json ComponentCharacterController::Save() const
 {
-	ENGINE_CONSOLE_LOG("Saved");
+	//ENGINE_CONSOLE_LOG("Saved");
 
 	json node;
 
@@ -282,7 +282,7 @@ json ComponentCharacterController::Save() const
 
 void ComponentCharacterController::Load(json& node)
 {
-	ENGINE_CONSOLE_LOG("Load");
+	//ENGINE_CONSOLE_LOG("Load");
 
 	std::string contactOffset_ = node["contactOffset"].is_null() ? "0" : node["contactOffset"];
 	std::string stepOffset_ = node["stepOffset"].is_null() ? "0" : node["stepOffset"];

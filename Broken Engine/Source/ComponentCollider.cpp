@@ -223,7 +223,7 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 
 json ComponentCollider::Save() const
 {
-	ENGINE_CONSOLE_LOG("Saved");
+	//ENGINE_CONSOLE_LOG("Saved");
 	json node;
 
 	node["Active"] = this->active;
@@ -313,7 +313,7 @@ void ComponentCollider::Load(json& node)
 {
 	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
 
-	ENGINE_CONSOLE_LOG("Load");
+	//ENGINE_CONSOLE_LOG("Load");
 	//CreateCollider(COLLIDER_TYPE::NONE, true);
 
 	std::string localPositionx = node["localPositionx"].is_null() ? "0" : node["localPositionx"];

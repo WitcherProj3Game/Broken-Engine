@@ -773,6 +773,46 @@ void AutoCompleteFileGen::EmplaceAudioFunctions()
 	engine_functions.push_back(ResumeAudioEventGO);
 }
 
+void AutoCompleteFileGen::EmplaceMaterialFunctions() {
+	std::string source = "Materials";
+
+	//Setters
+
+	//SetTransparency
+	SerializedFunction SetTransparency("SetTransparency", source.c_str());
+	SetTransparency.variables.push_back("is_transparent"); SetTransparency.variables.push_back("gameObject_UUID");
+
+	//SetCulling
+	SerializedFunction SetCulling("SetCulling", source.c_str());
+	SetCulling.variables.push_back("culling"); SetCulling.variables.push_back("gameObject_UUID");
+
+	//SetShininess
+	SerializedFunction SetShininess("SetShininess", source.c_str());
+	SetShininess.variables.push_back("shininess"); SetShininess.variables.push_back("gameObject_UUID");
+
+	//SetTextureUsage
+	SerializedFunction SetTextureUsage("SetTextureUsage", source.c_str());
+	SetTextureUsage.variables.push_back("use_textures"); SetTextureUsage.variables.push_back("gameObject_UUID");
+
+	//SetAlpha
+	SerializedFunction SetAlpha("SetAlpha", source.c_str());
+	SetAlpha.variables.push_back("alpha"); SetAlpha.variables.push_back("gameObject_UUID");
+
+	//SetColor
+	SerializedFunction SetColor("SetColor", source.c_str());
+	SetColor.variables.push_back("r"); SetColor.variables.push_back("g"); SetColor.variables.push_back("b"); SetColor.variables.push_back("a"); SetColor.variables.push_back("gameObject_UUID");
+
+	// MYTODO: Finish autocomplete for materials
+
+	//PushBack all functions
+	engine_functions.push_back(SetTransparency);
+	engine_functions.push_back(SetCulling);
+	engine_functions.push_back(SetTextureUsage);
+	engine_functions.push_back(SetAlpha);
+	engine_functions.push_back(SetColor);
+}
+
+
 //This function iterates the list of functions to deploy them in the snippets.json file to place in VSCode 
 void AutoCompleteFileGen::GenerateAutoCompleteFile(bool variables_entered)
 {
@@ -790,6 +830,7 @@ void AutoCompleteFileGen::GenerateAutoCompleteFile(bool variables_entered)
 	EmplaceSceneFunctions();
 	EmplaceNavigationFunctions();
 	EmplaceScriptingInputsFunctions();
+	EmplaceMaterialFunctions();
 
 	//Start the process
 	nlohmann::json file;

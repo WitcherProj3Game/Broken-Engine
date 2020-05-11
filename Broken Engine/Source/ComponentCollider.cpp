@@ -313,7 +313,7 @@ void ComponentCollider::Load(json& node)
 {
 	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
 
-	ENGINE_CONSOLE_LOG("Load");
+	//ENGINE_CONSOLE_LOG("Load");
 	//CreateCollider(COLLIDER_TYPE::NONE, true);
 
 	std::string localPositionx = node["localPositionx"].is_null() ? "0" : node["localPositionx"];

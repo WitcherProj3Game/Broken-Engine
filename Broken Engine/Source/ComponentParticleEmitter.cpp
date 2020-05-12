@@ -1318,20 +1318,28 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 			/*The spawn position of the particle is a combination of different variables (size, emmitter position and global position). 
 			Each are affected by different rotations: 
 				- positionFromSize is affected by totalRotation (globalRotation * emitterRotation) 
-				- positionFromEmitter is only affected by externalRotation (rotation of the GO)
+				- positionFromEmitterPos is only affected by externalRotation (rotation of the GO)
 				- globalPosition is not affected by these rotations (only affected by the rotations of the parents of the GO*/
 
-			//Set position of the new particles
-			physx::PxVec3 position(GetRandomValue(-size.x, size.x) + emitterPosition.x,
-				+GetRandomValue(-size.y, size.y) + emitterPosition.y,
-				+GetRandomValue(-size.z, size.z) + emitterPosition.z);
+			//Set positionFromSize of the new particles
+			physx::PxVec3 positionFromSize(GetRandomValue(-size.x, size.x),
+				+GetRandomValue(-size.y, size.y),
+				+GetRandomValue(-size.z, size.z));
 
 
-			Quat positionQuat = Quat(position.x, position.y, position.z, 0);
-			positionQuat = totalRotation *positionQuat* totalRotation.Conjugated();
+			Quat positionFromSizeQuat = Quat(positionFromSize.x, positionFromSize.y, positionFromSize.z, 0);
+			positionFromSizeQuat = totalRotation * positionFromSizeQuat * totalRotation.Conjugated();
+
+			//Set positionFromEmitterPos
+			physx::PxVec3 positionFromEmitterPos(emitterPosition.x,emitterPosition.y,emitterPosition.z);
+
+			Quat positionFromEmitterPosQuat = Quat(positionFromEmitterPos.x, positionFromEmitterPos.y, positionFromEmitterPos.z, 0);
+			positionFromEmitterPosQuat = externalRotation * positionFromEmitterPosQuat * externalRotation.Conjugated();
 
 			//Assign final position to the particle
-			positionBuffer[i] =  physx::PxVec3(positionQuat.x+globalPosition.x, positionQuat.y+globalPosition.y, positionQuat.z+globalPosition.z);
+			positionBuffer[i] =  physx::PxVec3(	positionFromSizeQuat.x + positionFromEmitterPosQuat.x + globalPosition.x,
+												positionFromSizeQuat.y + positionFromEmitterPosQuat.y + globalPosition.y, 
+												positionFromSizeQuat.z + positionFromEmitterPosQuat.z + globalPosition.z);
 
 			//Aditional properties
 			particles[index[i]]->lifeTime = particlesLifeTime;

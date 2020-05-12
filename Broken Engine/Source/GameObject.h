@@ -7,7 +7,6 @@
 #include <vector>
 #include <string>
 #include "Resource.h"
-#include "UI_Element.h"
 
 BE_BEGIN_NAMESPACE
 

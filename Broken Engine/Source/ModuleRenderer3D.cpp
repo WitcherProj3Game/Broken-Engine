@@ -543,7 +543,7 @@ void ModuleRenderer3D::OnResize(int width, int height)
 // ---------------------------------------------------------------------------------------------
 // ------------------------------ Setters ------------------------------------------------------
 // ---------------------------------------------------------------------------------------------
-void ModuleRenderer3D::SetSceneAmbientColor(const float3& color)
+void ModuleRenderer3D::SetAmbientColor(const float3& color)
 {
 	m_AmbientColor = color;
 	App->scene_manager->currentScene->SetSceneAmbientColor(color);

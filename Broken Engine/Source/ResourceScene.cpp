@@ -244,7 +244,7 @@ bool ResourceScene::LoadInMemory()
 		else
 			sceneColor = float3::one;
 
-		App->renderer3D->SetSceneAmbientColor(sceneColor);
+		App->renderer3D->SetAmbientColor(sceneColor);
 	}
 
 	return true;

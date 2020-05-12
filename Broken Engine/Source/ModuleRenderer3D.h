@@ -159,7 +159,7 @@ public:
 	void SetActiveCamera(ComponentCamera* camera);
 	void SetCullingCamera(ComponentCamera* camera);
 	void SetGammaCorrection(float gammaCorr) { m_GammaCorrection = gammaCorr; }
-	void SetSceneAmbientColor(const float3& color);
+	void SetAmbientColor(const float3& color);
 	void SetRendererBlendingAutoFunction(BlendAutoFunction function) { m_RendererBlendFunc = function; }
 	void SetRendererBlendingEquation(BlendingEquations eq) { m_BlendEquation = eq; }
 	void SetRendererBlendingManualFunction(BlendingTypes src, BlendingTypes dst) { m_ManualBlend_Src = src;  m_ManualBlend_Dst = dst; }

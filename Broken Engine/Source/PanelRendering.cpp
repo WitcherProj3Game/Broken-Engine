@@ -39,7 +39,7 @@ void PanelRendering::SetRendererValues()
 	EngineApp->renderer3D->SetRendererBlendingEquation(m_CurrBlendEquation);
 
 	EngineApp->renderer3D->SetGammaCorrection(m_GammaCorretionValue);
-	EngineApp->renderer3D->SetSceneAmbientColor(m_AmbientColorValue);
+	EngineApp->renderer3D->SetAmbientColor(m_AmbientColorValue);
 }
 
 bool PanelRendering::Draw()

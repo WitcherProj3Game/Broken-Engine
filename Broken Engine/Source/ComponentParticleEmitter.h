@@ -35,8 +35,10 @@ public:
 	// --- Save & Load ---
 	json Save() const override;
 	void Load(json& node) override;
-	void CreateInspectorNode() override;
 
+	// -- Other functionalities
+	void CreateInspectorNode() override;
+	void DrawEmitterArea() const;
 
 	//Scripting functions
 	//Emitter

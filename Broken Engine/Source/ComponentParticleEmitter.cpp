@@ -1455,6 +1455,25 @@ void ComponentParticleEmitter::UpdateAllGradients()
 	}
 }
 
+void ComponentParticleEmitter::DrawEmitterArea() const
+{
+	Quat totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
+	Quat externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
+	float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
+
+	AABB aabb(float3(-size.x, -size.y, -size.z), float3(size.x, size.y, size.z));
+	OBB obb;
+	obb.SetFrom(aabb, totalRotation);
+
+	Quat positionFromEmitterPosQuat(emitterPosition.x, emitterPosition.y, emitterPosition.z, 0);
+	positionFromEmitterPosQuat = externalRotation * positionFromEmitterPosQuat * externalRotation.Conjugated();
+
+	obb.pos = obb.pos + float3(positionFromEmitterPosQuat.x + globalPosition.x, positionFromEmitterPosQuat.y + globalPosition.y, positionFromEmitterPosQuat.z + globalPosition.z);
+
+	App->renderer3D->DrawOBB(obb, Blue);
+
+}
+
 void ComponentParticleEmitter::Play()
 {
 	emisionActive = true;

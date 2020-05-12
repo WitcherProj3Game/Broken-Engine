@@ -777,56 +777,109 @@ void AutoCompleteFileGen::EmplaceMaterialFunctions() {
 	std::string source = "Materials";
 
 	// -------------------------------------------------------------------------------------------------------------------
-	// --- Setters ---
-	//SetTransparency
-	SerializedFunction SetTransparency("SetTransparency", source.c_str());
-	SetTransparency.variables.push_back("is_transparent"); SetTransparency.variables.push_back("gameObject_UUID");
+	// --- Setters (by Material) ---
+	//SetMaterialTransparent
+	SerializedFunction SetMaterialTransparent("SetMaterialTransparent", source.c_str());
+	SetMaterialTransparent.variables.push_back("is_transparent"); SetMaterialTransparent.variables.push_back("material_name");
 
-	//SetCulling
-	SerializedFunction SetCulling("SetCulling", source.c_str());
-	SetCulling.variables.push_back("culling"); SetCulling.variables.push_back("gameObject_UUID");
+	//SetMaterialCulling
+	SerializedFunction SetMaterialCulling("SetMaterialCulling", source.c_str());
+	SetMaterialCulling.variables.push_back("culling"); SetMaterialCulling.variables.push_back("material_name");
 
-	//SetShininess
-	SerializedFunction SetShininess("SetShininess", source.c_str());
-	SetShininess.variables.push_back("shininess"); SetShininess.variables.push_back("gameObject_UUID");
+	//SetMaterialShininess
+	SerializedFunction SetMaterialShininess("SetMaterialShininess", source.c_str());
+	SetMaterialShininess.variables.push_back("shininess"); SetMaterialShininess.variables.push_back("material_name");
 
-	//SetTextureUsage
-	SerializedFunction SetTextureUsage("SetTextureUsage", source.c_str());
-	SetTextureUsage.variables.push_back("use_textures"); SetTextureUsage.variables.push_back("gameObject_UUID");
+	//SetMaterialTextureUsage
+	SerializedFunction SetMaterialTextureUsage("SetMaterialTextureUsage", source.c_str());
+	SetMaterialTextureUsage.variables.push_back("use_textures"); SetMaterialTextureUsage.variables.push_back("material_name");
 
-	//SetAlpha
-	SerializedFunction SetAlpha("SetAlpha", source.c_str());
-	SetAlpha.variables.push_back("alpha"); SetAlpha.variables.push_back("gameObject_UUID");
+	//SetMaterialAlpha
+	SerializedFunction SetMaterialAlpha("SetMaterialAlpha", source.c_str());
+	SetMaterialAlpha.variables.push_back("alpha"); SetMaterialAlpha.variables.push_back("material_name");
 
-	//SetColor
-	SerializedFunction SetColor("SetColor", source.c_str());
-	SetColor.variables.push_back("r"); SetColor.variables.push_back("g"); SetColor.variables.push_back("b"); SetColor.variables.push_back("a"); SetColor.variables.push_back("gameObject_UUID");
+	//SetMaterialColor
+	SerializedFunction SetMaterialColor("SetMaterialColor", source.c_str());
+	SetMaterialColor.variables.push_back("r"); SetMaterialColor.variables.push_back("g"); SetMaterialColor.variables.push_back("b"); SetMaterialColor.variables.push_back("a"); SetMaterialColor.variables.push_back("material_name");
 
 	// -------------------------------------------------------------------------------------------------------------------
-	// --- Getters ---
-	//GetTransparency
-	SerializedFunction GetTransparency("GetTransparency", source.c_str());
-	GetTransparency.variables.push_back("gameObject_UUID");
+	// --- Getters (by Material) ---
+	//GetMaterialTransparent
+	SerializedFunction GetMaterialTransparency("GetMaterialTransparency", source.c_str());
+	GetMaterialTransparency.variables.push_back("material_name");
 
-	//SetCulling
-	SerializedFunction GetCulling("GetCulling", source.c_str());
-	GetCulling.variables.push_back("gameObject_UUID");
+	//GetMaterialCulling
+	SerializedFunction GetMaterialCulling("GetMaterialCulling", source.c_str());
+	GetMaterialCulling.variables.push_back("material_name");
 
-	//GetShininess
-	SerializedFunction GetShininess("GetShininess", source.c_str());
-	GetShininess.variables.push_back("gameObject_UUID");
+	//GetMaterialShininess
+	SerializedFunction GetMaterialShininess("GetMaterialShininess", source.c_str());
+	GetMaterialShininess.variables.push_back("material_name");
 
-	//GetTextureUsage
-	SerializedFunction GetTextureUsage("GetTextureUsage", source.c_str());
-	GetTextureUsage.variables.push_back("gameObject_UUID");
+	//GetMaterialTextureUsage
+	SerializedFunction GetMaterialTextureUsage("GetMaterialTextureUsage", source.c_str());
+	GetMaterialTextureUsage.variables.push_back("material_name");
 
-	//GetAlpha
-	SerializedFunction GetAlpha("GetAlpha", source.c_str());
-	GetAlpha.variables.push_back("gameObject_UUID");
+	//GetMaterialAlpha
+	SerializedFunction GetMaterialAlpha("GetMaterialAlpha", source.c_str());
+	GetMaterialAlpha.variables.push_back("material_name");
 
-	//GetColor
-	SerializedFunction GetColor("GetColor", source.c_str());
-	GetColor.variables.push_back("gameObject_UUID");
+	//GetMaterialColor
+	SerializedFunction GetMaterialColor("GetMaterialColor", source.c_str());
+	GetMaterialColor.variables.push_back("material_name");
+
+
+	// -------------------------------------------------------------------------------------------------------------------
+	// --- Setters (by Object) ---
+	//SetObjectMaterialTransparent
+	SerializedFunction SetObjectMaterialTransparent("SetObjectMaterialTransparent", source.c_str());
+	SetObjectMaterialTransparent.variables.push_back("is_transparent"); SetObjectMaterialTransparent.variables.push_back("gameObject_UUID");
+
+	//SetObjectMaterialCulling
+	SerializedFunction SetObjectMaterialCulling("SetObjectMaterialCulling", source.c_str());
+	SetObjectMaterialCulling.variables.push_back("culling"); SetObjectMaterialCulling.variables.push_back("gameObject_UUID");
+
+	//SetObjectMaterialShininess
+	SerializedFunction SetObjectMaterialShininess("SetObjectMaterialShininess", source.c_str());
+	SetObjectMaterialShininess.variables.push_back("shininess"); SetObjectMaterialShininess.variables.push_back("gameObject_UUID");
+
+	//SetObjectMaterialTextureUsage
+	SerializedFunction SetObjectMaterialTextureUsage("SetObjectMaterialTextureUsage", source.c_str());
+	SetObjectMaterialTextureUsage.variables.push_back("use_textures"); SetObjectMaterialTextureUsage.variables.push_back("gameObject_UUID");
+
+	//SetObjectMaterialAlpha
+	SerializedFunction SetObjectMaterialAlpha("SetObjectMaterialAlpha", source.c_str());
+	SetObjectMaterialAlpha.variables.push_back("alpha"); SetObjectMaterialAlpha.variables.push_back("gameObject_UUID");
+
+	//SetObjectMaterialColor
+	SerializedFunction SetObjectMaterialColor("SetObjectMaterialColor", source.c_str());
+	SetObjectMaterialColor.variables.push_back("r"); SetObjectMaterialColor.variables.push_back("g"); SetObjectMaterialColor.variables.push_back("b"); SetObjectMaterialColor.variables.push_back("a"); SetObjectMaterialColor.variables.push_back("gameObject_UUID");
+
+	// -------------------------------------------------------------------------------------------------------------------
+	// --- Getters (by Object) ---
+	//GetObjectMaterialTransparency
+	SerializedFunction GetObjectMaterialTransparency("GetObjectMaterialTransparency", source.c_str());
+	GetObjectMaterialTransparency.variables.push_back("gameObject_UUID");
+
+	//GetObjectMaterialCulling
+	SerializedFunction GetObjectMaterialCulling("GetObjectMaterialCulling", source.c_str());
+	GetObjectMaterialCulling.variables.push_back("gameObject_UUID");
+
+	//GetObjectMaterialShininess
+	SerializedFunction GetObjectMaterialShininess("GetObjectMaterialShininess", source.c_str());
+	GetObjectMaterialShininess.variables.push_back("gameObject_UUID");
+
+	//GetObjectMaterialTextureUsage
+	SerializedFunction GetObjectMaterialTextureUsage("GetObjectMaterialTextureUsage", source.c_str());
+	GetObjectMaterialTextureUsage.variables.push_back("gameObject_UUID");
+
+	//GetObjectMaterialAlpha
+	SerializedFunction GetObjectMaterialAlpha("GetObjectMaterialAlpha", source.c_str());
+	GetObjectMaterialAlpha.variables.push_back("gameObject_UUID");
+
+	//GetObjectMaterialColor
+	SerializedFunction GetObjectMaterialColor("GetObjectMaterialColor", source.c_str());
+	GetObjectMaterialColor.variables.push_back("gameObject_UUID");
 
 	// -------------------------------------------------------------------------------------------------------------------
 	// --- Get/Set Materials/Shaders ---
@@ -931,16 +984,25 @@ void AutoCompleteFileGen::EmplaceMaterialFunctions() {
 
 	// -------------------------------------------------------------------------------------------------------------------
 	// --- PushBack all functions ---
-	engine_functions.push_back(SetTransparency);
-	engine_functions.push_back(SetCulling);
-	engine_functions.push_back(SetTextureUsage);
-	engine_functions.push_back(SetAlpha);
-	engine_functions.push_back(SetColor);
-	engine_functions.push_back(GetTransparency);
-	engine_functions.push_back(GetCulling);
-	engine_functions.push_back(GetTextureUsage);
-	engine_functions.push_back(GetAlpha);
-	engine_functions.push_back(GetColor);
+	engine_functions.push_back(SetMaterialTransparent);
+	engine_functions.push_back(SetMaterialCulling);
+	engine_functions.push_back(SetMaterialShininess);
+	engine_functions.push_back(SetMaterialTextureUsage);
+	engine_functions.push_back(SetMaterialAlpha);
+	engine_functions.push_back(SetMaterialColor);
+
+	engine_functions.push_back(SetObjectMaterialTransparent);
+	engine_functions.push_back(SetObjectMaterialCulling);
+	engine_functions.push_back(SetObjectMaterialShininess);
+	engine_functions.push_back(SetObjectMaterialTextureUsage);
+	engine_functions.push_back(SetObjectMaterialAlpha);
+	engine_functions.push_back(SetObjectMaterialColor);
+	engine_functions.push_back(GetObjectMaterialTransparency);
+	engine_functions.push_back(GetObjectMaterialCulling);
+	engine_functions.push_back(GetObjectMaterialShininess);
+	engine_functions.push_back(GetObjectMaterialTextureUsage);
+	engine_functions.push_back(GetObjectMaterialAlpha);
+	engine_functions.push_back(GetObjectMaterialColor);
 
 	engine_functions.push_back(SetMaterialByName);
 	engine_functions.push_back(SetMaterialByUUID);

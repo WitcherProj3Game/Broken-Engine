@@ -18,6 +18,22 @@ public:
 	ScriptingMaterials() {}
 	~ScriptingMaterials() {}
 
+	// --- Standard Setters (by Mat) ---
+	void SetMaterialTransparency(bool is_transparent, const char* material_name);
+	void SetMaterialCulling(bool culling, const char* material_name);
+	void SetMaterialShininess(float shininess, const char* material_name);
+	void SetMaterialTextureUsage(bool use_textures, const char* material_name);
+	void SetMaterialAlpha(float alpha, const char* material_name);
+	void SetMaterialColor(float r, float g, float b, float a, const char* material_name);
+
+	// --- Standard Getters (by Mat) ---
+	bool GetMaterialTransparency(const char* material_name) const;
+	bool GetMaterialCulling(const char* material_name) const;
+	bool GetMaterialTextureUsage(const char* material_name) const;
+	float GetMaterialShininess(const char* material_name) const;
+	float GetMaterialAlpha(const char* material_name) const;
+	luabridge::LuaRef GetMaterialColor(const char* material_name, lua_State* L) const;
+
 	// --- Standard Setters ---
 	void SetTransparency(bool is_transparent, uint gameobject_UUID);
 	void SetCulling(bool culling, uint gameobject_UUID);

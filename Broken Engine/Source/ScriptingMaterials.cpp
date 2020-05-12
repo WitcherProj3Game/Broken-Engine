@@ -43,68 +43,49 @@ bool FailSafeCheck(const char* function_name, uint gameobject_UUID, ComponentMes
 	return false;
 }
 
-// -------------------------------------------------------------------------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------- SETTERS -----------------------------------------------------------------------
-void ScriptingMaterials::SetTransparency(bool is_transparent, uint gameobject_UUID)
-{
-	ComponentMeshRenderer* mesh = nullptr;
-	if (FailSafeCheck("(SetMaterialTransparent)", gameobject_UUID, &mesh) == false)
-		return;
 
-	ResourceMaterial* mat = mesh->material;
+// -------------------------------------------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------- SETTERS (by Mat) --------------------------------------------------------------
+void ScriptingMaterials::SetMaterialTransparency(bool is_transparent, const char* material_name)
+{
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
 	if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 		mat->has_transparencies = is_transparent;
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialTransparent) Mesh material is default or null");
-
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialTransparent) Material is default or null");
 }
 
-void ScriptingMaterials::SetCulling(bool culling, uint gameobject_UUID)
+void ScriptingMaterials::SetMaterialCulling(bool culling, const char* material_name)
 {
-	ComponentMeshRenderer* mesh = nullptr;
-	if (FailSafeCheck("(SetMaterialCulling)", gameobject_UUID, &mesh) == false)
-		return;
-
-	ResourceMaterial* mat = mesh->material;
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
 	if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 		mat->has_culling = culling;
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialCulling) Mesh material is default or null");
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialCulling) Material is default or null");
 }
 
-void ScriptingMaterials::SetShininess(float shininess, uint gameobject_UUID)
+void ScriptingMaterials::SetMaterialShininess(float shininess, const char* material_name)
 {
-	if (shininess < 1.0f || shininess > 500.0f)
-	{
-		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialShininess) Shininess has to be between [1.0, 500.0]");
-		return;
-	}
+	if (shininess < -2.0f || shininess > 500.0f)
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialShininess) Shininess is not between [-2.0, 500.0]");
 
-	ComponentMeshRenderer* mesh = nullptr;
-	if (FailSafeCheck("(SetMaterialShininess)", gameobject_UUID, &mesh) == false)
-		return;
-
-	ResourceMaterial* mat = mesh->material;
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
 	if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 		mat->m_Shininess = shininess;
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialShininess) Mesh material is default or null");
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialShininess) Material is default or null");
 }
 
-void ScriptingMaterials::SetTextureUsage(bool use_textures, uint gameobject_UUID)
+void ScriptingMaterials::SetMaterialTextureUsage(bool use_textures, const char* material_name)
 {
-	ComponentMeshRenderer* mesh = nullptr;
-	if (FailSafeCheck("(SetMaterialTextureUsage)", gameobject_UUID, &mesh) == false)
-		return;
-
-	ResourceMaterial* mat = mesh->material;
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
 	if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 		mat->m_UseTexture = use_textures;
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialTextureUsage) Mesh material is default or null");
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialTextureUsage) Material is default or null");
 }
 
-void ScriptingMaterials::SetAlpha(float alpha, uint gameobject_UUID)
+void ScriptingMaterials::SetMaterialAlpha(float alpha, const char* material_name)
 {
 	if (alpha > 1.0f || alpha < 0.0f)
 	{
@@ -112,18 +93,14 @@ void ScriptingMaterials::SetAlpha(float alpha, uint gameobject_UUID)
 		return;
 	}
 
-	ComponentMeshRenderer* mesh = nullptr;
-	if (FailSafeCheck("(SetMaterialAlpha)", gameobject_UUID, &mesh) == false)
-		return;
-
-	ResourceMaterial* mat = mesh->material;
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
 	if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 		mat->m_AmbientColor.w = alpha;
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialAlpha) Mesh material is default or null");
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialAlpha) Material is default or null");
 }
 
-void ScriptingMaterials::SetColor(float r, float g, float b, float a, uint gameobject_UUID)
+void ScriptingMaterials::SetMaterialColor(float r, float g, float b, float a, const char* material_name)
 {
 	if (r > 255.0f || g > 255.0f || b > 255.0f || a > 1.0f || r < 0.0f || g < 0.0f || b < 0.0f || a < 0.0f)
 	{
@@ -131,8 +108,176 @@ void ScriptingMaterials::SetColor(float r, float g, float b, float a, uint gameo
 		return;
 	}
 
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
+	if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
+		mat->m_AmbientColor = float4(r, g, b, a);
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialColor) Material is default or null");
+}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------- GETTERS (by Mat) --------------------------------------------------------------
+bool ScriptingMaterials::GetMaterialTransparency(const char* material_name) const
+{
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
+	if (mat)
+		return mat->has_transparencies;
+	else
+		ENGINE_AND_SYSTEM_CONSOLE_LOG("![Script]: (GetMaterialTransparency) Material is default or null");
+
+	return false;
+}
+
+bool ScriptingMaterials::GetMaterialCulling(const char* material_name) const
+{
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
+	if (mat)
+		return mat->has_culling;
+	else
+		ENGINE_AND_SYSTEM_CONSOLE_LOG("![Script]: (GetMaterialCulling) Material is default or null");
+
+	return false;
+}
+
+bool ScriptingMaterials::GetMaterialTextureUsage(const char* material_name) const
+{
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
+	if (mat)
+		return mat->m_UseTexture;
+	else
+		ENGINE_AND_SYSTEM_CONSOLE_LOG("![Script]: (GetMaterialTextureUsage) Material is default or null");
+
+	return false;
+}
+
+float ScriptingMaterials::GetMaterialShininess(const char* material_name) const
+{
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
+	if (mat)
+		return mat->m_Shininess;
+	else
+		ENGINE_AND_SYSTEM_CONSOLE_LOG("![Script]: (GetMaterialShininess) Material is default or null");
+
+	return -1.0f;
+}
+
+float ScriptingMaterials::GetMaterialAlpha(const char* material_name) const
+{
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
+	if (mat)
+		return mat->m_AmbientColor.w;
+	else
+		ENGINE_AND_SYSTEM_CONSOLE_LOG("![Script]: (GetMaterialAlpha) Material is default or null");
+
+	return -1.0f;
+}
+
+luabridge::LuaRef ScriptingMaterials::GetMaterialColor(const char* material_name, lua_State* L) const
+{
+	ResourceMaterial* mat = App->resources->GetMaterialByName(material_name);
+	float4 color = float4(-1.0f, -1.0f, -1.0f, -1.0f);
+
+	if (mat)
+		color = mat->m_AmbientColor;
+	else
+		ENGINE_AND_SYSTEM_CONSOLE_LOG("![Script]: (GetMaterialColor) Material is default or null");
+
+	luabridge::LuaRef table = luabridge::newTable(L);
+	table.append(color.x);
+	table.append(color.y);
+	table.append(color.z);
+	table.append(color.w);
+
+	return table;
+}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------- SETTERS -----------------------------------------------------------------------
+void ScriptingMaterials::SetTransparency(bool is_transparent, uint gameobject_UUID)
+{
 	ComponentMeshRenderer* mesh = nullptr;
-	if (FailSafeCheck("(SetMaterialColor)", gameobject_UUID, &mesh) == false)
+	if (FailSafeCheck("(SetObjectMaterialTransparent)", gameobject_UUID, &mesh) == false)
+		return;
+
+	ResourceMaterial* mat = mesh->material;
+	if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
+		mat->has_transparencies = is_transparent;
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetObjectMaterialTransparent) Mesh material is default or null");
+
+}
+
+void ScriptingMaterials::SetCulling(bool culling, uint gameobject_UUID)
+{
+	ComponentMeshRenderer* mesh = nullptr;
+	if (FailSafeCheck("(SetObjectMaterialCulling)", gameobject_UUID, &mesh) == false)
+		return;
+
+	ResourceMaterial* mat = mesh->material;
+	if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
+		mat->has_culling = culling;
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetObjectMaterialCulling) Mesh material is default or null");
+}
+
+void ScriptingMaterials::SetShininess(float shininess, uint gameobject_UUID)
+{
+	if (shininess < -2.0f || shininess > 500.0f)
+		ENGINE_CONSOLE_LOG("![Script]: (SetObjectMaterialShininess) Shininess is not between [-2.0, 500.0]");
+
+	ComponentMeshRenderer* mesh = nullptr;
+	if (FailSafeCheck("(SetObjectMaterialShininess)", gameobject_UUID, &mesh) == false)
+		return;
+
+	ResourceMaterial* mat = mesh->material;
+	if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
+		mat->m_Shininess = shininess;
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetObjectMaterialShininess) Mesh material is default or null");
+}
+
+void ScriptingMaterials::SetTextureUsage(bool use_textures, uint gameobject_UUID)
+{
+	ComponentMeshRenderer* mesh = nullptr;
+	if (FailSafeCheck("(SetObjectMaterialTextureUsage)", gameobject_UUID, &mesh) == false)
+		return;
+
+	ResourceMaterial* mat = mesh->material;
+	if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
+		mat->m_UseTexture = use_textures;
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetObjectMaterialTextureUsage) Mesh material is default or null");
+}
+
+void ScriptingMaterials::SetAlpha(float alpha, uint gameobject_UUID)
+{
+	if (alpha > 1.0f || alpha < 0.0f)
+	{
+		ENGINE_CONSOLE_LOG("![Script]: (SetObjectMaterialAlpha) Alpha has to be between [0.0, 1.0]");
+		return;
+	}
+
+	ComponentMeshRenderer* mesh = nullptr;
+	if (FailSafeCheck("(SetObjectMaterialAlpha)", gameobject_UUID, &mesh) == false)
+		return;
+
+	ResourceMaterial* mat = mesh->material;
+	if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
+		mat->m_AmbientColor.w = alpha;
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetObjectMaterialAlpha) Mesh material is default or null");
+}
+
+void ScriptingMaterials::SetColor(float r, float g, float b, float a, uint gameobject_UUID)
+{
+	if (r > 255.0f || g > 255.0f || b > 255.0f || a > 1.0f || r < 0.0f || g < 0.0f || b < 0.0f || a < 0.0f)
+	{
+		ENGINE_CONSOLE_LOG("![Script]: (SetObjectMaterialColor) Color has to be between [0.0, 255.0] and alpha between [0.0, 1.0]");
+		return;
+	}
+
+	ComponentMeshRenderer* mesh = nullptr;
+	if (FailSafeCheck("(SetObjectMaterialColor)", gameobject_UUID, &mesh) == false)
 		return;
 
 	ResourceMaterial* mat = mesh->material;
@@ -142,7 +287,7 @@ void ScriptingMaterials::SetColor(float r, float g, float b, float a, uint gameo
 		mat->m_AmbientColor.w = a;
 	}
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (SetMaterialColor) Mesh material is default or null");
+		ENGINE_CONSOLE_LOG("![Script]: (SetObjectMaterialColor) Mesh material is default or null");
 }
 
 
@@ -153,14 +298,14 @@ bool ScriptingMaterials::GetTransparency(uint gameobject_UUID) const
 	bool ret = false;
 
 	ComponentMeshRenderer* mesh = nullptr;
-	if (FailSafeCheck("(GetMaterialTransparency)", gameobject_UUID, &mesh) == false)
+	if (FailSafeCheck("(GetObjectMaterialTransparency)", gameobject_UUID, &mesh) == false)
 		return ret;
 
 	ResourceMaterial* mat = mesh->material;
 	if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 		ret = mat->has_transparencies;
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (GetMaterialTransparency) Mesh material is default or null");
+		ENGINE_CONSOLE_LOG("![Script]: (GetObjectMaterialTransparency) Mesh material is default or null");
 
 	return ret;
 }
@@ -170,14 +315,14 @@ bool ScriptingMaterials::GetCulling(uint gameobject_UUID) const
 	bool ret = false;
 
 	ComponentMeshRenderer* mesh = nullptr;
-	if (FailSafeCheck("(GetMaterialCulling)", gameobject_UUID, &mesh) == false)
+	if (FailSafeCheck("(GetObjectMaterialCulling)", gameobject_UUID, &mesh) == false)
 		return ret;
 
 	ResourceMaterial* mat = mesh->material;
 	if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 		ret = mat->has_culling;
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (GetMaterialCulling) Mesh material is default or null");
+		ENGINE_CONSOLE_LOG("![Script]: (GetObjectMaterialCulling) Mesh material is default or null");
 
 	return ret;
 }
@@ -187,14 +332,14 @@ bool ScriptingMaterials::GetTextureUsage(uint gameobject_UUID) const
 	bool ret = false;
 
 	ComponentMeshRenderer* mesh = nullptr;
-	if (FailSafeCheck("(GetTextureUsage)", gameobject_UUID, &mesh) == false)
+	if (FailSafeCheck("(GetObjectMaterialTextureUsage)", gameobject_UUID, &mesh) == false)
 		return ret;
 
 	ResourceMaterial* mat = mesh->material;
 	if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 		ret = mat->m_UseTexture;
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (GetTextureUsage) Mesh material is default or null");
+		ENGINE_CONSOLE_LOG("![Script]: (GetObjectMaterialTextureUsage) Mesh material is default or null");
 
 	return ret;
 }
@@ -204,14 +349,14 @@ float ScriptingMaterials::GetShininess(uint gameobject_UUID) const
 	float ret = -1.0f;
 
 	ComponentMeshRenderer* mesh = nullptr;
-	if (FailSafeCheck("(GetMaterialShininess)", gameobject_UUID, &mesh) == false)
+	if (FailSafeCheck("(GetObjectMaterialShininess)", gameobject_UUID, &mesh) == false)
 		return ret;
 
 	ResourceMaterial* mat = mesh->material;
 	if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 		ret = mat->m_Shininess;
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (GetMaterialShininess) Mesh material is default or null");
+		ENGINE_CONSOLE_LOG("![Script]: (GetObjectMaterialShininess) Mesh material is default or null");
 
 	return ret;
 }
@@ -221,14 +366,14 @@ float ScriptingMaterials::GetAlpha(uint gameobject_UUID) const
 	float ret = -1.0f;
 
 	ComponentMeshRenderer* mesh = nullptr;
-	if (FailSafeCheck("(GetMaterialAlpha)", gameobject_UUID, &mesh) == false)
+	if (FailSafeCheck("(GetObjectMaterialAlpha)", gameobject_UUID, &mesh) == false)
 		return ret;
 
 	ResourceMaterial* mat = mesh->material;
 	if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 		ret = mat->m_AmbientColor.w;
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (GetMaterialAlpha) Mesh material is default or null");
+		ENGINE_CONSOLE_LOG("![Script]: (GetObjectMaterialAlpha) Mesh material is default or null");
 
 	return ret;
 }
@@ -238,13 +383,13 @@ luabridge::LuaRef ScriptingMaterials::GetColor(uint gameobject_UUID, lua_State* 
 	ComponentMeshRenderer* mesh = nullptr;
 	float4 color = float4(-1.0f, -1.0f, -1.0f, -1.0f);
 
-	if (FailSafeCheck("(GetMaterialColor)", gameobject_UUID, &mesh) == true)
+	if (FailSafeCheck("(GetObjectMaterialColor)", gameobject_UUID, &mesh) == true)
 	{
 		ResourceMaterial* mat = mesh->material;
 		if (mat && mat->GetUID() != App->resources->GetDefaultMaterialUID())
 			color = mat->m_AmbientColor;
 		else
-			ENGINE_CONSOLE_LOG("![Script]: (GetMaterialColor) Mesh material is default or null");
+			ENGINE_CONSOLE_LOG("![Script]: (GetObjectMaterialColor) Mesh material is default or null");
 	}
 
 	luabridge::LuaRef table = luabridge::newTable(L);

@@ -178,14 +178,19 @@ void ComponentAnimation::SetAnimationSpeed(const char* name, float speed)
 			break;
 		}
 		else if (animations[i]->name.compare(name) == 0)
+			time += time * (animations[i]->speed / speed);
 			animations[i]->speed = speed;
+			
 	}
 }
 
 void ComponentAnimation::SetCurrentAnimationSpeed(float speed)
 {
-	if(playing_animation)
+	if (playing_animation)
+	{
+		time += time * (playing_animation->speed / speed);
 		playing_animation->speed = speed;
+	}
 	else
 		ENGINE_AND_SYSTEM_CONSOLE_LOG("Current Animation is nullptr!");
 }
@@ -502,7 +507,9 @@ void ComponentAnimation::UpdateJointsTransform()
 
 		bool update_transforms = true;
 		// ----------------------- Frame count managment -----------------------------------
+		
 		Frame = playing_animation->start + (time * playing_animation->speed);
+
 		if (Frame >= playing_animation->end)
 		{
 			if (use_default_animation)

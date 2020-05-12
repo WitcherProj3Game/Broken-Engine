@@ -98,11 +98,6 @@ void ComponentAnimation::Update()
 			if (has_skeleton)
 				UpdateMesh(GO);
 		}
-
-		if (App->input->GetKey(SDL_SCANCODE_P) == KEY_DOWN)
-		{
-			SetCurrentAnimationSpeed(5);
-		}
 	}
 	else
 	{

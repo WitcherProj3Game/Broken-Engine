@@ -1279,7 +1279,9 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 
 	if (validParticles < maxParticles)
 	{
-		Quat rotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
+		Quat totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
+		Quat externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
+		float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
 
 		if (particlesToCreate > maxParticles - validParticles)
 			particlesToCreate = maxParticles - validParticles;
@@ -1289,15 +1291,14 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 
 		physx::PxParticleCreationData creationData;
 
-		//Create 1 particle each time
+		//Create necessary amount of particles
 		creationData.numParticles = particlesToCreate;
+
+		//Create indices and allocate them
 		physx::PxU32* index = new physx::PxU32[particlesToCreate];
-
 		const physx::PxStrideIterator<physx::PxU32> indexBuffer(index);
-
 		indexPool->allocateIndices(particlesToCreate, indexBuffer);
 
-		float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
 
 		physx::PxVec3* positionBuffer = new physx::PxVec3[particlesToCreate];
 		physx::PxVec3* velocityBuffer = new physx::PxVec3[particlesToCreate];
@@ -1311,10 +1312,14 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 				particlesVelocity.z + ((velocityRandomFactor1.z < velocityRandomFactor2.z) ? GetRandomValue(velocityRandomFactor1.z, velocityRandomFactor2.z) : GetRandomValue(velocityRandomFactor2.z, velocityRandomFactor1.z)));
 
 			Quat velocityQuat = Quat(velocity.x, velocity.y, velocity.z, 0);
-
-			velocityQuat = rotation * velocityQuat * rotation.Conjugated();
-
+			velocityQuat = totalRotation * velocityQuat * totalRotation.Conjugated();
 			velocityBuffer[i] = physx::PxVec3(velocityQuat.x, velocityQuat.y, velocityQuat.z);
+
+			/*The spawn position of the particle is a combination of different variables (size, emmitter position and global position). 
+			Each are affected by different rotations: 
+				- positionFromSize is affected by totalRotation (globalRotation * emitterRotation) 
+				- positionFromEmitter is only affected by externalRotation (rotation of the GO)
+				- globalPosition is not affected by these rotations (only affected by the rotations of the parents of the GO*/
 
 			//Set position of the new particles
 			physx::PxVec3 position(GetRandomValue(-size.x, size.x) + emitterPosition.x,
@@ -1323,9 +1328,12 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 
 
 			Quat positionQuat = Quat(position.x, position.y, position.z, 0);
-			positionQuat = rotation *positionQuat* rotation.Conjugated();
+			positionQuat = totalRotation *positionQuat* totalRotation.Conjugated();
+
+			//Assign final position to the particle
 			positionBuffer[i] =  physx::PxVec3(positionQuat.x+globalPosition.x, positionQuat.y+globalPosition.y, positionQuat.z+globalPosition.z);
 
+			//Aditional properties
 			particles[index[i]]->lifeTime = particlesLifeTime;
 			particles[index[i]]->spawnTime = spawnClock;
 			particles[index[i]]->color = colors[0];

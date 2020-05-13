@@ -19,7 +19,7 @@ public:
 		Image,
 		Text,
 		Button,
-		CheckBox,
+		Checkbox,
 		InputText,
 		ProgressBar,
 		CircularBar,

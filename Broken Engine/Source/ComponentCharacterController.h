@@ -17,6 +17,10 @@ public:
 	ComponentCharacterController(GameObject* ContainerGO);
 	virtual ~ComponentCharacterController();
 
+	void Enable();
+
+	void Disable();
+
 	void Update() override;
 
 	void Draw();

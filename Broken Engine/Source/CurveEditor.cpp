@@ -35,6 +35,9 @@ void CurveEditor::Init()
 void CurveEditor::DrawCurveEditor()
 {
 	if (pointsCurveTangents.size() > 0) {
+		if (pointsCurveTangents.size() == pointsCurveTangents.capacity())
+			pointsCurveTangents.reserve(pointsCurveTangents.size() + 1);
+
 		int num_points = pointsCurveTangents.size();
 		int new_count = num_points;
 		Point* data = pointsCurveTangents.data();
@@ -57,6 +60,7 @@ void CurveEditor::DrawCurveEditor()
 			pointsCurveTangents.clear();
 
 			pointsCurveTangents = auxCurve;
+			bool t = true;
 		}
 
 		if (changed_idx >= 0 && type == CurveType::CURVE) {

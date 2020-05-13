@@ -7790,7 +7790,6 @@ int ImGui::CurveEditor(const char* label
         if (flags & (int)CurveEditorFlags::NO_TANGENTS)
         {
             point = ((ImVec2*)values)[1 + point_idx * 3];
-            //point = ((ImVec2*)values)[point_idx];
         }
         else
         {
@@ -7800,8 +7799,8 @@ int ImGui::CurveEditor(const char* label
 
     float from_x = window->StateStorage.GetFloat((ImGuiID)StorageValues::FROM_X, 0.0f);
     float from_y = window->StateStorage.GetFloat((ImGuiID)StorageValues::FROM_Y, 0.0f);
-    float width = window->StateStorage.GetFloat((ImGuiID)StorageValues::WIDTH, 1.0f/*points_max.x - points_min.x*/);
-    float height = window->StateStorage.GetFloat((ImGuiID)StorageValues::HEIGHT, 1.0f/* points_max.y - points_min.y*/);
+    float width = window->StateStorage.GetFloat((ImGuiID)StorageValues::WIDTH, 1.0f);
+    float height = window->StateStorage.GetFloat((ImGuiID)StorageValues::HEIGHT, 1.0f);
     window->StateStorage.SetFloat((ImGuiID)StorageValues::FROM_X, from_x);
     window->StateStorage.SetFloat((ImGuiID)StorageValues::FROM_Y, from_y);
     window->StateStorage.SetFloat((ImGuiID)StorageValues::WIDTH, width);
@@ -7898,7 +7897,6 @@ int ImGui::CurveEditor(const char* label
         ImVec2* points;
         if (flags & (int)CurveEditorFlags::NO_TANGENTS)
         {
-            //points = ((ImVec2*)values) + point_idx;
             points = ((ImVec2*)values) + 1 + point_idx * 3;
         }
         else
@@ -7913,14 +7911,12 @@ int ImGui::CurveEditor(const char* label
         }
         else {
             p_last = points[3];
-            //p_last = points[sizeof(ImVec2) + points_count];
         }
         ImVec2 tangent_last;
         ImVec2 tangent;
         ImVec2 p;
         if (flags & (int)CurveEditorFlags::NO_TANGENTS)
         {
-            //p = points[1];
             p = points[3];
         }
         else
@@ -8088,22 +8084,6 @@ int ImGui::CurveEditor(const char* label
                 points[3] = p;
                 changed_idx = point_idx + 1;
             }
-            /*if (handlePoint(p_prev, 0))
-            {
-                if (p.x <= p_prev.x) p_prev.x = p.x - 0.001f;
-                points[0] = p_prev;
-                changed_idx = point_idx;
-            }
-            if (handlePoint(p, 1))
-            {
-                if (p.x <= p_prev.x) p.x = p_prev.x + 0.001f;
-                if (point_idx < points_count - 2 && p.x >= points[2].x)
-                {
-                    p.x = points[2].x - 0.001f;
-                }
-                points[1] = p;
-                changed_idx = point_idx + 1;
-            }*/
         }
         //DRAW BEGIN & END LINES
         if (point_idx == 0)
@@ -8159,17 +8139,6 @@ int ImGui::CurveEditor(const char* label
             };
 
             qsort(values, points_count + 1, sizeof(ImVec2) * 3, compare);
-            /*points[points_count] = new_p;
-            ++* new_count;
-
-            auto compare = [](const void* a, const void* b) -> int
-            {
-                float fa = ((const ImVec2*)a)->x;
-                float fb = ((const ImVec2*)b)->x;
-                return fa < fb ? -1 : (fa > fb) ? 1 : 0;
-            };
-
-            qsort(values, points_count + 1, sizeof(ImVec2), compare);*/
         }
     }
 

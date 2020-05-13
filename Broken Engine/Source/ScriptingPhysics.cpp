@@ -33,10 +33,10 @@ void ScriptingPhysics::SetLinearVelocity(float x, float y, float z, uint gameobj
 		if (body && coll)
 			body->SetLinearVelocity({ x, y, z });
 		else
-			ENGINE_CONSOLE_LOG("Object or its Dynamic Rigid Body component or its Collider are null");
+			ENGINE_CONSOLE_LOG("![Script]: (SetLinearVelocity) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! This Gameobject with %d UUID was not found!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetLinearVelocity) Gameobject with UID %d was not found!", gameobject_UUID);
 }
 
 void ScriptingPhysics::SetAngularVelocity(float x, float y, float z, uint gameobject_UUID)
@@ -50,10 +50,10 @@ void ScriptingPhysics::SetAngularVelocity(float x, float y, float z, uint gameob
 		if (body && coll)
 			body->SetAngularVelocity({ x, y, z });
 		else
-			ENGINE_CONSOLE_LOG("Object or its Dynamic Rigid Body component or its Collider are null");
+			ENGINE_CONSOLE_LOG("![Script]: (SetAngularVelocity) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! This Gameobject with %d UUID was not found!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetAngularVelocity) Gameobject with UID %d was not found!", gameobject_UUID);
 }
 
 void ScriptingPhysics::SetMass(float mass, uint gameobject_UUID)
@@ -67,10 +67,10 @@ void ScriptingPhysics::SetMass(float mass, uint gameobject_UUID)
 		if (body && coll)
 			body->SetMass(mass);
 		else
-			ENGINE_CONSOLE_LOG("Object or its Dynamic Rigid Body component or its Collider are null");
+			ENGINE_CONSOLE_LOG("![Script]: (SetMass) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! This Gameobject with %d UUID was not found!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetMass) Gameobject with UID %d was not found!", gameobject_UUID);
 }
 
 float ScriptingPhysics::GetMass(uint gameobject_UUID)
@@ -85,10 +85,10 @@ float ScriptingPhysics::GetMass(uint gameobject_UUID)
 		if (body && coll)
 			ret = body->GetMass();
 		else
-			ENGINE_CONSOLE_LOG("Object or its Dynamic Rigid Body component or its Collider are null");
+			ENGINE_CONSOLE_LOG("![Script]: (GetMass) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! This Gameobject with %d UUID was not found!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (GetMass) Gameobject with UID %d was not found!", gameobject_UUID);
 
 	return ret;
 }
@@ -107,10 +107,10 @@ luabridge::LuaRef ScriptingPhysics::GetLinearVelocity(uint gameobject_UUID, lua_
 			vel = body->GetLinearVelocity();
 		}
 		else
-			ENGINE_CONSOLE_LOG("Object or its Dynamic Rigid Body component or its Collider are null");
+			ENGINE_CONSOLE_LOG("![Script]: (GetLinearVelocity) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! This Gameobject with %d UUID was not found!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (GetLinearVelocity) Gameobject with UID %d was not found!", gameobject_UUID);
 
 	luabridge::LuaRef table = luabridge::newTable(L);
 	table.append(vel.x);
@@ -134,10 +134,10 @@ luabridge::LuaRef ScriptingPhysics::GetAngularVelocity(uint gameobject_UUID, lua
 			vel = body->GetAngularVelocity();
 		}
 		else
-			ENGINE_CONSOLE_LOG("Object or its Dynamic Rigid Body component or its Collider are null");
+			ENGINE_CONSOLE_LOG("![Script]: (GetAngularVelocity) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! This Gameobject with %d UUID was not found!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (GetAngularVelocity) Gameobject with UID %d was not found!", gameobject_UUID);
 
 	luabridge::LuaRef table = luabridge::newTable(L);
 	table.append(vel.x);
@@ -158,10 +158,10 @@ void ScriptingPhysics::AddForce(float forceX, float forceY, float forceZ, int Fo
 		if (body && coll)
 			return body->AddForce({ forceX, forceY, forceZ }, (physx::PxForceMode::Enum)ForceMode);
 		else
-			ENGINE_CONSOLE_LOG("Object or its Dynamic Rigid Body component or its Collider are null");
+			ENGINE_CONSOLE_LOG("![Script]: (AddForce) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! This Gameobject with %d UUID was not found!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (AddForce) Gameobject with UID %d was not found!", gameobject_UUID);
 }
 
 void ScriptingPhysics::AddTorque(float forceX, float forceY, float forceZ, int ForceMode, uint gameobject_UUID)
@@ -175,10 +175,10 @@ void ScriptingPhysics::AddTorque(float forceX, float forceY, float forceZ, int F
 		if (body && coll)
 			return body->AddTorque({ forceX, forceY, forceZ }, (physx::PxForceMode::Enum)ForceMode);
 		else
-			ENGINE_CONSOLE_LOG("Object or its Dynamic Rigid Body component or its Collider are null");
+			ENGINE_CONSOLE_LOG("![Script]: (AddTorque) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! This Gameobject with %d UUID was not found!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (AddTorque) Gameobject with UID %d was not found!", gameobject_UUID);
 }
 
 void ScriptingPhysics::SetKinematic(bool enable, uint gameobject_UUID)
@@ -192,10 +192,10 @@ void ScriptingPhysics::SetKinematic(bool enable, uint gameobject_UUID)
 		if (body && coll)
 			return body->SetKinematic(enable);
 		else
-			ENGINE_CONSOLE_LOG("Object or its Dynamic Rigid Body component or its Collider are null");
+			ENGINE_CONSOLE_LOG("![Script]: (SetKinematic) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! This Gameobject with %d UUID was not found!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetKinematic) Gameobject with UID %d was not found!", gameobject_UUID);
 }
 
 void ScriptingPhysics::UseGravity(bool enable, uint gameobject_UUID)
@@ -209,10 +209,10 @@ void ScriptingPhysics::UseGravity(bool enable, uint gameobject_UUID)
 		if (body && coll)
 			return body->UseGravity(enable);
 		else
-			ENGINE_CONSOLE_LOG("Object or its Dynamic Rigid Body component or its Collider are null");
+			ENGINE_CONSOLE_LOG("![Script]: (UseGravity) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! This Gameobject with %d UUID was not found!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (UseGravity) Gameobject with UID %d was not found!", gameobject_UUID);
 }
 
 luabridge::LuaRef ScriptingPhysics::GetCharacterPosition(uint gameobject_UUID, lua_State* L) {
@@ -230,10 +230,10 @@ luabridge::LuaRef ScriptingPhysics::GetCharacterPosition(uint gameobject_UUID, l
 			aux.z = pos.z;
 		}
 		else
-			ENGINE_CONSOLE_LOG("Character Controller is null on GetCharacterPosition");
+			ENGINE_CONSOLE_LOG("![Script]: (GetCharacterPosition) Gameobject with UID %d has no Character Controller", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! This Gameobject with %d UUID was not found!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (GetCharacterPosition) Gameobject with UID %d was not found!", gameobject_UUID);
 
 	luabridge::LuaRef table = luabridge::newTable(L);
 	table.append(aux.x);
@@ -255,10 +255,10 @@ void ScriptingPhysics::SetCharacterPosition(float posx, float posy, float posz, 
 			character->controller->setFootPosition(pos);
 		}
 		else
-			ENGINE_CONSOLE_LOG("Character Controller is null on SetCharacterPosition");
+			ENGINE_CONSOLE_LOG("![Script]: (SetCharacterPosition) Gameobject with UID %d has no Character Controller", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! This Gameobject with %d UUID was not found!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetCharacterPosition) Gameobject with UID %d was not found!", gameobject_UUID);
 }
 
 void ScriptingPhysics::setActiveController(bool enable, uint gameobject_UUID)
@@ -278,19 +278,19 @@ void ScriptingPhysics::setActiveController(bool enable, uint gameobject_UUID)
 			}
 			else {
 				if (character->IsEnabled()) {
-					ENGINE_CONSOLE_LOG("(SCRIPTING): setActiveController function (physics) - Character Controller already enabled");
+					ENGINE_CONSOLE_LOG("![Script]: (setActiveController) Character Controller already enabled");
 				}
 				else {
-					ENGINE_CONSOLE_LOG("(SCRIPTING): setActiveController function (physics) - Character Controller already disabled");
+					ENGINE_CONSOLE_LOG("![Script]: (setActiveController) Character Controller already disabled");
 				}
 			}
 
 		}
 		else
-			ENGINE_CONSOLE_LOG("Character Controller is null on setActiveController");
+			ENGINE_CONSOLE_LOG("![Script]: (setActiveController) Gameobject with UID %d has no Character Controller", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING): MoveGameObject function (physics) - Game Object not Found");
+		ENGINE_CONSOLE_LOG("![Script]: (setActiveController) Gameobject with UID %d was not found!", gameobject_UUID);
 }
 
 void ScriptingPhysics::Move(float vel_x, float vel_z, uint gameobject_UUID)
@@ -303,10 +303,10 @@ void ScriptingPhysics::Move(float vel_x, float vel_z, uint gameobject_UUID)
 		if (character)
 			character->SetVelocity(vel_x, 0, vel_z);
 		else
-			ENGINE_CONSOLE_LOG("Character Controller is null on Move");
+			ENGINE_CONSOLE_LOG("![Script]: (Move) Gameobject with UID %d has no Character Controller", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING): MoveGameObject function (physics) - Game Object not Found");
+		ENGINE_CONSOLE_LOG("![Script]: (Move) Gameobject with UID %d was not found!", gameobject_UUID);
 }
 
 luabridge::LuaRef ScriptingPhysics::GetCharacterUpDirection(uint gameobject_UUID, lua_State* L)
@@ -325,10 +325,10 @@ luabridge::LuaRef ScriptingPhysics::GetCharacterUpDirection(uint gameobject_UUID
 			aux.z = dir.z;
 		}
 		else
-			ENGINE_CONSOLE_LOG("Character Controller is null on GetUpDirection");
+			ENGINE_CONSOLE_LOG("![Script]: (GetCharacterUpDirection) Gameobject with UID %d has no Character Controller", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! This Gameobject with %d UUID was not found!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (GetCharacterUpDirection) Gameobject with UID %d was not found!", gameobject_UUID);
 
 	luabridge::LuaRef table = luabridge::newTable(L);
 	table.append(aux.x);
@@ -350,10 +350,10 @@ void ScriptingPhysics::SetCharacterUpDirection(float rotx, float roty, float rot
 			character->controller->setUpDirection(rot);
 		}
 		else
-			ENGINE_CONSOLE_LOG("Character Controller is null on SetUpDirection");
+			ENGINE_CONSOLE_LOG("![Script]: (SetCharacterUpDirection) Gameobject with UID %d has no Character Controller", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! This Gameobject with %d UUID was not found!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script]: (SetCharacterUpDirection) Gameobject with UID %d was not found!", gameobject_UUID);
 }
 
 int ScriptingPhysics::Raycast(float originX, float originY, float originZ, float directionX, float directionY, float directionZ, float maxDistance, int layer, bool hitTriggers)

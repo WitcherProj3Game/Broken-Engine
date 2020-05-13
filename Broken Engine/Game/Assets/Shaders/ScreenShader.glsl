@@ -16,10 +16,11 @@ void main()
 out vec4 FragColor;
   
 uniform sampler2D screenTexture;
-uniform vec2 screenTexture_size
+in vec4 gl_FragCoord;
 
 void main()
 { 
-    FragColor = texture(screenTexture, gl_FragCoord.xy / screenTexture_size);
+	ivec2 textureSize2d = textureSize(screenTexture,0);
+    FragColor = texture(screenTexture, gl_FragCoord.xy / textureSize2d);
 }
 #endif //FRAGMENT_SHADER

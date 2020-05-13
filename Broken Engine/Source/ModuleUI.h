@@ -9,6 +9,7 @@ struct SDL_Rect;
 
 BE_BEGIN_NAMESPACE
 
+class UI_Element;
 class Component;
 class ComponentCanvas;
 class ComponentCamera;
@@ -16,7 +17,7 @@ class ComponentCamera;
 class BROKEN_API ModuleUI : public Module
 {
 	struct PrioritySort {
-		bool operator()(ComponentCanvas* const& node1, ComponentCanvas* const& node2);
+		bool operator()(UI_Element* const& node1, UI_Element* const& node2);
 	};
 
 public:
@@ -31,21 +32,21 @@ public:
 	bool CleanUp() override;
 
 	void Draw() const;
-	void AddCanvas(ComponentCanvas* c) { canvas.push_back(c); }
-	void RemoveCanvas(ComponentCanvas* c);
+	void AddElement(UI_Element* c) { elements.push_back(c); }
+	void RemoveElement(UI_Element* c);
 	
 	void Clear();
 
 	bool CheckMousePos(SDL_Rect* collider);
 	bool CheckClick(bool draggable = false);
 
-	void OrderCanvas();
+	void OrderElements();
 
 public:
 
 	ComponentCamera* ui_camera = nullptr;
 
-	std::vector<ComponentCanvas*> canvas;
+	std::vector<UI_Element*> elements;
 
 	float2 drag_start = float2::zero;
 	float2 mouse_pos = float2::zero;

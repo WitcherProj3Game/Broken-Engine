@@ -33,7 +33,7 @@
 
 using namespace Broken;
 
-ComponentButton::ComponentButton(GameObject* gameObject) : Component(gameObject, Component::ComponentType::Button)
+ComponentButton::ComponentButton(GameObject* gameObject) : UI_Element(gameObject, Component::ComponentType::Button)
 {
 	name = "Button";
 	visible = true;
@@ -43,8 +43,13 @@ ComponentButton::ComponentButton(GameObject* gameObject) : Component(gameObject,
 	collider = { 0,0,0,0 };
 	color = idle_color;
 
-	canvas = (ComponentCanvas*)gameObject->AddComponent(Component::ComponentType::Canvas);			
-	canvas->AddElement(this);
+	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = (ComponentCanvas*)GO->parent->GetComponent<ComponentCanvas>();
+
+		if(canvas)
+			canvas->AddElement(this);
+	}
 
 	//texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
 
@@ -61,13 +66,16 @@ ComponentButton::~ComponentButton()
 		texture->Release();
 		texture->RemoveUser(GO);
 	}
+
+	if (canvas)
+		canvas->RemoveElement(this);
 }
 
 void ComponentButton::Update()
 {
 	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
 	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas = (ComponentCanvas*)GO->parent->GetComponent<ComponentCanvas>();
 		canvas->AddElement(this);
 	}
 	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
@@ -164,9 +172,11 @@ json ComponentButton::Save() const
 	if (texture)
 		node["Resources"]["ResourceTexture"] = std::string(texture->GetResourceFile());
 
+	node["Active"] = this->active;
 	node["visible"] = std::to_string(visible);
 	node["draggable"] = std::to_string(draggable);
 	node["interactable"] = std::to_string(interactable);
+	node["priority"] = std::to_string(priority);
 
 	node["position2Dx"] = std::to_string(position2D.x);
 	node["position2Dy"] = std::to_string(position2D.y);
@@ -222,9 +232,11 @@ void ComponentButton::Load(json& node)
 	if (texture)
 		texture->AddUser(GO);
 
+	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
 	std::string visible_str = node["visible"].is_null() ? "0" : node["visible"];
 	std::string draggable_str = node["visible"].is_null() ? "0" : node["draggable"];
 	std::string interactable_str = node["visible"].is_null() ? "0" : node["interactable"];
+	std::string priority_str = node["priority"].is_null() ? "0" : node["priority"];
 
 	std::string position2Dx = node["position2Dx"].is_null() ? "0" : node["position2Dx"];
 	std::string position2Dy = node["position2Dy"].is_null() ? "0" : node["position2Dy"];
@@ -264,6 +276,7 @@ void ComponentButton::Load(json& node)
 	visible = bool(std::stoi(visible_str));
 	draggable = bool(std::stoi(draggable_str));
 	interactable = bool(std::stoi(interactable_str));
+	priority = int(std::stoi(priority_str));
 
 	position2D = float2(std::stof(position2Dx), std::stof(position2Dy));
 	size2D = float2(std::stof(size2Dx), std::stof(size2Dy));
@@ -328,6 +341,10 @@ void ComponentButton::CreateInspectorNode()
 
 	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
 	ImGui::Checkbox("Draggable", &draggable);
+	ImGui::Separator();
+
+	ImGui::SetNextItemWidth(100);
+	ImGui::InputInt("Priority", &priority);
 	ImGui::Separator();
 
 	// Size

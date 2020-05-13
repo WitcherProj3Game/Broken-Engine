@@ -54,7 +54,7 @@ bool PanelRendering::Draw()
 		if(ImGui::ColorEdit4("##AmbientColor", (float*)&m_AmbientColorValue, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar)) makeChanges = true;
 		ImGui::NewLine();
 
-		// --- Set Alpha Function ---		
+		// --- Set Alpha Function ---
 		const char* item_current = m_AlphaFunctionsVec[(uint)m_CurrentAlphaFunc];
 		if (ImGui::BeginCombo("##AlphaFunction", item_current))
 		{
@@ -94,6 +94,13 @@ bool PanelRendering::Draw()
 		if(ImGui::ColorEdit3("##SkyboxColorTint", (float*)&m_SkyboxColorValue, ImGuiColorEditFlags_NoInputs)) makeChanges = true;
 		ImGui::NewLine();
 
+		// --- Skybox Rotation ---
+		float3 skyboxangle = EngineApp->renderer3D->skyboxangle;
+		if (ImGui::DragFloat3("Skybox Angle", skyboxangle.ptr()))
+			EngineApp->renderer3D->skyboxangle = skyboxangle;
+
+		ImGui::NewLine();
+
 
 		// --- PostPro Effects ---
 		if (ImGui::TreeNode("PostPro"))
@@ -121,7 +128,7 @@ bool PanelRendering::Draw()
 	}
 
 	ImGui::End();
-	
+
 	if (makeChanges)
 	{
 		EngineApp->renderer3D->SetSkyboxColor(m_SkyboxColorValue);

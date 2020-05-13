@@ -46,14 +46,37 @@ uint ScriptingScenes::Instantiate(uint resource_UUID, float x, float y, float z,
 
 	if (prefab) {
 		GameObject* go = App->resources->GetImporter<ImporterModel>()->InstanceOnCurrentScene(prefab->GetResourceFile(), nullptr);
-		go->GetComponent<ComponentTransform>()->SetPosition(x, y, z);
-		go->GetComponent<ComponentTransform>()->SetRotation({ alpha, beta, gamma });
-		go->GetComponent<ComponentTransform>()->updateValues = true;
-		go->TransformGlobal();
-		//go->GetComponent<ComponentTransform>()->updateValues = false;
 
-		ret = go->GetUID();
+		if (go) {
+			ComponentTransform* transform = go->GetComponent<ComponentTransform>();
+
+			if (transform) {
+				go->GetComponent<ComponentTransform>()->SetPosition(x, y, z);
+				go->GetComponent<ComponentTransform>()->SetRotation({ alpha, beta, gamma });
+				go->GetComponent<ComponentTransform>()->updateValues = true;
+				go->TransformGlobal();
+			}
+			else
+				ENGINE_CONSOLE_LOG("![Script]: (Instantiate) Prefab has no transform");
+
+
+			//Override the variables of the script with editor values
+			ComponentScript* component_script = go->GetComponent<ComponentScript>();
+			if (component_script) {
+				ScriptInstance* script_inst = App->scripting->GetScriptInstanceFromComponent(component_script);
+
+				if (script_inst)
+					App->scripting->EmplaceEditorValues(script_inst);
+			}
+
+			ret = go->GetUID();
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (Instantiate) Failed to instantiate prefab");
+
 	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (Instantiate) No prefab with UID %d", resource_UUID);
 
 	return ret;
 }

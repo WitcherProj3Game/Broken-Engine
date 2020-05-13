@@ -3,32 +3,27 @@
 #ifdef VERTEX_SHADER
 
 layout (location = 0) in vec2 aPos;
-layout (location = 1) in vec2 aTexCoords;
-
-out vec2 TexCoords;
 
 void main()
 {
-	gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
-	TexCoords = aTexCoords;
-} 
+	gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
+}
 #endif //VERTEX_SHADER
 
 #define FRAGMENT_SHADER
 #ifdef FRAGMENT_SHADER
 
 out vec4 FragColor;
-  
-in vec2 TexCoords;
 
 uniform sampler2D screenTexture;
+uniform vec2 screenTexture_size;
 uniform float u_GammaCorrection = 1.8;
 uniform float u_HDR_Exposure = 1.0;
 uniform bool u_UseHDR = true;
 
 void main()
 {
-	vec3 texOutput = texture(screenTexture, TexCoords).rgb;
+	vec3 texOutput = texture(screenTexture, gl_FragCoord.xy / screenTexture_size).rgb;
 
 	if(u_UseHDR == true)
 	{

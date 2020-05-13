@@ -26,13 +26,18 @@
 
 using namespace Broken;
 
-ComponentImage::ComponentImage(GameObject* gameObject) : Component(gameObject, Component::ComponentType::Image)
+ComponentImage::ComponentImage(GameObject* gameObject) : UI_Element(gameObject, Component::ComponentType::Image)
 {
 	name = "Image";
 	visible = true;
 
-	canvas = (ComponentCanvas*)gameObject->AddComponent(Component::ComponentType::Canvas);
-	canvas->AddElement(this);
+	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = (ComponentCanvas*)GO->parent->GetComponent<ComponentCanvas>();
+
+		if (canvas)
+			canvas->AddElement(this);
+	}
 	//texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
 }
 
@@ -43,13 +48,16 @@ ComponentImage::~ComponentImage()
 		texture->Release();
 		texture->RemoveUser(GO);
 	}
+
+	if (canvas)
+		canvas->RemoveElement(this);
 }
 
 void ComponentImage::Update()
 {
 	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
 	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas = (ComponentCanvas*)GO->parent->GetComponent<ComponentCanvas>();
 		canvas->AddElement(this);
 	}
 	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
@@ -123,6 +131,7 @@ json ComponentImage::Save() const
 	json node;
 	node["Active"] = this->active;
 	node["visible"] = std::to_string(visible);
+	node["priority"] = std::to_string(priority);
 
 	node["Resources"]["ResourceTexture"];
 
@@ -147,7 +156,9 @@ void ComponentImage::Load(json& node)
 {
 	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
 	std::string visible_str = node["visible"].is_null() ? "0" : node["visible"];
+	std::string priority_str = node["priority"].is_null() ? "0" : node["priority"];
 	visible = bool(std::stoi(visible_str));
+	priority = int(std::stoi(priority_str));
 
 	std::string path = node["Resources"]["ResourceTexture"].is_null() ? "0" : node["Resources"]["ResourceTexture"];
 	App->fs->SplitFilePath(path.c_str(), nullptr, &path);
@@ -178,6 +189,10 @@ void ComponentImage::CreateInspectorNode()
 {
 	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
 	ImGui::Checkbox("Visible", &visible);
+	ImGui::Separator();
+
+	ImGui::SetNextItemWidth(100);
+	ImGui::InputInt("Priority", &priority);
 	ImGui::Separator();
 
 	// Size

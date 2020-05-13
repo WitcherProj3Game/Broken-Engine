@@ -91,7 +91,8 @@ ComponentParticleEmitter::~ComponentParticleEmitter()
 	}
 
 	for (int i = 0; i < particleMeshes.size(); ++i) {
-		particleMeshes[i]->Release();
+		particleMeshes[i]->FreeMemory();
+		delete particleMeshes[i];
 		particleMeshes[i] = nullptr;
 	}
 	particleMeshes.clear();
@@ -109,21 +110,16 @@ void ComponentParticleEmitter::Update()
 	if (!animation || !createdAnim) {
 		if (particleMeshes.size() > 0) {
 			for (int i = 0; i < particleMeshes.size(); ++i) {
-				particleMeshes.at(i)->FreeMemory();
-				delete particleMeshes.at(i);
+				particleMeshes[i]->FreeMemory();
+				delete particleMeshes[i];
+				particleMeshes[i] = nullptr;
 			}
 			particleMeshes.clear();
 		}
 		createdAnim = false;
 	}
 
-	if (animation && !createdAnim) {
-		for (int i = 0; i < particleMeshes.size(); ++i) {
-			particleMeshes[i]->FreeMemory();
-			particleMeshes[i] = nullptr;
-		}
-		particleMeshes.clear();
-
+	if (animation && !createdAnim){
 		CreateAnimation(tileSize_X, tileSize_Y);
 		createdAnim = true;
 	}

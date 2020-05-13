@@ -13,17 +13,19 @@ void main()
 #define FRAGMENT_SHADER
 #ifdef FRAGMENT_SHADER
 
-out vec4 FragColor;
-
 uniform sampler2D screenTexture;
 uniform vec2 screenTexture_size;
 uniform float u_GammaCorrection = 1.8;
 uniform float u_HDR_Exposure = 1.0;
 uniform bool u_UseHDR = true;
 
+out vec4 FragColor;
+in vec4 gl_FragCoord;
+
 void main()
 {
-	vec3 texOutput = texture(screenTexture, gl_FragCoord.xy / screenTexture_size).rgb;
+	ivec2 textureSize2d = textureSize(screenTexture, 0);
+    vec3 texOutput = texture(screenTexture, gl_FragCoord.xy / textureSize2d).rgb; //OJO EL VEC4
 
 	if(u_UseHDR == true)
 	{

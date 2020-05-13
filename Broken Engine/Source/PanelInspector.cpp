@@ -212,6 +212,16 @@ bool PanelInspector::Draw()
 				type = Broken::Component::ComponentType::Button;
 			}
 
+			else if (item_current == "UI ProgressBar")
+			{
+				type = Broken::Component::ComponentType::ProgressBar;
+			}
+
+			else if (item_current == "UI CircularBar")
+			{
+				type = Broken::Component::ComponentType::CircularBar;
+			}
+
 			else if (item_current == "Dynamic RigidBody")
 			{
 				type = Broken::Component::ComponentType::DynamicRigidBody;
@@ -237,9 +247,7 @@ bool PanelInspector::Draw()
 			if (type != Broken::Component::ComponentType::Unknown)
 			{
 				for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
-				{
 					obj->AddComponent(type);
-				}
 			}
 			item_current = items[0];
 

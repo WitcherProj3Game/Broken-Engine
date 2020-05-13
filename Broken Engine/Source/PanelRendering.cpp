@@ -30,6 +30,9 @@ bool PanelRendering::Draw()
 	m_SkyboxColorValue = EngineApp->renderer3D->GetSkyboxColor();
 	m_SkyboxExposureValue = EngineApp->renderer3D->GetSkyboxExposure();
 
+	m_ExpHdr = EngineApp->renderer3D->GetPostProHDRExposure();
+	m_PPGamma = EngineApp->renderer3D->GetPostProGammaCorrection();
+
 	// --- ImGui Context ---
 	ImGui::SetCurrentContext(EngineApp->gui->getImgUICtx());
 	ImGuiWindowFlags settingsFlags = 0;
@@ -90,6 +93,31 @@ bool PanelRendering::Draw()
 		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		if(ImGui::ColorEdit3("##SkyboxColorTint", (float*)&m_SkyboxColorValue, ImGuiColorEditFlags_NoInputs)) makeChanges = true;
 		ImGui::NewLine();
+
+
+		// --- PostPro Effects ---
+		if (ImGui::TreeNode("PostPro"))
+		{
+			// --- Use HDR ---
+			ImGui::Checkbox("Use HDR", &EngineApp->renderer3D->m_UseHDR);
+
+			// --- HDR Exposure ---
+			ImGui::Text("HDR Exposure");
+			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+			ImGui::SetNextItemWidth(200.0f);
+			if (ImGui::SliderFloat("##HDREXP", &m_ExpHdr, -2.0f, 10.0f, "%.3f", 0.5f)) makeChanges = true;
+			ImGui::NewLine();
+
+			// --- PostPro Gamma Correction ---
+			ImGui::Text("PostPro Gamma Correction");
+			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+			ImGui::SetNextItemWidth(200.0f);
+			if (ImGui::SliderFloat("##PPGammaCorrection", &m_PPGamma, 0.1f, 5.0f)) makeChanges = true;
+			ImGui::NewLine();
+
+			ImGui::TreePop();
+		}
+
 	}
 
 	ImGui::End();
@@ -101,6 +129,9 @@ bool PanelRendering::Draw()
 		EngineApp->renderer3D->SetRendererAlphaFunction(m_CurrentAlphaFunc);
 		EngineApp->renderer3D->SetGammaCorrection(m_GammaCorretionValue);
 		EngineApp->renderer3D->SetSceneAmbientColor(m_AmbientColorValue);
+
+		EngineApp->renderer3D->SetPostProHDRExposure(m_ExpHdr);
+		EngineApp->renderer3D->SetPostProGammaCorrection(m_PPGamma);
 
 		makeChanges = false;
 	}

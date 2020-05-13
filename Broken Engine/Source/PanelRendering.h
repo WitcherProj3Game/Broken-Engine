@@ -16,10 +16,15 @@ public:
 
 private:
 
+	//General Stuff
 	float m_GammaCorretionValue = 1.0f;
 	float3 m_AmbientColorValue = float3::one;
 	float3 m_SkyboxColorValue = float3::one;
 	float m_SkyboxExposureValue = 1.0f;
+
+	//PostPro Stuff
+	float m_ExpHdr = 1.0f;
+	float m_PPGamma = 1.8f;
 
 	//Alpha Functions
 	std::vector<const char*> m_AlphaFunctionsVec;

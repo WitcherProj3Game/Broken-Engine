@@ -117,11 +117,17 @@ public:
 	bool SetVSync(bool _vsync);
 	void SetActiveCamera(ComponentCamera* camera);
 	void SetCullingCamera(ComponentCamera* camera);
+
+	// --- Rendering Setters ---
 	void SetGammaCorrection(float gammaCorr) { m_GammaCorrection = gammaCorr; }
 	void SetSceneAmbientColor(const float3& color) { m_AmbientColor = color; }
 	void SetRendererAlphaFunction(AlphaFunction function) { m_RendererAlphaFunc = function; }
 	void SetSkyboxColor(const float3& color) { m_SkyboxColor = color; }
 	void SetSkyboxExposure(float value) { m_SkyboxExposure = value; }
+
+	// --- Rendering PostPro Effects ---
+	void SetPostProHDRExposure(float exposure) { m_PostProHDRExposure = exposure; }
+	void SetPostProGammaCorrection(float value) { m_PostProGammaCorrection = value; }
 
 	// --- Getters ---
 	bool GetVSync() const { return vsync; }
@@ -130,6 +136,10 @@ public:
 	AlphaFunction GetRendererAlphaFunction() const { return m_RendererAlphaFunc; }
 	float3 GetSkyboxColor() const { return m_SkyboxColor; }
 	float GetSkyboxExposure() const { return m_SkyboxExposure; }
+
+	// --- Rendering PostPro ---
+	float GetPostProGammaCorrection() const { return m_PostProGammaCorrection; }
+	float GetPostProHDRExposure() const { return m_PostProHDRExposure; }
 
 private:
 
@@ -209,6 +219,7 @@ public:
 	bool m_Draw_normalMapping = false;
 	bool m_Draw_normalMapping_Lit = false;
 	bool m_Draw_normalMapping_Lit_Adv = false;
+	bool m_UseHDR = true;
 
 	uint rendertexture = 0;
 	uint depthMapTexture = 0;
@@ -232,6 +243,10 @@ private:
 	AlphaFunction m_RendererAlphaFunc = SRC_ONE_MINUS_SRC;
 	float3 m_SkyboxColor = float3::one;
 	float m_SkyboxExposure = 1.0f;
+
+	//Post-Pro Effects
+	float m_PostProHDRExposure = 1.0f;
+	float m_PostProGammaCorrection = 1.8f;
 
 	//Other Generic Stuff
 	uint fbo = 0;

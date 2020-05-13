@@ -1056,7 +1056,12 @@ void ModuleRenderer3D::DrawFramebuffer()
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glUseProgram(screenShader->ID);
+	uint shader = screenShader->ID;
+	glUseProgram(shader);
+	glUniform1f(glGetUniformLocation(shader, "u_GammaCorrection"), m_PostProGammaCorrection);
+	glUniform1f(glGetUniformLocation(shader, "u_HDR_Exposure"), m_PostProHDRExposure);
+	glUniform1i(glGetUniformLocation(shader, "u_UseHDR"), m_UseHDR);
+
 	glBindVertexArray(quadVAO);
 	glBindTexture(GL_TEXTURE_2D, rendertexture);	// use the color attachment texture as the texture of the quad plane
 	glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -1140,7 +1145,7 @@ void ModuleRenderer3D::CreateFramebuffer()
 	// --- Create a texture to use it as render target ---
 	glGenTextures(1, &rendertexture);
 	glBindTexture(GL_TEXTURE_2D, rendertexture);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_SRGB8_ALPHA8, App->window->GetWindowWidth(), App->window->GetWindowHeight());
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, App->window->GetWindowWidth(), App->window->GetWindowHeight());
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// --- Generate attachments, DEPTH and STENCIL ---

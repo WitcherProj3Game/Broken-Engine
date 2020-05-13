@@ -16,7 +16,7 @@ void main()
 out vec4 FragColor;
   
 uniform sampler2D screenTexture;
-uniform vec2 screenTexture_size
+uniform vec2 screenTexture_size;
 
 void main()
 { 

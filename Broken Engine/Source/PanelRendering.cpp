@@ -103,6 +103,7 @@ bool PanelRendering::Draw()
 
 
 		// --- PostPro Effects ---
+		ImGui::Checkbox("Use PostPro", &EngineApp->renderer3D->post_processing);
 		if (ImGui::TreeNode("PostPro"))
 		{
 			// --- Use HDR ---

@@ -30,6 +30,8 @@ public:
 	std::unordered_map<uint,GameObject*> NoStaticGameObjects;
 	std::unordered_map<uint, GameObject*> StaticGameObjects;
 
+	AABB octreeBox;
+
 private:
 
 	void OnOverwrite() override;

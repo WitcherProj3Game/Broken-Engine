@@ -124,6 +124,9 @@ bool ModuleRenderer3D::Init(json& file)
 		}
 	}
 
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+
 	// --- z values from 0 to 1 and not -1 to 1, more precision in far ranges ---
 	glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
@@ -410,9 +413,9 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// -- Draw framebuffer texture ---
-	OPTICK_PUSH("FBO Rendering");
-	if (drawfb)
-		DrawFramebuffer();
+	OPTICK_PUSH("Post Processing Rendering");
+	if (post_processing || drawfb)
+		DrawPostProcessing();
 	OPTICK_POP();
 
 	// --- Draw GUI and swap buffers ---
@@ -480,21 +483,26 @@ void ModuleRenderer3D::LoadStatus(const json& file)
 			file["Renderer3D"]["SkyboxColorTint"].find("G") != file["Renderer3D"]["SkyboxColorTint"].end() &&
 			file["Renderer3D"]["SkyboxColorTint"].find("B") != file["Renderer3D"]["SkyboxColorTint"].end())
 		{
-			m_AmbientColor = float3(file["Renderer3D"]["SkyboxColorTint"]["R"].get<float>(), file["Renderer3D"]["SkyboxColorTint"]["G"].get<float>(), file["Renderer3D"]["SkyboxColorTint"]["B"].get<float>());
+			m_SkyboxColor = float3(file["Renderer3D"]["SkyboxColorTint"]["R"].get<float>(), file["Renderer3D"]["SkyboxColorTint"]["G"].get<float>(), file["Renderer3D"]["SkyboxColorTint"]["B"].get<float>());
 		}
 		else
-			m_AmbientColor = float3::one;
+			m_SkyboxColor = float3::one;
 	}
 	else
-		m_AmbientColor = float3::one;
+		m_SkyboxColor = float3::one;
+
+		if (file["Renderer3D"].find("SkyboxRotation") != file["Renderer3D"].end())
+		{
+			skyboxangle.x = file["Renderer3D"]["SkyboxRotation"]["X"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["X"].get<float>();
+			skyboxangle.y = file["Renderer3D"]["SkyboxRotation"]["Y"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["Y"].get<float>();
+			skyboxangle.z = file["Renderer3D"]["SkyboxRotation"]["Z"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["Z"].get<float>();
+		}
 
 
 	// --- Blending Stuff ---
 	m_AutomaticBlendingFunc = file["Renderer3D"].find("RendAutoBlending") == file["Renderer3D"].end() ? true : file["Renderer3D"]["RendAutoBlending"].get<bool>();
 	m_RendererBlendFunc = file["Renderer3D"].find("AlphaFunc") == file["Renderer3D"].end() ? BlendAutoFunction::STANDARD_INTERPOLATIVE : (BlendAutoFunction)file["Renderer3D"]["AlphaFunc"].get<int>();
 	m_BlendEquation = file["Renderer3D"].find("BlendEquation") == file["Renderer3D"].end() ? BlendingEquations::ADD : (BlendingEquations)file["Renderer3D"]["BlendEquation"].get<int>();
-
-
 	m_ManualBlend_Src = file["Renderer3D"].find("ManualAlphaFuncSrc") == file["Renderer3D"].end() ? BlendingTypes::SRC_ALPHA : (BlendingTypes)file["Renderer3D"]["ManualAlphaFuncSrc"].get<int>();
 	m_ManualBlend_Dst = file["Renderer3D"].find("ManualAlphaFuncDst") == file["Renderer3D"].end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)file["Renderer3D"]["ManualAlphaFuncDst"].get<int>();
 }
@@ -509,6 +517,10 @@ const json& ModuleRenderer3D::SaveStatus() const
 	m_config["ManualAlphaFuncDst"] = (int)m_ManualBlend_Dst;
 	m_config["BlendEquation"] = (int)m_BlendEquation;
 	m_config["SkyboxExposure"] = m_SkyboxExposure;
+
+	m_config["SkyboxRotation"]["X"] = skyboxangle.x;
+	m_config["SkyboxRotation"]["Y"] = skyboxangle.y;
+	m_config["SkyboxRotation"]["Z"] = skyboxangle.z;
 
 	m_config["SkyboxColorTint"]["R"] = m_SkyboxColor.x;
 	m_config["SkyboxColorTint"]["G"] = m_SkyboxColor.y;
@@ -1128,12 +1140,15 @@ void ModuleRenderer3D::SendShaderUniforms(uint shader)
 }
 
 
-void ModuleRenderer3D::DrawFramebuffer()
+void ModuleRenderer3D::DrawPostProcessing()
 {
 	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+
+	if (!drawfb)
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo); // if we do not want to draw the framebuffer we bind to draw the postprocessing into it
 	// clear all relevant buffers
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	//glClear(GL_COLOR_BUFFER_BIT);
 
 	glUseProgram(screenShader->ID);
 	glBindVertexArray(quadVAO);
@@ -1141,6 +1156,7 @@ void ModuleRenderer3D::DrawFramebuffer()
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	// --- Unbind buffers ---
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glUseProgram(0);
@@ -1699,13 +1715,14 @@ void ModuleRenderer3D::CreateDefaultShaders()
 		"#version 460 core \n"
 		"#define VERTEX_SHADER \n"
 		"#ifdef VERTEX_SHADER \n"
-		"layout (location = 0) in vec3 position; \n"
+		"layout (location = 0) in vec3 a_Position; \n"
 		"out vec3 TexCoords; \n"
-		"uniform mat4 view; \n"
-		"uniform mat4 projection; \n"
+		"uniform mat4 u_View; \n"
+		"uniform mat4 u_Proj; \n"
+		"uniform mat4 u_Model; \n"
 		"void main(){ \n"
-		"TexCoords = position * vec3(1,-1,1); \n"
-		"gl_Position = projection * view * vec4(position, 1.0); \n"
+		"TexCoords = a_Position * vec3(1,-1,1); \n"
+		"gl_Position = u_Proj * u_View * u_Model * vec4(a_Position, 1.0); \n"
 		"}\n"
 		"#endif //VERTEX_SHADER\n"
 		;
@@ -1919,8 +1936,18 @@ void ModuleRenderer3D::DrawSkybox()
 	glDepthMask(GL_FALSE);
 
 	float3 prevpos = active_camera->frustum.Pos();
+	//float3 prevup = App->renderer3D->active_camera->frustum.Up();
+	//float3 prevfront = App->renderer3D->active_camera->frustum.Front();
 
 	App->renderer3D->active_camera->frustum.SetPos(float3::zero);
+
+	math::Quat rotationX = math::Quat::RotateAxisAngle(float3::unitY, skyboxangle.x * DEGTORAD);
+	math::Quat rotationY = math::Quat::RotateAxisAngle(float3::unitX, skyboxangle.y * DEGTORAD);
+	math::Quat rotationZ = math::Quat::RotateAxisAngle(float3::unitZ, skyboxangle.z * DEGTORAD);
+	math::Quat finalRotation = rotationX * rotationY * rotationZ;
+
+	//App->renderer3D->active_camera->frustum.SetUp(finalRotation.Mul(App->renderer3D->active_camera->frustum.Up()).Normalized());
+	//App->renderer3D->active_camera->frustum.SetFront(finalRotation.Mul(App->renderer3D->active_camera->frustum.Front()).Normalized());
 
 	SkyboxShader->use();
 	// draw skybox as last
@@ -1938,6 +1965,12 @@ void ModuleRenderer3D::DrawSkybox()
 		0.0f, f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, -1.0f,
 		0.0f, 0.0f, nearp, 0.0f);
+
+	float4x4 model = float4x4::identity;
+	model = model.FromQuat(finalRotation);
+
+	GLint modelLoc = glGetUniformLocation(App->renderer3D->SkyboxShader->ID, "u_Model");
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.ptr());
 
 	GLint viewLoc = glGetUniformLocation(App->renderer3D->SkyboxShader->ID, "u_View");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view.ptr());
@@ -1960,6 +1993,9 @@ void ModuleRenderer3D::DrawSkybox()
 	defaultShader->use();
 
 	App->renderer3D->active_camera->frustum.SetPos(prevpos);
+	//App->renderer3D->active_camera->frustum.SetUp(prevup);
+	//App->renderer3D->active_camera->frustum.SetFront(prevfront);
+
 	glDepthMask(GL_TRUE);
 }
 

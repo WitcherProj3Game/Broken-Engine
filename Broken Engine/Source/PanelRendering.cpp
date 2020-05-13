@@ -152,6 +152,13 @@ void PanelRendering::SkyboxSettings(bool& makeChanges)
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 	if (ImGui::ColorEdit3("##SkyboxColorTint", (float*)&m_SkyboxColorValue, ImGuiColorEditFlags_NoInputs))
 		makeChanges = true;
+
+	float3 skyboxangle = EngineApp->renderer3D->skyboxangle;
+
+	if (ImGui::DragFloat3("Skybox Angle", skyboxangle.ptr()))
+		EngineApp->renderer3D->skyboxangle = skyboxangle;
+
+	ImGui::NewLine();
 }
 
 void PanelRendering::BlendingSettings(bool& makeChanges)

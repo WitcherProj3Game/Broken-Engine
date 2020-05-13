@@ -201,7 +201,7 @@ private:
 	void DrawRenderMeshes();
 	void DrawTransparentRenderMeshes();
 	void DrawRenderMesh(std::vector<RenderMesh> meshInstances);
-	void DrawFramebuffer();
+	void DrawPostProcessing();
 
 	// --- Draw Utilities ---
 	void DrawRenderLines();
@@ -253,6 +253,7 @@ public:
 	bool zdrawer = false;
 	bool renderfbo = true;
 	bool drawfb = false;
+	bool post_processing = true;
 	bool display_boundingboxes = false;
 	bool display_grid = true;
 	bool m_Draw_normalMapping = false;
@@ -263,6 +264,7 @@ public:
 
 	uint rendertexture = 0;
 	uint depthMapTexture = 0;
+	float3 skyboxangle = float3::zero;
 
 	//Blend Functions chars vector (for names)
 	std::vector<const char*> m_BlendAutoFunctionsVec;

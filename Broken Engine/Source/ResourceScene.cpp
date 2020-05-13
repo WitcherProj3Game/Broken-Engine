@@ -18,13 +18,15 @@
 #include "mmgr/mmgr.h"
 
 using namespace Broken;
-ResourceScene::ResourceScene(uint UID, const char* source_file) : Resource(Resource::ResourceType::SCENE, UID, source_file) 
+ResourceScene::ResourceScene(uint UID, const char* source_file) : Resource(Resource::ResourceType::SCENE, UID, source_file)
 {
 	extension = ".scene";
 	resource_file = source_file;
 	original_file = resource_file;
 
 	previewTexID = App->gui->sceneTexID;
+
+	octreeBox = AABB(float3(-100, -100, -100), float3(100, 100, 100));
 
 }
 
@@ -34,7 +36,7 @@ ResourceScene::~ResourceScene()
 	StaticGameObjects.clear();
 }
 
-bool ResourceScene::LoadInMemory() 
+bool ResourceScene::LoadInMemory()
 {
 	// --- Load scene game objects ---
 	if (NoStaticGameObjects.size() == 0 && App->fs->Exists(resource_file.c_str()))
@@ -44,6 +46,25 @@ bool ResourceScene::LoadInMemory()
 
 		// --- Delete buffer data ---
 		if (!file.is_null()) {
+
+			//Load AABB of the scene octree
+			bool treeSaved = false;
+
+			//If there's no AABB saved, we'll store the indices of the static GOs here,
+			//enclose all their AABBs to the octree, and them insert them into it
+			std::vector<int> staticObjectsIndices;
+
+			if (file["octreeBox"].is_null())
+				octreeBox = AABB(float3(-100, -100, -100), float3(100, 100, 100));
+			else
+			{
+				octreeBox = AABB(float3(file["octreeBox"]["minX"], file["octreeBox"]["minY"], file["octreeBox"]["minZ"]),
+									float3(file["octreeBox"]["maxX"], file["octreeBox"]["maxY"], file["octreeBox"]["maxZ"]));
+
+				App->scene_manager->tree.SetBoundaries(octreeBox);
+				treeSaved = true;
+			}
+
 			std::vector<GameObject*> objects;
 
 			// --- Iterate main nodes ---
@@ -51,7 +72,7 @@ bool ResourceScene::LoadInMemory()
 			{
 				// --- Retrieve GO's UID ---
 				std::string uid = it.key().c_str();
-				if (uid == "Navigation Data" || uid == "SceneAmbientColor")
+				if (uid == "Navigation Data" || uid == "octreeBox" || uid == "SceneAmbientColor")
 					continue;
 
 				// --- Create a Game Object for each node ---
@@ -93,7 +114,7 @@ bool ResourceScene::LoadInMemory()
 					go->model = (ResourceModel*)App->resources->ImportAssets(IData);
 				}
 				// --- Iterate components ---
-				json components = file[it.key()]["Components"];				
+				json components = file[it.key()]["Components"];
 
 				for (json::iterator it2 = components.begin(); it2 != components.end(); ++it2) {
 					// --- Determine ComponentType ---
@@ -114,7 +135,7 @@ bool ResourceScene::LoadInMemory()
 					component = go->AddComponent(type, c_index);
 
 					// --- Load Component Data ---
-					if (component) 
+					if (component)
 					{
 						// NOTE: Commented this so components do not try to ask for a nonexistant go, we first create all gos and ask components to load later
 						//component->Load(components[type_string]);
@@ -130,7 +151,9 @@ bool ResourceScene::LoadInMemory()
 				objects.push_back(go);
 
 				if (go->Static)
-					App->scene_manager->SetStatic(go, true, false);
+				{
+					staticObjectsIndices.push_back(objects.size()-1); //store iterator
+				}
 
 				Event e;
 				e.type = Event::EventType::GameObject_loaded;
@@ -165,6 +188,26 @@ bool ResourceScene::LoadInMemory()
 				ite++;
 			}
 
+			//AKI CABESA AKI
+			if (!treeSaved)
+			{
+				//Enclose all the go AABBs into the box of the tree
+				for (int i = 0; i < staticObjectsIndices.size(); i++) {
+					if (!octreeBox.Intersects( objects[staticObjectsIndices[i]]->GetOBB().MinimalEnclosingAABB()))
+						octreeBox.Enclose(objects[staticObjectsIndices[i]]->GetAABB());
+				}
+
+				App->scene_manager->tree.SetBoundaries(octreeBox);
+
+			}
+
+			for (int i = 0; i < staticObjectsIndices.size(); i++)
+			{
+				App->scene_manager->SetStatic(objects[staticObjectsIndices[i]], true, false);
+			}
+
+			///
+
 			App->scene_manager->GetRootGO()->childs.clear();
 			// --- Parent Game Objects / Build Hierarchy ---
 			for (uint i = 0; i < objects.size(); ++i)
@@ -172,7 +215,7 @@ bool ResourceScene::LoadInMemory()
 				std::string parent_uid_string = file[std::to_string(objects[i]->GetUID())]["Parent"];
 				int parent_uid = std::stoi(parent_uid_string);
 
-				if (parent_uid > 0) 
+				if (parent_uid > 0)
 				{
 					bool saved = false;
 					for (uint j = 0; j < objects.size(); ++j) {
@@ -186,7 +229,7 @@ bool ResourceScene::LoadInMemory()
 					if (!saved)
 						App->scene_manager->GetRootGO()->AddChildGO(objects[i]);
 				}
-				else 
+				else
 					App->scene_manager->GetRootGO()->AddChildGO(objects[i], objects[i]->index);
 			}
 		}
@@ -210,7 +253,7 @@ bool ResourceScene::LoadInMemory()
 			App->detour->detailSampleDist = navigationdata["detailSampleDist"];
 			App->detour->detailSampleMaxError = navigationdata["detailSampleMaxError"];
 			App->detour->buildTiledMesh = navigationdata["buildTiledMesh"];
-			
+
 
 			if (!navigationdata["navMeshUID"].is_null())
 				App->detour->loadNavMeshFile(navigationdata["navMeshUID"]);
@@ -269,7 +312,7 @@ void ResourceScene::FreeMemory() {
 	e.type = Event::EventType::Scene_unloaded;
 	App->event_manager->PushEvent(e);
 
-	// Note that this will be called once we load another scene, and the octree will be cleared right after this 
+	// Note that this will be called once we load another scene, and the octree will be cleared right after this
 }
 
 void ResourceScene::DeactivateAllGameObjects()
@@ -298,7 +341,7 @@ void ResourceScene::ActivateAllGameObjects()
 	}
 }
 
-// Created for on-play temporal scene 
+// Created for on-play temporal scene
 void ResourceScene::CopyInto(ResourceScene* target)
 {
 	if (target)
@@ -402,4 +445,3 @@ void ResourceScene::OnDelete()
 	else
 		LoadToMemory();
 }
-

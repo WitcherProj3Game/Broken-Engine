@@ -55,6 +55,7 @@ public:
 	void WatchDirectory(const char* directory);
 	void RemoveFileExtension(std::string& file);
 	void DeleteDirectoryAndContents(const char* dir_path, bool recursive = true);
+	const char* GetWorkingDirectory() const;
 
 	// Open for Read/Write
 	unsigned int Load(const char* path, const char* file, char** buffer) const;
@@ -90,6 +91,8 @@ private:
 	inline void AddToReturnedArrays(string_vec* ptr);
 	string_vec* returned_arrays[MAX_RETURNED_ARRAYS];
 
+	// --- Working directory ---
+	std::string working_directory;
 
 	void CreateAssimpIO();
 

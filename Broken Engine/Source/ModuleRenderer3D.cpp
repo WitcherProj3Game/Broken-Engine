@@ -377,9 +377,9 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// -- Draw framebuffer texture ---
-	OPTICK_PUSH("FBO Rendering");
-	if (drawfb)
-		DrawFramebuffer();
+	OPTICK_PUSH("Post Processing Rendering");
+	if (post_processing || drawfb)
+		DrawPostProcessing();
 	OPTICK_POP();
 
 	// --- Draw GUI and swap buffers ---
@@ -1049,12 +1049,15 @@ void ModuleRenderer3D::SendShaderUniforms(uint shader)
 }
 
 
-void ModuleRenderer3D::DrawFramebuffer()
+void ModuleRenderer3D::DrawPostProcessing()
 {
 	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+
+	if (!drawfb)
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo); // if we do not want to draw the framebuffer we bind to draw the postprocessing into it
 	// clear all relevant buffers
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	//glClear(GL_COLOR_BUFFER_BIT);
 
 	glUseProgram(screenShader->ID);
 	glBindVertexArray(quadVAO);
@@ -1062,6 +1065,7 @@ void ModuleRenderer3D::DrawFramebuffer()
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	// --- Unbind buffers ---
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glUseProgram(0);

@@ -1069,9 +1069,13 @@ void ModuleRenderer3D::SendShaderUniforms(uint shader)
 void ModuleRenderer3D::DrawPostProcessing()
 {
 	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+	glDisable(GL_BLEND); // we do not want blending
 
-	if (!drawfb)
+	if (!drawfb) {
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo); // if we do not want to draw the framebuffer we bind to draw the postprocessing into it
+		glEnable(GL_FRAMEBUFFER_SRGB); // our render texture is srgb so we need to enable this
+
+	}
 	// clear all relevant buffers
 	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glClear(GL_COLOR_BUFFER_BIT);
@@ -1081,8 +1085,12 @@ void ModuleRenderer3D::DrawPostProcessing()
 	glBindTexture(GL_TEXTURE_2D, rendertexture);	// use the color attachment texture as the texture of the quad plane
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
+	glEnable(GL_BLEND);
 	// --- Unbind buffers ---
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	if (!drawfb) {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_FRAMEBUFFER_SRGB);
+	}
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glUseProgram(0);

@@ -261,7 +261,7 @@ void ScriptingPhysics::SetCharacterPosition(float posx, float posy, float posz, 
 		ENGINE_CONSOLE_LOG("![Script]: (SetCharacterPosition) Gameobject with UID %d was not found!", gameobject_UUID);
 }
 
-void ScriptingPhysics::setActiveController(bool enable, uint gameobject_UUID)
+void ScriptingPhysics::SetActiveController(bool enable, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 
@@ -278,10 +278,10 @@ void ScriptingPhysics::setActiveController(bool enable, uint gameobject_UUID)
 			}
 			else {
 				if (character->IsEnabled()) {
-					ENGINE_CONSOLE_LOG("![Script]: (setActiveController) Character Controller already enabled");
+					ENGINE_CONSOLE_LOG("![Script]: (SetActiveController) Character Controller already enabled");
 				}
 				else {
-					ENGINE_CONSOLE_LOG("![Script]: (setActiveController) Character Controller already disabled");
+					ENGINE_CONSOLE_LOG("![Script]: (SetActiveController) Character Controller already disabled");
 				}
 			}
 

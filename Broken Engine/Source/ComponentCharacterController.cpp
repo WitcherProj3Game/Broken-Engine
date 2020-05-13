@@ -65,6 +65,39 @@ ComponentCharacterController::~ComponentCharacterController()
 	mesh->Release();
 }
 
+void ComponentCharacterController::Enable()
+{
+	physx::PxShape* shape;
+	controller->getActor()->getShapes(&shape, 1);
+
+	if (shape->getActor() != nullptr)
+	{
+		if (hasBeenDeactivated)
+		{
+			App->physics->mScene->addActor(*shape->getActor());
+			hasBeenDeactivated = false;
+		}
+		//GetActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, false);
+	}
+	active = true;
+}
+
+void ComponentCharacterController::Disable()
+{
+	physx::PxShape* shape;
+	controller->getActor()->getShapes(&shape, 1);
+	if (shape->getActor() != nullptr)
+	{
+		//GetActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, true);
+		if (!hasBeenDeactivated)
+		{
+			App->physics->mScene->removeActor(*shape->getActor());
+			hasBeenDeactivated = true;
+		}
+	}
+	active = false;
+}
+
 void ComponentCharacterController::Update()
 {
 	vel = physx::PxVec3(0);

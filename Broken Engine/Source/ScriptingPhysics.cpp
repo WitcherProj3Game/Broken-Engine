@@ -278,10 +278,10 @@ void ScriptingPhysics::setActiveController(bool enable, uint gameobject_UUID)
 			}
 			else {
 				if (character->IsEnabled()) {
-					ENGINE_CONSOLE_LOG("Character Controller is already enabled");
+					ENGINE_CONSOLE_LOG("(SCRIPTING): setActiveController function (physics) - Character Controller already enabled");
 				}
 				else {
-					ENGINE_CONSOLE_LOG("Character Controller is already disabled");
+					ENGINE_CONSOLE_LOG("(SCRIPTING): setActiveController function (physics) - Character Controller already disabled");
 				}
 			}
 

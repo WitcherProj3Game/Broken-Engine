@@ -587,9 +587,6 @@
     <ClCompile Include="Imgui\imgui_impl_sdl.cpp">
       <Filter>Sources\3rd party\Imgui</Filter>
     </ClCompile>
-    <ClCompile Include="Imgui\imgui_widgets.cpp">
-      <Filter>Sources\3rd party\Imgui</Filter>
-    </ClCompile>
     <ClCompile Include="PanelNavigation.cpp">
       <Filter>Sources\EditorPanels</Filter>
     </ClCompile>
@@ -661,6 +658,9 @@
     </ClCompile>
     <ClCompile Include="Panel.cpp">
       <Filter>Sources\EditorPanels</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\imgui_widgets.cpp">
+      <Filter>Sources\3rd party\Imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

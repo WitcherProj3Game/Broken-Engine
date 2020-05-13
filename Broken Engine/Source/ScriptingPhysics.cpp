@@ -261,6 +261,38 @@ void ScriptingPhysics::SetCharacterPosition(float posx, float posy, float posz, 
 		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! This Gameobject with %d UUID was not found!", gameobject_UUID);
 }
 
+void ScriptingPhysics::setActiveController(bool enable, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go != nullptr)
+	{
+		ComponentCharacterController* character = go->GetComponent<ComponentCharacterController>();
+		if (character) 
+		{
+			if (!character->IsEnabled() && enable) {
+				character->Enable();
+			}
+			else if (character->IsEnabled() && !enable) {
+				character->Disable();
+			}
+			else {
+				if (character->IsEnabled()) {
+					ENGINE_CONSOLE_LOG("Character Controller is already enabled");
+				}
+				else {
+					ENGINE_CONSOLE_LOG("Character Controller is already disabled");
+				}
+			}
+
+		}
+		else
+			ENGINE_CONSOLE_LOG("Character Controller is null on setActiveController");
+	}
+	else
+		ENGINE_CONSOLE_LOG("(SCRIPTING): MoveGameObject function (physics) - Game Object not Found");
+}
+
 void ScriptingPhysics::Move(float vel_x, float vel_z, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);

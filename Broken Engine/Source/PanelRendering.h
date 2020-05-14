@@ -31,7 +31,7 @@ private:
 	float m_SkyboxExposureValue = 1.0f;
 
 	//PostPro Stuff
-	float m_ExpHdr = 1.0f;
+	float m_PPExpHdr = 1.0f;
 	float m_PPGamma = 1.8f;
 
 	//Alpha Functions

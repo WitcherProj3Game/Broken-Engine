@@ -27,6 +27,9 @@ void PanelRendering::SetupValues()
 
 	m_SkyboxColorValue = EngineApp->renderer3D->GetSkyboxColor();
 	m_SkyboxExposureValue = EngineApp->renderer3D->GetSkyboxExposure();
+
+	m_PPExpHdr = EngineApp->renderer3D->GetPostProHDRExposure();
+	m_PPGamma = EngineApp->renderer3D->GetPostProGammaCorrection();
 }
 
 void PanelRendering::SetRendererValues()
@@ -40,6 +43,9 @@ void PanelRendering::SetRendererValues()
 
 	EngineApp->renderer3D->SetGammaCorrection(m_GammaCorretionValue);
 	EngineApp->renderer3D->SetAmbientColor(m_AmbientColorValue);
+
+	EngineApp->renderer3D->SetPostProHDRExposure(m_PPExpHdr);
+	EngineApp->renderer3D->SetPostProGammaCorrection(m_PPGamma);
 }
 
 bool PanelRendering::Draw()
@@ -47,10 +53,7 @@ bool PanelRendering::Draw()
 	static bool makeChanges = false;
 
 	// --- Values Set up ---
-	SetupValues();
-
-	m_ExpHdr = EngineApp->renderer3D->GetPostProHDRExposure();
-	m_PPGamma = EngineApp->renderer3D->GetPostProGammaCorrection();
+	SetupValues();	
 
 	// --- ImGui Context ---
 	ImGui::SetCurrentContext(EngineApp->gui->getImgUICtx());
@@ -119,7 +122,7 @@ bool PanelRendering::Draw()
 			ImGui::Text("HDR Exposure");
 			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 			ImGui::SetNextItemWidth(200.0f);
-			if (ImGui::SliderFloat("##HDREXP", &m_ExpHdr, -2.0f, 10.0f, "%.3f", 0.5f)) makeChanges = true;
+			if (ImGui::SliderFloat("##HDREXP", &m_PPExpHdr, 0.0f, 10.0f)) makeChanges = true;
 			ImGui::NewLine();
 
 			// --- PostPro Gamma Correction ---

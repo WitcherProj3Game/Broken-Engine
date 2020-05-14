@@ -27,6 +27,7 @@
 #include "ScriptingScenes.h"
 #include "ScriptingNavigation.h"
 #include "ScriptingLighting.h"
+#include "ScriptingMaterials.h"
 #include "ScriptVar.h"
 #include <iterator>
 
@@ -143,6 +144,10 @@ bool ModuleScripting::JustCompile(std::string absolute_path) {
 		.endClass()
 
 		.beginClass <ScriptingLighting>("Lighting")
+		.addConstructor<void(*) (void)>()
+		.endClass()
+
+		.beginClass <ScriptingMaterials>("Materials")
 		.addConstructor<void(*) (void)>()
 		.endClass()
 
@@ -373,6 +378,77 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetLightAttenuation", &ScriptingLighting::SetAttenuation)
 		.addFunction("SetLightCutoff", &ScriptingLighting::SetCutoff)
 		.addFunction("SetDistMultiplier", &ScriptingLighting::SetDistanceMultiplier)
+		.endClass()
+
+		// ----------------------------------------------------------------------------------
+		// MATERIALS
+		// ----------------------------------------------------------------------------------
+		.beginClass <ScriptingMaterials>("Materials")
+		.addConstructor<void(*) (void)>()
+
+		//Materials Standard Values (by Material!)
+		.addFunction("SetMaterialTransparent", &ScriptingMaterials::SetMaterialTransparency)
+		.addFunction("SetMaterialCulling", &ScriptingMaterials::SetMaterialCulling)
+		.addFunction("SetMaterialShininess", &ScriptingMaterials::SetMaterialShininess)
+		.addFunction("SetMaterialTextureUsage", &ScriptingMaterials::SetMaterialTextureUsage)
+		.addFunction("SetMaterialAlpha", &ScriptingMaterials::SetMaterialAlpha)
+		.addFunction("SetMaterialColor", &ScriptingMaterials::SetMaterialColor)
+
+		.addFunction("GetMaterialTransparency", &ScriptingMaterials::GetMaterialTransparency)
+		.addFunction("GetMaterialCulling", &ScriptingMaterials::GetMaterialCulling)
+		.addFunction("GetMaterialTextureUsage", &ScriptingMaterials::GetMaterialTextureUsage)
+		.addFunction("GetMaterialShininess", &ScriptingMaterials::GetMaterialShininess)
+		.addFunction("GetMaterialAlpha", &ScriptingMaterials::GetMaterialAlpha)
+		.addFunction("GetMaterialColor", &ScriptingMaterials::GetMaterialColor)
+
+		//Materials Standard Values (by Object!)
+		.addFunction("SetObjectMaterialTransparent", &ScriptingMaterials::SetTransparency)
+		.addFunction("SetObjectMaterialCulling", &ScriptingMaterials::SetCulling)
+		.addFunction("SetObjectMaterialShininess", &ScriptingMaterials::SetShininess)
+		.addFunction("SetObjectMaterialTextureUsage", &ScriptingMaterials::SetTextureUsage)
+		.addFunction("SetObjectMaterialAlpha", &ScriptingMaterials::SetAlpha)
+		.addFunction("SetObjectMaterialColor", &ScriptingMaterials::SetColor)
+		
+		.addFunction("GetObjectMaterialTransparency", &ScriptingMaterials::GetTransparency)
+		.addFunction("GetObjectMaterialCulling", &ScriptingMaterials::GetCulling)
+		.addFunction("GetObjectMaterialTextureUsage", &ScriptingMaterials::GetTextureUsage)
+		.addFunction("GetObjectMaterialShininess", &ScriptingMaterials::GetShininess)
+		.addFunction("GetObjectMaterialAlpha", &ScriptingMaterials::GetAlpha)
+		.addFunction("GetObjectMaterialColor", &ScriptingMaterials::GetColor)
+
+		//Materials Setters/Getters
+		.addFunction("SetMaterialByName", &ScriptingMaterials::SetMaterialByName)
+		.addFunction("SetMaterialByUID", &ScriptingMaterials::SetMaterialByUUID)
+
+		.addFunction("GetCurrentMatName", &ScriptingMaterials::GetCurrentMaterialName)
+		.addFunction("GetCurrentMatUID", &ScriptingMaterials::GetCurrentMaterialUUID)
+		.addFunction("GetMaterialNameFromUID", &ScriptingMaterials::GetMaterialNameByUUID)
+		.addFunction("GetMaterialUIDFromName", &ScriptingMaterials::GetMaterialUUIDByName)
+
+		//Materials Shaders
+		.addFunction("SetShaderByName", &ScriptingMaterials::SetShaderByName)
+		.addFunction("SetShaderByUID", &ScriptingMaterials::SetShaderByUUID)
+		.addFunction("SetShaderToMaterial", &ScriptingMaterials::SetShaderToMaterial)
+
+		.addFunction("GetCurrentShaderName", &ScriptingMaterials::GetCurrentShaderName)
+		.addFunction("GetCurrentShaderUID", &ScriptingMaterials::GetCurrentShaderUUID)
+		.addFunction("GetShaderNameFromUID", &ScriptingMaterials::GetShaderNameByUUID)
+		.addFunction("GetShaderUIDFromName", &ScriptingMaterials::GetShaderUUIDByName)
+
+		//Uniforms
+		.addFunction("SetUniformInt", &ScriptingMaterials::SetUniformInt)
+		.addFunction("SetUniformFloat", &ScriptingMaterials::SetUniformFloat)
+		.addFunction("SetUniformVec2", &ScriptingMaterials::SetUniformVec2)
+		.addFunction("SetUniformVec3", &ScriptingMaterials::SetUniformVec3)
+		.addFunction("SetUniformVec4", &ScriptingMaterials::SetUniformVec4)
+		.addFunction("SetUniformBool", &ScriptingMaterials::SetUniformBool)
+
+		.addFunction("GetUniformInt", &ScriptingMaterials::GetUniformInt)
+		.addFunction("GetUniformFloat", &ScriptingMaterials::GetUniformFloat)
+		.addFunction("GetUniformVec2", &ScriptingMaterials::GetUniformVec2)
+		.addFunction("GetUniformVec3", &ScriptingMaterials::GetUniformVec3)
+		.addFunction("GetUniformVec4", &ScriptingMaterials::GetUniformVec4)
+		
 		.endClass()
 
 		// ----------------------------------------------------------------------------------

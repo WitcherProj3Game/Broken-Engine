@@ -220,7 +220,6 @@ void ComponentLight::Draw()
 // -------------------------------------------------------------------------------------------
 void ComponentLight::CreateInspectorNode()
 {
-
 	// --- Type ---
 	ImGui::NewLine(); ImGui::Separator();
 	static ImGuiComboFlags flags = 0;

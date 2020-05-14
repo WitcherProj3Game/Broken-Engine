@@ -544,34 +544,25 @@ void ResourceShader::setBool(const std::string& name, bool value) const
 
 void ResourceShader::setUniform(const char* name, data& unidata, UniformType UniType) const
 {
-	GLint uniformLoc = glGetUniformLocation(ID, "name");
-
-
 	switch (UniType)
 	{
-	case Broken::UniformType::intU:
-		glUniform1i(glGetUniformLocation(ID, name), unidata.intU);
-
-		break;
-	case Broken::UniformType::floatU:
-		glUniform1f(glGetUniformLocation(ID, name), unidata.floatU);
-
-		break;
-	case Broken::UniformType::vec2U:
-		glUniform2f(glGetUniformLocation(ID, name), unidata.vec2U.x, unidata.vec2U.y);
-
-		break;
-	case Broken::UniformType::vec3U:
-		glUniform3f(glGetUniformLocation(ID, name), unidata.vec3U.x, unidata.vec3U.y, unidata.vec3U.z);
-
-		break;
-	case Broken::UniformType::vec4U:
-		glUniform4f(glGetUniformLocation(ID, name), unidata.vec4U.x, unidata.vec4U.y, unidata.vec4U.z, unidata.vec4U.w);
-
-		break;
-
-	default:
-		break;
+		case Broken::UniformType::intU:
+			glUniform1i(glGetUniformLocation(ID, name), unidata.intU);
+			break;
+		case Broken::UniformType::floatU:
+			glUniform1f(glGetUniformLocation(ID, name), unidata.floatU);
+			break;
+		case Broken::UniformType::vec2U:
+			glUniform2f(glGetUniformLocation(ID, name), unidata.vec2U.x, unidata.vec2U.y);
+			break;
+		case Broken::UniformType::vec3U:
+			glUniform3f(glGetUniformLocation(ID, name), unidata.vec3U.x, unidata.vec3U.y, unidata.vec3U.z);
+			break;
+		case Broken::UniformType::vec4U:
+			glUniform4f(glGetUniformLocation(ID, name), unidata.vec4U.x, unidata.vec4U.y, unidata.vec4U.z, unidata.vec4U.w);
+			break;
+		default:
+			break;
 	}
 }
 

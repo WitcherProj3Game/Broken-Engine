@@ -89,7 +89,7 @@ public:
 	void HandleFsChanges();
 	void RetrieveFilesAndDirectories(const char* directory, std::map<std::string, std::vector<std::string>>& ret);
 
-	// For consistency, use this only on resource manager/importers 
+	// For consistency, use this only on resource manager/importers
 	template<typename TImporter>
 	TImporter* GetImporter() const{
 		for (uint i = 0; i < importers.size(); ++i) {
@@ -102,7 +102,7 @@ public:
 	}
 
 	// --- Resource Handling ---
-	Resource* GetResource(uint UID, bool loadinmemory = true); 
+	Resource* GetResource(uint UID, bool loadinmemory = true);
 	void AddResourceToFolder(Resource* resource);
 	void RemoveResourceFromFolder(Resource* resource);
 	Resource* CreateResource(Resource::ResourceType type, const char* source_file);
@@ -120,8 +120,13 @@ public:
 
 	// --- Getters ---
 	ResourceFolder* GetAssetsFolder();
-	uint GetFileFormatVersion();
-	uint GetDefaultMaterialUID();
+	uint GetFileFormatVersion() const;
+	uint GetDefaultMaterialUID() const;
+	ResourceMaterial* GetDefaultMaterial() const;
+	ResourceMaterial* GetMaterialByName(const char* mat_name) const;
+	ResourceMaterial* GetMaterialByUUID(uint mat_UUID) const;
+	ResourceShader* GetShaderByName(const char* shader_name) const;
+	ResourceShader* GetShaderByUUID(uint mat_UUID) const;
 	ResourceTexture* GetTextureResourceByName(const char* texture_name) const;
 
 private:

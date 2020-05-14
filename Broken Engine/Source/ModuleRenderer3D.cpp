@@ -1071,11 +1071,12 @@ void ModuleRenderer3D::DrawPostProcessing()
 	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 	glDisable(GL_BLEND); // we do not want blending
 
-	if (!drawfb) {
+	if (!drawfb)
+	{
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo); // if we do not want to draw the framebuffer we bind to draw the postprocessing into it
 		glEnable(GL_FRAMEBUFFER_SRGB); // our render texture is srgb so we need to enable this
-
 	}
+
 	// clear all relevant buffers
 	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glClear(GL_COLOR_BUFFER_BIT);
@@ -1092,7 +1093,8 @@ void ModuleRenderer3D::DrawPostProcessing()
 
 	glEnable(GL_BLEND);
 	// --- Unbind buffers ---
-	if (!drawfb) {
+	if (!drawfb)
+	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_FRAMEBUFFER_SRGB);
 	}

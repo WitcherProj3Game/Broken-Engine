@@ -95,8 +95,9 @@ bool PanelRendering::Draw()
 		ImGui::NewLine();
 
 		// --- Skybox Rotation ---
+		ImGui::Text("Skybox Rotation");
 		float3 skyboxangle = EngineApp->renderer3D->skyboxangle;
-		if (ImGui::DragFloat3("Skybox Angle", skyboxangle.ptr()))
+		if (ImGui::DragFloat3("##SkRot", skyboxangle.ptr()))
 			EngineApp->renderer3D->skyboxangle = skyboxangle;
 
 		ImGui::NewLine();

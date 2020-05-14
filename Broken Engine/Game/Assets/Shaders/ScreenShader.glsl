@@ -24,21 +24,23 @@ in vec4 gl_FragCoord;
 
 void main()
 {
-	ivec2 textureSize2d = textureSize(screenTexture, 0);
-    vec3 texOutput = texture(screenTexture, gl_FragCoord.xy / textureSize2d).rgb; //OJO EL VEC4
+    vec3 textureOutput = texture(screenTexture, gl_FragCoord.xy / textureSize(screenTexture, 0)).rgb;
+	vec3 finalColor = vec3(1.0);
 
+
+	// --- HDR Application (or not) ---
 	if(u_UseHDR == true)
 	{
 		//reinhard tone mapping with gamma correction
 		//vec3 mapped = texOutput/(texOutput+vec3(1.0));
-
-		vec3 mapped = vec3(1.0) - exp(-texOutput * u_HDR_Exposure);
-		mapped = pow(mapped, vec3(1.0/u_GammaCorrection));
-
-		FragColor = vec4(mapped, 1.0);
+		vec3 mapped = vec3(1.0) - exp(-textureOutput * u_HDR_Exposure);
+		finalColor = pow(mapped, vec3(1.0/u_GammaCorrection));		
 	}
 	else
-		FragColor = vec4(texOutput, 1.0);
+		finalColor = pow(textureOutput, vec3(1.0/u_GammaCorrection));
 
+
+	// --- Output Fragment Color ---
+	FragColor = vec4(finalColor, 1.0);
 }
 #endif //FRAGMENT_SHADER

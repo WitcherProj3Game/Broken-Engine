@@ -43,6 +43,14 @@ public:
 			
 	inline const LightType GetLightType()				const			{ return m_LightType; }
 
+	const float4x4 GetFrustViewMatrix()				const;
+	const float4x4 GetFrustProjectionMatrix()		const;
+	const float4x4 GetFrustViewProjMatrix()			const;
+	const float GetFrustAR()						const { return m_LightFrustum.AspectRatio(); }
+	const float GetFrustFOV()						const { return m_LightFrustum.VerticalFov() * RADTODEG; }
+	const float GetFrustNearPlane()					const { return m_LightFrustum.NearPlaneDistance(); }
+	const float GetFrustFarPlane()					const { return m_LightFrustum.FarPlaneDistance(); }
+
 	// -- Setters ---
 	void SetLightDirection(float3 dir)								{ m_Direction = dir; }
 
@@ -63,6 +71,7 @@ public:
 private:
 
 	const std::string GetLightUniform(uint lightIndex, const char* uniformArrayName);
+	void DrawFrustum();
 
 private:
 
@@ -80,6 +89,7 @@ private:
 	LightType m_LightType = LightType::NONE;
 
 	//ResourceMesh* rmeshLight = nullptr;
+	Frustum m_LightFrustum;
 
 	bool m_SetToZero = false;
 	bool m_DrawMesh = true;

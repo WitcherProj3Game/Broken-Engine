@@ -15,6 +15,7 @@ layout (location = 5) in vec3 a_Bitangent;
 uniform mat4 u_Model; //model_matrix
 uniform mat4 u_View; //view
 uniform mat4 u_Proj; //projection
+uniform mat4 u_LightSpace;
 
 uniform vec4 u_Color = vec4(1.0); //Color
 uniform vec3 u_CameraPosition;
@@ -26,6 +27,7 @@ out vec3 v_Normal;
 out vec3 v_FragPos;
 out vec3 v_CamPos;
 out mat3 v_TBN;
+out vec4 v_FragPos_InLightSpace;
 
 void main()
 {
@@ -34,7 +36,9 @@ void main()
 	v_CamPos = u_CameraPosition;
 
 	v_FragPos = vec3(u_Model * vec4(a_Position, 1.0));
-	v_Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
+	v_FragPos_InLightSpace = u_LightSpace * vec4(v_FragPos, 1.0);
+
+	v_Normal = transpose(inverse(mat3(u_Model))) * a_Normal;
 
 	vec3 T = normalize(vec3(u_Model * vec4(a_Tangent, 0.0)));
 	vec3 N = normalize(vec3(u_Model * vec4(a_Normal, 0.0)));
@@ -42,7 +46,8 @@ void main()
 	vec3 B = cross(N, T);
 	v_TBN = (mat3(T, B, N));
 
-	gl_Position = u_Proj * u_View * u_Model * vec4(a_Position, 1.0);
+	//gl_Position = u_Proj * u_View * u_Model * vec4(a_Position, 1.0);
+	gl_Position = u_Proj * u_View * vec4(v_FragPos, 1.0);
 }
 
 #endif //VERTEX_SHADER
@@ -62,6 +67,7 @@ in vec3 v_Normal;
 in vec3 v_FragPos;
 in vec3 v_CamPos;
 in mat3 v_TBN;
+in vec4 v_FragPos_InLightSpace;
 
 //Uniforms
 uniform float u_GammaCorrection = 1.0;
@@ -82,6 +88,7 @@ uniform int u_DrawNormalMapping_Lit_Adv = 0;
 uniform sampler2D u_AlbedoTexture;
 uniform sampler2D u_SpecularTexture;
 uniform sampler2D u_NormalTexture;
+uniform sampler2D u_ShadowMap;
 
 //Light Uniforms
 struct BrokenLight
@@ -103,6 +110,32 @@ uniform int u_LightsNumber = 0;
 uniform BrokenLight u_BkLights[MAX_SHADER_LIGHTS];
 // uniform BrokenLight u_BkLights[MAX_SHADER_LIGHTS] = BrokenLight[MAX_SHADER_LIGHTS](BrokenLight(vec3(0.0), vec3(0.0), vec3(1.0), 0.5, vec3(1.0, 0.09, 0.032), vec2(12.5, 45.0), 2));
 
+//Light Calculations Functions ---------------------------------------------------------------------------------------
+//Shadows Calculation
+float ShadowCalculation(vec3 dir, vec3 normal)
+{
+	vec3 projCoords = v_FragPos_InLightSpace.xyz / v_FragPos_InLightSpace.w;
+	projCoords = projCoords * 0.5 + 0.5;
+
+	float closeDepth = texture(u_ShadowMap, projCoords.xy).r;
+	float currDept = projCoords.z;
+	//float shadow = currDept > closeDepth ? 1.0 : 0.0;
+
+	float bias = max(0.01 * (1.0 - dot(normal, dir)), 0.001);
+	float shadow = ((currDept - bias) > closeDepth ? 1.0 : 0.0);
+	
+	if(projCoords.z > 1.0)
+		shadow = 0.0;
+
+
+	return (shadow);
+
+//
+//	float visibility = 1.0;
+//	if (texture(u_ShadowMap, projCoords.xy).z < projCoords.z)
+//		visibility = 0.5;
+//	return visibility;
+}
 
 //Light Calculations Functions ---------------------------------------------------------------------------------------
 vec3 CalculateLightResult(vec3 LColor, vec3 LDir, vec3 normal, vec3 viewDir)
@@ -127,8 +160,11 @@ vec3 CalculateLightResult(vec3 LColor, vec3 LDir, vec3 normal, vec3 viewDir)
 	if(u_HasSpecularTexture == 1)
 		specular *= texture(u_SpecularTexture, v_TexCoord).rgb;
 
-	return (diffuse + specular);
+	return (1.0 - ShadowCalculation(lightDir, normal)) * (diffuse + specular);
+
+	//return (diffuse + specular);
 }
+
 
 //Dir Light Calculation
 vec3 CalculateDirectionalLight(BrokenLight light, vec3 normal, vec3 viewDir)

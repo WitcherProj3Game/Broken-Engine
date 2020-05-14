@@ -128,7 +128,7 @@ bool ModuleRenderer3D::Init(json& file)
 
 
 	// --- z values from 0 to 1 and not -1 to 1, more precision in far ranges ---
-	glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+	//glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
 	// --- Enable stencil testing, set to replace ---
 	glEnable(GL_DEPTH_TEST); //For shadows
@@ -148,6 +148,16 @@ bool ModuleRenderer3D::Init(json& file)
 		 1.0f, -1.0f,  1.0f, 0.0f,
 		 1.0f,  1.0f,  1.0f, 1.0f
 	};
+
+	glGenVertexArrays(1, &depth_quadVAO);
+	glGenBuffers(1, &depth_quadVBO);
+	glBindVertexArray(depth_quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, depth_quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
 	glGenVertexArrays(1, &quadVAO);
 	glGenBuffers(1, &quadVBO);
@@ -293,11 +303,17 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 	float backColor = 0.65f;
 	glClearColor(backColor, backColor, backColor, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	glClearDepth(0.0f);
+	glClearDepth(1.0f);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glClearColor(backColor, backColor, backColor, 1.0f);
-	glClearDepth(0.0f);
+	glClearDepth(1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, depthbufferFBO);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -314,18 +330,18 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	GLint viewLoc = glGetUniformLocation(defaultShader->ID, "u_View");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLViewMatrix().ptr());
 
-	float nearp = App->renderer3D->active_camera->GetNearPlane();
+	//float nearp = App->renderer3D->active_camera->GetNearPlane();
 
 	// right handed projection matrix (just different standard)
-	float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
-	float4x4 proj_RH(
-		f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
-		0.0f, f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, -1.0f,
-		0.0f, 0.0f, nearp, 0.0f);
+	//float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
+	//float4x4 proj_RH(
+	//	f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
+	//	0.0f, f, 0.0f, 0.0f,
+	//	0.0f, 0.0f, 0.0f, -1.0f,
+	//	0.0f, 0.0f, nearp, 0.0f);
 
 	GLint projectLoc = glGetUniformLocation(defaultShader->ID, "u_Proj");
-	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
+	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, active_camera->GetOpenGLProjectionMatrix().ptr());
 
 	GLint modelLoc = glGetUniformLocation(defaultShader->ID, "u_Model");
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, float4x4::identity.Transposed().ptr());
@@ -345,61 +361,155 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	DrawSkybox(); // could not manage to draw it after scene with reversed-z ...
 	OPTICK_POP();
 
+	// --- Back to defaults ---
+	glEnable(GL_DEPTH_TEST); //For shadows
+	glDepthFunc(GL_LESS);
+
 	// --- Set depth filter to greater (Passes if the incoming depth value is greater than the stored depth value) ---
-	glDepthFunc(GL_GREATER);
+	//glDepthFunc(GL_GREATER);
 
 	// --- Issue Render orders ---
 	OPTICK_PUSH("Scene Rendering");
 	App->scene_manager->DrawScene();
 	OPTICK_POP();
 
+	// --- Pick the Current Directional Casting Shadows --- //TEMPORARY
+	for (uint i = 0; i < m_LightsVec.size(); ++i)
+	{
+		if (m_LightsVec[i]->GetLightType() == LightType::DIRECTIONAL)
+		{
+			bool lightActive = (m_LightsVec[i]->GetActive() && m_LightsVec[i]->GetContainerGameObject()->GetActive());
+			if (lightActive)
+			{
+				current_directional = m_LightsVec[i];
+				break;
+			}
+		}
+	}
 
 	for (std::map<uint, ResourceShader*>::const_iterator it = App->resources->shaders.begin(); it != App->resources->shaders.end(); ++it)
 	{
 		if((*it).second)
-			SendShaderUniforms((*it).second->ID);
+			SendShaderUniforms((*it).second->ID, false);
 	}
+
+	// --------------------------------------------------------------------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------------------------------------------------------------------
+	// --- Shadows Buffer (Render 1st Pass) ---
+	glBindFramebuffer(GL_FRAMEBUFFER, depthbufferFBO);
+	//glDepthFunc(GL_GREATER);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
+	glDisable(GL_CULL_FACE);
+	//glCullFace(GL_FRONT);
+	SendShaderUniforms(shadowsShader->ID, true);
+	DrawRenderMeshes(true);
+	//glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
+
+
+	// -- Draw Shadows Framebuffer ---
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// --- Standard Buffer (Render 2nd Pass) ---
+	if (renderfbo)
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+	// --- Set depth filter to greater (Passes if the incoming depth value is greater than the stored depth value) ---
+	//glDepthFunc(GL_GREATER);
+
+
+
 
 	// --- Draw Grid ---
 	if (display_grid)
 		DrawGrid();
 
-	OPTICK_PUSH("Meshes Lines and Boxes Rendering");
-	DrawRenderMeshes();
-	DrawRenderLines();
-	DrawRenderBoxes();
-	OPTICK_POP();
-
-	// --- Selected Object Outlining ---
-	HandleObjectOutlining();
-
-	// --- Draw ---
-	glEnable(GL_BLEND);
-	if(m_ChangedBlending)
-		SetRendererBlending(); //Set Blending to Renderer's Default
-
-	DrawTransparentRenderMeshes();
-
-	// -- Draw particles ---
-	OPTICK_PUSH("Particles Rendering");
-	for (int i = 0; i < particleEmitters.size(); ++i)
+	if (!m_DrawShadowMap)
 	{
-		particleEmitters[i]->DrawParticles();
+		SendShaderUniforms(defaultShader->ID, false);
+
+		OPTICK_PUSH("Meshes Lines and Boxes Rendering");
+		DrawRenderMeshes(false);
+		DrawRenderLines();
+		OPTICK_POP();
+
+		OPTICK_PUSH("Lights Rendering");
+		std::vector<ComponentLight*>::iterator LightIterator = m_LightsVec.begin();
+		for (; LightIterator != m_LightsVec.end(); ++LightIterator)
+			(*LightIterator)->Draw();
+		OPTICK_POP();
+
+		DrawRenderBoxes();
+
+		glEnable(GL_BLEND);
+		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		if (m_ChangedBlending)
+			SetRendererBlending(); //Set Blending to Renderer's Default
+
+		DrawTransparentRenderMeshes();
+
+		// -- Draw particles ---
+		OPTICK_PUSH("Particles Rendering");
+		for (int i = 0; i < particleEmitters.size(); ++i)
+		{
+			particleEmitters[i]->DrawParticles();
+
+		}
 
 		// --- Set Blending to Renderer's Default ---
 		if (m_ChangedBlending)
 			SetRendererBlending();
+
+		OPTICK_POP();
+
+		glDisable(GL_BLEND);
 	}
+	// --------------------------------------------------------------------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------------------------------------------------------------------
 
-	OPTICK_POP();
+	//// --- Draw Grid ---
+	//if (display_grid)
+	//	DrawGrid();
 
-	glDisable(GL_BLEND);
+	//OPTICK_PUSH("Meshes Lines and Boxes Rendering");
+	//DrawRenderMeshes();
+	//DrawRenderLines();
+	//DrawRenderBoxes();
+	//OPTICK_POP();
 
-	OPTICK_PUSH("Lights Rendering");
-	std::vector<ComponentLight*>::iterator LightIterator = m_LightsVec.begin();
-	for (; LightIterator != m_LightsVec.end(); ++LightIterator)
-		(*LightIterator)->Draw();
-	OPTICK_POP();
+	// --- Selected Object Outlining ---
+	HandleObjectOutlining();
+
+	//// --- Draw ---
+	//glEnable(GL_BLEND);
+	//if(m_ChangedBlending)
+	//	SetRendererBlending(); //Set Blending to Renderer's Default
+
+	//DrawTransparentRenderMeshes();
+
+	//// -- Draw particles ---
+	//OPTICK_PUSH("Particles Rendering");
+	//for (int i = 0; i < particleEmitters.size(); ++i)
+	//{
+	//	particleEmitters[i]->DrawParticles();
+
+	//	// --- Set Blending to Renderer's Default ---
+	//	if (m_ChangedBlending)
+	//		SetRendererBlending();
+	//}
+
+	//OPTICK_POP();
+
+	//glDisable(GL_BLEND);
+
+	//OPTICK_PUSH("Lights Rendering");
+	//std::vector<ComponentLight*>::iterator LightIterator = m_LightsVec.begin();
+	//for (; LightIterator != m_LightsVec.end(); ++LightIterator)
+	//	(*LightIterator)->Draw();
+	//OPTICK_POP();
 
 	OPTICK_PUSH("UI Rendering");
 	App->ui_system->Draw();
@@ -413,10 +523,15 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// -- Draw framebuffer texture ---
+	DrawFramebuffer(depth_quadVAO, depthMapTexture, true);
+
 	OPTICK_PUSH("Post Processing Rendering");
 	if (post_processing || drawfb)
 		DrawPostProcessing();
 	OPTICK_POP();
+
+	//if (drawfb)
+	//	DrawFramebuffer(quadVAO, rendertexture, false); ?????????????????????????
 
 	// --- Draw GUI and swap buffers ---
 	OPTICK_PUSH("GUI Rendering");
@@ -447,9 +562,13 @@ bool ModuleRenderer3D::CleanUp()
 	glDeleteVertexArrays(1, &Grid_VAO);
 
 	glDeleteBuffers(1, (GLuint*)&quadVBO);
+
+	glDeleteBuffers(1, (GLuint*)&depth_quadVBO);
+	glDeleteVertexArrays(1, &depth_quadVAO);
 	glDeleteVertexArrays(1, &quadVAO);
 
 	glDeleteFramebuffers(1, &fbo);
+	glDeleteFramebuffers(1, &depthbufferFBO);
 	SDL_GL_DeleteContext(context);
 
 	return true;
@@ -548,6 +667,7 @@ void ModuleRenderer3D::OnResize(int width, int height)
 		active_camera->SetAspectRatio(height / width);
 
 	glDeleteFramebuffers(1, &fbo);
+	glDeleteFramebuffers(1, &depthbufferFBO);
 	CreateFramebuffer();
 }
 
@@ -616,6 +736,13 @@ void ModuleRenderer3D::SetCullingCamera(ComponentCamera* camera)
 	}
 }
 
+void ModuleRenderer3D::SwitchRenderingTexture()
+{
+	if (m_CurrentRenderingTexture == rendertexture)
+		m_CurrentRenderingTexture = depthMapTexture;
+	else
+		m_CurrentRenderingTexture = rendertexture;
+}
 
 // ---------------------------------------------------------------------------------------------
 // ------------------------------ Render Commands ----------------------------------------------
@@ -777,7 +904,7 @@ const std::string & ModuleRenderer3D::RenderSceneToTexture(std::vector<GameObjec
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
 	// --- Set depth filter to greater (Passes if the incoming depth value is greater than the stored depth value) ---
-	glDepthFunc(GL_GREATER);
+	//glDepthFunc(GL_GREATER);
 
 	// --- Do not write to the stencil buffer ---
 	glStencilMask(0x00);
@@ -785,10 +912,10 @@ const std::string & ModuleRenderer3D::RenderSceneToTexture(std::vector<GameObjec
 	//// --- Draw Grid ---
 	//DrawGrid();
 
-	SendShaderUniforms(defaultShader->ID);
+	SendShaderUniforms(defaultShader->ID, false);
 
 	// --- Draw ---
-	DrawRenderMeshes();
+	DrawRenderMeshes(false);
 
 	// --- Back to defaults ---
 	glDepthFunc(GL_LESS);
@@ -838,7 +965,7 @@ void ModuleRenderer3D::ClearRenderOrders()
 // ---------------------------------------------------------------------------------------------
 // ------------------------------ Draw Commands ------------------------------------------------
 // ---------------------------------------------------------------------------------------------
-void ModuleRenderer3D::DrawRenderMeshes()
+void ModuleRenderer3D::DrawRenderMeshes(bool depthPass)
 {
 	// --- Activate wireframe mode ---
 	if (wireframe)
@@ -847,7 +974,7 @@ void ModuleRenderer3D::DrawRenderMeshes()
 	// --- Draw Game Object Meshes ---
 	for (std::map<uint, std::vector<RenderMesh>>::const_iterator it = render_meshes.begin(); it != render_meshes.end(); ++it)
 	{
-		DrawRenderMesh((*it).second);
+		DrawRenderMesh((*it).second, depthPass);
 	}
 
 	// --- DeActivate wireframe mode ---
@@ -891,254 +1018,361 @@ void ModuleRenderer3D::DrawTransparentRenderMeshes()
 	}
 
 	// --- Draw transparent meshes in the correct order ---
-	DrawRenderMesh(to_draw);
+	DrawRenderMesh(to_draw, false);
 
 	// --- DeActivate wireframe mode ---
 	if (wireframe)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
+void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, bool depthPass)
 {
-	// --- Meshes ---
-	for (uint i = 0; i < meshInstances.size(); ++i)
+
+	if (depthPass)
 	{
-		uint shader = defaultShader->ID;
-		RenderMesh* mesh = &meshInstances[i];
-		float4x4 model = mesh->transform;
-		float3 colorToDraw = float3(1.0f);
-
-		// --- Select/Outline ---
-		if (mesh->flags & RenderMeshFlags_::selected)
+		for (uint i = 0; i < meshInstances.size(); ++i)
 		{
-			glStencilFunc(GL_ALWAYS, 1, 0xFF);
-			glStencilMask(0xFF);
-		}
+			uint shader = shadowsShader->ID; //Change this to be just the shadows shader 
+			RenderMesh* mesh = &meshInstances[i];
+			float4x4 model = mesh->transform;
 
-		if (mesh->flags & RenderMeshFlags_::outline)
-		{
-			shader = OutlineShader->ID;
-			colorToDraw = { 1.0f, 0.65f, 0.0f };
-			float3 scale = float3(1.05f, 1.05f, 1.05f);
-			model = float4x4::FromTRS(model.TranslatePart(), model.RotatePart(), scale);
-		}
+			// --- Set Model Matrix Uniform ---
+			glUseProgram(shader);
+			glUniformMatrix4fv(glGetUniformLocation(shader, "u_Model"), 1, GL_FALSE, model.Transposed().ptr());
 
-		// --- Display Z buffer ---
-		if (zdrawer)
-			shader = ZDrawerShader->ID;
-
-
-		// --- Get Mesh Material ---
-		if (mesh->mat->shader && shader != OutlineShader->ID && !zdrawer)
-		{
-			shader = mesh->mat->shader->ID;
-			mesh->mat->UpdateUniforms();
-		}
-
-		// --- Draw Wireframe if we must ---
-		if (mesh->flags & RenderMeshFlags_::wire)
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-		// ------------------------ Shader Stuff ------------------------
-		glUseProgram(shader);
-
-		// --- Transparency Uniform ---
-		glUniform1i(glGetUniformLocation(shader, "u_HasTransparencies"), (int)mesh->mat->has_transparencies);
-
-		int skyboxUnifLoc = glGetUniformLocation(shader, "skybox");
-		if (skyboxUnifLoc != -1)
-		{
-			glUniform1i(skyboxUnifLoc, 0);
-			glActiveTexture(GL_TEXTURE0 + 0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexID);
-		}
-
-		if (mesh->mat->has_transparencies)
-			mesh->mat->SetBlending();
-
-		if (!mesh->mat->has_culling)
-			glDisable(GL_CULL_FACE);
-
-		// --- Set Normal Mapping Draw ---
-		glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit"), (int)m_Draw_normalMapping_Lit);
-		glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit_Adv"), (int)m_Draw_normalMapping_Lit_Adv);
-
-		// --- Gamma Correction & Ambient Color Values ---
-		glUniform1f(glGetUniformLocation(shader, "u_GammaCorrection"), m_GammaCorrection);
-		glUniform4f(glGetUniformLocation(shader, "u_AmbientColor"), m_AmbientColor.x, m_AmbientColor.y, m_AmbientColor.z, 1.0f);
-
-		// --- Set Textures usage to 0 ---
-		//glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 0);
-		//glUniform1i(glGetUniformLocation(shader, "u_HasSpecularTexture"), 0);
-		//glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 0);
-
-		// --- Send Color ---
-		glUniform4f(glGetUniformLocation(shader, "u_Color"), colorToDraw.x, colorToDraw.y, colorToDraw.z, 1.0f);
-
-		// --- Set Model Matrix Uniform ---
-		glUniformMatrix4fv(glGetUniformLocation(shader, "u_Model"), 1, GL_FALSE, model.Transposed().ptr());
-
-		// --- General Rendering Uniforms (material - texture - color related) ---
-		if (mesh->resource_mesh->vertices && mesh->resource_mesh->Indices) // if mesh to draw
-		{
-			const ResourceMesh* rmesh = mesh->resource_mesh;
-			if (mesh->deformable_mesh)
-				rmesh = mesh->deformable_mesh;
-
-			// Material
-			if (mesh->mat)
+			if (mesh->resource_mesh->vertices && mesh->resource_mesh->Indices) // if mesh to draw
 			{
-				glUniform1f(glGetUniformLocation(shader, "u_Shininess"), mesh->mat->m_Shininess);
-				glUniform4f(glGetUniformLocation(shader, "u_Color"), mesh->mat->m_AmbientColor.x, mesh->mat->m_AmbientColor.y, mesh->mat->m_AmbientColor.z, mesh->mat->m_AmbientColor.w);
+				const ResourceMesh* rmesh = mesh->resource_mesh;
+				if (mesh->deformable_mesh)
+					rmesh = mesh->deformable_mesh;
 
-				//Textures
-				glUniform1i(glGetUniformLocation(shader, "u_UseTextures"), (int)mesh->mat->m_UseTexture);
+				// --- Render ---
+				glBindVertexArray(rmesh->VAO);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rmesh->EBO);
+				glDrawElements(GL_TRIANGLES, rmesh->IndicesSize, GL_UNSIGNED_INT, NULL); //render from array data
 
-				if (mesh->flags & RenderMeshFlags_::texture)
-				{
-					if (mesh->flags & RenderMeshFlags_::checkers)
-						glBindTexture(GL_TEXTURE_2D, App->textures->GetCheckerTextureID()); // start using texture
-					else
-					{
-						if (!mesh->mat->m_DiffuseResTexture && !mesh->mat->m_SpecularResTexture && !mesh->mat->m_NormalResTexture)
-							glUniform1i(glGetUniformLocation(shader, "u_UseTextures"), 0);
+				// --- Unbind Buffers ---
+				glBindVertexArray(0);
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glActiveTexture(GL_TEXTURE0);
+			}
+		}
+	}
+	else
+	{
+		// --- Meshes ---
+		for (uint i = 0; i < meshInstances.size(); ++i)
+		{
+			uint shader = defaultShader->ID;
+			RenderMesh* mesh = &meshInstances[i];
+			float4x4 model = mesh->transform;
+			float3 colorToDraw = float3(1.0f);
 
-						// Diffuse/Albedo
-						if (mesh->mat->m_DiffuseResTexture)
-						{
-							glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 1);
-
-							glUniform1i(glGetUniformLocation(shader, "u_AlbedoTexture"), 1);
-							glActiveTexture(GL_TEXTURE0 + 1);
-							glBindTexture(GL_TEXTURE_2D, mesh->mat->m_DiffuseResTexture->GetTexID());
-						}
-						else
-						{
-							glUniform1i(glGetUniformLocation(shader, "u_AlbedoTexture"), 0);
-							glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 0);
-						}
-
-						// Specular
-						if (mesh->mat->m_SpecularResTexture)
-						{
-							glUniform1i(glGetUniformLocation(shader, "u_HasSpecularTexture"), 1);
-
-							glUniform1i(glGetUniformLocation(shader, "u_SpecularTexture"), 2);
-							glActiveTexture(GL_TEXTURE0 + 2);
-							glBindTexture(GL_TEXTURE_2D, mesh->mat->m_SpecularResTexture->GetTexID());
-						}
-						else
-						{
-							glUniform1i(glGetUniformLocation(shader, "u_SpecularTexture"), 0);
-							glUniform1i(glGetUniformLocation(shader, "u_HasSpecularTexture"), 0);
-						}
-
-						// Normal
-						if (mesh->mat->m_NormalResTexture)
-						{
-							glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 1);
-
-							glUniform1i(glGetUniformLocation(shader, "u_NormalTexture"), 3);
-							glActiveTexture(GL_TEXTURE0 + 3);
-							glBindTexture(GL_TEXTURE_2D, mesh->mat->m_NormalResTexture->GetTexID());
-						}
-						else
-						{
-							glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 0);
-							glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 0);
-						}
-					}
-				}
-				else if (mesh->flags & color)
-				{
-					glUniform4f(glGetUniformLocation(shader, "u_Color"), mesh->color.r / 255, mesh->color.g / 255, mesh->color.b / 255, 1.0f);
-					glUniform1i(glGetUniformLocation(shader, "u_UseTextures"), (int)false);
-				}
-				else
-					glUniform1i(glGetUniformLocation(shader, "u_UseTextures"), (int)false);
-
+			// --- Select/Outline ---
+			if (mesh->flags & RenderMeshFlags_::selected)
+			{
+				glStencilFunc(GL_ALWAYS, 1, 0xFF);
+				glStencilMask(0xFF);
 			}
 
-			// --- Render ---
-			glBindVertexArray(rmesh->VAO);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rmesh->EBO);
-			glDrawElements(GL_TRIANGLES, rmesh->IndicesSize, GL_UNSIGNED_INT, NULL); //render from array data
+			if (mesh->flags & RenderMeshFlags_::outline)
+			{
+				shader = OutlineShader->ID;
+				colorToDraw = { 1.0f, 0.65f, 0.0f };
+				float3 scale = float3(1.05f, 1.05f, 1.05f);
+				model = float4x4::FromTRS(model.TranslatePart(), model.RotatePart(), scale);
+			}
 
-			// --- Unbind Buffers ---
-			glBindVertexArray(0);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glActiveTexture(GL_TEXTURE0);
+			// --- Display Z buffer ---
+			if (zdrawer)
+				shader = ZDrawerShader->ID;
+
+
+			// --- Get Mesh Material ---
+			if (mesh->mat->shader && shader != OutlineShader->ID && !zdrawer)
+			{
+				shader = mesh->mat->shader->ID;
+				mesh->mat->UpdateUniforms();
+			}
+
+			// --- Draw Wireframe if we must ---
+			if (mesh->flags & RenderMeshFlags_::wire)
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+			// ------------------------ Shader Stuff ------------------------
+			glUseProgram(shader);
+
+			// --- Transparency Uniform ---
+			glUniform1i(glGetUniformLocation(shader, "u_HasTransparencies"), (int)mesh->mat->has_transparencies);
+
+			int skyboxUnifLoc = glGetUniformLocation(shader, "skybox");
+			if (skyboxUnifLoc != -1)
+			{
+				glUniform1i(skyboxUnifLoc, 0);
+				glActiveTexture(GL_TEXTURE0 + 0);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexID);
+			}
+
+			if (mesh->mat->has_transparencies)
+				mesh->mat->SetBlending();
+
+			if (!mesh->mat->has_culling)
+				glDisable(GL_CULL_FACE);
+
+			glUniform1i(glGetUniformLocation(shader, "u_ShadowMap"), 4);
+			glActiveTexture(GL_TEXTURE0 + 4);
+			glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+
+			// --- Set Normal Mapping Draw ---
+			glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit"), (int)m_Draw_normalMapping_Lit);
+			glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit_Adv"), (int)m_Draw_normalMapping_Lit_Adv);
+
+			// --- Gamma Correction & Ambient Color Values ---
+			glUniform1f(glGetUniformLocation(shader, "u_GammaCorrection"), m_GammaCorrection);
+			glUniform4f(glGetUniformLocation(shader, "u_AmbientColor"), m_AmbientColor.x, m_AmbientColor.y, m_AmbientColor.z, 1.0f);
+
+			// --- Set Textures usage to 0 ---
+			//glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 0);
+			//glUniform1i(glGetUniformLocation(shader, "u_HasSpecularTexture"), 0);
+			//glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 0);
+
+			// --- Send Color ---
+			glUniform4f(glGetUniformLocation(shader, "u_Color"), colorToDraw.x, colorToDraw.y, colorToDraw.z, 1.0f);
+
+			// --- Set Model Matrix Uniform ---
+			glUniformMatrix4fv(glGetUniformLocation(shader, "u_Model"), 1, GL_FALSE, model.Transposed().ptr());
+
+			// --- General Rendering Uniforms (material - texture - color related) ---
+			if (mesh->resource_mesh->vertices && mesh->resource_mesh->Indices) // if mesh to draw
+			{
+				const ResourceMesh* rmesh = mesh->resource_mesh;
+				if (mesh->deformable_mesh)
+					rmesh = mesh->deformable_mesh;
+
+				// Material
+				if (mesh->mat)
+				{
+					glUniform1f(glGetUniformLocation(shader, "u_Shininess"), mesh->mat->m_Shininess);
+					glUniform4f(glGetUniformLocation(shader, "u_Color"), mesh->mat->m_AmbientColor.x, mesh->mat->m_AmbientColor.y, mesh->mat->m_AmbientColor.z, mesh->mat->m_AmbientColor.w);
+
+					//Textures
+					glUniform1i(glGetUniformLocation(shader, "u_UseTextures"), (int)mesh->mat->m_UseTexture);
+
+					if (mesh->flags & RenderMeshFlags_::texture)
+					{
+						if (mesh->flags & RenderMeshFlags_::checkers)
+							glBindTexture(GL_TEXTURE_2D, App->textures->GetCheckerTextureID()); // start using texture
+						else
+						{
+							if (!mesh->mat->m_DiffuseResTexture && !mesh->mat->m_SpecularResTexture && !mesh->mat->m_NormalResTexture)
+								glUniform1i(glGetUniformLocation(shader, "u_UseTextures"), 0);
+
+							// Diffuse/Albedo
+							if (mesh->mat->m_DiffuseResTexture)
+							{
+								glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 1);
+
+								glUniform1i(glGetUniformLocation(shader, "u_AlbedoTexture"), 1);
+								glActiveTexture(GL_TEXTURE0 + 1);
+								glBindTexture(GL_TEXTURE_2D, mesh->mat->m_DiffuseResTexture->GetTexID());
+							}
+							else
+							{
+								glUniform1i(glGetUniformLocation(shader, "u_AlbedoTexture"), 0);
+								glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 0);
+							}
+
+							// Specular
+							if (mesh->mat->m_SpecularResTexture)
+							{
+								glUniform1i(glGetUniformLocation(shader, "u_HasSpecularTexture"), 1);
+
+								glUniform1i(glGetUniformLocation(shader, "u_SpecularTexture"), 2);
+								glActiveTexture(GL_TEXTURE0 + 2);
+								glBindTexture(GL_TEXTURE_2D, mesh->mat->m_SpecularResTexture->GetTexID());
+							}
+							else
+							{
+								glUniform1i(glGetUniformLocation(shader, "u_SpecularTexture"), 0);
+								glUniform1i(glGetUniformLocation(shader, "u_HasSpecularTexture"), 0);
+							}
+
+							// Normal
+							if (mesh->mat->m_NormalResTexture)
+							{
+								glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 1);
+
+								glUniform1i(glGetUniformLocation(shader, "u_NormalTexture"), 3);
+								glActiveTexture(GL_TEXTURE0 + 3);
+								glBindTexture(GL_TEXTURE_2D, mesh->mat->m_NormalResTexture->GetTexID());
+							}
+							else
+							{
+								glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 0);
+								glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 0);
+							}
+						}
+					}
+					else if (mesh->flags & color)
+					{
+						glUniform4f(glGetUniformLocation(shader, "u_Color"), mesh->color.r / 255, mesh->color.g / 255, mesh->color.b / 255, 1.0f);
+						glUniform1i(glGetUniformLocation(shader, "u_UseTextures"), (int)false);
+					}
+					else
+						glUniform1i(glGetUniformLocation(shader, "u_UseTextures"), (int)false);
+
+				}
+
+				// --- Render ---
+				glBindVertexArray(rmesh->VAO);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rmesh->EBO);
+				glDrawElements(GL_TRIANGLES, rmesh->IndicesSize, GL_UNSIGNED_INT, NULL); //render from array data
+
+				// --- Unbind Buffers ---
+				glBindVertexArray(0);
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glActiveTexture(GL_TEXTURE0);
+			}
+
+			// --- DeActivate wireframe mode ---
+			if (mesh->flags & RenderMeshFlags_::wire)
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+			if (mesh->flags & RenderMeshFlags_::selected)
+				glStencilMask(0x00);
+
+			if (!mesh->mat->has_culling)
+				glEnable(GL_CULL_FACE);
+
+			// --- Set Blending to Renderer's Default ---
+			if (m_ChangedBlending)
+				SetRendererBlending();
+
+			// --- Set color back to default ---
+			glUniform4f(glGetUniformLocation(shader, "u_Color"), 1.0f, 1.0f, 1.0f, 1.0f);
 		}
-
-		// --- DeActivate wireframe mode ---
-		if (mesh->flags & RenderMeshFlags_::wire)
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-		if (mesh->flags & RenderMeshFlags_::selected)
-			glStencilMask(0x00);
-
-		if (!mesh->mat->has_culling)
-			glEnable(GL_CULL_FACE);
-
-		// --- Set Blending to Renderer's Default ---
-		if (m_ChangedBlending)
-			SetRendererBlending();
-
-		// --- Set color back to default ---
-		glUniform4f(glGetUniformLocation(shader, "u_Color"), 1.0f, 1.0f, 1.0f, 1.0f);
 	}
 
 	glUseProgram(0);
 }
 
 
-void ModuleRenderer3D::SendShaderUniforms(uint shader)
+void ModuleRenderer3D::SendShaderUniforms(uint shader, bool depthPass)
 {
+	float4x4 projMat = float4x4::identity;
+	float4x4 viewMat = float4x4::identity;
+	float4x4 lightSpaceMat = float4x4::identity;
+
 	// --- Display Z buffer ---
 	if (zdrawer)
 		shader = ZDrawerShader->ID;
 
 	glUseProgram(shader);
 
-	// --- Give ZDrawer near and far camera frustum planes pos ---
-	if (zdrawer)
-		glUniform2f(glGetUniformLocation(shader, "nearfar"), active_camera->GetNearPlane(), active_camera->GetFarPlane());
-
-	// --- Set Matrix Uniforms ---
-	glUniformMatrix4fv(glGetUniformLocation(shader, "u_View"), 1, GL_FALSE, active_camera->GetOpenGLViewMatrix().ptr());
-	glUniform1f(glGetUniformLocation(shader, "time"), App->time->time);
-
-	//// Right handed projection matrix
-	float f = 1.0f / tan(active_camera->GetFOV() * DEGTORAD / 2.0f);
-	float4x4 proj_RH(
-		f / active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
-		0.0f, f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, -1.0f,
-		0.0f, 0.0f, active_camera->GetNearPlane(), 0.0f);
-
-	glUniformMatrix4fv(glGetUniformLocation(shader, "u_Proj"), 1, GL_FALSE, proj_RH.ptr());
-
-	// --- Set Normal Mapping Draw ---
-	glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping"), (int)m_Draw_normalMapping);
-
-	// --- Set HasTextures to none ---
-	glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 0);
-	glUniform1i(glGetUniformLocation(shader, "u_HasSpecularTexture"), 0);
-	glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 0);
-
-
-	int lightsNumLoc = glGetUniformLocation(shader, "u_LightsNumber");
-	if (shader == defaultShader->ID || lightsNumLoc != -1)
+	if (depthPass)
 	{
-		// --- Send Lights ---
-		glUniform1i(lightsNumLoc, m_LightsVec.size());
-		for (uint i = 0; i < m_LightsVec.size(); ++i)
-			m_LightsVec[i]->SendUniforms(shader, i);
+		if (current_directional)
+		{
+			projMat = current_directional->GetFrustProjectionMatrix();
+			viewMat = current_directional->GetFrustViewMatrix();
+			//lightSpaceMat = current_directional->GetFrustViewProjMatrix();
+			lightSpaceMat = (projMat * viewMat);
+		}
+		else
+		{
+			projMat = active_camera->GetOpenGLProjectionMatrix();
+			viewMat = active_camera->GetOpenGLViewMatrix();
+			lightSpaceMat = (projMat * viewMat);
+		}
 	}
 	else
-		glUniform1i(glGetUniformLocation(shader, "u_LightsNumber"), 0);
+	{
+
+		// --- Give ZDrawer near and far camera frustum planes pos ---
+		if (zdrawer)
+			glUniform2f(glGetUniformLocation(shader, "nearfar"), active_camera->GetNearPlane(), active_camera->GetFarPlane());
+
+		// --- Set Matrix Uniforms ---
+		glUniformMatrix4fv(glGetUniformLocation(shader, "u_View"), 1, GL_FALSE, active_camera->GetOpenGLViewMatrix().ptr());
+		glUniform1f(glGetUniformLocation(shader, "time"), App->time->time);
+
+		// --- Camera Position Uniform ---
+		float3 camPos = App->renderer3D->active_camera->GetCameraPosition();
+		glUniform3f(glGetUniformLocation(defaultShader->ID, "u_CameraPosition"), camPos.x, camPos.y, camPos.z);
+
+		////// Right handed projection matrix
+		//float f = 1.0f / tan(active_camera->GetFOV() * DEGTORAD / 2.0f);
+		//float4x4 proj_RH(
+		//	f / active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
+		//	0.0f, f, 0.0f, 0.0f,
+		//	0.0f, 0.0f, 0.0f, -1.0f,
+		//	0.0f, 0.0f, active_camera->GetNearPlane(), 0.0f);
+
+		glUniformMatrix4fv(glGetUniformLocation(shader, "u_Proj"), 1, GL_FALSE, active_camera->GetOpenGLProjectionMatrix().ptr());
+
+		// --- Set Normal Mapping Draw ---
+		glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping"), (int)m_Draw_normalMapping);
+
+		// --- Set HasTextures to none ---
+		glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 0);
+		glUniform1i(glGetUniformLocation(shader, "u_HasSpecularTexture"), 0);
+		glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 0);
+
+
+		int lightsNumLoc = glGetUniformLocation(shader, "u_LightsNumber");
+		if (shader == defaultShader->ID || lightsNumLoc != -1)
+		{
+			// --- Send Lights ---
+			glUniform1i(lightsNumLoc, m_LightsVec.size());
+			for (uint i = 0; i < m_LightsVec.size(); ++i)
+				m_LightsVec[i]->SendUniforms(shader, i);
+		}
+		else
+			glUniform1i(glGetUniformLocation(shader, "u_LightsNumber"), 0);
+
+		projMat = active_camera->GetOpenGLProjectionMatrix();
+		viewMat = active_camera->GetOpenGLViewMatrix();
+
+		//Calculate Light Space Matrix
+		if (current_directional)
+			lightSpaceMat = current_directional->GetFrustViewProjMatrix();
+		else
+			lightSpaceMat = (active_camera->GetOpenGLProjectionMatrix() * active_camera->GetOpenGLViewMatrix());
+
+		glUniformMatrix4fv(glGetUniformLocation(shader, "u_LightSpace"), 1, GL_FALSE, lightSpaceMat.ptr());
+	}
+
+	// --- Set Matrix Uniforms ---
+	glUniformMatrix4fv(glGetUniformLocation(shader, "u_View"), 1, GL_FALSE, viewMat.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(shader, "u_Proj"), 1, GL_FALSE, projMat.ptr());
 }
 
+void ModuleRenderer3D::DrawFramebuffer(uint drawQuadVAO, uint textureToRender, bool drawShadow)
+{
+	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+	// clear all relevant buffers
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	glUseProgram(screenShader->ID);
+
+	if (drawShadow)
+		glUniform1i(glGetUniformLocation(screenShader->ID, "u_DrawShadows"), 1);
+	else
+		glUniform1i(glGetUniformLocation(screenShader->ID, "u_DrawShadows"), 0);
+
+	glBindVertexArray(drawQuadVAO);
+	glBindTexture(GL_TEXTURE_2D, textureToRender);	// use the color attachment texture as the texture of the quad plane
+	glActiveTexture(GL_TEXTURE0 + 1);
+	glUniform1i(glGetUniformLocation(screenShader->ID, "screenTexture"), 1);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	// --- Unbind buffers ---
+	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glUseProgram(0);
+}
 
 void ModuleRenderer3D::DrawPostProcessing()
 {
@@ -1226,10 +1460,11 @@ void ModuleRenderer3D::CreateFramebuffer()
 	glGenTextures(1, &depthMapTexture);
 	glBindTexture(GL_TEXTURE_2D, depthMapTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, App->window->GetWindowWidth(), App->window->GetWindowHeight(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+	float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
 	glGenFramebuffers(1, &depthbufferFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthbufferFBO);
@@ -1259,6 +1494,8 @@ void ModuleRenderer3D::CreateFramebuffer()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthbuffer, 0);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	m_CurrentRenderingTexture = rendertexture;
 }
 
 
@@ -1357,7 +1594,7 @@ void ModuleRenderer3D::HandleObjectOutlining()
 			if (cmesh && cmesh->resource_mesh && cmesh_renderer && cmesh_renderer->material)
 			{
 				meshInstances.push_back(RenderMesh(obj->GetComponent<ComponentTransform>()->GetGlobalTransform(), cmesh->resource_mesh, cmesh_renderer->material, flags));
-				DrawRenderMesh(meshInstances);
+				DrawRenderMesh(meshInstances, false);
 			}
 		}
 		//MeshRenderer->Draw(true);
@@ -1819,6 +2056,38 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	UI_Shader->LoadToMemory();
 	IShader->Save(UI_Shader);
 
+	const char* vertexShadowShader =
+		R"(#version 450 core
+			#define VERTEX_SHADER
+			#ifdef VERTEX_SHADER
+			
+			layout (location = 0) in vec3 a_Position;			
+			uniform mat4 u_Proj;
+			uniform mat4 u_View;
+			uniform mat4 u_Model;			
+			void main()
+			{
+				gl_Position = u_Proj * u_View * u_Model * vec4(a_Position, 1.0);
+			} 
+			#endif)";
+
+	const char* fragmentShadowShader =
+		R"(#version 450 core
+			#define FRAGMENT_SHADER
+			#ifdef FRAGMENT_SHADER			
+			void main()
+			{ 
+			}
+			#endif)";
+
+	shadowsShader = (ResourceShader*)App->resources->CreateResourceGivenUID(Resource::ResourceType::SHADER, "Assets/Shaders/ShadowsShader.glsl", 18);
+	shadowsShader->vShaderCode = vertexShadowShader;
+	shadowsShader->fShaderCode = fragmentShadowShader;
+	shadowsShader->ReloadAndCompileShader();
+	shadowsShader->SetName("Shadows Shader");
+	shadowsShader->LoadToMemory();
+	IShader->Save(shadowsShader);
+
 	defaultShader->use();
 }
 
@@ -1839,17 +2108,17 @@ void ModuleRenderer3D::DrawRenderLines()
 
 	// --- Set Right handed projection matrix ---
 
-	float nearp = App->renderer3D->active_camera->GetNearPlane();
+	//float nearp = App->renderer3D->active_camera->GetNearPlane();
 
-	float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
-	float4x4 proj_RH(
-		f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
-		0.0f, f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, -1.0f,
-		0.0f, 0.0f, nearp, 0.0f);
+	//float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
+	//float4x4 proj_RH(
+	//	f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
+	//	0.0f, f, 0.0f, 0.0f,
+	//	0.0f, 0.0f, 0.0f, -1.0f,
+	//	0.0f, 0.0f, nearp, 0.0f);
 
 	// --- Set Uniforms ---
-	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
+	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, active_camera->GetOpenGLProjectionMatrix().ptr());
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLViewMatrix().ptr());
 
 	// --- Initialize vars, prepare buffer ---
@@ -1959,20 +2228,20 @@ void ModuleRenderer3D::DrawSkybox()
 
 	SkyboxShader->use();
 	// draw skybox as last
-	glDepthFunc(GL_GEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+	//glDepthFunc(GL_GEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 	//view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
 	float4x4 view = App->renderer3D->active_camera->GetOpenGLViewMatrix();
 	view.SetTranslatePart(float4::zero);
 
-	float nearp = App->renderer3D->active_camera->GetNearPlane();
+	//float nearp = App->renderer3D->active_camera->GetNearPlane();
 
-	// right handed projection matrix
-	float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
-	float4x4 proj_RH(
-		f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
-		0.0f, f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, -1.0f,
-		0.0f, 0.0f, nearp, 0.0f);
+	//// right handed projection matrix
+	//float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
+	//float4x4 proj_RH(
+	//	f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
+	//	0.0f, f, 0.0f, 0.0f,
+	//	0.0f, 0.0f, 0.0f, -1.0f,
+	//	0.0f, 0.0f, nearp, 0.0f);
 
 	float4x4 model = float4x4::identity;
 	model = model.FromQuat(finalRotation);
@@ -1984,7 +2253,7 @@ void ModuleRenderer3D::DrawSkybox()
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view.ptr());
 
 	GLint projectLoc = glGetUniformLocation(App->renderer3D->SkyboxShader->ID, "u_Proj");
-	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
+	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, active_camera->GetOpenGLProjectionMatrix().ptr());
 
 	glUniform1f(glGetUniformLocation(SkyboxShader->ID, "u_GammaCorrection"), m_GammaCorrection);
 	glUniform1f(glGetUniformLocation(SkyboxShader->ID, "u_Exposure"), m_SkyboxExposure);
@@ -2050,15 +2319,15 @@ void ModuleRenderer3D::DrawWireFromVertices(const float3* corners, Color color, 
 	// --- Set Uniforms ---
 	glUseProgram(App->renderer3D->linepointShader->ID);
 
-	float nearp = App->renderer3D->active_camera->GetNearPlane();
+	//float nearp = App->renderer3D->active_camera->GetNearPlane();
 
-	// right handed projection matrix
-	float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
-	float4x4 proj_RH(
-		f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
-		0.0f, f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, -1.0f,
-		0.0f, 0.0f, nearp, 0.0f);
+	//// right handed projection matrix
+	//float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
+	//float4x4 proj_RH(
+	//	f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
+	//	0.0f, f, 0.0f, 0.0f,
+	//	0.0f, 0.0f, 0.0f, -1.0f,
+	//	0.0f, 0.0f, nearp, 0.0f);
 
 	GLint modelLoc = glGetUniformLocation(App->renderer3D->linepointShader->ID, "u_Model");
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, float4x4::identity.ptr());
@@ -2067,7 +2336,7 @@ void ModuleRenderer3D::DrawWireFromVertices(const float3* corners, Color color, 
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLViewMatrix().ptr());
 
 	GLint projectLoc = glGetUniformLocation(App->renderer3D->linepointShader->ID, "u_Proj");
-	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
+	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLProjectionMatrix().ptr());
 
 	int vertexColorLocation = glGetUniformLocation(App->renderer3D->linepointShader->ID, "u_Color");
 	glUniform4f(vertexColorLocation, color.r, color.g, color.b, color.a);

@@ -212,12 +212,12 @@ void ModuleSelection::ApplyOBBTransformation()
 	float nearp = App->renderer3D->active_camera->GetNearPlane();
 
 	// right handed projection matrix
-	float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
-	float4x4 proj_RH(
-		f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
-		0.0f, f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, -1.0f,
-		aabb_start.x * 0.01f, aabb_start.y * 0.01f, nearp, 0.0f);
+	//float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
+	//float4x4 proj_RH(
+	//	f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
+	//	0.0f, f, 0.0f, 0.0f,
+	//	0.0f, 0.0f, 0.0f, -1.0f,
+	//	aabb_start.x * 0.01f, aabb_start.y * 0.01f, nearp, 0.0f);
 
 	aabb.Transform(App->camera->camera->GetOpenGLViewMatrix());
 	//aabb.Transform(App->camera->camera->GetOpenGLViewMatrix());

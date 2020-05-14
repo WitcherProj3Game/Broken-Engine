@@ -165,6 +165,7 @@ public:
 	void SetRendererBlendingManualFunction(BlendingTypes src, BlendingTypes dst) { m_ManualBlend_Src = src;  m_ManualBlend_Dst = dst; }
 	void SetSkyboxColor(const float3& color) { m_SkyboxColor = color; }
 	void SetSkyboxExposure(float value) { m_SkyboxExposure = value; }
+	void SwitchRenderingTexture();
 
 	// --- Getters ---
 	bool GetVSync() const { return vsync; }
@@ -175,6 +176,7 @@ public:
 	void GetRendererBlendingManualFunction(BlendingTypes& src, BlendingTypes& dst) const { src = m_ManualBlend_Src; dst = m_ManualBlend_Dst; }
 	float3 GetSkyboxColor() const { return m_SkyboxColor; }
 	float GetSkyboxExposure() const { return m_SkyboxExposure; }
+	const uint GetDepthMapTexture() const { return depthMapTexture; }
 
 private:
 
@@ -197,10 +199,11 @@ private:
 private:
 
 	// --- Draw Commands ---
-	void SendShaderUniforms(uint shader);
-	void DrawRenderMeshes();
+	void SendShaderUniforms(uint shader, bool depthPass);
+	void DrawRenderMeshes(bool depthPass);
 	void DrawTransparentRenderMeshes();
-	void DrawRenderMesh(std::vector<RenderMesh> meshInstances);
+	void DrawRenderMesh(std::vector<RenderMesh> meshInstances, bool depthPass);
+	void DrawFramebuffer(uint drawQuadVAO, uint textureToRender, bool drawShadow);
 	void DrawPostProcessing();
 
 	// --- Draw Utilities ---
@@ -229,6 +232,7 @@ public:
 	ResourceShader* ZDrawerShader = nullptr;
 	ResourceShader* screenShader = nullptr;
 	ResourceShader* UI_Shader = nullptr;
+	ResourceShader* shadowsShader = nullptr;
 
 	ResourceShader* SkyboxShader = nullptr;
 
@@ -261,10 +265,14 @@ public:
 	bool m_Draw_normalMapping_Lit_Adv = false;
 	bool m_AutomaticBlendingFunc = true;
 	bool m_ChangedBlending = false;
+	bool m_DrawShadowMap = false;
 
 	uint rendertexture = 0;
 	uint depthMapTexture = 0;
 	float3 skyboxangle = float3::zero;
+
+	uint m_CurrentRenderingTexture = 0;
+
 
 	//Blend Functions chars vector (for names)
 	std::vector<const char*> m_BlendAutoFunctionsVec;
@@ -283,6 +291,7 @@ private:
 
 	//Lights vector
 	std::vector<ComponentLight*> m_LightsVec;
+	ComponentLight* current_directional = nullptr;
 
 	//Rendering Options
 	float m_GammaCorrection = 2.0f;
@@ -306,6 +315,8 @@ private:
 	uint Grid_VBO = 0;
 	uint quadVAO = 0;
 	uint quadVBO = 0;
+	uint depth_quadVAO = 0;
+	uint depth_quadVBO = 0;
 };
 BE_END_NAMESPACE
 #endif

@@ -41,6 +41,17 @@ ComponentLight::ComponentLight(GameObject* ContainerGO) : Component(ContainerGO,
 {
 	name = "Light";
 	App->renderer3D->AddLight(this);
+
+	//m_LightFrustum
+	m_LightFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
+	m_LightFrustum.SetPos(float3::zero);
+	m_LightFrustum.SetFront(float3::unitZ);
+	m_LightFrustum.SetUp(float3::unitY);
+
+	m_LightFrustum.SetViewPlaneDistances(2.0f, 75.0f);
+	m_LightFrustum.SetOrthographic(50.0f, 50.0f);
+	//m_LightFrustum.SetPerspective(1.0f, 1.0f);
+	//m_LightFrustum.SetHorizontalFovAndAspectRatio(m_LightFrustum.HorizontalFov(), 1.0f);
 }
 
 ComponentLight::~ComponentLight()
@@ -60,8 +71,16 @@ void ComponentLight::Update()
 		Quat q = Quat::identity;
 		trans->GetGlobalTransform().Decompose(position, q, scale);
 
+		m_LightFrustum.SetPos(position);
+
+		float3 fr = trans->GetGlobalTransform().Col3(2);
+		float3 upvec = trans->GetGlobalTransform().Col3(1);
+
+		m_LightFrustum.SetFront(fr);
+		m_LightFrustum.SetUp(upvec);
+
 		if (m_LightType == LightType::DIRECTIONAL)
-			m_Direction = position.Normalized();
+			m_Direction = trans->GetRotation() * DEGTORAD;
 		else if (m_LightType == LightType::POINTLIGHT || m_LightType == LightType::SPOTLIGHT)
 		{
 			float3 orientation_vec = float3(2 * (q.x * q.z + q.w * q.y), 2 * (q.y * q.z - q.w * q.x), 1 - 2 * (q.x * q.x + q.y * q.y));
@@ -164,6 +183,24 @@ const std::string ComponentLight::GetLightUniform(uint lightIndex, const char* u
 	return (uniformArrayName + std::string(light_index_chars));
 }
 
+const float4x4 ComponentLight::GetFrustViewMatrix() const
+{
+	math::float4x4 matrix = m_LightFrustum.ViewMatrix();
+	return matrix.Transposed();
+}
+
+const float4x4 ComponentLight::GetFrustProjectionMatrix() const
+{
+	math::float4x4 matrix = m_LightFrustum.ProjectionMatrix();
+	return matrix.Transposed();
+}
+
+const float4x4 ComponentLight::GetFrustViewProjMatrix() const
+{
+	math::float4x4 matrix = m_LightFrustum.ViewProjMatrix();
+	return matrix.Transposed();
+}
+
 
 // -------------------------------------------------------------------------------------------
 void ComponentLight::Draw()
@@ -193,15 +230,15 @@ void ComponentLight::Draw()
 	float nearp = App->renderer3D->active_camera->GetNearPlane();
 
 	// right handed projection matrix
-	float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
-	float4x4 proj_RH(
-		f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
-		0.0f, f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, -1.0f,
-		0.0f, 0.0f, nearp, 0.0f);
+	//float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
+	//float4x4 proj_RH(
+	//	f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
+	//	0.0f, f, 0.0f, 0.0f,
+	//	0.0f, 0.0f, 0.0f, -1.0f,
+	//	0.0f, 0.0f, nearp, 0.0f);
 
 	GLint projectLoc = glGetUniformLocation(shaderID, "u_Proj");
-	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
+	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLProjectionMatrix().ptr());
 
 	glUniform1i(TextureLocation, 0); //reset texture location
 
@@ -214,6 +251,12 @@ void ComponentLight::Draw()
 	glBindVertexArray(0);
 }
 
+void ComponentLight::DrawFrustum()
+{
+	// --- Draw Frustum ---
+	if (App->renderer3D->display_grid)
+		App->renderer3D->DrawFrustum(m_LightFrustum, White);
+}
 
 // -------------------------------------------------------------------------------------------
 // --------------------------------------- UI Inspector --------------------------------------

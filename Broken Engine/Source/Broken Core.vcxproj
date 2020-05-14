@@ -162,6 +162,7 @@
     <ClInclude Include="Components.h" />
     <ClInclude Include="ComponentScript.h" />
     <ClInclude Include="ComponentTransform.h" />
+    <ClInclude Include="UI_Element.h" />
     <ClInclude Include="CurveEditor.h" />
     <ClInclude Include="EngineLog.h" />
     <ClInclude Include="Errors.h" />
@@ -343,6 +344,7 @@
     <ClInclude Include="ScriptingGameobject.h" />
     <ClInclude Include="ScriptingInterface.h" />
     <ClInclude Include="ScriptingLighting.h" />
+    <ClInclude Include="ScriptingMaterials.h" />
     <ClInclude Include="ScriptingNavigation.h" />
     <ClInclude Include="ScriptingParticles.h" />
     <ClInclude Include="ScriptingPhysics.h" />
@@ -524,6 +526,7 @@
     <ClCompile Include="ScriptingGameobject.cpp" />
     <ClCompile Include="ScriptingInterface.cpp" />
     <ClCompile Include="ScriptingLighting.cpp" />
+    <ClCompile Include="ScriptingMaterials.cpp" />
     <ClCompile Include="ScriptingNavigation.cpp" />
     <ClCompile Include="ScriptingParticles.cpp" />
     <ClCompile Include="ScriptingPhysics.cpp" />

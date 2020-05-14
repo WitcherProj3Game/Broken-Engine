@@ -39,16 +39,16 @@ Resource* ImporterScene::Load(const char* path) const
 	ResourceScene* scene = nullptr;
 
 	// --- Load Scene file ---
-	if (path) 
+	if (path)
 	{
 		ImporterMeta* IMeta = App->resources->GetImporter<ImporterMeta>();
 		ResourceMeta* meta = (ResourceMeta*)IMeta->Load(path);
 
-		if (meta) 
+		if (meta)
 		{
 			scene = App->resources->scenes.find(meta->GetUID()) != App->resources->scenes.end() ? App->resources->scenes.find(meta->GetUID())->second : (ResourceScene*)App->resources->CreateResourceGivenUID(Resource::ResourceType::SCENE, meta->GetOriginalFile(), meta->GetUID());
 		}
-		else 
+		else
 		{
 			scene = (ResourceScene*)App->resources->CreateResource(Resource::ResourceType::SCENE, path);
 		}
@@ -61,8 +61,21 @@ Resource* ImporterScene::Load(const char* path) const
 void ImporterScene::SaveSceneToFile(ResourceScene* scene) const
 {
 	// --- Save Scene/Model to file ---
-
 	json file;
+
+	//Save Scene Color
+	float3 sceneColor = scene->GetSceneAmbientColor();
+	file["SceneAmbientColor"]["R"] = sceneColor.x;
+	file["SceneAmbientColor"]["G"] = sceneColor.y;
+	file["SceneAmbientColor"]["B"] = sceneColor.z;
+	//Before loading static objects, load the dimensions of the tree
+	file["octreeBox"]["minX"] = scene->octreeBox.MinX();
+	file["octreeBox"]["minY"] = scene->octreeBox.MinY();
+	file["octreeBox"]["minZ"] = scene->octreeBox.MinZ();
+
+	file["octreeBox"]["maxX"] = scene->octreeBox.MaxX();
+	file["octreeBox"]["maxY"] = scene->octreeBox.MaxY();
+	file["octreeBox"]["maxZ"] = scene->octreeBox.MaxZ();
 
 	for (std::unordered_map<uint, GameObject*>::iterator it = scene->NoStaticGameObjects.begin(); it != scene->NoStaticGameObjects.end(); ++it)
 	{

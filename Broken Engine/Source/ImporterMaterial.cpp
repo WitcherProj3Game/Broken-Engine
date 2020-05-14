@@ -144,19 +144,34 @@ Resource* ImporterMaterial::Load(const char* path) const
 			mat->SetPreviewTexID(App->textures->CreateTextureFromFile(mat->previewTexPath.c_str(), width, height));
 		}
 
-		if (!file["AmbientColor"].is_null())
-			matColor = float4(file["AmbientColor"]["R"].get<float>(), file["AmbientColor"]["G"].get<float>(), file["AmbientColor"]["B"].get<float>(), file["AmbientColor"]["A"].is_null() ? 1.0f : file["AmbientColor"]["A"].get<float>());
-		
+		// --- Material Generic Stuff (Color, shine...) ---
+		if (file.find("AmbientColor") != file.end())
+		{
+			if (file["AmbientColor"].find("R") != file["AmbientColor"].end() && file["AmbientColor"].find("G") != file["AmbientColor"].end() &&
+				file["AmbientColor"].find("B") != file["AmbientColor"].end() && file["AmbientColor"].find("A") != file["AmbientColor"].end())
+			{
+				matColor = float4(file["AmbientColor"]["R"].get<float>(), file["AmbientColor"]["G"].get<float>(), file["AmbientColor"]["B"].get<float>(), file["AmbientColor"]["A"].get<float>());
+			}
+			else
+				matColor = float4::one;
+		}
+		else
+			matColor = float4::one;
 
-		if (!file["MaterialShininess"].is_null())
-			matShine = file["MaterialShininess"].get<float>();
+		matShine = file.find("MaterialShininess") == file.end() ? 1.0f : file["MaterialShininess"].get<float>();
+		mat->has_transparencies = file.find("Transparencies") == file.end() ? false : file["Transparencies"].get<bool>();
+		mat->has_culling = file.find("Culling") == file.end() ? true : file["Culling"].get<bool>();
 
-		if (!file["Transparencies"].is_null())
-			mat->has_transparencies = file["Transparencies"].get<bool>();
+		// --- Blending Stuff ---
+		mat->m_MatAutoBlendFunc = file.find("MatAlphaFunc") == file.end() ? BlendAutoFunction::STANDARD_INTERPOLATIVE : (BlendAutoFunction)file["MatAlphaFunc"].get<int>();
+		mat->m_MatBlendEq = file.find("MatBlendEquation") == file.end() ? BlendingEquations::ADD : (BlendingEquations)file["MatBlendEquation"].get<int>();
 
-		if (!file["Culling"].is_null())
-			mat->has_culling = file["Culling"].get<bool>();
 
+		mat->m_MatManualBlend_Src = file.find("MatManualAlphaFuncSrc") == file.end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)file["MatManualAlphaFuncSrc"].get<int>();
+		mat->m_MatManualBlend_Dst = file.find("MatManualAlphaFuncDst") == file.end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)file["MatManualAlphaFuncDst"].get<int>();
+		mat->m_AutoBlending = file.find("MatAutoBlending") == file.end() ? true : file["MatAutoBlending"].get<bool>();
+
+		// --- Texture Stuff ---
 		Importer::ImportData IDataDiff(diffuse_texture_path.c_str());
 
 		if(diffuse_texture_path != "NaN.dds")
@@ -423,6 +438,12 @@ void ImporterMaterial::Save(ResourceMaterial* mat) const
 	file["MaterialShininess"] = mat->m_Shininess;
 	file["Transparencies"] = mat->has_transparencies;
 	file["Culling"] = mat->has_culling;
+
+	file["MatAlphaFunc"] = (int)mat->m_MatAutoBlendFunc;
+	file["MatBlendEquation"] = (int)mat->m_MatBlendEq;
+	file["MatManualAlphaFuncSrc"] = (int)mat->m_MatManualBlend_Src;
+	file["MatManualAlphaFuncDst"] = (int)mat->m_MatManualBlend_Dst;
+	file["MatAutoBlending"] = mat->m_AutoBlending;
 
 	if (mat->m_DiffuseResTexture)
 		file["ResourceDiffuse"] = mat->m_DiffuseResTexture->GetOriginalFile();

@@ -8,13 +8,14 @@
 #include "ModulePhysics.h"
 #include "ComponentAudioListener.h"
 #include "ComponentAudioSource.h"
+#include "ComponentCharacterController.h"
+#include "ComponentCollider.h"
+
+#include "UI_Element.h"
 #include "ComponentCanvas.h"
 #include "ComponentText.h"
 #include "ComponentImage.h"
 #include "ComponentButton.h"
-#include "ComponentCharacterController.h"
-#include "ComponentCollider.h"
-
 //#include "ComponentCheckBox.h"
 //#include "ComponentInputText.h"
 #include "ComponentProgressBar.h"
@@ -370,7 +371,7 @@ GameObject* GameObject::GetAnimGO(GameObject* GO)
 
 Component * GameObject::AddComponent(Component::ComponentType type, int index)
 {
-	BROKEN_ASSERT(static_cast<int>(Component::ComponentType::Unknown) == 21, "Component Creation Switch needs to be updated");
+	BROKEN_ASSERT(static_cast<int>(Component::ComponentType::Unknown) == 22, "Component Creation Switch needs to be updated");
 	Component* component = nullptr;
 
 	// --- Check if there is already a component of the type given --- & if it can be repeated
@@ -420,7 +421,19 @@ Component * GameObject::AddComponent(Component::ComponentType type, int index)
 		case Component::ComponentType::Animation:
 			component = new ComponentAnimation(this);
 			break;
+		case Component::ComponentType::CharacterController:
+			component = new ComponentCharacterController(this);
+			break;
+		case Component::ComponentType::Script:
+			component = new ComponentScript(this);
+			break;
 
+			//Lights
+		case Component::ComponentType::Light:
+			component = new ComponentLight(this);
+			break;
+
+			//UI_Elements
 		case Component::ComponentType::Canvas:
 			component = new ComponentCanvas(this);
 			break;
@@ -433,25 +446,17 @@ Component * GameObject::AddComponent(Component::ComponentType type, int index)
 			component = new ComponentImage(this);
 			break;
 
-		case Component::ComponentType::Script:
-			component = new ComponentScript(this);
-			break;
-
 		case Component::ComponentType::Button:
 			component = new ComponentButton(this);
 			break;
 
-		case Component::ComponentType::CharacterController:
-			component = new ComponentCharacterController(this);
-			break;
+			//case Component::ComponentType::CheckBox:
+			//	component = new ComponentCheckBox(this);
+			//	break;
 
-		//case Component::ComponentType::CheckBox:
-		//	component = new ComponentCheckBox(this);
-		//	break;
-
-		//case Component::ComponentType::InputText:
-		//	component = new ComponentInputText(this);
-		//	break;
+			//case Component::ComponentType::InputText:
+			//	component = new ComponentInputText(this);
+			//	break;
 
 		case Component::ComponentType::ProgressBar:
 			component = new ComponentProgressBar(this);
@@ -459,11 +464,6 @@ Component * GameObject::AddComponent(Component::ComponentType type, int index)
 
 		case Component::ComponentType::CircularBar:
 			component = new ComponentCircularBar(this);
-			break;
-
-		//Lights
-		case Component::ComponentType::Light:
-			component = new ComponentLight(this);
 			break;
 		}
 
@@ -524,10 +524,7 @@ Component* GameObject::HasComponent(Component::ComponentType type) const {
 	for (uint i = 0; i < components.size(); ++i)
 	{
 		if (components[i] && components[i]->GetType() == type)
-		{
 			component = components[i];
-			break;
-		}
 	}
 
 	return component;

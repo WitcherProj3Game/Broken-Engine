@@ -27,6 +27,7 @@
 #include "ScriptingScenes.h"
 #include "ScriptingNavigation.h"
 #include "ScriptingLighting.h"
+#include "ScriptingMaterials.h"
 #include "ScriptVar.h"
 #include <iterator>
 
@@ -143,6 +144,10 @@ bool ModuleScripting::JustCompile(std::string absolute_path) {
 		.endClass()
 
 		.beginClass <ScriptingLighting>("Lighting")
+		.addConstructor<void(*) (void)>()
+		.endClass()
+
+		.beginClass <ScriptingMaterials>("Materials")
 		.addConstructor<void(*) (void)>()
 		.endClass()
 
@@ -302,6 +307,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("OnCollisionStay", &ScriptingPhysics::OnCollisionStay)
 		.addFunction("OnCollisionExit", &ScriptingPhysics::OnCollisionExit)
 
+		.addFunction("SetActiveController", &ScriptingPhysics::SetActiveController)
 		.addFunction("Move", &ScriptingPhysics::Move)
 		.addFunction("GetCharacterPosition", &ScriptingPhysics::GetCharacterPosition)
 		.addFunction("SetCharacterPosition", &ScriptingPhysics::SetCharacterPosition)
@@ -372,6 +378,77 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetLightAttenuation", &ScriptingLighting::SetAttenuation)
 		.addFunction("SetLightCutoff", &ScriptingLighting::SetCutoff)
 		.addFunction("SetDistMultiplier", &ScriptingLighting::SetDistanceMultiplier)
+		.endClass()
+
+		// ----------------------------------------------------------------------------------
+		// MATERIALS
+		// ----------------------------------------------------------------------------------
+		.beginClass <ScriptingMaterials>("Materials")
+		.addConstructor<void(*) (void)>()
+
+		//Materials Standard Values (by Material!)
+		.addFunction("SetMaterialTransparent", &ScriptingMaterials::SetMaterialTransparency)
+		.addFunction("SetMaterialCulling", &ScriptingMaterials::SetMaterialCulling)
+		.addFunction("SetMaterialShininess", &ScriptingMaterials::SetMaterialShininess)
+		.addFunction("SetMaterialTextureUsage", &ScriptingMaterials::SetMaterialTextureUsage)
+		.addFunction("SetMaterialAlpha", &ScriptingMaterials::SetMaterialAlpha)
+		.addFunction("SetMaterialColor", &ScriptingMaterials::SetMaterialColor)
+
+		.addFunction("GetMaterialTransparency", &ScriptingMaterials::GetMaterialTransparency)
+		.addFunction("GetMaterialCulling", &ScriptingMaterials::GetMaterialCulling)
+		.addFunction("GetMaterialTextureUsage", &ScriptingMaterials::GetMaterialTextureUsage)
+		.addFunction("GetMaterialShininess", &ScriptingMaterials::GetMaterialShininess)
+		.addFunction("GetMaterialAlpha", &ScriptingMaterials::GetMaterialAlpha)
+		.addFunction("GetMaterialColor", &ScriptingMaterials::GetMaterialColor)
+
+		//Materials Standard Values (by Object!)
+		.addFunction("SetObjectMaterialTransparent", &ScriptingMaterials::SetTransparency)
+		.addFunction("SetObjectMaterialCulling", &ScriptingMaterials::SetCulling)
+		.addFunction("SetObjectMaterialShininess", &ScriptingMaterials::SetShininess)
+		.addFunction("SetObjectMaterialTextureUsage", &ScriptingMaterials::SetTextureUsage)
+		.addFunction("SetObjectMaterialAlpha", &ScriptingMaterials::SetAlpha)
+		.addFunction("SetObjectMaterialColor", &ScriptingMaterials::SetColor)
+		
+		.addFunction("GetObjectMaterialTransparency", &ScriptingMaterials::GetTransparency)
+		.addFunction("GetObjectMaterialCulling", &ScriptingMaterials::GetCulling)
+		.addFunction("GetObjectMaterialTextureUsage", &ScriptingMaterials::GetTextureUsage)
+		.addFunction("GetObjectMaterialShininess", &ScriptingMaterials::GetShininess)
+		.addFunction("GetObjectMaterialAlpha", &ScriptingMaterials::GetAlpha)
+		.addFunction("GetObjectMaterialColor", &ScriptingMaterials::GetColor)
+
+		//Materials Setters/Getters
+		.addFunction("SetMaterialByName", &ScriptingMaterials::SetMaterialByName)
+		.addFunction("SetMaterialByUID", &ScriptingMaterials::SetMaterialByUUID)
+
+		.addFunction("GetCurrentMatName", &ScriptingMaterials::GetCurrentMaterialName)
+		.addFunction("GetCurrentMatUID", &ScriptingMaterials::GetCurrentMaterialUUID)
+		.addFunction("GetMaterialNameFromUID", &ScriptingMaterials::GetMaterialNameByUUID)
+		.addFunction("GetMaterialUIDFromName", &ScriptingMaterials::GetMaterialUUIDByName)
+
+		//Materials Shaders
+		.addFunction("SetShaderByName", &ScriptingMaterials::SetShaderByName)
+		.addFunction("SetShaderByUID", &ScriptingMaterials::SetShaderByUUID)
+		.addFunction("SetShaderToMaterial", &ScriptingMaterials::SetShaderToMaterial)
+
+		.addFunction("GetCurrentShaderName", &ScriptingMaterials::GetCurrentShaderName)
+		.addFunction("GetCurrentShaderUID", &ScriptingMaterials::GetCurrentShaderUUID)
+		.addFunction("GetShaderNameFromUID", &ScriptingMaterials::GetShaderNameByUUID)
+		.addFunction("GetShaderUIDFromName", &ScriptingMaterials::GetShaderUUIDByName)
+
+		//Uniforms
+		.addFunction("SetUniformInt", &ScriptingMaterials::SetUniformInt)
+		.addFunction("SetUniformFloat", &ScriptingMaterials::SetUniformFloat)
+		.addFunction("SetUniformVec2", &ScriptingMaterials::SetUniformVec2)
+		.addFunction("SetUniformVec3", &ScriptingMaterials::SetUniformVec3)
+		.addFunction("SetUniformVec4", &ScriptingMaterials::SetUniformVec4)
+		.addFunction("SetUniformBool", &ScriptingMaterials::SetUniformBool)
+
+		.addFunction("GetUniformInt", &ScriptingMaterials::GetUniformInt)
+		.addFunction("GetUniformFloat", &ScriptingMaterials::GetUniformFloat)
+		.addFunction("GetUniformVec2", &ScriptingMaterials::GetUniformVec2)
+		.addFunction("GetUniformVec3", &ScriptingMaterials::GetUniformVec3)
+		.addFunction("GetUniformVec4", &ScriptingMaterials::GetUniformVec4)
+		
 		.endClass()
 
 		// ----------------------------------------------------------------------------------
@@ -710,28 +787,10 @@ void ModuleScripting::CallbackScriptFunction(ComponentScript* script_component, 
 
 void ModuleScripting::CompileDebugging()
 {
-	std::string abs_path = App->fs->GetBasePath();
-	App->fs->NormalizePath(abs_path);
+	std::string working_dir = App->fs->GetWorkingDirectory();
+	App->fs->NormalizePath(working_dir);
 
-	std::size_t d_pos = 0;
-	d_pos = abs_path.find("Debug");
-	std::size_t r_pos = 0;
-	r_pos = abs_path.find("Release");
-
-	if (d_pos != 4294967295)  // If we are in DEBUG
-	{
-		abs_path = abs_path.substr(0, d_pos);
-		abs_path += "Game/";
-	}
-	else if (r_pos != 4294967295) // If we are in RELEASE
-	{
-		abs_path = abs_path.substr(0, r_pos);
-		abs_path += "Game/";
-	}
-
-	abs_path += "Lua_Debug";
-
-	debug_path = abs_path;
+	debug_path = working_dir + "/Lua_Debug";
 
 	luabridge::getGlobalNamespace(L)
 		.beginNamespace("Scripting")
@@ -792,7 +851,7 @@ void ModuleScripting::DeployScriptingGlobals()
 
 	if (App->fs->Exists(path.c_str())) //If the file exists compile if not sound the alarm
 	{
-		std::string abs_path = GetScriptingBasePath();
+		std::string abs_path = App->fs->GetWorkingDirectory();
 		abs_path += path;
 
 		//Now, Compile&Run in LUA
@@ -812,6 +871,30 @@ void ModuleScripting::DeployScriptingGlobals()
 		this->cannot_start = true;
 		ENGINE_CONSOLE_LOG("File %s doesn't exist! This file is essential for Scripting!",path.c_str());
 		ENGINE_CONSOLE_LOG("|[ERROR]Scripting won't start until %s can be properly found and compiles", path.c_str());
+	}
+}
+
+//The purpose of this function is to initialize the scripting vars of an instantiated gameObject on creation
+void ModuleScripting::EmplaceEditorValues(ScriptInstance* script)
+{
+	std::string aux_str = "null";
+	for (std::vector<ScriptVar>::iterator it = script->my_component->script_variables.begin(); it != script->my_component->script_variables.end(); ++it)
+	{
+		if ((*it).changed_value) {
+			switch ((*it).type) {
+			case VarType::DOUBLE:
+				script->my_table_class[(*it).name.c_str()] = (*it).editor_value.as_double;
+				break;
+			case VarType::STRING:
+				aux_str = (*it).editor_value.as_string;
+				script->my_table_class[(*it).name.c_str()] = aux_str.c_str();
+				break;
+			case VarType::BOOLEAN:
+				script->my_table_class[(*it).name.c_str()] = (*it).editor_value.as_boolean;
+				break;
+			}
+			(*it).changed_value = false;
+		}
 	}
 }
 
@@ -947,37 +1030,6 @@ update_status ModuleScripting::GameUpdate(float gameDT)
 	previous_AppState = (_AppState)App->GetAppState();
 
 	return UPDATE_CONTINUE;
-}
-
-//Return the base path of the folder where the .exe file is found
-std::string ModuleScripting::GetScriptingBasePath()
-{
-	std::string ret = "";
-
-	ret = App->fs->GetBasePath();
-	App->fs->NormalizePath(ret);
-
-	//If we are in the build of the game we will skip this process
-	if (App->isGame == false)
-	{
-		std::size_t d_pos = 0;
-		d_pos = ret.find("Debug");
-		std::size_t r_pos = 0;
-		r_pos = ret.find("Release");
-
-		if (d_pos != 4294967295)  // If we are in DEBUG
-		{
-			ret = ret.substr(0, d_pos);
-			ret += "Game/";
-		}
-		else if (r_pos != 4294967295) // If we are in RELEASE
-		{
-			ret = ret.substr(0, r_pos);
-			ret += "Game/";
-		}
-	}
-
-	return ret;
 }
 
 void ModuleScripting::CleanUpInstances() {

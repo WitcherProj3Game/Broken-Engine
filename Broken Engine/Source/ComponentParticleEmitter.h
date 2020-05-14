@@ -38,7 +38,7 @@ public:
 
 	// -- Other functionalities
 	void CreateInspectorNode() override;
-	void DrawEmitterArea() const;
+	void DrawEmitterArea();
 
 	//Scripting functions
 	//Emitter
@@ -155,6 +155,9 @@ private:
 	CurveEditor* rotateCurve = nullptr;
 	int rotationconstants = 0;
 	int scaleconstants = 0;
+
+	//Drawing
+	OBB emisionAreaOBB;
 };
 BE_END_NAMESPACE
 

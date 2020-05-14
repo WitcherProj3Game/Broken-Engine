@@ -19,6 +19,7 @@
 #include "ModuleRenderer3D.h"
 #include "ModuleFileSystem.h"
 #include "ModuleSceneManager.h"
+#include "ModuleSelection.h"
 
 #include "Particle.h"
 #include "CurveEditor.h"
@@ -105,6 +106,8 @@ ComponentParticleEmitter::~ComponentParticleEmitter()
 
 void ComponentParticleEmitter::Update()
 {
+	if (App->selection->IsSelected(GO))
+		DrawEmitterArea();
 
 	if (!animation || !createdAnim) {
 		if (particleMeshes.size() > 0) {
@@ -162,6 +165,7 @@ void ComponentParticleEmitter::Disable()
 
 void ComponentParticleEmitter::UpdateParticles(float dt)
 {
+
 	int currentPlayTime = App->time->GetGameplayTimePassed() * 1000;
 
 	// Create particle depending on the time
@@ -1455,22 +1459,22 @@ void ComponentParticleEmitter::UpdateAllGradients()
 	}
 }
 
-void ComponentParticleEmitter::DrawEmitterArea() const
+void ComponentParticleEmitter::DrawEmitterArea()
 {
 	Quat totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
 	Quat externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
 	float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
 
 	AABB aabb(float3(-size.x, -size.y, -size.z), float3(size.x, size.y, size.z));
-	OBB obb;
-	obb.SetFrom(aabb, totalRotation);
+
+	emisionAreaOBB.SetFrom(aabb, totalRotation);
 
 	Quat positionFromEmitterPosQuat(emitterPosition.x, emitterPosition.y, emitterPosition.z, 0);
 	positionFromEmitterPosQuat = externalRotation * positionFromEmitterPosQuat * externalRotation.Conjugated();
 
-	obb.pos = obb.pos + float3(positionFromEmitterPosQuat.x + globalPosition.x, positionFromEmitterPosQuat.y + globalPosition.y, positionFromEmitterPosQuat.z + globalPosition.z);
+	emisionAreaOBB.pos = emisionAreaOBB.pos + float3(positionFromEmitterPosQuat.x + globalPosition.x, positionFromEmitterPosQuat.y + globalPosition.y, positionFromEmitterPosQuat.z + globalPosition.z);
+	App->renderer3D->DrawOBB(emisionAreaOBB, Blue);
 
-	App->renderer3D->DrawOBB(obb, Blue);
 
 }
 

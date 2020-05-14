@@ -44,6 +44,12 @@ public:
 	be_imguialloc GetImGuiAlloc() const;
 	be_imguifree GetImGuiFree() const;
 
+	//Just a Help marker (?) that shows, on hover, the description passed
+	void HelpMarker(const char* desc) const;
+
+	//Takes an array of const char* (the options to choose between) and sets the index as the position that is being selected in the dropdown among the options (returns true if found, false if not)
+	bool HandleDropdownSelector(int& index, const char* combo_name, const char** options_strvec, int vecsize) const;
+
 public:
 	bool openPrefab = false;
 	bool editingPrefab = false;

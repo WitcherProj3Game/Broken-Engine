@@ -198,7 +198,11 @@
     },
     "Renderer3D": {
         "AlphaFunc": 0,
-        "GammaCorrection": 1.8650000095367432,
+        "BlendEquation": 0,
+        "GammaCorrection": 2.680000066757202,
+        "ManualAlphaFuncDst": 7,
+        "ManualAlphaFuncSrc": 6,
+        "RendAutoBlending": true,
         "SceneAmbientColor": {
             "B": 1.0,
             "G": 1.0,
@@ -220,10 +224,10 @@
         "borderless": false,
         "fullscreen": false,
         "fullscreenDesktop": false,
-        "height": 1080,
+        "height": 810,
         "resizable": true,
         "sceneX": 480,
         "sceneY": 640,
-        "width": 1920
+        "width": 1440
     }
 }

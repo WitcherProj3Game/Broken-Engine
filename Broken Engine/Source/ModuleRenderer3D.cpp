@@ -6,12 +6,12 @@
 #include "ModuleGui.h"
 #include "ModuleSceneManager.h"
 #include "ModuleCamera3D.h"
-#include "ModuleResourceManager.h"
 #include "ModuleUI.h"
 #include "ModuleParticles.h"
 #include "ModuleTextures.h"
 #include "ModuleTimeManager.h"
 #include "ModuleSelection.h"
+#include "ModuleResourceManager.h"
 
 // -- Components --
 #include "GameObject.h"
@@ -28,11 +28,10 @@
 
 // -- Resources --
 #include "ResourceShader.h"
-#include "ResourceShader.h"
 #include "ResourceMesh.h"
 #include "ResourceMaterial.h"
 #include "ResourceTexture.h"
-
+#include "ResourceScene.h"
 #include "ImporterShader.h"
 
 #include "OpenGL.h"
@@ -49,8 +48,42 @@ using namespace Broken;
 // ---------------------------------------------------------------------------------------------
 // ------------------------------ Module -------------------------------------------------------
 // ---------------------------------------------------------------------------------------------
-ModuleRenderer3D::ModuleRenderer3D(bool start_enabled) : Module(start_enabled) {
+ModuleRenderer3D::ModuleRenderer3D(bool start_enabled) : Module(start_enabled)
+{
 	name = "Renderer3D";
+
+	//Auto Blend Functions
+	m_BlendAutoFunctionsVec.push_back("STANDARD INTERPOLATIVE");
+	m_BlendAutoFunctionsVec.push_back("ADDITIVE");
+	m_BlendAutoFunctionsVec.push_back("ADDITIVE ALPHA AFFECTED");
+	m_BlendAutoFunctionsVec.push_back("MULTIPLICATIVE");
+
+	//Blending Equations
+	m_BlendEquationFunctionsVec.push_back("ADD (Standard)");
+	m_BlendEquationFunctionsVec.push_back("SUBTRACT");
+	m_BlendEquationFunctionsVec.push_back("REVERSE_SUBTRACT");
+	m_BlendEquationFunctionsVec.push_back("MIN");
+	m_BlendEquationFunctionsVec.push_back("MAX");
+
+	//Manual Blend Functions
+	m_AlphaTypesVec.push_back("GL_ZERO");
+	m_AlphaTypesVec.push_back("GL_ONE");
+	m_AlphaTypesVec.push_back("GL_SRC_COLOR");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_SRC_COLOR");
+
+	m_AlphaTypesVec.push_back("GL_DST_COLOR");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_DST_COLOR");
+	m_AlphaTypesVec.push_back("GL_SRC_ALPHA (Standard)");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_SRC_ALPHA (Standard)");
+
+	m_AlphaTypesVec.push_back("GL_DST_ALPHA");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_DST_ALPHA");
+	m_AlphaTypesVec.push_back("GL_CONSTANT_COLOR");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_CONSTANT_COLOR");
+
+	m_AlphaTypesVec.push_back("GL_CONSTANT_ALPHA");
+	m_AlphaTypesVec.push_back("GL_ONE_MINUS_CONSTANT_ALPHA");
+	m_AlphaTypesVec.push_back("GL_SRC_ALPHA_SATURATE");
 }
 
 // Destructor
@@ -271,6 +304,7 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 	return UPDATE_CONTINUE;
 }
 
+
 // PostUpdate present buffer to screen
 update_status ModuleRenderer3D::PostUpdate(float dt)
 {
@@ -339,26 +373,24 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	// --- Selected Object Outlining ---
 	HandleObjectOutlining();
 
-
 	// --- Draw ---
 	glEnable(GL_BLEND);
-	//glBlendEquation(GL_FUNC_SUBTRACT);
-
-	if(m_RendererAlphaFunc == AlphaFunction::ONE_ONE_MINUS_SRC)
-		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	else if(m_RendererAlphaFunc == AlphaFunction::SRC_ONE_MINUS_SCR_ONE)
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
-	else
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if(m_ChangedBlending)
+		SetRendererBlending(); //Set Blending to Renderer's Default
 
 	DrawTransparentRenderMeshes();
 
-	
-
-	OPTICK_PUSH("Particles Rendering");
 	// -- Draw particles ---
+	OPTICK_PUSH("Particles Rendering");
 	for (int i = 0; i < particleEmitters.size(); ++i)
+	{
 		particleEmitters[i]->DrawParticles();
+
+		// --- Set Blending to Renderer's Default ---
+		if (m_ChangedBlending)
+			SetRendererBlending();
+	}
+
 	OPTICK_POP();
 
 	glDisable(GL_BLEND);
@@ -425,30 +457,54 @@ bool ModuleRenderer3D::CleanUp()
 
 void ModuleRenderer3D::LoadStatus(const json& file)
 {
-	m_GammaCorrection = file["Renderer3D"]["GammaCorrection"].is_null() ? 1.0f : file["Renderer3D"]["GammaCorrection"].get<float>();
-	m_SkyboxExposure = file["Renderer3D"]["SkyboxExposure"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxExposure"].get<float>();
+	// --- General Stuff ---
+	m_GammaCorrection = file["Renderer3D"].find("GammaCorrection") == file["Renderer3D"].end() ? 1.0f : file["Renderer3D"]["GammaCorrection"].get<float>();
+	m_SkyboxExposure = file["Renderer3D"].find("SkyboxExposure") == file["Renderer3D"].end() ? 1.0f : file["Renderer3D"]["SkyboxExposure"].get<float>();
 
-	int AlphaFuncValue = file["Renderer3D"]["AlphaFunc"].is_null() ? 1 : file["Renderer3D"]["AlphaFunc"].get<int>();
-	m_RendererAlphaFunc = (AlphaFunction)AlphaFuncValue;
-
-	if (file["Renderer3D"].find("SkyboxRotation") != file["Renderer3D"].end())
+	//Scene Color
+	if (file["Renderer3D"].find("SceneAmbientColor") != file["Renderer3D"].end())
 	{
-		skyboxangle.x = file["Renderer3D"]["SkyboxRotation"]["X"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["X"].get<float>();
-		skyboxangle.y = file["Renderer3D"]["SkyboxRotation"]["Y"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["Y"].get<float>();
-		skyboxangle.z = file["Renderer3D"]["SkyboxRotation"]["Z"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["Z"].get<float>();
+		if (file["Renderer3D"]["SceneAmbientColor"].find("R") != file["Renderer3D"]["SceneAmbientColor"].end() &&
+			file["Renderer3D"]["SceneAmbientColor"].find("G") != file["Renderer3D"]["SceneAmbientColor"].end() &&
+			file["Renderer3D"]["SceneAmbientColor"].find("B") != file["Renderer3D"]["SceneAmbientColor"].end())
+		{
+			m_AmbientColor = float3(file["Renderer3D"]["SceneAmbientColor"]["R"].get<float>(), file["Renderer3D"]["SceneAmbientColor"]["G"].get<float>(), file["Renderer3D"]["SceneAmbientColor"]["B"].get<float>());
+		}
+		else
+			m_AmbientColor = float3::one;
 	}
+	else
+		m_AmbientColor = float3::one;
 
-	float skybox_tintR = file["Renderer3D"]["SkyboxColorTint"]["R"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxColorTint"]["R"].get<float>();
-	float skybox_tintG = file["Renderer3D"]["SkyboxColorTint"]["G"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxColorTint"]["G"].get<float>();
-	float skybox_tintB = file["Renderer3D"]["SkyboxColorTint"]["B"].is_null() ? 1.0f : file["Renderer3D"]["SkyboxColorTint"]["B"].get<float>();
-	m_SkyboxColor = float3(skybox_tintR, skybox_tintG, skybox_tintB);
+	//Skybox Color Tint
+	if (file["Renderer3D"].find("SkyboxColorTint") != file["Renderer3D"].end())
+	{
+		if (file["Renderer3D"]["SkyboxColorTint"].find("R") != file["Renderer3D"]["SkyboxColorTint"].end() &&
+			file["Renderer3D"]["SkyboxColorTint"].find("G") != file["Renderer3D"]["SkyboxColorTint"].end() &&
+			file["Renderer3D"]["SkyboxColorTint"].find("B") != file["Renderer3D"]["SkyboxColorTint"].end())
+		{
+			m_SkyboxColor = float3(file["Renderer3D"]["SkyboxColorTint"]["R"].get<float>(), file["Renderer3D"]["SkyboxColorTint"]["G"].get<float>(), file["Renderer3D"]["SkyboxColorTint"]["B"].get<float>());
+		}
+		else
+			m_SkyboxColor = float3::one;
+	}
+	else
+		m_SkyboxColor = float3::one;
+
+		if (file["Renderer3D"].find("SkyboxRotation") != file["Renderer3D"].end())
+		{
+			skyboxangle.x = file["Renderer3D"]["SkyboxRotation"]["X"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["X"].get<float>();
+			skyboxangle.y = file["Renderer3D"]["SkyboxRotation"]["Y"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["Y"].get<float>();
+			skyboxangle.z = file["Renderer3D"]["SkyboxRotation"]["Z"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["Z"].get<float>();
+		}
 
 
-
-	float ambR = file["Renderer3D"]["SceneAmbientColor"]["R"].is_null() ? 1.0f : file["Renderer3D"]["SceneAmbientColor"]["R"].get<float>();
-	float ambG = file["Renderer3D"]["SceneAmbientColor"]["G"].is_null() ? 1.0f : file["Renderer3D"]["SceneAmbientColor"]["G"].get<float>();
-	float ambB = file["Renderer3D"]["SceneAmbientColor"]["B"].is_null() ? 1.0f : file["Renderer3D"]["SceneAmbientColor"]["B"].get<float>();
-	m_AmbientColor = float3(ambR, ambG, ambB);
+	// --- Blending Stuff ---
+	m_AutomaticBlendingFunc = file["Renderer3D"].find("RendAutoBlending") == file["Renderer3D"].end() ? true : file["Renderer3D"]["RendAutoBlending"].get<bool>();
+	m_RendererBlendFunc = file["Renderer3D"].find("AlphaFunc") == file["Renderer3D"].end() ? BlendAutoFunction::STANDARD_INTERPOLATIVE : (BlendAutoFunction)file["Renderer3D"]["AlphaFunc"].get<int>();
+	m_BlendEquation = file["Renderer3D"].find("BlendEquation") == file["Renderer3D"].end() ? BlendingEquations::ADD : (BlendingEquations)file["Renderer3D"]["BlendEquation"].get<int>();
+	m_ManualBlend_Src = file["Renderer3D"].find("ManualAlphaFuncSrc") == file["Renderer3D"].end() ? BlendingTypes::SRC_ALPHA : (BlendingTypes)file["Renderer3D"]["ManualAlphaFuncSrc"].get<int>();
+	m_ManualBlend_Dst = file["Renderer3D"].find("ManualAlphaFuncDst") == file["Renderer3D"].end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)file["Renderer3D"]["ManualAlphaFuncDst"].get<int>();
 }
 
 const json& ModuleRenderer3D::SaveStatus() const
@@ -456,20 +512,25 @@ const json& ModuleRenderer3D::SaveStatus() const
 	static json m_config;
 
 	m_config["GammaCorrection"] = m_GammaCorrection;
-	m_config["AlphaFunc"] = (int)m_RendererAlphaFunc;
+	m_config["AlphaFunc"] = (int)m_RendererBlendFunc;
+	m_config["ManualAlphaFuncSrc"] = (int)m_ManualBlend_Src;
+	m_config["ManualAlphaFuncDst"] = (int)m_ManualBlend_Dst;
+	m_config["BlendEquation"] = (int)m_BlendEquation;
 	m_config["SkyboxExposure"] = m_SkyboxExposure;
+
 	m_config["SkyboxRotation"]["X"] = skyboxangle.x;
 	m_config["SkyboxRotation"]["Y"] = skyboxangle.y;
 	m_config["SkyboxRotation"]["Z"] = skyboxangle.z;
 
-	
 	m_config["SkyboxColorTint"]["R"] = m_SkyboxColor.x;
 	m_config["SkyboxColorTint"]["G"] = m_SkyboxColor.y;
 	m_config["SkyboxColorTint"]["B"] = m_SkyboxColor.z;
-	
+
 	m_config["SceneAmbientColor"]["R"] = m_AmbientColor.x;
 	m_config["SceneAmbientColor"]["G"] = m_AmbientColor.y;
 	m_config["SceneAmbientColor"]["B"] = m_AmbientColor.z;
+
+	m_config["RendAutoBlending"] = m_AutomaticBlendingFunc;
 
 	return m_config;
 }
@@ -494,6 +555,12 @@ void ModuleRenderer3D::OnResize(int width, int height)
 // ---------------------------------------------------------------------------------------------
 // ------------------------------ Setters ------------------------------------------------------
 // ---------------------------------------------------------------------------------------------
+void ModuleRenderer3D::SetAmbientColor(const float3& color)
+{
+	m_AmbientColor = color;
+	App->scene_manager->currentScene->SetSceneAmbientColor(color);
+}
+
 bool ModuleRenderer3D::SetVSync(bool _vsync)
 {
 	bool ret = true;
@@ -877,7 +944,7 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
 
 		// --- Transparency Uniform ---
 		glUniform1i(glGetUniformLocation(shader, "u_HasTransparencies"), (int)mesh->mat->has_transparencies);
-		
+
 		int skyboxUnifLoc = glGetUniformLocation(shader, "skybox");
 		if (skyboxUnifLoc != -1)
 		{
@@ -885,6 +952,9 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
 			glActiveTexture(GL_TEXTURE0 + 0);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexID);
 		}
+
+		if (mesh->mat->has_transparencies)
+			mesh->mat->SetBlending();
 
 		if (!mesh->mat->has_culling)
 			glDisable(GL_CULL_FACE);
@@ -1009,6 +1079,10 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
 
 		if (!mesh->mat->has_culling)
 			glEnable(GL_CULL_FACE);
+
+		// --- Set Blending to Renderer's Default ---
+		if (m_ChangedBlending)
+			SetRendererBlending();
 
 		// --- Set color back to default ---
 		glUniform4f(glGetUniformLocation(shader, "u_Color"), 1.0f, 1.0f, 1.0f, 1.0f);
@@ -1198,6 +1272,71 @@ void ModuleRenderer3D::CreateFramebuffer()
 // ---------------------------------------------------------------------------------------------
 // ------------------------------ Utilities ----------------------------------------------------
 // ---------------------------------------------------------------------------------------------
+void ModuleRenderer3D::SetRendererBlending()
+{
+	if (m_AutomaticBlendingFunc)
+		PickBlendingAutoFunction(m_RendererBlendFunc, m_BlendEquation);
+	else
+		PickBlendingManualFunction(m_ManualBlend_Src, m_ManualBlend_Dst, m_BlendEquation);
+
+	m_ChangedBlending = false;
+}
+
+void ModuleRenderer3D::PickBlendingEquation(BlendingEquations eq)
+{
+	switch (eq)
+	{
+		case (BlendingEquations::ADD):
+			glBlendEquation(GL_FUNC_ADD);
+			break;
+		case (BlendingEquations::SUBTRACT):
+			glBlendEquation(GL_FUNC_SUBTRACT);
+			break;
+		case (BlendingEquations::REVERSE_SUBTRACT):
+			glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+			break;
+		case (BlendingEquations::MIN):
+			glBlendEquation(GL_MIN);
+			break;
+		case (BlendingEquations::MAX):
+			glBlendEquation(GL_MAX);
+			break;
+		default:
+			glBlendEquation(GL_FUNC_ADD);
+			break;
+	}
+}
+
+void ModuleRenderer3D::PickBlendingAutoFunction(BlendAutoFunction blend_func, BlendingEquations eq)
+{
+	switch (blend_func)
+	{
+		case (BlendAutoFunction::STANDARD_INTERPOLATIVE):
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			break;
+		case (BlendAutoFunction::ADDITIVE):
+			glBlendFunc(GL_ONE, GL_ONE);
+			break;
+		case(BlendAutoFunction::ADDITIVE_ALPHA_AFFECTED):
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+			break;
+		case(BlendAutoFunction::MULTIPLICATIVE):
+			glBlendFunc(GL_DST_COLOR, GL_ZERO);
+			break;
+		default:
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			break;
+	}
+
+	PickBlendingEquation(eq);
+}
+
+void  ModuleRenderer3D::PickBlendingManualFunction(BlendingTypes src, BlendingTypes dst, BlendingEquations eq)
+{
+	glBlendFunc(BlendingTypesToOGL(src), BlendingTypesToOGL(dst));
+	PickBlendingEquation(eq);
+}
+
 void ModuleRenderer3D::HandleObjectOutlining()
 {
 	// --- Selected Object Outlining ---
@@ -1239,7 +1378,6 @@ void ModuleRenderer3D::HandleObjectOutlining()
 void ModuleRenderer3D::UpdateGLCapabilities() const
 {
 	// --- Enable/Disable OpenGL Capabilities ---
-
 	if (!depth)
 		glDisable(GL_DEPTH_TEST);
 	else
@@ -1651,13 +1789,13 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	const char* fragmentUIShader =
 		R"(#version 440 core
 			#define FRAGMENT_SHADER
-			#ifdef FRAGMENT_SHADER			
+			#ifdef FRAGMENT_SHADER
 			out vec4 out_color;
 			in vec2 v_TexCoord;
 			in vec4 v_Color;
 			uniform int u_UseTextures = 0;
 			uniform int u_HasTransparencies = 0;
-			uniform sampler2D u_AlbedoTexture;			
+			uniform sampler2D u_AlbedoTexture;
 			void main()
 			{
 				float alpha = 1.0;
@@ -1668,10 +1806,10 @@ void ModuleRenderer3D::CreateDefaultShaders()
 					else
 						alpha = texture(u_AlbedoTexture, v_TexCoord).a * v_Color.a;
 				}
-			
+
 				if (alpha < 0.004)
-					discard;			
-			
+					discard;
+
 				if (u_UseTextures == 0 || (u_UseTextures == 1 && u_HasTransparencies == 0 && texture(u_AlbedoTexture, v_TexCoord).a < 0.1))
 					out_color = vec4(v_Color.rgb, alpha);
 				else if (u_UseTextures == 1)

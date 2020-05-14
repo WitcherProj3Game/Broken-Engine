@@ -16,7 +16,15 @@ public:
 
 private:
 
-	//General Stuff
+	void SetupValues();
+	void SetRendererValues();
+	void BlendingSettings(bool& makeChanges);
+	void GeneralRendererSettings(bool& makeChanges);
+	void SkyboxSettings(bool& makeChanges);
+
+private:
+
+	// Gamma Correction, Ambient Color & Skybox Color/Exposure
 	float m_GammaCorretionValue = 1.0f;
 	float3 m_AmbientColorValue = float3::one;
 	float3 m_SkyboxColorValue = float3::one;
@@ -27,8 +35,12 @@ private:
 	float m_PPGamma = 1.8f;
 
 	//Alpha Functions
-	std::vector<const char*> m_AlphaFunctionsVec;
-	Broken::AlphaFunction m_CurrentAlphaFunc;
+	Broken::BlendAutoFunction m_CurrBlendAutoFunc = Broken::BlendAutoFunction::STANDARD_INTERPOLATIVE;
+	Broken::BlendingEquations m_CurrBlendEquation = Broken::BlendingEquations::ADD;
+
+	//Alpha Manual Functions
+	Broken::BlendingTypes m_CurrentAlphaSrc = Broken::BlendingTypes::SRC_ALPHA;
+	Broken::BlendingTypes m_CurrentAlphaDst = Broken::BlendingTypes::ONE_MINUS_SRC_ALPHA;
 };
 
 #endif

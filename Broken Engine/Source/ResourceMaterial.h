@@ -3,6 +3,7 @@
 
 #include "Resource.h"
 #include "Math.h"
+#include "ModuleRenderer3D.h"
 
 BE_BEGIN_NAMESPACE
 
@@ -12,6 +13,8 @@ struct Uniform;
 
 class BROKEN_API ResourceMaterial : public Resource 
 {
+	friend class ComponentMeshRenderer;
+	friend class ImporterMaterial;
 public:
 	ResourceMaterial(uint UID, const char* source_file);
 	~ResourceMaterial();
@@ -21,9 +24,18 @@ public:
 	void CreateInspectorNode() override;
 
 	void UpdateUniforms();
-	void DisplayAndUpdateUniforms();
+	void DisplayAndUpdateUniforms();	
 
-	std::string previewTexPath;
+	void SetBlending() const;
+
+private:
+
+	void OnOverwrite() override;
+	void OnDelete() override;
+	void Repath() override;
+	void HandleBlendingSelector(bool& save_material);
+	void HandleTextureDisplay(ResourceTexture*& texture, bool& save_material, const char* texture_name, const char* unuse_label, GameObject* container = nullptr);
+
 public:
 
 	bool has_transparencies = false;
@@ -34,16 +46,19 @@ public:
 	ResourceTexture* m_SpecularResTexture = nullptr;
 	ResourceTexture* m_NormalResTexture = nullptr;
 
-	bool m_UseTexture = true;
 
 	ResourceShader* shader = nullptr;
 	std::vector<Uniform*> uniforms;
 
+	std::string previewTexPath;
+	bool m_UseTexture = true;
+
 private:
 
-	void OnOverwrite() override;
-	void OnDelete() override;
-	void Repath() override;
+	bool m_AutoBlending = true;
+	BlendAutoFunction m_MatAutoBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
+	BlendingEquations m_MatBlendEq = BlendingEquations::ADD;
+	BlendingTypes m_MatManualBlend_Src = BlendingTypes::SRC_ALPHA, m_MatManualBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
 };
 BE_END_NAMESPACE
 #endif //__RESOURCE_MATERIAL_H__

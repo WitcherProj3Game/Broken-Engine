@@ -742,9 +742,22 @@ void ComponentParticleEmitter::Load(json& node)
 	m_MPartBlend_Dst = node.find("PartMBlFuncDst") == node.end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)node["PartMBlFuncDst"].get<int>();
 	m_PartAutoBlending = node.find("PartAutoBlending") == node.end() ? true : node["PartAutoBlending"].get<bool>();
 
-	// --- Vertical Billbaording ---
-	horizontalBillboarding = node.find("HorizontalBill") == node.end() ? false : node["HorizontalBill"].get<bool>();
-	verticalBillboarding = node.find("VerticalBill") == node.end() ? false : node["VerticalBill"].get<bool>();
+	// --- V/H Billbaording ---
+	if (node.find("HorizontalBill") != node.end())
+	{
+		std::string hBill = node["HorizontalBill"];
+		horizontalBillboarding = (bool)std::stoi(hBill);
+	}
+	else
+		horizontalBillboarding = false;
+
+	if (node.find("VerticalBill") != node.end())
+	{
+		std::string vBill = node["VerticalBill"];
+		verticalBillboarding = (bool)std::stoi(vBill);
+	}
+	else
+		verticalBillboarding = false;
 }
 
 void ComponentParticleEmitter::CreateInspectorNode()

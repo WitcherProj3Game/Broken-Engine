@@ -104,9 +104,6 @@ update_status ModuleEditorUI::Update(float dt)
 	if (ImGui::BeginMainMenuBar()) {
 
 		if (ImGui::BeginMenu("File")) {
-			if (ImGui::MenuItem("Quit")) {
-				return UPDATE_STOP;
-			}
 
 			if (ImGui::MenuItem("Save Scene")) {
 				EngineApp->scene_manager->SaveScene(EngineApp->scene_manager->currentScene);
@@ -134,6 +131,10 @@ update_status ModuleEditorUI::Update(float dt)
 				}
 
 				ImGui::EndMenu();
+			}
+
+			if (ImGui::MenuItem("Quit")) {
+				return UPDATE_STOP;
 			}
 
 			ImGui::EndMenu();
@@ -197,22 +198,22 @@ update_status ModuleEditorUI::Update(float dt)
 				if (ImGui::MenuItem("Canvas"))
 				{
 					Broken::GameObject* canvas_go = EngineApp->scene_manager->CreateEmptyGameObject("Canvas");
-					Broken::ComponentCanvas* camera = (Broken::ComponentCanvas*)canvas_go->AddComponent(Broken::Component::ComponentType::Canvas);
+					Broken::ComponentCanvas* camera = (Broken::ComponentCanvas*)canvas_go->AddComponent(Broken::Component::ComponentType::Canvas, -1);
 				}
 				if (ImGui::MenuItem("Image"))
 				{
 					Broken::GameObject* image_go = EngineApp->scene_manager->CreateEmptyGameObject("Image");
-					Broken::ComponentImage* image = (Broken::ComponentImage*)image_go->AddComponent(Broken::Component::ComponentType::Image);
+					Broken::ComponentImage* image = (Broken::ComponentImage*)image_go->AddComponent(Broken::Component::ComponentType::Image, -1);
 				}
 				if (ImGui::MenuItem("Text"))
 				{
 					Broken::GameObject* text_go = EngineApp->scene_manager->CreateEmptyGameObject("Text");
-					Broken::ComponentText* text = (Broken::ComponentText*)text_go->AddComponent(Broken::Component::ComponentType::Text);
+					Broken::ComponentText* text = (Broken::ComponentText*)text_go->AddComponent(Broken::Component::ComponentType::Text, -1);
 				}
 				if (ImGui::MenuItem("Button"))
 				{
 					Broken::GameObject* button_go = EngineApp->scene_manager->CreateEmptyGameObject("Button");
-					Broken::ComponentText* button = (Broken::ComponentText*)button_go->AddComponent(Broken::Component::ComponentType::Button);
+					Broken::ComponentText* button = (Broken::ComponentText*)button_go->AddComponent(Broken::Component::ComponentType::Button, -1);
 				}
 				//if (ImGui::MenuItem("Checkbox"))
 				//{
@@ -223,12 +224,12 @@ update_status ModuleEditorUI::Update(float dt)
 				if (ImGui::MenuItem("Progress Bar"))
 				{
 					Broken::GameObject* bar_go = EngineApp->scene_manager->CreateEmptyGameObject("ProgressBar");
-					Broken::ComponentProgressBar* bar = (Broken::ComponentProgressBar*)bar_go->AddComponent(Broken::Component::ComponentType::ProgressBar);
+					Broken::ComponentProgressBar* bar = (Broken::ComponentProgressBar*)bar_go->AddComponent(Broken::Component::ComponentType::ProgressBar, -1);
 				}
 				if (ImGui::MenuItem("Circular Bar"))
 				{
 					Broken::GameObject* cbar_go = EngineApp->scene_manager->CreateEmptyGameObject("CircularBar");
-					Broken::ComponentProgressBar* cbar = (Broken::ComponentProgressBar*)cbar_go->AddComponent(Broken::Component::ComponentType::CircularBar);
+					Broken::ComponentProgressBar* cbar = (Broken::ComponentProgressBar*)cbar_go->AddComponent(Broken::Component::ComponentType::CircularBar, -1);
 				}
 
 				ImGui::EndMenu();

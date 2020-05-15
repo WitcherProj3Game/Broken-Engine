@@ -1,4 +1,4 @@
-#include "ComponentCanvas.h"
+ #include "ComponentCanvas.h"
 #include "GameObject.h"
 #include "Application.h"
 #include "ModuleResourceManager.h"
@@ -15,28 +15,46 @@
 #include "ComponentProgressBar.h"
 #include "ComponentCircularBar.h"
 
+#include <queue>
 #include "Imgui/imgui.h"
 #include "mmgr/mmgr.h"
 
 using namespace Broken;
 
-ComponentCanvas::ComponentCanvas(GameObject* gameObject) : Component(gameObject, Component::ComponentType::Canvas)
+ComponentCanvas::ComponentCanvas(GameObject* gameObject) : UI_Element(gameObject, Component::ComponentType::Canvas)
 {
 	name = "Canvas";
 	visible = true;
-	App->ui_system->AddCanvas(this);
-}
+	App->ui_system->AddElement(this);
+
+	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = (ComponentCanvas*)GO->parent->GetComponent<ComponentCanvas>();
+
+		if (canvas)
+			canvas->AddElement(this);
+	}
+  }
 
 ComponentCanvas::~ComponentCanvas()
 {
-	App->ui_system->RemoveCanvas(this);
+	App->ui_system->RemoveElement(this);
+
+	//for (uint i = 0; i < elements.size(); ++i)
+	//	elements[i]->to_delete = true;
+	//elements.clear();
+
+	if (canvas)
+		canvas->RemoveElement(this);
 }
 
 void ComponentCanvas::Update()
 {
+	OrderCanvas(); //order elements inside canvas by priority
+
 	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
 	{
-		canvas = GO->parent->GetComponent<ComponentCanvas>();
+		canvas = (ComponentCanvas*)GO->parent->GetComponent<ComponentCanvas>();
 		canvas->AddElement(this);
 	}
 	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
@@ -46,70 +64,29 @@ void ComponentCanvas::Update()
 		this->GetContainerGameObject()->RemoveComponent(this);
 }
 
-void ComponentCanvas::Draw() const
+void ComponentCanvas::Draw()
 {
 	if (this->active)
 	{
-		// --- Draw elements inside canvas ---
 		for (int i = 0; i < elements.size(); i++)
 		{
-			//if (elements[i]->GetType() == Component::ComponentType::Canvas)
-			//{
-			//	ComponentCanvas* canvas = (ComponentCanvas*)elements[i];
-			//	if (canvas->visible && canvas->GetActive())
-			//		canvas->Draw();
-			//	continue;
-			//}
-			if (elements[i]->GetType() == Component::ComponentType::Text)
+			if (elements[i]->GetActive() && elements[i]->visible)
+				elements[i]->Draw();
+		}
+	}
+}
+
+void ComponentCanvas::RemoveElement(UI_Element* elem)
+{
+	if (!elements.empty())
+	{
+		for (std::vector<UI_Element*>::iterator it = elements.begin(); it != elements.end(); ++it)
+		{
+			if (*it && *it == elem)
 			{
-				ComponentText* text = (ComponentText*)elements[i];
-				if (text->visible && text->GetActive())
-					text->Draw();
-				continue;
+				elements.erase(it);
+				break;
 			}
-			else if (elements[i]->GetType() == Component::ComponentType::Image)
-			{
-				ComponentImage* image = (ComponentImage*)elements[i];
-				if (image->visible && image->GetActive())
-					image->Draw();
-				continue;
-			}
-			else if (elements[i]->GetType() == Component::ComponentType::Button)
-			{
-				ComponentButton* button = (ComponentButton*)elements[i];
-				if (button->visible && button->GetActive())
-					button->Draw();
-			}
-			//else if (elements[i]->GetType() == Component::ComponentType::CheckBox)
-			//{
-			//	CheckBox* elem = (CheckBox*)elements[i];
-			//	if (elem->visible) 
-			//		elem->Draw();
-			//	continue;
-			//}
-			//else if (elements[i]->GetType() == Component::ComponentType::InputText)
-			//{
-			//	InputText* elem = (InputText*)elements[i];
-			//	if (elem->visible) 
-			//		elem->Draw();
-			//	continue;
-			//}
-			else if (elements[i]->GetType() == Component::ComponentType::ProgressBar)
-			{
-				ComponentProgressBar* bar = (ComponentProgressBar*)elements[i];
-				if (bar->visible && bar->GetActive())
-					bar->Draw();
-				continue;
-			}
-			else if (elements[i]->GetType() == Component::ComponentType::CircularBar)
-			{
-				ComponentCircularBar* cbar = (ComponentCircularBar*)elements[i];
-				if (cbar->visible && cbar->GetActive())
-					cbar->Draw();
-				continue;
-			}
-			else
-				continue;
 		}
 	}
 }
@@ -158,7 +135,6 @@ void ComponentCanvas::CreateInspectorNode()
 	increment -= position2D;
 	UpdatePosition(increment);
 	position2D = tmp;
-
 }
 
 void ComponentCanvas::UpdatePosition(float2& increment)
@@ -179,7 +155,7 @@ void ComponentCanvas::UpdatePosition(float2& increment)
 			{
 				ComponentText* text = (ComponentText*)elements[i];
 				if (text->visible && text->GetActive())
-					text->position2D += increment/2;
+					text->position2D += increment / 2;
 				continue;
 			}
 			else if (elements[i]->GetType() == Component::ComponentType::Image)
@@ -227,4 +203,27 @@ void ComponentCanvas::UpdatePosition(float2& increment)
 				continue;
 		}
 	}
+}
+
+void ComponentCanvas::OrderCanvas()
+{
+	std::priority_queue<UI_Element*, std::vector<UI_Element*>, PrioritySort> ListOrder;
+
+	for (UI_Element* node : elements)
+		ListOrder.push(node);
+
+	elements.clear();
+
+	while (ListOrder.empty() == false)
+	{
+		elements.push_back(ListOrder.top());
+		ListOrder.pop();
+	}
+}
+
+bool ComponentCanvas::PrioritySort::operator()(UI_Element* const& node1, UI_Element* const& node2) {
+	if (node1->priority > node2->priority)
+		return true;
+	else
+		return false;
 }

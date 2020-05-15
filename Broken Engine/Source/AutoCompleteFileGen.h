@@ -42,6 +42,8 @@ public: //Function
 	void EmplaceSceneFunctions();
 	void EmplaceNavigationFunctions();
 	void EmplaceScriptingInputsFunctions();
+	void EmplaceMaterialFunctions();
+
 
 
 	void GenerateAutoCompleteFile(bool variables_entered = true);

@@ -75,7 +75,7 @@ const AABB& ComponentMesh::GetAABB() const
 	else if (resource_mesh)
 		return resource_mesh->aabb;
 	else
-		return AABB();
+		return AABB(float3(-0.5,-0.5,-0.5), float3(0.5, 0.5, 0.5));
 }
 
 json ComponentMesh::Save() const

@@ -440,6 +440,7 @@ void ModuleSceneManager::SaveScene(ResourceScene* scene)
 				IMeta->Save(meta);
 		}
 
+		scene->octreeBox = tree.root->box;
 		IScene->SaveSceneToFile(scene);
 
 		App->resources->AddResourceToFolder(scene);

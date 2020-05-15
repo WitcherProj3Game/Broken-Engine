@@ -3,6 +3,7 @@
 
 #include "Component.h"
 #include "Math.h"
+#include "ModuleRenderer3D.h"
 
 #include "PhysX_3.4/Include/PxPhysicsAPI.h"
 
@@ -35,8 +36,10 @@ public:
 	// --- Save & Load ---
 	json Save() const override;
 	void Load(json& node) override;
-	void CreateInspectorNode() override;
 
+	// -- Other functionalities
+	void CreateInspectorNode() override;
+	void DrawEmitterArea();
 
 	//Scripting functions
 	//Emitter
@@ -68,17 +71,17 @@ public:
 	void SetParticles3DRandomRotationOverTime(int rotationOverTimeX, int rotationOverTimeY, int rotationOverTimeZ);
 	void RemoveParticlesRandomRotation();
 
+	//Blending
+	void SetEmitterBlending() const;
+
 private:
 
 	void SortParticles();
-
 	void UpdateAllGradients();
-
 	void CreateParticles(uint particlesAmount);
-
 	void CreateAnimation(uint rows, uint cols);
-
 	double GetRandomValue(double min, double max); //MUST EREASE IN THE FUTURE
+	void HandleEditorBlendingSelector();
 
 private:
 	physx::PxParticleSystem* particleSystem = nullptr;
@@ -136,6 +139,7 @@ private:
 	ResourceTexture* texture = nullptr;
 	int lifetimeconstants = 0;
 	int velocityconstants = 0;
+	bool followEmitter = true;
 
 	//Colors
 	bool colorGradient = false;
@@ -152,6 +156,15 @@ private:
 	CurveEditor* rotateCurve = nullptr;
 	int rotationconstants = 0;
 	int scaleconstants = 0;
+
+	//Blending
+	bool m_PartAutoBlending = true;
+	BlendingEquations m_PartBlEquation = BlendingEquations::ADD;
+	BlendAutoFunction m_PartBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
+	BlendingTypes m_MPartBlend_Src = BlendingTypes::SRC_ALPHA, m_MPartBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
+
+	//Drawing
+	OBB emisionAreaOBB;
 };
 BE_END_NAMESPACE
 

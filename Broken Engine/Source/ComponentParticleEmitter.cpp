@@ -16,9 +16,10 @@
 #include "ModuleParticles.h"
 #include "ModuleTextures.h"
 #include "ModuleResourceManager.h"
-#include "ModuleRenderer3D.h"
 #include "ModuleFileSystem.h"
 #include "ModuleSceneManager.h"
+#include "ModuleSelection.h"
+#include "ModuleGui.h"
 
 #include "Particle.h"
 #include "CurveEditor.h"
@@ -91,7 +92,8 @@ ComponentParticleEmitter::~ComponentParticleEmitter()
 	}
 
 	for (int i = 0; i < particleMeshes.size(); ++i) {
-		particleMeshes[i]->Release();
+		particleMeshes[i]->FreeMemory();
+		delete particleMeshes[i];
 		particleMeshes[i] = nullptr;
 	}
 	particleMeshes.clear();
@@ -105,25 +107,22 @@ ComponentParticleEmitter::~ComponentParticleEmitter()
 
 void ComponentParticleEmitter::Update()
 {
+	if (App->selection->IsSelected(GO))
+		DrawEmitterArea();
 
 	if (!animation || !createdAnim) {
 		if (particleMeshes.size() > 0) {
 			for (int i = 0; i < particleMeshes.size(); ++i) {
-				particleMeshes.at(i)->FreeMemory();
-				delete particleMeshes.at(i);
+				particleMeshes[i]->FreeMemory();
+				delete particleMeshes[i];
+				particleMeshes[i] = nullptr;
 			}
 			particleMeshes.clear();
 		}
 		createdAnim = false;
 	}
 
-	if (animation && !createdAnim) {
-		for (int i = 0; i < particleMeshes.size(); ++i) {
-			particleMeshes[i]->FreeMemory();
-			particleMeshes[i] = nullptr;
-		}
-		particleMeshes.clear();
-
+	if (animation && !createdAnim){
 		CreateAnimation(tileSize_X, tileSize_Y);
 		createdAnim = true;
 	}
@@ -162,6 +161,7 @@ void ComponentParticleEmitter::Disable()
 
 void ComponentParticleEmitter::UpdateParticles(float dt)
 {
+
 	int currentPlayTime = App->time->GetGameplayTimePassed() * 1000;
 
 	// Create particle depending on the time
@@ -202,6 +202,8 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 	std::vector<physx::PxU32> indicesToErease;
 	uint particlesToRelease = 0;
 
+	float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
+
 	// access particle data from physx::PxParticleReadData
 	if (rd)
 	{
@@ -228,6 +230,10 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				}
 
 				particles[i]->position = float3(positionIt->x, positionIt->y, positionIt->z);
+				if (followEmitter)
+				{
+					particles[i]->position += globalPosition - particles[i]->emitterSpawnPosition;
+				}
 
 				if (colorGradient && gradients.size() > 0)
 				{
@@ -302,10 +308,37 @@ void ComponentParticleEmitter::SortParticles()
 	}
 }
 
+void ComponentParticleEmitter::SetEmitterBlending() const
+{
+	bool blendEq_Same = (m_PartBlEquation == App->renderer3D->GetRendererBlendingEquation());
+	if (m_PartAutoBlending)
+	{
+		if (m_PartBlendFunc == App->renderer3D->GetRendererBlendAutoFunction() && blendEq_Same)
+			return;
+
+		App->renderer3D->PickBlendingAutoFunction(m_PartBlendFunc, m_PartBlEquation);
+		App->renderer3D->m_ChangedBlending = true;
+	}
+	else
+	{
+		BlendingTypes src, dst;
+		App->renderer3D->GetRendererBlendingManualFunction(src, dst);
+
+		bool manualBlend_Same = (m_MPartBlend_Src == src && m_MPartBlend_Dst == dst);
+		if (manualBlend_Same && blendEq_Same)
+			return;
+
+		App->renderer3D->PickBlendingManualFunction(m_MPartBlend_Src, m_MPartBlend_Dst, m_PartBlEquation);
+		App->renderer3D->m_ChangedBlending = true;
+	}
+}
+
 void ComponentParticleEmitter::DrawParticles()
 {
 	if (!active || drawingIndices.empty())
 		return;
+
+	SetEmitterBlending();
 
 	Plane cameraPlanes[6];
 	App->renderer3D->culling_camera->frustum.GetPlanes(cameraPlanes);
@@ -326,6 +359,7 @@ void ComponentParticleEmitter::DrawParticles()
 				break;
 			}
 		}
+
 		if (draw)
 		{
 			particles[paco]->Draw();
@@ -334,6 +368,7 @@ void ComponentParticleEmitter::DrawParticles()
 		}
 		it++;
 	}
+
 	drawingIndices.clear();
 }
 
@@ -386,6 +421,8 @@ json ComponentParticleEmitter::Save() const
 	node["velocityRandomFactor2Y"] = std::to_string(velocityRandomFactor2.y);
 	node["velocityRandomFactor2Z"] = std::to_string(velocityRandomFactor2.z);
 	node["velocityconstants"] = std::to_string(velocityconstants);
+
+	node["followEmitter"] = followEmitter;
 
 	node["particlesLifeTime"] = std::to_string(particlesLifeTime);
 
@@ -461,6 +498,13 @@ json ComponentParticleEmitter::Save() const
 		}
 	}
 
+	// --- Blend Save ---
+	node["PartBlendEquation"] = (int)m_PartBlEquation;
+	node["PartBlendFunc"] = (int)m_PartBlendFunc;
+	node["PartMBlFuncSrc"] = (int)m_MPartBlend_Src;
+	node["PartMBlFuncDst"] = (int)m_MPartBlend_Dst;
+	node["PartAutoBlending"] = m_PartAutoBlending;
+
 	return node;
 }
 
@@ -513,6 +557,8 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string LparticlesLifeTime1 = node["particlesLifeTime1"].is_null() ? "0" : node["particlesLifeTime1"];
 	std::string LparticlesLifeTime2 = node["particlesLifeTime2"].is_null() ? "0" : node["particlesLifeTime2"];
 	std::string _lifetimeconstants = node["lifetimeconstants"].is_null() ? "0" : node["lifetimeconstants"];
+
+	followEmitter = node["followEmitter"].is_null() ? true : node["followEmitter"].get<bool>();
 
 	std::string LParticlesSize = node["particlesSize"].is_null() ? "0" : node["particlesSize"];
 
@@ -624,6 +670,8 @@ void ComponentParticleEmitter::Load(json& node)
 	if (texture)
 		texture->AddUser(GO);
 
+
+
 	//Pass the strings to the needed dada types
 	emitterPosition.x = std::stof(LpositionX);
 	emitterPosition.y = std::stof(LpositionY);
@@ -703,10 +751,29 @@ void ComponentParticleEmitter::Load(json& node)
 		curves.push_back(rotateCurve);
 	}
 
-	std::string vert_billboard_str = node["VerticalBill"].is_null() ? "0" : node["VerticalBill"];
-	std::string hor_billboard_str = node["HorizontalBill"].is_null() ? "0" : node["HorizontalBill"];
-	horizontalBillboarding = std::stoi(hor_billboard_str);
-	verticalBillboarding = std::stoi(vert_billboard_str);
+	// --- Blending Load ---
+	m_PartBlendFunc = node.find("PartBlendFunc") == node.end() ? BlendAutoFunction::STANDARD_INTERPOLATIVE : (BlendAutoFunction)node["PartBlendFunc"].get<int>();
+	m_PartBlEquation = node.find("PartBlendEquation") == node.end() ? BlendingEquations::ADD : (BlendingEquations)node["PartBlendEquation"].get<int>();
+	m_MPartBlend_Src = node.find("PartMBlFuncSrc") == node.end() ? BlendingTypes::SRC_ALPHA : (BlendingTypes)node["PartMBlFuncSrc"].get<int>();
+	m_MPartBlend_Dst = node.find("PartMBlFuncDst") == node.end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)node["PartMBlFuncDst"].get<int>();
+	m_PartAutoBlending = node.find("PartAutoBlending") == node.end() ? true : node["PartAutoBlending"].get<bool>();
+
+	// --- V/H Billbaording ---
+	if (node.find("HorizontalBill") != node.end())
+	{
+		std::string hBill = node["HorizontalBill"];
+		horizontalBillboarding = (bool)std::stoi(hBill);
+	}
+	else
+		horizontalBillboarding = false;
+
+	if (node.find("VerticalBill") != node.end())
+	{
+		std::string vBill = node["VerticalBill"];
+		verticalBillboarding = (bool)std::stoi(vBill);
+	}
+	else
+		verticalBillboarding = false;
 }
 
 void ComponentParticleEmitter::CreateInspectorNode()
@@ -865,6 +932,10 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	if (forceChanged)
 		particleSystem->setExternalAcceleration(externalAcceleration);
 
+
+	//Follow emitter
+	ImGui::Text("Follow emitter");
+	ImGui::Checkbox("##SFollow emitter", &followEmitter);
 
 	//Emision rate
 	ImGui::Text("Emision rate (ms)");
@@ -1214,9 +1285,12 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	if (ImGui::TreeNode("Renderer"))
 	{
 		// Image
-		ImGui::Text("Image");
-		ImGui::SameLine();
+		ImGui::NewLine();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		ImGui::Text("Texture");
+		//ImGui::SameLine();
 
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		if (texture == nullptr)
 			ImGui::Image((ImTextureID)App->textures->GetDefaultTextureID(), ImVec2(100, 100), ImVec2(0, 1), ImVec2(1, 0)); //default texture
 		else
@@ -1241,13 +1315,99 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			ImGui::EndDragDropTarget();
 		}
 
+
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		ImGui::ColorEdit4("##PEParticle Color", (float*)&colors[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 		ImGui::Text("Start Color");
 
+		// --- Tree Node for Blending
+		ImGui::NewLine();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		if (ImGui::TreeNode("Particle Emitter Blending"))
+		{
+			HandleEditorBlendingSelector();
+			ImGui::TreePop();
+		}
+
+		ImGui::NewLine();
+		//ImGui::Separator();
+
 		ImGui::TreePop();
 	}
 }
+
+void ComponentParticleEmitter::HandleEditorBlendingSelector()
+{
+	ImGui::NewLine();
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+	ImGui::Text("Blend Equation");
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+	ImGui::SetNextItemWidth(200.0f);
+
+	// --- Blend Eq ---
+	std::vector<const char*> blendEq = App->renderer3D->m_BlendEquationFunctionsVec;
+	int index = (int)m_PartBlEquation;
+	if (App->gui->HandleDropdownSelector(index, "##PAlphaEq", blendEq.data(), blendEq.size()))
+		m_PartBlEquation = (BlendingEquations)index;
+
+	// --- Blend Auto Func ---
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+	ImGui::Text("Blend Mode"); ImGui::SameLine();
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 38.0f);
+	ImGui::SetNextItemWidth(200.0f);
+
+	std::vector<const char*> blendAutoF_Vec = App->renderer3D->m_BlendAutoFunctionsVec;
+	int index1 = (int)m_PartBlendFunc;
+	if (App->gui->HandleDropdownSelector(index1, "##PAlphaAutoFunction", blendAutoF_Vec.data(), blendAutoF_Vec.size()))
+		m_PartBlendFunc = (BlendAutoFunction)index1;
+
+	//Help Marker
+	std::string desc = "Stand. = SRC, 1-SRCALPH\nAdd. = ONE, ONE\nAddAlph. = SRC_ALPH, ONE\nMult. = DSTCOL, ZERO";
+	ImGui::SameLine();
+	App->gui->HelpMarker(desc.c_str());
+
+	// --- Blend Manual Function ---
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+	ImGui::Checkbox("Auto Alpha", &m_PartAutoBlending);
+	if (!m_PartAutoBlending)
+	{
+		//ImGui::Separator();
+		//ImGui::NewLine();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+		if (ImGui::TreeNodeEx("Manual Alpha", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			//Source
+			//ImGui::NewLine();
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
+			ImGui::Text("Source Alpha"); ImGui::SameLine();
+			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 45.0f);
+			ImGui::SetNextItemWidth(200.0f);
+
+			std::vector<const char*> blendTypes_Vec = App->renderer3D->m_AlphaTypesVec;
+			int index2 = (int)m_MPartBlend_Src;
+			if (App->gui->HandleDropdownSelector(index2, "##PManualAlphaSrc", blendTypes_Vec.data(), blendTypes_Vec.size()))
+				m_MPartBlend_Src = (BlendingTypes)index2;
+
+			//Destination
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
+			ImGui::Text("Destination Alpha"); ImGui::SameLine();
+			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+			ImGui::SetNextItemWidth(200.0f);
+
+			int index3 = (int)m_MPartBlend_Dst;
+			if (App->gui->HandleDropdownSelector(index3, "##PManualAlphaDst", blendTypes_Vec.data(), blendTypes_Vec.size()))
+				m_MPartBlend_Dst = (BlendingTypes)index3;
+
+			//Reference Function
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
+			if (ImGui::Button("Reference (Test Blend)", { 180, 18 })) App->gui->RequestBrowser("https://www.andersriggelsen.dk/glblendfunc.php");
+			ImGui::TreePop();
+		}
+	}
+}
+
+
 
 double ComponentParticleEmitter::GetRandomValue(double min, double max) //EREASE IN THE FUTURE
 {
@@ -1260,7 +1420,9 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 
 	if (validParticles < maxParticles)
 	{
-		Quat rotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
+		Quat totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
+		Quat externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
+		float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
 
 		if (particlesToCreate > maxParticles - validParticles)
 			particlesToCreate = maxParticles - validParticles;
@@ -1270,15 +1432,14 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 
 		physx::PxParticleCreationData creationData;
 
-		//Create 1 particle each time
+		//Create necessary amount of particles
 		creationData.numParticles = particlesToCreate;
+
+		//Create indices and allocate them
 		physx::PxU32* index = new physx::PxU32[particlesToCreate];
-
 		const physx::PxStrideIterator<physx::PxU32> indexBuffer(index);
-
 		indexPool->allocateIndices(particlesToCreate, indexBuffer);
 
-		float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
 
 		physx::PxVec3* positionBuffer = new physx::PxVec3[particlesToCreate];
 		physx::PxVec3* velocityBuffer = new physx::PxVec3[particlesToCreate];
@@ -1292,27 +1453,43 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 				particlesVelocity.z + ((velocityRandomFactor1.z < velocityRandomFactor2.z) ? GetRandomValue(velocityRandomFactor1.z, velocityRandomFactor2.z) : GetRandomValue(velocityRandomFactor2.z, velocityRandomFactor1.z)));
 
 			Quat velocityQuat = Quat(velocity.x, velocity.y, velocity.z, 0);
-
-			velocityQuat = rotation * velocityQuat * rotation.Conjugated();
-
+			velocityQuat = totalRotation * velocityQuat * totalRotation.Conjugated();
 			velocityBuffer[i] = physx::PxVec3(velocityQuat.x, velocityQuat.y, velocityQuat.z);
 
-			//Set position of the new particles
-			physx::PxVec3 position(GetRandomValue(-size.x, size.x) + emitterPosition.x,
-				+GetRandomValue(-size.y, size.y) + emitterPosition.y,
-				+GetRandomValue(-size.z, size.z) + emitterPosition.z);
+			/*The spawn position of the particle is a combination of different variables (size, emmitter position and global position).
+			Each are affected by different rotations:
+				- positionFromSize is affected by totalRotation (globalRotation * emitterRotation)
+				- positionFromEmitterPos is only affected by externalRotation (rotation of the GO)
+				- globalPosition is not affected by these rotations (only affected by the rotations of the parents of the GO*/
+
+			//Set positionFromSize of the new particles
+			physx::PxVec3 positionFromSize(GetRandomValue(-size.x, size.x),
+				+GetRandomValue(-size.y, size.y),
+				+GetRandomValue(-size.z, size.z));
 
 
-			Quat positionQuat = Quat(position.x, position.y, position.z, 0);
-			positionQuat = rotation * rotation.Conjugated();
-			positionBuffer[i] = physx::PxVec3(globalPosition.x, globalPosition.y, globalPosition.z);
+			Quat positionFromSizeQuat = Quat(positionFromSize.x, positionFromSize.y, positionFromSize.z, 0);
+			positionFromSizeQuat = totalRotation * positionFromSizeQuat * totalRotation.Conjugated();
 
+			//Set positionFromEmitterPos
+			physx::PxVec3 positionFromEmitterPos(emitterPosition.x,emitterPosition.y,emitterPosition.z);
+
+			Quat positionFromEmitterPosQuat = Quat(positionFromEmitterPos.x, positionFromEmitterPos.y, positionFromEmitterPos.z, 0);
+			positionFromEmitterPosQuat = externalRotation * positionFromEmitterPosQuat * externalRotation.Conjugated();
+
+			//Assign final position to the particle
+			positionBuffer[i] =  physx::PxVec3(	positionFromSizeQuat.x + positionFromEmitterPosQuat.x + globalPosition.x,
+												positionFromSizeQuat.y + positionFromEmitterPosQuat.y + globalPosition.y,
+												positionFromSizeQuat.z + positionFromEmitterPosQuat.z + globalPosition.z);
+
+			//Aditional properties
 			particles[index[i]]->lifeTime = particlesLifeTime;
 			particles[index[i]]->spawnTime = spawnClock;
 			particles[index[i]]->color = colors[0];
 			particles[index[i]]->texture = texture;
 			particles[index[i]]->gradientTimer = spawnClock;
 			particles[index[i]]->currentGradient = 0;
+			particles[index[i]]->emitterSpawnPosition = globalPosition;
 
 			//Set scale
 			if (scaleconstants == 1) {
@@ -1417,6 +1594,25 @@ void ComponentParticleEmitter::UpdateAllGradients()
 			}
 		}
 	}
+}
+
+void ComponentParticleEmitter::DrawEmitterArea()
+{
+	Quat totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
+	Quat externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
+	float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
+
+	AABB aabb(float3(-size.x, -size.y, -size.z), float3(size.x, size.y, size.z));
+
+	emisionAreaOBB.SetFrom(aabb, totalRotation);
+
+	Quat positionFromEmitterPosQuat(emitterPosition.x, emitterPosition.y, emitterPosition.z, 0);
+	positionFromEmitterPosQuat = externalRotation * positionFromEmitterPosQuat * externalRotation.Conjugated();
+
+	emisionAreaOBB.pos = emisionAreaOBB.pos + float3(positionFromEmitterPosQuat.x + globalPosition.x, positionFromEmitterPosQuat.y + globalPosition.y, positionFromEmitterPosQuat.z + globalPosition.z);
+	App->renderer3D->DrawOBB(emisionAreaOBB, Blue);
+
+
 }
 
 void ComponentParticleEmitter::Play()

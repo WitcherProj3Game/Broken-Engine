@@ -21,29 +21,7 @@ Resource* ImporterScript::Import(ImportData& IData) const {
 	resource_script->relative_path = IData.path;
 
 	// Construct absolute path (Lua virtual machine needs to have the absolute path of the script in order to compile it)
-	std::string abs_path = App->fs->GetBasePath();
-
-	std::size_t d_pos = 0;
-	d_pos = abs_path.find("Debug");
-	std::size_t r_pos = 0;
-	r_pos = abs_path.find("Release");
-	std::size_t g_pos = 0;
-	g_pos = abs_path.find("Game");
-
-	if (d_pos != 4294967295)  // If we are in DEBUG
-	{
-		abs_path = abs_path.substr(0,d_pos);
-		abs_path += "Game/";
-	}
-	else if (r_pos != 4294967295) // If we are in RELEASE
-	{
-		abs_path = abs_path.substr(0,r_pos);
-		abs_path += "Game/";
-	}
-	else if (g_pos != 4294967295) // If we are in a EXE final build
-	{
-		abs_path = abs_path.substr(0, g_pos);
-	}
+	std::string abs_path = App->fs->GetWorkingDirectory();
 	
 	abs_path += IData.path;
 	App->fs->NormalizePath(abs_path);
@@ -76,41 +54,8 @@ Resource* ImporterScript::Load(const char* path) const {
 	resource_script->relative_path = path;
 
 	//Construct absolute path (Lua virtual machine needs to have the absolute path of the script in order to compile it)
-	std::string abs_path = App->fs->GetBasePath();
+	std::string abs_path = App->fs->GetWorkingDirectory();
 
-	std::size_t d_pos = 0;
-	d_pos = abs_path.find("Debug");
-	std::size_t r_pos = 0;
-	r_pos = abs_path.find("Release");
-	std::size_t g_pos = 0;
-	g_pos = abs_path.find("Game");
-
-	if (d_pos != 4294967295)  // If we are in DEBUG
-	{
-		abs_path = abs_path.substr(0, d_pos);
-		if(App->isGame == false)
-		abs_path += "Game/";
-		else
-			abs_path += "Game/Builds/Broken Engine Game/";
-	}
-
-	if (r_pos != 4294967295 ) // If we are in RELEASE
-	{
-		abs_path = abs_path.substr(0, r_pos);
-		if(App->isGame == false)
-		abs_path += "Game/";
-		else
-			abs_path += "Game/Builds/Broken Engine Game/";
-
-		int i = 100;
-		assert(i != 100, "We detected we are in an exe!");
-	}
-
-	//if (g_pos != 4294967295) // If we are in a EXE final build
-	//{
-	//	//abs_path = abs_path.substr(0, g_pos);
-	//}
-	
 	abs_path += path;
 	App->fs->NormalizePath(abs_path);
 	resource_script->absolute_path = abs_path.c_str();

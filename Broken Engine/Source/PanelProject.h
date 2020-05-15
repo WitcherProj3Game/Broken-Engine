@@ -55,6 +55,10 @@ private:
 	void RecursiveDirectoryDraw(Broken::ResourceFolder* directory);
 
 	bool createScript = false;
+	bool createMaterial = false;
+	bool createShader = false;
+	bool createFolder = false;
+	bool createScene = false;
 };
 
 #endif

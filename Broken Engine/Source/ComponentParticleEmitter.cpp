@@ -558,10 +558,7 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string LparticlesLifeTime2 = node["particlesLifeTime2"].is_null() ? "0" : node["particlesLifeTime2"];
 	std::string _lifetimeconstants = node["lifetimeconstants"].is_null() ? "0" : node["lifetimeconstants"];
 
-	if (node["followEmitter"] != node["followEmitter"].end())
-		followEmitter = node["followEmitter"];
-	else
-		followEmitter = true;
+	followEmitter = node["followEmitter"].is_null() ? true : node["followEmitter"].get<bool>();
 
 	std::string LParticlesSize = node["particlesSize"].is_null() ? "0" : node["particlesSize"];
 

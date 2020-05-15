@@ -188,7 +188,7 @@ bool ResourceScene::LoadInMemory()
 				ite++;
 			}
 
-			//AKI CABESA AKI
+			//AKI CABESA AKI -- DIME HERMANO, DIME PACO
 			if (!treeSaved)
 			{
 				//Enclose all the go AABBs into the box of the tree
@@ -272,22 +272,75 @@ bool ResourceScene::LoadInMemory()
 		}
 
 
-		// --- Load Scene Color ---
+		// --- SCENE RENDERING DATA ---
+		//Scene Color & Gamma Correction		
+		m_SceneGammaCorrection = file.find("SceneGammaCorrection") == file.end() ? 1.0f : file["SceneGammaCorrection"].get<float>();
 		float3 sceneColor = float3::one;
-
 		if (file.find("SceneAmbientColor") != file.end())
 		{
 			json fileCol = file["SceneAmbientColor"];
-
 			if (fileCol.find("R") != fileCol.end() && fileCol.find("G") != fileCol.end() && fileCol.find("B") != fileCol.end())
 				sceneColor = float3(fileCol["R"].get<float>(), fileCol["G"].get<float>(), fileCol["B"].get<float>());
-			else
-				sceneColor = float3::one;
 		}
-		else
-			sceneColor = float3::one;
 
+		//m_SceneColor = sceneColor;
 		App->renderer3D->SetAmbientColor(sceneColor);
+
+		//Scene Blending
+		bool autoBlend = file.find("SceneAutoBlend") == file.end() ? true : file["SceneAutoBlend"].get<bool>();
+		BlendAutoFunction blendFunc = file.find("SceneBlendFunc") == file.end() ? BlendAutoFunction::STANDARD_INTERPOLATIVE : (BlendAutoFunction)file["SceneBlendFunc"].get<int>();
+		BlendingEquations blendEq = file.find("SceneBlendEq") == file.end() ? BlendingEquations::ADD : (BlendingEquations)file["SceneBlendEq"].get<int>();
+		BlendingTypes man_BlendSrc = file.find("SceneManualBlendFuncSrc") == file.end() ? BlendingTypes::SRC_ALPHA : (BlendingTypes)file["SceneManualBlendFuncSrc"].get<int>();
+		BlendingTypes man_BlendDst = file.find("SceneManualBlendFuncDst") == file.end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)file["SceneManualBlendFuncDst"].get<int>();
+
+		App->renderer3D->SetRendererBlendingAutoFunction(blendFunc);
+		App->renderer3D->SetRendererBlendingEquation(blendEq);
+		App->renderer3D->SetRendererBlendingManualFunction(man_BlendSrc, man_BlendDst);
+		App->renderer3D->m_AutomaticBlendingFunc = autoBlend;
+	
+		//Scene Skybox
+		float skyboxExp = 1.0f;
+		float3 skyboxColor = float3::one;
+		float3 skyboxRot = float3::zero;
+
+		if (file.find("Skybox") != file.end())
+		{
+			json fileSky = file["Skybox"];
+			skyboxExp = fileSky.find("Exposure") == fileSky.end() ? 1.0f : fileSky["Exposure"].get<float>();
+
+			if (fileSky.find("ColorTint") != fileSky.end())
+			{
+				json skyCol = file["ColorTint"];
+				if (skyCol.find("R") != skyCol.end() && skyCol.find("G") != skyCol.end() && skyCol.find("B") != skyCol.end())
+					skyboxColor = float3(skyCol["R"].get<float>(), skyCol["G"].get<float>(), skyCol["B"].get<float>());
+			}
+
+			if (fileSky.find("Rotation") != fileSky.end())
+			{
+				json skyRot = file["Rotation"];
+				if (skyRot.find("X") != skyRot.end() && skyRot.find("Y") != skyRot.end() && skyRot.find("Z") != skyRot.end())
+					skyboxRot = float3(skyRot["X"].get<float>(), skyRot["Y"].get<float>(), skyRot["Z"].get<float>());
+			}
+		}
+
+		App->renderer3D->SetSkyboxExposure(skyboxExp);
+		App->renderer3D->SetSkyboxColor(skyboxColor);
+		App->renderer3D->SetSkyboxRotation(skyboxRot);
+
+		//Scene Post-Pro
+		bool useHDR = false;
+		float HDRExp = 1.0f, PPGammaCorr = 1.0f;
+		if (file.find("ScenePostProcessing") != file.end())
+		{
+			json filePP = file["ScenePostProcessing"];
+			useHDR = filePP.find("HDRUsage") == filePP.end() ? 1.0f : filePP["HDRUsage"].get<bool>();
+			HDRExp = filePP.find("HDRExposure") == filePP.end() ? 1.0f : filePP["HDRExposure"].get<float>();
+			PPGammaCorr = filePP.find("PPGammaCorrection") == filePP.end() ? 1.0f : filePP["PPGammaCorrection"].get<float>();
+		}
+
+		App->renderer3D->m_UseHDR = useHDR;
+		App->renderer3D->SetPostProHDRExposure(HDRExp);
+		App->renderer3D->SetPostProGammaCorrection(PPGammaCorr);
 	}
 
 	return true;

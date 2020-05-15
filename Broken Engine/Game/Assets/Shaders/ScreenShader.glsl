@@ -27,7 +27,6 @@ void main()
     vec3 textureOutput = texture(screenTexture, gl_FragCoord.xy / textureSize(screenTexture, 0)).rgb;
 	vec3 finalColor = vec3(1.0);
 
-
 	// --- HDR Application (or not) ---
 	if(u_UseHDR == true)
 	{

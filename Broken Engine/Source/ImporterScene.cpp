@@ -63,11 +63,36 @@ void ImporterScene::SaveSceneToFile(ResourceScene* scene) const
 	// --- Save Scene/Model to file ---
 	json file;
 
-	//Save Scene Color
-	float3 sceneColor = scene->GetSceneAmbientColor();
-	file["SceneAmbientColor"]["R"] = sceneColor.x;
-	file["SceneAmbientColor"]["G"] = sceneColor.y;
-	file["SceneAmbientColor"]["B"] = sceneColor.z;
+	// --- Scene Rendering Data ---
+	//Save Scene Color & Gamma Corr.
+	file["SceneAmbientColor"]["R"] = scene->m_SceneColor.x;
+	file["SceneAmbientColor"]["G"] = scene->m_SceneColor.y;
+	file["SceneAmbientColor"]["B"] = scene->m_SceneColor.z;
+	file["SceneGammaCorrection"] = scene->m_SceneGammaCorrection;
+
+	//Save Scene Blending
+	file["SceneAutoBlend"] = scene->m_SceneAutoBlend;
+	file["SceneBlendFunc"] = (int)scene->m_RendererBlendFunc;
+	file["SceneBlendEq"] = (int)scene->m_BlendEquation;
+	file["SceneManualBlendFuncSrc"] = (int)scene->m_ManualBlend_Src;
+	file["SceneManualBlendFuncDst"] = (int)scene->m_ManualBlend_Dst;
+
+	//Save Scene Skybox Values
+	file["Skybox"]["ColorTint"]["R"] = scene->m_Sky_ColorTint.x;
+	file["Skybox"]["ColorTint"]["G"] = scene->m_Sky_ColorTint.y;
+	file["Skybox"]["ColorTint"]["B"] = scene->m_Sky_ColorTint.z;
+	file["Skybox"]["Exposure"] = scene->m_Sky_Exposure;
+	file["Skybox"]["Rotation"]["X"] = scene->m_Sky_Rotation.x;
+	file["Skybox"]["Rotation"]["Y"] = scene->m_Sky_Rotation.y;
+	file["Skybox"]["Rotation"]["Z"] = scene->m_Sky_Rotation.z;
+
+	// --- Scene Post-Processing Data ---
+	file["ScenePostProcessing"]["HDRUsage"] = App->renderer3D->m_UseHDR;
+	file["ScenePostProcessing"]["HDRExposure"] = scene->m_ScenePP_HDRExposure;
+	file["ScenePostProcessing"]["PPGammaCorrection"] = scene->m_ScenePP_GammaCorr;
+
+
+	// --- Octree Data ---
 	//Before loading static objects, load the dimensions of the tree
 	file["octreeBox"]["minX"] = scene->octreeBox.MinX();
 	file["octreeBox"]["minY"] = scene->octreeBox.MinY();
@@ -77,6 +102,7 @@ void ImporterScene::SaveSceneToFile(ResourceScene* scene) const
 	file["octreeBox"]["maxY"] = scene->octreeBox.MaxY();
 	file["octreeBox"]["maxZ"] = scene->octreeBox.MaxZ();
 
+	// --- Non-Static Objects Data ---
 	for (std::unordered_map<uint, GameObject*>::iterator it = scene->NoStaticGameObjects.begin(); it != scene->NoStaticGameObjects.end(); ++it)
 	{
 		std::string string_uid = std::to_string((*it).second->GetUID());
@@ -108,6 +134,7 @@ void ImporterScene::SaveSceneToFile(ResourceScene* scene) const
 		}
 	}
 
+	// --- Static Objects Data ---
 	for (std::unordered_map<uint, GameObject*>::iterator it = scene->StaticGameObjects.begin(); it != scene->StaticGameObjects.end(); ++it)
 	{
 		std::string string_uid = std::to_string((*it).second->GetUID());
@@ -138,6 +165,7 @@ void ImporterScene::SaveSceneToFile(ResourceScene* scene) const
 
 	}
 
+	// --- Scene Navigation Data ---
 	if (scene == App->scene_manager->currentScene || scene == App->scene_manager->temporalScene) {
 		json navdata = file["Navigation Data"];
 		// --- Navigation Data --

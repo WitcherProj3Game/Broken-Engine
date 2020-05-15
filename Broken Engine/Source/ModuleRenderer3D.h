@@ -132,8 +132,6 @@ public:
 	update_status PreUpdate(float dt) override;
 	update_status PostUpdate(float dt) override;
 	bool CleanUp() override;
-	virtual void LoadStatus(const json& file);
-	virtual const json& SaveStatus() const;
 
 	void OnResize(int width, int height);
 
@@ -159,32 +157,34 @@ public:
 	void SetActiveCamera(ComponentCamera* camera);
 	void SetCullingCamera(ComponentCamera* camera);
 
-	// --- Rendering Setters ---
-	void SetGammaCorrection(float gammaCorr) { m_GammaCorrection = gammaCorr; }
+	// --- Rendering (Scene) Setters ---
+	void SetGammaCorrection(float gammaCorr);
 	void SetAmbientColor(const float3& color);
-	void SetRendererBlendingAutoFunction(BlendAutoFunction function) { m_RendererBlendFunc = function; }
-	void SetRendererBlendingEquation(BlendingEquations eq) { m_BlendEquation = eq; }
-	void SetRendererBlendingManualFunction(BlendingTypes src, BlendingTypes dst) { m_ManualBlend_Src = src;  m_ManualBlend_Dst = dst; }
-	void SetSkyboxColor(const float3& color) { m_SkyboxColor = color; }
-	void SetSkyboxExposure(float value) { m_SkyboxExposure = value; }
+	void SetRendererBlendingAutoFunction(BlendAutoFunction function);
+	void SetRendererBlendingEquation(BlendingEquations eq);
+	void SetRendererBlendingManualFunction(BlendingTypes src, BlendingTypes dst);
+	void SetSkyboxColor(const float3& color);
+	void SetSkyboxRotation(const float3& rot);
+	void SetSkyboxExposure(float value);
 
 	// --- Rendering PostPro Effects ---
-	void SetPostProHDRExposure(float exposure) { m_PostProHDRExposure = exposure; }
-	void SetPostProGammaCorrection(float value) { m_PostProGammaCorrection = value; }
+	void SetPostProHDRExposure(float exposure);
+	void SetPostProGammaCorrection(float value);
 
 	// --- Getters ---
 	bool GetVSync() const { return vsync; }
-	float GetGammaCorrection() const { return m_GammaCorrection; }
-	float3 GetSceneAmbientColor() const { return m_AmbientColor; }
-	BlendAutoFunction GetRendererBlendAutoFunction() const { return m_RendererBlendFunc; }
-	BlendingEquations GetRendererBlendingEquation() { return m_BlendEquation; }
-	void GetRendererBlendingManualFunction(BlendingTypes& src, BlendingTypes& dst) const { src = m_ManualBlend_Src; dst = m_ManualBlend_Dst; }
-	float3 GetSkyboxColor() const { return m_SkyboxColor; }
-	float GetSkyboxExposure() const { return m_SkyboxExposure; }
+	float GetGammaCorrection() const;
+	float3 GetSceneAmbientColor() const;
+	BlendAutoFunction GetRendererBlendAutoFunction() const;
+	BlendingEquations GetRendererBlendingEquation();
+	void GetRendererBlendingManualFunction(BlendingTypes& src, BlendingTypes& dst) const;
+	float3 GetSkyboxColor() const;
+	float3 GetSkyboxRotation() const;
+	float GetSkyboxExposure() const;
 
 	// --- Rendering PostPro ---
-	float GetPostProGammaCorrection() const { return m_PostProGammaCorrection; }
-	float GetPostProHDRExposure() const { return m_PostProHDRExposure; }
+	float GetPostProGammaCorrection() const;
+	float GetPostProHDRExposure() const;
 
 private:
 
@@ -263,19 +263,19 @@ public:
 	bool zdrawer = false;
 	bool renderfbo = true;
 	bool drawfb = false;
-	bool post_processing = true;
 	bool display_boundingboxes = false;
 	bool display_grid = true;
 	bool m_Draw_normalMapping = false;
 	bool m_Draw_normalMapping_Lit = false;
 	bool m_Draw_normalMapping_Lit_Adv = false;
-	bool m_UseHDR = true;
-	bool m_AutomaticBlendingFunc = true;
+	bool post_processing = true;
 	bool m_ChangedBlending = false;
+	bool m_AutomaticBlendingFunc = true;
+	bool m_UseHDR = false;
 
 	uint rendertexture = 0;
 	uint depthMapTexture = 0;
-	float3 skyboxangle = float3::zero;
+	//float3 skyboxangle = float3::zero;
 
 	//Blend Functions chars vector (for names)
 	std::vector<const char*> m_BlendAutoFunctionsVec;
@@ -295,20 +295,6 @@ private:
 	//Lights vector
 	std::vector<ComponentLight*> m_LightsVec;
 
-	//Rendering Options
-	float m_GammaCorrection = 2.0f;
-	float3 m_AmbientColor = float3::one;
-	float3 m_SkyboxColor = float3::one;
-	float m_SkyboxExposure = 1.0f;
-
-	//Blending Options
-	BlendAutoFunction m_RendererBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
-	BlendingTypes m_ManualBlend_Src = BlendingTypes::SRC_ALPHA, m_ManualBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
-	BlendingEquations m_BlendEquation = BlendingEquations::ADD;
-
-	//Post-Pro Effects
-	float m_PostProHDRExposure = 1.0f;
-	float m_PostProGammaCorrection = 1.8f;
 
 	//Other Generic Stuff
 	uint fbo = 0;

@@ -4,11 +4,15 @@
 #include "Resource.h"
 #include <unordered_map>
 #include "Math.h"
+#include "ModuleRenderer3D.h"
 
 BE_BEGIN_NAMESPACE
 class GameObject;
 
-class BROKEN_API ResourceScene : public Resource {
+class BROKEN_API ResourceScene : public Resource
+{
+	friend class ModuleRenderer3D;
+	friend class ImporterScene;
 public:
 	ResourceScene(uint UID, const char* source_file);
 	~ResourceScene();
@@ -27,10 +31,12 @@ public:
 	const float3 GetSceneAmbientColor() const { return m_SceneColor; }
 	void SetSceneAmbientColor(float3 color) { m_SceneColor = color; }
 
+public:
+
 	std::unordered_map<uint,GameObject*> NoStaticGameObjects;
 	std::unordered_map<uint, GameObject*> StaticGameObjects;
 
-	AABB octreeBox;
+	AABB octreeBox;	
 
 private:
 
@@ -38,6 +44,22 @@ private:
 	void OnDelete() override;
 
 	float3 m_SceneColor = float3::one;
+	float m_SceneGammaCorrection = 1.0f;
+
+	float m_Sky_Exposure = 1.0f;
+	float3 m_Sky_ColorTint = float3(1.0f);
+	float3 m_Sky_Rotation = float3(0.0f);
+
+	//bool m_ScenePP_HDRUsage = false;
+	float m_ScenePP_HDRExposure = 1.0f;
+	float m_ScenePP_GammaCorr = 1.0f;
+
+	//Blending Stuff
+	bool m_SceneAutoBlend = true;
+	BlendAutoFunction m_RendererBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
+	BlendingTypes m_ManualBlend_Src = BlendingTypes::SRC_ALPHA, m_ManualBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
+	BlendingEquations m_BlendEquation = BlendingEquations::ADD;
+
 };
 BE_END_NAMESPACE
 #endif //__RESOURCE_SCENE_H__

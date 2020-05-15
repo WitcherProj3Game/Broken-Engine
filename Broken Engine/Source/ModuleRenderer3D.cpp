@@ -455,86 +455,6 @@ bool ModuleRenderer3D::CleanUp()
 	return true;
 }
 
-void ModuleRenderer3D::LoadStatus(const json& file)
-{
-	// --- General Stuff ---
-	m_GammaCorrection = file["Renderer3D"].find("GammaCorrection") == file["Renderer3D"].end() ? 1.0f : file["Renderer3D"]["GammaCorrection"].get<float>();
-	m_SkyboxExposure = file["Renderer3D"].find("SkyboxExposure") == file["Renderer3D"].end() ? 1.0f : file["Renderer3D"]["SkyboxExposure"].get<float>();
-
-	//Scene Color
-	if (file["Renderer3D"].find("SceneAmbientColor") != file["Renderer3D"].end())
-	{
-		if (file["Renderer3D"]["SceneAmbientColor"].find("R") != file["Renderer3D"]["SceneAmbientColor"].end() &&
-			file["Renderer3D"]["SceneAmbientColor"].find("G") != file["Renderer3D"]["SceneAmbientColor"].end() &&
-			file["Renderer3D"]["SceneAmbientColor"].find("B") != file["Renderer3D"]["SceneAmbientColor"].end())
-		{
-			m_AmbientColor = float3(file["Renderer3D"]["SceneAmbientColor"]["R"].get<float>(), file["Renderer3D"]["SceneAmbientColor"]["G"].get<float>(), file["Renderer3D"]["SceneAmbientColor"]["B"].get<float>());
-		}
-		else
-			m_AmbientColor = float3::one;
-	}
-	else
-		m_AmbientColor = float3::one;
-
-	//Skybox Color Tint
-	if (file["Renderer3D"].find("SkyboxColorTint") != file["Renderer3D"].end())
-	{
-		if (file["Renderer3D"]["SkyboxColorTint"].find("R") != file["Renderer3D"]["SkyboxColorTint"].end() &&
-			file["Renderer3D"]["SkyboxColorTint"].find("G") != file["Renderer3D"]["SkyboxColorTint"].end() &&
-			file["Renderer3D"]["SkyboxColorTint"].find("B") != file["Renderer3D"]["SkyboxColorTint"].end())
-		{
-			m_SkyboxColor = float3(file["Renderer3D"]["SkyboxColorTint"]["R"].get<float>(), file["Renderer3D"]["SkyboxColorTint"]["G"].get<float>(), file["Renderer3D"]["SkyboxColorTint"]["B"].get<float>());
-		}
-		else
-			m_SkyboxColor = float3::one;
-	}
-	else
-		m_SkyboxColor = float3::one;
-
-		if (file["Renderer3D"].find("SkyboxRotation") != file["Renderer3D"].end())
-		{
-			skyboxangle.x = file["Renderer3D"]["SkyboxRotation"]["X"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["X"].get<float>();
-			skyboxangle.y = file["Renderer3D"]["SkyboxRotation"]["Y"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["Y"].get<float>();
-			skyboxangle.z = file["Renderer3D"]["SkyboxRotation"]["Z"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["Z"].get<float>();
-		}
-
-
-	// --- Blending Stuff ---
-	m_AutomaticBlendingFunc = file["Renderer3D"].find("RendAutoBlending") == file["Renderer3D"].end() ? true : file["Renderer3D"]["RendAutoBlending"].get<bool>();
-	m_RendererBlendFunc = file["Renderer3D"].find("AlphaFunc") == file["Renderer3D"].end() ? BlendAutoFunction::STANDARD_INTERPOLATIVE : (BlendAutoFunction)file["Renderer3D"]["AlphaFunc"].get<int>();
-	m_BlendEquation = file["Renderer3D"].find("BlendEquation") == file["Renderer3D"].end() ? BlendingEquations::ADD : (BlendingEquations)file["Renderer3D"]["BlendEquation"].get<int>();
-	m_ManualBlend_Src = file["Renderer3D"].find("ManualAlphaFuncSrc") == file["Renderer3D"].end() ? BlendingTypes::SRC_ALPHA : (BlendingTypes)file["Renderer3D"]["ManualAlphaFuncSrc"].get<int>();
-	m_ManualBlend_Dst = file["Renderer3D"].find("ManualAlphaFuncDst") == file["Renderer3D"].end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)file["Renderer3D"]["ManualAlphaFuncDst"].get<int>();
-}
-
-const json& ModuleRenderer3D::SaveStatus() const
-{
-	static json m_config;
-
-	m_config["GammaCorrection"] = m_GammaCorrection;
-	m_config["AlphaFunc"] = (int)m_RendererBlendFunc;
-	m_config["ManualAlphaFuncSrc"] = (int)m_ManualBlend_Src;
-	m_config["ManualAlphaFuncDst"] = (int)m_ManualBlend_Dst;
-	m_config["BlendEquation"] = (int)m_BlendEquation;
-	m_config["SkyboxExposure"] = m_SkyboxExposure;
-
-	m_config["SkyboxRotation"]["X"] = skyboxangle.x;
-	m_config["SkyboxRotation"]["Y"] = skyboxangle.y;
-	m_config["SkyboxRotation"]["Z"] = skyboxangle.z;
-
-	m_config["SkyboxColorTint"]["R"] = m_SkyboxColor.x;
-	m_config["SkyboxColorTint"]["G"] = m_SkyboxColor.y;
-	m_config["SkyboxColorTint"]["B"] = m_SkyboxColor.z;
-
-	m_config["SceneAmbientColor"]["R"] = m_AmbientColor.x;
-	m_config["SceneAmbientColor"]["G"] = m_AmbientColor.y;
-	m_config["SceneAmbientColor"]["B"] = m_AmbientColor.z;
-
-	m_config["RendAutoBlending"] = m_AutomaticBlendingFunc;
-
-	return m_config;
-}
-
 void ModuleRenderer3D::OnResize(int width, int height)
 {
 	// --- Called by UpdateWindowSize() in Window module this when resizing windows to prevent rendering issues ---
@@ -557,8 +477,151 @@ void ModuleRenderer3D::OnResize(int width, int height)
 // ---------------------------------------------------------------------------------------------
 void ModuleRenderer3D::SetAmbientColor(const float3& color)
 {
-	m_AmbientColor = color;
-	App->scene_manager->currentScene->SetSceneAmbientColor(color);
+	if(App->scene_manager->currentScene)
+		App->scene_manager->currentScene->m_SceneColor = color;
+}
+
+void ModuleRenderer3D::SetGammaCorrection(float gammaCorr)
+{
+	if (App->scene_manager->currentScene)
+		App->scene_manager->currentScene->m_SceneGammaCorrection = gammaCorr;
+}
+
+void ModuleRenderer3D::SetRendererBlendingAutoFunction(BlendAutoFunction function) 
+{ 
+	if (App->scene_manager->currentScene)
+		App->scene_manager->currentScene->m_RendererBlendFunc = function;
+}
+
+void ModuleRenderer3D::SetRendererBlendingEquation(BlendingEquations eq) 
+{
+	if (App->scene_manager->currentScene)
+		App->scene_manager->currentScene->m_BlendEquation = eq;
+}
+
+void ModuleRenderer3D::SetRendererBlendingManualFunction(BlendingTypes src, BlendingTypes dst) 
+{ 
+	if (App->scene_manager->currentScene)
+	{
+		App->scene_manager->currentScene->m_ManualBlend_Src = src;
+		App->scene_manager->currentScene->m_ManualBlend_Dst = dst;
+	}
+}
+
+void ModuleRenderer3D::SetSkyboxColor(const float3& color) 
+{ 
+	if (App->scene_manager->currentScene)
+		App->scene_manager->currentScene->m_Sky_ColorTint = color;
+}
+
+void ModuleRenderer3D::SetSkyboxExposure(float value) 
+{ 
+	if (App->scene_manager->currentScene)
+		App->scene_manager->currentScene->m_Sky_Exposure = value;
+}
+
+void ModuleRenderer3D::SetPostProHDRExposure(float exposure) 
+{ 
+	if (App->scene_manager->currentScene)
+		App->scene_manager->currentScene->m_ScenePP_HDRExposure = exposure;
+}
+void ModuleRenderer3D::SetPostProGammaCorrection(float value) 
+{ 
+	if (App->scene_manager->currentScene)
+		App->scene_manager->currentScene->m_ScenePP_GammaCorr = value;
+}
+
+void ModuleRenderer3D::SetSkyboxRotation(const float3& rot)
+{
+	if (App->scene_manager->currentScene)
+		App->scene_manager->currentScene->m_Sky_Rotation = rot;
+}
+
+// --- Getters ---
+float ModuleRenderer3D::GetGammaCorrection() const 
+{
+	if (App->scene_manager->currentScene)
+		return App->scene_manager->currentScene->m_SceneGammaCorrection;
+	else
+		return -1.0f;
+}
+
+float3 ModuleRenderer3D::GetSceneAmbientColor() const 
+{
+	if (App->scene_manager->currentScene)
+		return App->scene_manager->currentScene->m_SceneColor;
+	else
+		return -float3::one;
+}
+
+BlendAutoFunction ModuleRenderer3D::GetRendererBlendAutoFunction() const 
+{ 
+	if (App->scene_manager->currentScene)
+		return App->scene_manager->currentScene->m_RendererBlendFunc;
+	else
+		return BlendAutoFunction::STANDARD_INTERPOLATIVE;
+}
+
+BlendingEquations ModuleRenderer3D::GetRendererBlendingEquation() 
+{
+	if (App->scene_manager->currentScene)
+		return App->scene_manager->currentScene->m_BlendEquation;
+	else
+		return BlendingEquations::ADD;
+}
+
+void ModuleRenderer3D::GetRendererBlendingManualFunction(BlendingTypes& src, BlendingTypes& dst) const 
+{ 
+	if (App->scene_manager->currentScene)
+	{
+		src = App->scene_manager->currentScene->m_ManualBlend_Src;
+		dst = App->scene_manager->currentScene->m_ManualBlend_Dst;
+	}
+	else
+	{
+		src = BlendingTypes::ZERO;
+		dst = BlendingTypes::ZERO;
+	}
+}
+
+float3 ModuleRenderer3D::GetSkyboxColor() const 
+{
+	if (App->scene_manager->currentScene)
+		return App->scene_manager->currentScene->m_Sky_ColorTint;
+	else
+		return -float3::one;
+}
+
+float ModuleRenderer3D::GetSkyboxExposure() const 
+{
+	if (App->scene_manager->currentScene)
+		return App->scene_manager->currentScene->m_Sky_Exposure;
+	else
+		return -1.0f;
+}
+
+float ModuleRenderer3D::GetPostProGammaCorrection() const 
+{
+	if (App->scene_manager->currentScene)
+		return App->scene_manager->currentScene->m_ScenePP_GammaCorr;
+	else
+		return -1.0f;
+}
+
+float ModuleRenderer3D::GetPostProHDRExposure() const 
+{ 
+	if (App->scene_manager->currentScene)
+		return App->scene_manager->currentScene->m_ScenePP_HDRExposure;
+	else
+		return -1.0f;
+}
+
+float3 ModuleRenderer3D::GetSkyboxRotation() const
+{
+	if (App->scene_manager->currentScene)
+		return App->scene_manager->currentScene->m_Sky_Rotation;
+	else
+		return -float3::one;
 }
 
 bool ModuleRenderer3D::SetVSync(bool _vsync)
@@ -964,10 +1027,14 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
 		glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit_Adv"), (int)m_Draw_normalMapping_Lit_Adv);
 
 		// --- Gamma Correction & Ambient Color Values ---
-		glUniform1f(glGetUniformLocation(shader, "u_GammaCorrection"), m_GammaCorrection);
-		glUniform4f(glGetUniformLocation(shader, "u_AmbientColor"), m_AmbientColor.x, m_AmbientColor.y, m_AmbientColor.z, 1.0f);
+		if (App->scene_manager->currentScene)
+		{
+			float3 sc_color = App->scene_manager->currentScene->m_SceneColor;
+			glUniform1f(glGetUniformLocation(shader, "u_GammaCorrection"), App->scene_manager->currentScene->m_SceneGammaCorrection);
+			glUniform4f(glGetUniformLocation(shader, "u_AmbientColor"), sc_color.x, sc_color.y, sc_color.z, 1.0f);
+		}
 
-		// --- Set Textures usage to 0 ---
+		// --- Set Textures usage to 0 --- MYTODO: Check if any variables passed to shader can be passed outside this function (called for each mesh)
 		//glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 0);
 		//glUniform1i(glGetUniformLocation(shader, "u_HasSpecularTexture"), 0);
 		//glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 0);
@@ -1154,12 +1221,17 @@ void ModuleRenderer3D::DrawPostProcessing()
 	// clear all relevant buffers
 	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glClear(GL_COLOR_BUFFER_BIT);
-
+	
 	uint shader = screenShader->ID;
+
 	glUseProgram(shader);
-	glUniform1f(glGetUniformLocation(shader, "u_GammaCorrection"), m_PostProGammaCorrection);
-	glUniform1f(glGetUniformLocation(shader, "u_HDR_Exposure"), m_PostProHDRExposure);
-	glUniform1i(glGetUniformLocation(shader, "u_UseHDR"), m_UseHDR);
+	if (App->scene_manager->currentScene)
+	{
+		ResourceScene* scene = App->scene_manager->currentScene;
+		glUniform1f(glGetUniformLocation(shader, "u_GammaCorrection"), scene->m_ScenePP_GammaCorr);
+		glUniform1f(glGetUniformLocation(shader, "u_HDR_Exposure"), scene->m_ScenePP_HDRExposure);
+		glUniform1i(glGetUniformLocation(shader, "u_UseHDR"), m_UseHDR);
+	}
 
 	glBindVertexArray(quadVAO);
 	glBindTexture(GL_TEXTURE_2D, rendertexture);	// use the color attachment texture as the texture of the quad plane
@@ -1274,10 +1346,20 @@ void ModuleRenderer3D::CreateFramebuffer()
 // ---------------------------------------------------------------------------------------------
 void ModuleRenderer3D::SetRendererBlending()
 {
+	if (App->scene_manager->currentScene == nullptr)
+		return;
+
+	ResourceScene* scene = App->scene_manager->currentScene;
+
+	//if (m_AutomaticBlendingFunc)
+	//	PickBlendingAutoFunction(m_RendererBlendFunc, m_BlendEquation);
+	//else
+	//	PickBlendingManualFunction(m_ManualBlend_Src, m_ManualBlend_Dst, m_BlendEquation);
+
 	if (m_AutomaticBlendingFunc)
-		PickBlendingAutoFunction(m_RendererBlendFunc, m_BlendEquation);
+		PickBlendingAutoFunction(scene->m_RendererBlendFunc, scene->m_BlendEquation);
 	else
-		PickBlendingManualFunction(m_ManualBlend_Src, m_ManualBlend_Dst, m_BlendEquation);
+		PickBlendingManualFunction(scene->m_ManualBlend_Src, scene->m_ManualBlend_Dst, scene->m_BlendEquation);
 
 	m_ChangedBlending = false;
 }
@@ -1945,7 +2027,7 @@ void ModuleRenderer3D::DrawGrid()
 
 void ModuleRenderer3D::DrawSkybox()
 {
-	if (!SkyboxShader)
+	if (!SkyboxShader || App->scene_manager->currentScene == nullptr)
 		return;
 
 	glDepthMask(GL_FALSE);
@@ -1956,9 +2038,11 @@ void ModuleRenderer3D::DrawSkybox()
 
 	App->renderer3D->active_camera->frustum.SetPos(float3::zero);
 
-	math::Quat rotationX = math::Quat::RotateAxisAngle(float3::unitY, skyboxangle.x * DEGTORAD);
-	math::Quat rotationY = math::Quat::RotateAxisAngle(float3::unitX, skyboxangle.y * DEGTORAD);
-	math::Quat rotationZ = math::Quat::RotateAxisAngle(float3::unitZ, skyboxangle.z * DEGTORAD);
+	ResourceScene* scene = App->scene_manager->currentScene;
+	float3 skyAngle = scene->m_Sky_Rotation;
+	math::Quat rotationX = math::Quat::RotateAxisAngle(float3::unitY, skyAngle.x * DEGTORAD);
+	math::Quat rotationY = math::Quat::RotateAxisAngle(float3::unitX, skyAngle.y * DEGTORAD);
+	math::Quat rotationZ = math::Quat::RotateAxisAngle(float3::unitZ, skyAngle.z * DEGTORAD);
 	math::Quat finalRotation = rotationX * rotationY * rotationZ;
 
 	//App->renderer3D->active_camera->frustum.SetUp(finalRotation.Mul(App->renderer3D->active_camera->frustum.Up()).Normalized());
@@ -1993,9 +2077,10 @@ void ModuleRenderer3D::DrawSkybox()
 	GLint projectLoc = glGetUniformLocation(App->renderer3D->SkyboxShader->ID, "u_Proj");
 	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
 
-	glUniform1f(glGetUniformLocation(SkyboxShader->ID, "u_GammaCorrection"), m_GammaCorrection);
-	glUniform1f(glGetUniformLocation(SkyboxShader->ID, "u_Exposure"), m_SkyboxExposure);
-	glUniform3f(glGetUniformLocation(SkyboxShader->ID, "u_Color"), m_SkyboxColor.x, m_SkyboxColor.y, m_SkyboxColor.z);
+	//Scene Rendering Elements Affecting Skybox
+	glUniform1f(glGetUniformLocation(SkyboxShader->ID, "u_GammaCorrection"), scene->m_SceneGammaCorrection);
+	glUniform1f(glGetUniformLocation(SkyboxShader->ID, "u_Exposure"), scene->m_Sky_Exposure);
+	glUniform3f(glGetUniformLocation(SkyboxShader->ID, "u_Color"), scene->m_Sky_ColorTint.x, scene->m_Sky_ColorTint.y, scene->m_Sky_ColorTint.z);
 
 	// skybox cube
 	glBindVertexArray(skyboxVAO);

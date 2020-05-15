@@ -21,6 +21,7 @@ private:
 	void BlendingSettings(bool& makeChanges);
 	void GeneralRendererSettings(bool& makeChanges);
 	void SkyboxSettings(bool& makeChanges);
+	void PostProcessingSettings(bool& makeChanges);
 
 private:
 
@@ -29,6 +30,7 @@ private:
 	float3 m_AmbientColorValue = float3::one;
 	float3 m_SkyboxColorValue = float3::one;
 	float m_SkyboxExposureValue = 1.0f;
+	float3 m_SkyboxAngle = float3::zero;
 
 	//PostPro Stuff
 	float m_PPExpHdr = 1.0f;

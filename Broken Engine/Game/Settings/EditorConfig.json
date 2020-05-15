@@ -196,30 +196,6 @@
         "restitution": 0.0,
         "staticFriction": 1.0
     },
-    "Renderer3D": {
-        "AlphaFunc": 0,
-        "BlendEquation": 0,
-        "GammaCorrection": 2.680000066757202,
-        "ManualAlphaFuncDst": 7,
-        "ManualAlphaFuncSrc": 6,
-        "RendAutoBlending": true,
-        "SceneAmbientColor": {
-            "B": 1.0,
-            "G": 1.0,
-            "R": 1.0
-        },
-        "SkyboxColorTint": {
-            "B": 1.0,
-            "G": 1.0,
-            "R": 1.0
-        },
-        "SkyboxExposure": 1.0,
-        "SkyboxRotation": {
-            "X": 0.0,
-            "Y": 0.0,
-            "Z": 0.0
-        }
-    },
     "Window": {
         "borderless": false,
         "fullscreen": false,
@@ -228,6 +204,6 @@
         "resizable": true,
         "sceneX": 480,
         "sceneY": 640,
-        "width": 1440
+        "width": 1691
     }
 }

@@ -53,7 +53,8 @@ void main()
 #define MAX_SHADER_LIGHTS 20
 
 //Output Variables
-out vec4 out_color;
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 BrightColor;
 
 //Input Variables (Varying)
 in vec2 v_TexCoord;
@@ -182,24 +183,14 @@ vec3 CalculateSpotlight(BrokenLight light, vec3 normal, vec3 viewDir)
 //------------------------------------------------------------------------------------------------------------------
 void main()
 {
-	// Transparency
-	float alpha = 1.0;
-	if(u_HasTransparencies == 1)
-	{
-		if(u_UseTextures == 0)
-			alpha = v_Color.a;
-		else
-			alpha = texture(u_AlbedoTexture, v_TexCoord).a * v_Color.a;
-	}
+	// --- Default Brightness color (none) ---
+	BrightColor = vec4(vec3(0.0), 1.0);
 
-	if(alpha < 0.004)
-		discard;
-
-	//Normal Mapping Calculations
+	// --- Normal Mapping Calculations & Debug Draw ---
 	vec3 normalVec = normalize(v_Normal);	
 	if(u_DrawNormalMapping == 1)
 	{
-		out_color = vec4(normalVec, 1.0);
+		FragColor = vec4(normalVec, 1.0);
 		return;
 	}
 	
@@ -212,7 +203,20 @@ void main()
 		//viewDirection = v_TBN * normalize(v_CamPos - v_FragPos);
 	}
 
-	//Light Calculations
+	// --- Transparency Calculations ---
+	float alpha = 1.0;
+	if(u_HasTransparencies == 1)
+	{
+		if(u_UseTextures == 0)
+			alpha = v_Color.a;
+		else
+			alpha = texture(u_AlbedoTexture, v_TexCoord).a * v_Color.a;
+	}
+
+	if(alpha < 0.004)
+		discard;
+
+	// --- Light Calculations ---
 	int lights_iterator = (u_LightsNumber > MAX_SHADER_LIGHTS ? MAX_SHADER_LIGHTS : u_LightsNumber);
 	vec3 colorResult = vec3(0.0);
 	for(int i = 0; i < lights_iterator; ++i)
@@ -237,25 +241,34 @@ void main()
 		}
 	}
 
+	// --- Final Coloring Calculations (or NormalMapping Debug) ---
 	if(u_DrawNormalMapping_Lit == 0 && u_DrawNormalMapping_Lit_Adv == 0)
 	{
 		vec3 finalColor = u_AmbientColor.rgb * v_Color.rgb;
 
-		//Resulting Color
+		//Resulting Color (whether it has textures or not)
 		if(u_UseTextures == 0 || (u_HasTransparencies == 0 && u_UseTextures == 1 && texture(u_AlbedoTexture, v_TexCoord).a < 0.1))
-			out_color = vec4(colorResult + finalColor, alpha);
+			FragColor = vec4(colorResult + finalColor, alpha);
 		else if(u_UseTextures == 1)
-			out_color = vec4(colorResult + finalColor * texture(u_AlbedoTexture, v_TexCoord).rgb, alpha);
+			FragColor = vec4(colorResult + finalColor * texture(u_AlbedoTexture, v_TexCoord).rgb, alpha);
 
-		out_color = pow(out_color, vec4(vec3(1.0/u_GammaCorrection), 1.0));
+		//Gamma Correction
+		FragColor = pow(FragColor, vec4(vec3(1.0/u_GammaCorrection), 1.0));
+
+		//Brightness Calculation & Output
+		vec3 BVec = vec3(0.2126, 0.7152, 0.0722);
+		//vec3 BVec = vec3(0.0);
+		float brightness = dot(FragColor.rgb, BVec); //Dot btwn color & bright threshold
+		if(brightness > 0.5)
+			BrightColor = vec4(FragColor.rgb, 1.0); //If bigger than threshold, then is brightened
 	}
 	else
 	{
 		//Normal Mapping Debgug
 		if(u_DrawNormalMapping_Lit == 1)
-			out_color = vec4(colorResult * normalVec, 1.0);
+			FragColor = vec4(colorResult * normalVec, 1.0);
 		else if(u_DrawNormalMapping_Lit_Adv == 1)
-			out_color = vec4(colorResult, 1.0);
+			FragColor = vec4(colorResult, 1.0);
 	}
 }
 

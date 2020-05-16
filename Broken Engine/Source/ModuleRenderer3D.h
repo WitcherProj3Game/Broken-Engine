@@ -239,6 +239,7 @@ public:
 	ResourceShader* ZDrawerShader = nullptr;
 	ResourceShader* screenShader = nullptr;
 	ResourceShader* UI_Shader = nullptr;
+	ResourceShader* BlurShader = nullptr;
 
 	ResourceShader* SkyboxShader = nullptr;
 
@@ -275,7 +276,7 @@ public:
 
 	uint rendertexture = 0;
 	uint depthMapTexture = 0;
-	//float3 skyboxangle = float3::zero;
+	uint brightnessTexture = 0;
 
 	//Blend Functions chars vector (for names)
 	std::vector<const char*> m_BlendAutoFunctionsVec;
@@ -298,6 +299,8 @@ private:
 
 	//Other Generic Stuff
 	uint fbo = 0;
+	uint fbo_pingpong[2];
+	uint pingpongBuffers[2];
 	uint cubemapTexID = 0;
 	uint skyboxVAO = 0;
 	uint skyboxVBO = 0;

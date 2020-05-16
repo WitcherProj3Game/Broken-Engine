@@ -14,6 +14,10 @@ void main()
 #ifdef FRAGMENT_SHADER
 
 uniform sampler2D screenTexture;
+uniform sampler2D bloomBlurTexture;
+
+bool useBloom = false;
+
 uniform vec2 screenTexture_size;
 uniform float u_GammaCorrection = 1.8;
 uniform float u_HDR_Exposure = 1.0;
@@ -25,7 +29,11 @@ in vec4 gl_FragCoord;
 void main()
 {
     vec3 textureOutput = texture(screenTexture, gl_FragCoord.xy / textureSize(screenTexture, 0)).rgb;
+	vec3 bloomTextureOutput = texture(bloomBlurTexture, gl_FragCoord.xy / textureSize(bloomBlurTexture, 0)).rgb;
 	vec3 finalColor = vec3(1.0);
+	
+	if(useBloom)
+		textureOutput += bloomTextureOutput;	
 
 	// --- HDR Application (or not) ---
 	if(u_UseHDR == true)

@@ -1213,32 +1213,57 @@ void ModuleRenderer3D::DrawPostProcessing()
 	glDisable(GL_BLEND); // we do not want blending
 
 	if (!drawfb)
-	{
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo); // if we do not want to draw the framebuffer we bind to draw the postprocessing into it
 		glEnable(GL_FRAMEBUFFER_SRGB); // our render texture is srgb so we need to enable this
+
+	// --- Bloom PostPro ---
+	bool horizontal = true, first_iteration = true;
+	uint BlurAmount = 10;
+
+	if (!drawfb)
+	{
+		glUseProgram(BlurShader->ID);
+		for (uint i = 0; i < BlurAmount; ++i)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, fbo_pingpong[horizontal]);
+			glUniform1i(glGetUniformLocation(BlurShader->ID, "u_HorizontalPass"), horizontal);
+			uint textureToBlur = first_iteration ? brightnessTexture : pingpongBuffers[!horizontal];
+			glBindTexture(GL_TEXTURE_2D, textureToBlur);
+			glBindVertexArray(quadVAO);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+
+			horizontal = !horizontal;
+			if (first_iteration) first_iteration = false;
+		}
+
+		glUseProgram(0); glBindVertexArray(0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0); glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
-	// clear all relevant buffers
-	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	//glClear(GL_COLOR_BUFFER_BIT);
+	// --- Standard/Normal FBO ---	
+	if (!drawfb)
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo); // if we do not want to draw the framebuffer we bind to draw the postprocessing into it
 	
-	uint shader = screenShader->ID;
-
+	uint shader = screenShader->ID; 
 	glUseProgram(shader);
+	glUniform1i(glGetUniformLocation(shader, "u_UseHDR"), m_UseHDR);
 	if (App->scene_manager->currentScene)
 	{
 		ResourceScene* scene = App->scene_manager->currentScene;
 		glUniform1f(glGetUniformLocation(shader, "u_GammaCorrection"), scene->m_ScenePP_GammaCorr);
 		glUniform1f(glGetUniformLocation(shader, "u_HDR_Exposure"), scene->m_ScenePP_HDRExposure);
-		glUniform1i(glGetUniformLocation(shader, "u_UseHDR"), m_UseHDR);
 	}
 
+	uint textureToRend = rendertexture; //rendertexture brightnessTexture
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureToRend);	// use the color attachment texture as the texture of the quad plane
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, pingpongBuffers[!horizontal]);	
 	glBindVertexArray(quadVAO);
-	glBindTexture(GL_TEXTURE_2D, rendertexture);	// use the color attachment texture as the texture of the quad plane
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	glEnable(GL_BLEND);
 	// --- Unbind buffers ---
+	glEnable(GL_BLEND);
 	if (!drawfb)
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -1247,6 +1272,7 @@ void ModuleRenderer3D::DrawPostProcessing()
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glUseProgram(0);
+	glActiveTexture(GL_TEXTURE0);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1325,6 +1351,12 @@ void ModuleRenderer3D::CreateFramebuffer()
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, App->window->GetWindowWidth(), App->window->GetWindowHeight());
 	glBindTexture(GL_TEXTURE_2D, 0);
 
+	// --- Create a 2nd Color Buffer (texture) to use as brightness output of shader (for bloom) ---
+	glGenTextures(1, &brightnessTexture);
+	glBindTexture(GL_TEXTURE_2D, brightnessTexture);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, App->window->GetWindowWidth(), App->window->GetWindowHeight());
+	glBindTexture(GL_TEXTURE_2D, 0);
+
 	// --- Generate attachments, DEPTH and STENCIL ---
 	glGenTextures(1, &depthbuffer);
 	glBindTexture(GL_TEXTURE_2D, depthbuffer);
@@ -1332,10 +1364,26 @@ void ModuleRenderer3D::CreateFramebuffer()
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// --- Generate framebuffer object (fbo) ---
+	uint attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 	glGenFramebuffers(1, &fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rendertexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, brightnessTexture, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthbuffer, 0);
+	glDrawBuffers(2, attachments);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// --- Generate PingPong FBOs to bloom ---
+	glGenFramebuffers(2, fbo_pingpong);
+	glGenTextures(2, pingpongBuffers);
+	for (uint i = 0; i < 2; ++i)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo_pingpong[i]);
+		glBindTexture(GL_TEXTURE_2D, pingpongBuffers[i]);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, App->window->GetWindowWidth(), App->window->GetWindowHeight());
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongBuffers[i], 0);
+	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -1907,6 +1955,67 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	UI_Shader->SetName("UI Shader");
 	UI_Shader->LoadToMemory();
 	IShader->Save(UI_Shader);
+
+	const char* vertexBlurShader =
+		R"(	#version 440 core
+			#define VERTEX_SHADER
+			#ifdef VERTEX_SHADER			
+			layout (location = 0) in vec3 a_Position;
+			layout (location = 3) in vec2 a_TexCoord;			
+			out vec2 v_TexCoords;			
+			void main()
+			{
+				v_TexCoords = a_TexCoord;
+				gl_Position = vec4(a_Position, 1.0);
+			}
+			#endif //VERTEX_SHADER)";
+
+	const char* fragmentBlurShader =
+		R"(	#version 440 core
+			#define FRAGMENT_SHADER
+			#ifdef FRAGMENT_SHADER
+			uniform sampler2D u_ImageToBlur;
+			uniform float u_BlurWeights[5];
+			uniform bool u_HorizontalPass = true;
+			in vec2 v_TexCoords;
+			out vec4 FragColor;
+			void main()
+			{
+				vec2 texture_offset = 1.0/textureSize(u_ImageToBlur, 0);
+				vec3 finalColor = texture(u_ImageToBlur, v_TexCoords).rgb * u_BlurWeights[0];
+				if(u_HorizontalPass)
+				{
+					for(int i = 1; i < 5; ++i) //For amount of blur passes
+					{
+						finalColor += texture(u_ImageToBlur, v_TexCoords + vec2(texture_offset.x*i, 0.0)).rgb * u_BlurWeights[i];
+						finalColor += texture(u_ImageToBlur, v_TexCoords - vec2(texture_offset.x*i, 0.0)).rgb * u_BlurWeights[i];
+					}
+				}
+				else
+					for(int i = 1; i < 5; ++i) //For amount of blur passes
+					{
+						finalColor += texture(u_ImageToBlur, v_TexCoords + vec2(0.0, texture_offset.y*i)).rgb * u_BlurWeights[i];
+						finalColor += texture(u_ImageToBlur, v_TexCoords - vec2(0.0, texture_offset.y*i)).rgb * u_BlurWeights[i];
+					}
+				}
+				FragColor = vec4(finalColor, 1.0);
+			}
+			#endif //FRAGMENT_SHADER)";
+
+	BlurShader = (ResourceShader*)App->resources->CreateResourceGivenUID(Resource::ResourceType::SHADER, "Assets/Shaders/BlurShader.glsl", 16);
+	BlurShader->vShaderCode = vertexBlurShader;
+	BlurShader->fShaderCode = fragmentBlurShader;
+	BlurShader->ReloadAndCompileShader();
+	BlurShader->SetName("Blur Shader");
+	BlurShader->LoadToMemory();
+	IShader->Save(BlurShader);
+
+	//For further shader creations:
+	/*
+	const char* fragmentBlurShader =
+		R"( //Insert shader body here
+		)";
+	*/
 
 	defaultShader->use();
 }

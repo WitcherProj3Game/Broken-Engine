@@ -72,7 +72,9 @@ bool ResourceScene::LoadInMemory()
 			{
 				// --- Retrieve GO's UID ---
 				std::string uid = it.key().c_str();
-				if (uid == "Navigation Data" || uid == "octreeBox" || uid == "SceneAmbientColor")
+
+				//If 1st character is not a number, is not an UID so we are not iterating an object (so continue)
+				if (uid[0] < '0' || uid[0] > '9')
 					continue;
 
 				// --- Create a Game Object for each node ---
@@ -165,6 +167,10 @@ bool ResourceScene::LoadInMemory()
 
 			for (json::iterator it = file.begin(); it != file.end(); ++it)
 			{
+				//If not a JSON object, continue
+				if(!file[it.key()].is_object())
+					continue;
+
 				// --- Iterate components ---
 				json components = file[it.key()]["Components"];
 				if (!components.is_null()) {

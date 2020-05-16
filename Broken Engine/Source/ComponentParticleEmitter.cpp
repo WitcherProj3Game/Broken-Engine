@@ -18,6 +18,7 @@
 #include "ModuleResourceManager.h"
 #include "ModuleFileSystem.h"
 #include "ModuleSceneManager.h"
+#include "ModuleSelection.h"
 #include "ModuleGui.h"
 
 #include "Particle.h"
@@ -106,6 +107,8 @@ ComponentParticleEmitter::~ComponentParticleEmitter()
 
 void ComponentParticleEmitter::Update()
 {
+	if (App->selection->IsSelected(GO))
+		DrawEmitterArea();
 
 	if (!animation || !createdAnim) {
 		if (particleMeshes.size() > 0) {
@@ -158,6 +161,7 @@ void ComponentParticleEmitter::Disable()
 
 void ComponentParticleEmitter::UpdateParticles(float dt)
 {
+
 	int currentPlayTime = App->time->GetGameplayTimePassed() * 1000;
 
 	// Create particle depending on the time
@@ -198,6 +202,8 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 	std::vector<physx::PxU32> indicesToErease;
 	uint particlesToRelease = 0;
 
+	float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
+
 	// access particle data from physx::PxParticleReadData
 	if (rd)
 	{
@@ -224,6 +230,10 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				}
 
 				particles[i]->position = float3(positionIt->x, positionIt->y, positionIt->z);
+				if (followEmitter)
+				{
+					particles[i]->position += globalPosition - particles[i]->emitterSpawnPosition;
+				}
 
 				if (colorGradient && gradients.size() > 0)
 				{
@@ -412,6 +422,8 @@ json ComponentParticleEmitter::Save() const
 	node["velocityRandomFactor2Z"] = std::to_string(velocityRandomFactor2.z);
 	node["velocityconstants"] = std::to_string(velocityconstants);
 
+	node["followEmitter"] = followEmitter;
+
 	node["particlesLifeTime"] = std::to_string(particlesLifeTime);
 
 	node["animation"] = std::to_string(animation);
@@ -546,6 +558,8 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string LparticlesLifeTime2 = node["particlesLifeTime2"].is_null() ? "0" : node["particlesLifeTime2"];
 	std::string _lifetimeconstants = node["lifetimeconstants"].is_null() ? "0" : node["lifetimeconstants"];
 
+	followEmitter = node["followEmitter"].is_null() ? true : node["followEmitter"].get<bool>();
+
 	std::string LParticlesSize = node["particlesSize"].is_null() ? "0" : node["particlesSize"];
 
 	std::string _animation = node["animation"].is_null() ? "0" : node["animation"];
@@ -655,6 +669,8 @@ void ComponentParticleEmitter::Load(json& node)
 
 	if (texture)
 		texture->AddUser(GO);
+
+
 
 	//Pass the strings to the needed dada types
 	emitterPosition.x = std::stof(LpositionX);
@@ -916,6 +932,10 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	if (forceChanged)
 		particleSystem->setExternalAcceleration(externalAcceleration);
 
+
+	//Follow emitter
+	ImGui::Text("Follow emitter");
+	ImGui::Checkbox("##SFollow emitter", &followEmitter);
 
 	//Emision rate
 	ImGui::Text("Emision rate (ms)");
@@ -1400,7 +1420,9 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 
 	if (validParticles < maxParticles)
 	{
-		Quat rotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
+		Quat totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
+		Quat externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
+		float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
 
 		if (particlesToCreate > maxParticles - validParticles)
 			particlesToCreate = maxParticles - validParticles;
@@ -1410,15 +1432,14 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 
 		physx::PxParticleCreationData creationData;
 
-		//Create 1 particle each time
+		//Create necessary amount of particles
 		creationData.numParticles = particlesToCreate;
+
+		//Create indices and allocate them
 		physx::PxU32* index = new physx::PxU32[particlesToCreate];
-
 		const physx::PxStrideIterator<physx::PxU32> indexBuffer(index);
-
 		indexPool->allocateIndices(particlesToCreate, indexBuffer);
 
-		float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
 
 		physx::PxVec3* positionBuffer = new physx::PxVec3[particlesToCreate];
 		physx::PxVec3* velocityBuffer = new physx::PxVec3[particlesToCreate];
@@ -1432,27 +1453,43 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 				particlesVelocity.z + ((velocityRandomFactor1.z < velocityRandomFactor2.z) ? GetRandomValue(velocityRandomFactor1.z, velocityRandomFactor2.z) : GetRandomValue(velocityRandomFactor2.z, velocityRandomFactor1.z)));
 
 			Quat velocityQuat = Quat(velocity.x, velocity.y, velocity.z, 0);
-
-			velocityQuat = rotation * velocityQuat * rotation.Conjugated();
-
+			velocityQuat = totalRotation * velocityQuat * totalRotation.Conjugated();
 			velocityBuffer[i] = physx::PxVec3(velocityQuat.x, velocityQuat.y, velocityQuat.z);
 
-			//Set position of the new particles
-			physx::PxVec3 position(GetRandomValue(-size.x, size.x) + emitterPosition.x,
-				+GetRandomValue(-size.y, size.y) + emitterPosition.y,
-				+GetRandomValue(-size.z, size.z) + emitterPosition.z);
+			/*The spawn position of the particle is a combination of different variables (size, emmitter position and global position).
+			Each are affected by different rotations:
+				- positionFromSize is affected by totalRotation (globalRotation * emitterRotation)
+				- positionFromEmitterPos is only affected by externalRotation (rotation of the GO)
+				- globalPosition is not affected by these rotations (only affected by the rotations of the parents of the GO*/
+
+			//Set positionFromSize of the new particles
+			physx::PxVec3 positionFromSize(GetRandomValue(-size.x, size.x),
+				+GetRandomValue(-size.y, size.y),
+				+GetRandomValue(-size.z, size.z));
 
 
-			Quat positionQuat = Quat(position.x, position.y, position.z, 0);
-			positionQuat = rotation * rotation.Conjugated();
-			positionBuffer[i] = physx::PxVec3(globalPosition.x, globalPosition.y, globalPosition.z + App->RandomNumberGenerator.GetDoubleRNinRange(-0.5, 0.5));
+			Quat positionFromSizeQuat = Quat(positionFromSize.x, positionFromSize.y, positionFromSize.z, 0);
+			positionFromSizeQuat = totalRotation * positionFromSizeQuat * totalRotation.Conjugated();
 
+			//Set positionFromEmitterPos
+			physx::PxVec3 positionFromEmitterPos(emitterPosition.x,emitterPosition.y,emitterPosition.z);
+
+			Quat positionFromEmitterPosQuat = Quat(positionFromEmitterPos.x, positionFromEmitterPos.y, positionFromEmitterPos.z, 0);
+			positionFromEmitterPosQuat = externalRotation * positionFromEmitterPosQuat * externalRotation.Conjugated();
+
+			//Assign final position to the particle
+			positionBuffer[i] =  physx::PxVec3(	positionFromSizeQuat.x + positionFromEmitterPosQuat.x + globalPosition.x,
+												positionFromSizeQuat.y + positionFromEmitterPosQuat.y + globalPosition.y,
+												positionFromSizeQuat.z + positionFromEmitterPosQuat.z + globalPosition.z);
+
+			//Aditional properties
 			particles[index[i]]->lifeTime = particlesLifeTime;
 			particles[index[i]]->spawnTime = spawnClock;
 			particles[index[i]]->color = colors[0];
 			particles[index[i]]->texture = texture;
 			particles[index[i]]->gradientTimer = spawnClock;
 			particles[index[i]]->currentGradient = 0;
+			particles[index[i]]->emitterSpawnPosition = globalPosition;
 
 			//Set scale
 			if (scaleconstants == 1) {
@@ -1557,6 +1594,25 @@ void ComponentParticleEmitter::UpdateAllGradients()
 			}
 		}
 	}
+}
+
+void ComponentParticleEmitter::DrawEmitterArea()
+{
+	Quat totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
+	Quat externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
+	float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
+
+	AABB aabb(float3(-size.x, -size.y, -size.z), float3(size.x, size.y, size.z));
+
+	emisionAreaOBB.SetFrom(aabb, totalRotation);
+
+	Quat positionFromEmitterPosQuat(emitterPosition.x, emitterPosition.y, emitterPosition.z, 0);
+	positionFromEmitterPosQuat = externalRotation * positionFromEmitterPosQuat * externalRotation.Conjugated();
+
+	emisionAreaOBB.pos = emisionAreaOBB.pos + float3(positionFromEmitterPosQuat.x + globalPosition.x, positionFromEmitterPosQuat.y + globalPosition.y, positionFromEmitterPosQuat.z + globalPosition.z);
+	App->renderer3D->DrawOBB(emisionAreaOBB, Blue);
+
+
 }
 
 void ComponentParticleEmitter::Play()

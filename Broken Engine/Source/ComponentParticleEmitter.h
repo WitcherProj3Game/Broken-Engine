@@ -36,8 +36,10 @@ public:
 	// --- Save & Load ---
 	json Save() const override;
 	void Load(json& node) override;
-	void CreateInspectorNode() override;
 
+	// -- Other functionalities
+	void CreateInspectorNode() override;
+	void DrawEmitterArea();
 
 	//Scripting functions
 	//Emitter
@@ -137,6 +139,7 @@ private:
 	ResourceTexture* texture = nullptr;
 	int lifetimeconstants = 0;
 	int velocityconstants = 0;
+	bool followEmitter = true;
 
 	//Colors
 	bool colorGradient = false;
@@ -160,6 +163,8 @@ private:
 	BlendAutoFunction m_PartBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
 	BlendingTypes m_MPartBlend_Src = BlendingTypes::SRC_ALPHA, m_MPartBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
 
+	//Drawing
+	OBB emisionAreaOBB;
 };
 BE_END_NAMESPACE
 

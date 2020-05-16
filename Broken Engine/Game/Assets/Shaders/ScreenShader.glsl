@@ -16,9 +16,8 @@ void main()
 uniform sampler2D screenTexture;
 uniform sampler2D bloomBlurTexture;
 
-bool useBloom = false;
+uniform bool u_UseBloom = true;
 
-uniform vec2 screenTexture_size;
 uniform float u_GammaCorrection = 1.8;
 uniform float u_HDR_Exposure = 1.0;
 uniform bool u_UseHDR = true;
@@ -32,7 +31,7 @@ void main()
 	vec3 bloomTextureOutput = texture(bloomBlurTexture, gl_FragCoord.xy / textureSize(bloomBlurTexture, 0)).rgb;
 	vec3 finalColor = vec3(1.0);
 	
-	if(useBloom)
+	if(u_UseBloom)
 		textureOutput += bloomTextureOutput;	
 
 	// --- HDR Application (or not) ---

@@ -170,6 +170,10 @@ public:
 	// --- Rendering PostPro Effects ---
 	void SetPostProHDRExposure(float exposure);
 	void SetPostProGammaCorrection(float value);
+	void SetPostProBloomMinBrightness(float value);
+	void SetPostProBloomBrightnessThreshold(float3 value);
+	void SetPostProBloomBlur(uint amount);
+	void SetPostProBloomWeights(float3 weights1, float2 weights2);
 
 	// --- Getters ---
 	bool GetVSync() const { return vsync; }
@@ -185,6 +189,10 @@ public:
 	// --- Rendering PostPro ---
 	float GetPostProGammaCorrection() const;
 	float GetPostProHDRExposure() const;
+	float GetPostProBloomMinBrightness() const;
+	float3 GetPostProBloomBrightnessThreshold() const;
+	void GetPostProBloomBlur(uint& amount);
+	void GetPostProBloomWeights(float3& weights1, float2& weights2);
 
 private:
 
@@ -273,6 +281,8 @@ public:
 	bool m_ChangedBlending = false;
 	bool m_AutomaticBlendingFunc = true;
 	bool m_UseHDR = false;
+	bool m_UseBloom = false;
+	bool m_RenderBloomOnly = false;
 
 	uint rendertexture = 0;
 	uint depthMapTexture = 0;

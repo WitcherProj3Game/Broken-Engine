@@ -304,6 +304,12 @@ void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms)
 			|| strcmp(name, "u_Exposure") == 0
 			|| strcmp(name, "u_HDR_Exposure") == 0
 			|| strcmp(name, "u_UseHDR") == 0
+			|| strcmp(name, "u_UseBloom") == 0
+			|| strcmp(name, "u_BrightnessThreshold") == 0
+			|| strcmp(name, "u_MinBrightness") == 0
+			|| strcmp(name, "u_BlurWeights1") == 0
+			|| strcmp(name, "u_BlurWeights2") == 0
+			|| strcmp(name, "u_HorizontalPass") == 0
 			|| std::string(name).find("u_BkLights") != std::string::npos
 			|| strcmp(name, "time") == 0)
 			continue;
@@ -312,6 +318,9 @@ void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms)
 
 		// --- This switch prevents retrieving unwanted/unsupported uniforms ---
 		// MYTODO: we may avoid the switch by defining some filters and testing against them
+		//Lucho's comment: Maybe a way is to define as "unwanted/unsopported to be shown" uniforms the ones
+		//that begin with "u_"... I think that a standard is to set internal uniforms as "u_", varyings as "v_", and
+		//layouts as "a_"
 
 		switch (type) 
 		{

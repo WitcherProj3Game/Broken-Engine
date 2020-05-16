@@ -520,21 +520,50 @@ void ModuleRenderer3D::SetSkyboxExposure(float value)
 		App->scene_manager->currentScene->m_Sky_Exposure = value;
 }
 
+void ModuleRenderer3D::SetSkyboxRotation(const float3& rot)
+{
+	if (App->scene_manager->currentScene)
+		App->scene_manager->currentScene->m_Sky_Rotation = rot;
+}
+
+
 void ModuleRenderer3D::SetPostProHDRExposure(float exposure) 
 { 
 	if (App->scene_manager->currentScene)
 		App->scene_manager->currentScene->m_ScenePP_HDRExposure = exposure;
 }
+
 void ModuleRenderer3D::SetPostProGammaCorrection(float value) 
 { 
 	if (App->scene_manager->currentScene)
 		App->scene_manager->currentScene->m_ScenePP_GammaCorr = value;
 }
 
-void ModuleRenderer3D::SetSkyboxRotation(const float3& rot)
+void ModuleRenderer3D::SetPostProBloomMinBrightness(float value)
 {
 	if (App->scene_manager->currentScene)
-		App->scene_manager->currentScene->m_Sky_Rotation = rot;
+		App->scene_manager->currentScene->m_ScenePP_BloomMinBrightness = value;
+}
+
+void ModuleRenderer3D::SetPostProBloomBrightnessThreshold(float3 value)
+{
+	if (App->scene_manager->currentScene)
+		App->scene_manager->currentScene->m_ScenePP_BloomBrightnessThreshold = value;
+}
+
+void ModuleRenderer3D::SetPostProBloomBlur(uint amount)
+{
+	if (App->scene_manager->currentScene)
+		App->scene_manager->currentScene->m_ScenePP_BloomBlurAmount = amount;
+}
+
+void ModuleRenderer3D::SetPostProBloomWeights(float3 weights1, float2 weights2)
+{
+	if (App->scene_manager->currentScene)
+	{
+		App->scene_manager->currentScene->m_ScenePP_BlurWeights1 = weights1;
+		App->scene_manager->currentScene->m_ScenePP_BlurWeights2 = weights2;
+	}
 }
 
 // --- Getters ---
@@ -600,6 +629,14 @@ float ModuleRenderer3D::GetSkyboxExposure() const
 		return -1.0f;
 }
 
+float3 ModuleRenderer3D::GetSkyboxRotation() const
+{
+	if (App->scene_manager->currentScene)
+		return App->scene_manager->currentScene->m_Sky_Rotation;
+	else
+		return -float3::one;
+}
+
 float ModuleRenderer3D::GetPostProGammaCorrection() const 
 {
 	if (App->scene_manager->currentScene)
@@ -616,13 +653,38 @@ float ModuleRenderer3D::GetPostProHDRExposure() const
 		return -1.0f;
 }
 
-float3 ModuleRenderer3D::GetSkyboxRotation() const
+float ModuleRenderer3D::GetPostProBloomMinBrightness() const
 {
 	if (App->scene_manager->currentScene)
-		return App->scene_manager->currentScene->m_Sky_Rotation;
+		return App->scene_manager->currentScene->m_ScenePP_BloomMinBrightness;
+	else
+		return -1.0f;
+}
+
+float3 ModuleRenderer3D::GetPostProBloomBrightnessThreshold() const
+{
+	if (App->scene_manager->currentScene)
+		return App->scene_manager->currentScene->m_ScenePP_BloomBrightnessThreshold;
 	else
 		return -float3::one;
 }
+
+void ModuleRenderer3D::GetPostProBloomWeights(float3& weights1, float2& weights2)
+{
+	if (App->scene_manager->currentScene)
+	{
+		weights1 = App->scene_manager->currentScene->m_ScenePP_BlurWeights1;
+		weights2 = App->scene_manager->currentScene->m_ScenePP_BlurWeights2;
+	}
+}
+
+void ModuleRenderer3D::GetPostProBloomBlur(uint& amount)
+{
+	if (App->scene_manager->currentScene)
+		amount = App->scene_manager->currentScene->m_ScenePP_BloomBlurAmount;
+}
+
+
 
 bool ModuleRenderer3D::SetVSync(bool _vsync)
 {
@@ -1005,39 +1067,8 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
 		// ------------------------ Shader Stuff ------------------------
 		glUseProgram(shader);
 
-		// --- Transparency Uniform ---
-		glUniform1i(glGetUniformLocation(shader, "u_HasTransparencies"), (int)mesh->mat->has_transparencies);
-
-		int skyboxUnifLoc = glGetUniformLocation(shader, "skybox");
-		if (skyboxUnifLoc != -1)
-		{
-			glUniform1i(skyboxUnifLoc, 0);
-			glActiveTexture(GL_TEXTURE0 + 0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexID);
-		}
-
-		if (mesh->mat->has_transparencies)
-			mesh->mat->SetBlending();
-
 		if (!mesh->mat->has_culling)
 			glDisable(GL_CULL_FACE);
-
-		// --- Set Normal Mapping Draw ---
-		glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit"), (int)m_Draw_normalMapping_Lit);
-		glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit_Adv"), (int)m_Draw_normalMapping_Lit_Adv);
-
-		// --- Gamma Correction & Ambient Color Values ---
-		if (App->scene_manager->currentScene)
-		{
-			float3 sc_color = App->scene_manager->currentScene->m_SceneColor;
-			glUniform1f(glGetUniformLocation(shader, "u_GammaCorrection"), App->scene_manager->currentScene->m_SceneGammaCorrection);
-			glUniform4f(glGetUniformLocation(shader, "u_AmbientColor"), sc_color.x, sc_color.y, sc_color.z, 1.0f);
-		}
-
-		// --- Set Textures usage to 0 --- MYTODO: Check if any variables passed to shader can be passed outside this function (called for each mesh)
-		//glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 0);
-		//glUniform1i(glGetUniformLocation(shader, "u_HasSpecularTexture"), 0);
-		//glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 0);
 
 		// --- Send Color ---
 		glUniform4f(glGetUniformLocation(shader, "u_Color"), colorToDraw.x, colorToDraw.y, colorToDraw.z, 1.0f);
@@ -1055,6 +1086,8 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances)
 			// Material
 			if (mesh->mat)
 			{
+				mesh->mat->SetBlending();
+				glUniform1i(glGetUniformLocation(shader, "u_HasTransparencies"), (int)mesh->mat->has_transparencies);
 				glUniform1f(glGetUniformLocation(shader, "u_Shininess"), mesh->mat->m_Shininess);
 				glUniform4f(glGetUniformLocation(shader, "u_Color"), mesh->mat->m_AmbientColor.x, mesh->mat->m_AmbientColor.y, mesh->mat->m_AmbientColor.z, mesh->mat->m_AmbientColor.w);
 
@@ -1193,6 +1226,35 @@ void ModuleRenderer3D::SendShaderUniforms(uint shader)
 	glUniform1i(glGetUniformLocation(shader, "u_HasSpecularTexture"), 0);
 	glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 0);
 
+	// --- Set Normal Mapping Draw ---
+	glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit"), (int)m_Draw_normalMapping_Lit);
+	glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit_Adv"), (int)m_Draw_normalMapping_Lit_Adv);
+
+	// --- Gamma Correction & Ambient Color Values ---
+	if (App->scene_manager->currentScene && shader == defaultShader->ID)
+	{
+		float3 sc_color = App->scene_manager->currentScene->m_SceneColor;
+		glUniform1f(glGetUniformLocation(shader, "u_GammaCorrection"), App->scene_manager->currentScene->m_SceneGammaCorrection);
+		glUniform4f(glGetUniformLocation(shader, "u_AmbientColor"), sc_color.x, sc_color.y, sc_color.z, 1.0f);
+
+		//Bloom Brightness for PostPro
+		float3 sc_brightThresh = App->scene_manager->currentScene->m_ScenePP_BloomBrightnessThreshold;
+
+		int xdd = glGetUniformLocation(shader, "u_MinBrightness");
+		int xdddd = glGetUniformLocation(shader, "u_BrightnessThreshold");
+
+		glUniform1f(glGetUniformLocation(shader, "u_MinBrightness"), App->scene_manager->currentScene->m_ScenePP_BloomMinBrightness);
+		glUniform3f(glGetUniformLocation(shader, "u_BrightnessThreshold"), sc_brightThresh.x, sc_brightThresh.y, sc_brightThresh.z);
+	}
+
+	// --- Scene Skybox ---
+	int skyboxUnifLoc = glGetUniformLocation(shader, "skybox");
+	if (skyboxUnifLoc != -1)
+	{
+		glUniform1i(skyboxUnifLoc, 0);
+		glActiveTexture(GL_TEXTURE0 + 0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexID);
+	}
 
 	int lightsNumLoc = glGetUniformLocation(shader, "u_LightsNumber");
 	if (shader == defaultShader->ID || lightsNumLoc != -1)
@@ -1217,17 +1279,25 @@ void ModuleRenderer3D::DrawPostProcessing()
 
 	// --- Bloom PostPro ---
 	bool horizontal = true, first_iteration = true;
-	uint BlurAmount = 10;
+	ResourceScene* currScene = App->scene_manager->currentScene;
+	uint BlurAmount = currScene->m_ScenePP_BloomBlurAmount;
 
-	if (!drawfb)
+	if (!drawfb && m_UseBloom && currScene)
 	{
 		glUseProgram(BlurShader->ID);
 		for (uint i = 0; i < BlurAmount; ++i)
 		{
+			float3 weights = currScene->m_ScenePP_BlurWeights1;
 			glBindFramebuffer(GL_FRAMEBUFFER, fbo_pingpong[horizontal]);
 			glUniform1i(glGetUniformLocation(BlurShader->ID, "u_HorizontalPass"), horizontal);
+			glUniform3f(glGetUniformLocation(BlurShader->ID, "u_BlurWeights1"), weights.x, weights.y, weights.z);
+			glUniform2f(glGetUniformLocation(BlurShader->ID, "u_BlurWeights2"), currScene->m_ScenePP_BlurWeights2.x, currScene->m_ScenePP_BlurWeights2.y);
 			uint textureToBlur = first_iteration ? brightnessTexture : pingpongBuffers[!horizontal];
+
+			//glUniform1i(glGetUniformLocation(BlurShader->ID, "u_ImageToBlur"), 0);
+			//glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, textureToBlur);
+
 			glBindVertexArray(quadVAO);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -1246,19 +1316,25 @@ void ModuleRenderer3D::DrawPostProcessing()
 	uint shader = screenShader->ID; 
 	glUseProgram(shader);
 	glUniform1i(glGetUniformLocation(shader, "u_UseHDR"), m_UseHDR);
-	if (App->scene_manager->currentScene)
+	glUniform1i(glGetUniformLocation(shader, "u_UseBloom"), m_UseBloom);
+	if (currScene)
 	{
-		ResourceScene* scene = App->scene_manager->currentScene;
-		glUniform1f(glGetUniformLocation(shader, "u_GammaCorrection"), scene->m_ScenePP_GammaCorr);
-		glUniform1f(glGetUniformLocation(shader, "u_HDR_Exposure"), scene->m_ScenePP_HDRExposure);
+		glUniform1f(glGetUniformLocation(shader, "u_GammaCorrection"), currScene->m_ScenePP_GammaCorr);
+		glUniform1f(glGetUniformLocation(shader, "u_HDR_Exposure"), currScene->m_ScenePP_HDRExposure);
 	}
 
 	uint textureToRend = rendertexture; //rendertexture brightnessTexture
+	if (m_RenderBloomOnly)
+		textureToRend = brightnessTexture;
 
+	//glUniform1i(glGetUniformLocation(shader, "screenTexture"), 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureToRend);	// use the color attachment texture as the texture of the quad plane
+
+	//glUniform1i(glGetUniformLocation(shader, "bloomBlurTexture"), 1);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, pingpongBuffers[!horizontal]);	
+
 	glBindVertexArray(quadVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 

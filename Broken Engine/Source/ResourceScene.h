@@ -50,9 +50,16 @@ private:
 	float3 m_Sky_ColorTint = float3(1.0f);
 	float3 m_Sky_Rotation = float3(0.0f);
 
-	//bool m_ScenePP_HDRUsage = false;
+	//Postpro
 	float m_ScenePP_HDRExposure = 1.0f;
 	float m_ScenePP_GammaCorr = 1.0f;
+
+	float m_ScenePP_BloomMinBrightness = 1.0f;
+	float3 m_ScenePP_BloomBrightnessThreshold = float3(0.2126, 0.7152, 0.0722);
+	uint m_ScenePP_BloomBlurAmount = 10;
+	
+	float3 m_ScenePP_BlurWeights1 = float3(0.2270270270, 0.1945945946, 0.1216216216);
+	float2 m_ScenePP_BlurWeights2 = float2(0.0540540541, 0.0162162162);
 
 	//Blending Stuff
 	bool m_SceneAutoBlend = true;

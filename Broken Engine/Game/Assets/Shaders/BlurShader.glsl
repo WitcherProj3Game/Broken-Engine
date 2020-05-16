@@ -18,7 +18,8 @@ void main()
 #ifdef FRAGMENT_SHADER
 
 uniform sampler2D u_ImageToBlur;
-uniform float u_BlurWeights[5] = float[](0.2270270270, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162);
+uniform vec3 u_BlurWeights1 = vec3(0.2270270270, 0.1945945946, 0.1216216216);
+uniform vec2 u_BlurWeights2 = vec2(0.0540540541, 0.0162162162);
 uniform bool u_HorizontalPass = true;
 
 in vec2 v_TexCoords;
@@ -27,24 +28,26 @@ in vec4 gl_FragCoord;
 
 void main()
 {
+	float BlurWeights[5] = float[](u_BlurWeights1.x, u_BlurWeights1.y, u_BlurWeights1.z, u_BlurWeights2.x, u_BlurWeights2.y);
+
 	vec2 texture_offset = 1.0/textureSize(u_ImageToBlur, 0);
-	vec3 finalColor = texture(u_ImageToBlur, v_TexCoords).rgb * u_BlurWeights[0];
-	finalColor = texture(u_ImageToBlur, gl_FragCoord.xy / textureSize(u_ImageToBlur, 0)).rgb * u_BlurWeights[0];
+	vec3 finalColor = texture(u_ImageToBlur, v_TexCoords).rgb * BlurWeights[0];
+	finalColor = texture(u_ImageToBlur, gl_FragCoord.xy / textureSize(u_ImageToBlur, 0)).rgb * BlurWeights[0];
 
 	if(u_HorizontalPass)
 	{
-		for(int i = 1; i < 5; ++i) //For amount of blur passes
+		for(int i = 1; i < 5 ; ++i) //For amount of blur passes
 		{
-			finalColor += texture(u_ImageToBlur, v_TexCoords + vec2(texture_offset.x*i, 0.0)).rgb * u_BlurWeights[i];
-			finalColor += texture(u_ImageToBlur, v_TexCoords - vec2(texture_offset.x*i, 0.0)).rgb * u_BlurWeights[i];
+			finalColor += texture(u_ImageToBlur, v_TexCoords + vec2(texture_offset.x*i, 0.0)).rgb * BlurWeights[i];
+			finalColor += texture(u_ImageToBlur, v_TexCoords - vec2(texture_offset.x*i, 0.0)).rgb * BlurWeights[i];
 		}
 	}
 	else
 	{
-		for(int i = 1; i < 5; ++i) //For amount of blur passes
+		for(int i = 1; i < 5 ; ++i) //For amount of blur passes
 		{
-			finalColor += texture(u_ImageToBlur, v_TexCoords + vec2(0.0, texture_offset.y*i)).rgb * u_BlurWeights[i];
-			finalColor += texture(u_ImageToBlur, v_TexCoords - vec2(0.0, texture_offset.y*i)).rgb * u_BlurWeights[i];
+			finalColor += texture(u_ImageToBlur, v_TexCoords + vec2(0.0, texture_offset.y*i)).rgb * BlurWeights[i];
+			finalColor += texture(u_ImageToBlur, v_TexCoords - vec2(0.0, texture_offset.y*i)).rgb * BlurWeights[i];
 		}
 	}
 

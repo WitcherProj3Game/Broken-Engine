@@ -33,6 +33,11 @@ void PanelRendering::SetupValues()
 
 	m_PPExpHdr = EngineApp->renderer3D->GetPostProHDRExposure();
 	m_PPGamma = EngineApp->renderer3D->GetPostProGammaCorrection();
+
+	m_PPBloomMinBright = EngineApp->renderer3D->GetPostProBloomMinBrightness();
+	m_PPBloomBrightThresh = EngineApp->renderer3D->GetPostProBloomBrightnessThreshold();
+	EngineApp->renderer3D->GetPostProBloomBlur((uint&)m_PPBloomBlurAmount);
+	EngineApp->renderer3D->GetPostProBloomWeights(m_PPBloom_Weights1, m_PPBloom_Weights2);
 }
 
 
@@ -51,6 +56,11 @@ void PanelRendering::SetRendererValues()
 
 	EngineApp->renderer3D->SetPostProHDRExposure(m_PPExpHdr);
 	EngineApp->renderer3D->SetPostProGammaCorrection(m_PPGamma);
+
+	EngineApp->renderer3D->SetPostProBloomMinBrightness(m_PPBloomMinBright);
+	EngineApp->renderer3D->SetPostProBloomBrightnessThreshold(m_PPBloomBrightThresh);
+	EngineApp->renderer3D->SetPostProBloomBlur((uint)m_PPBloomBlurAmount);
+	EngineApp->renderer3D->SetPostProBloomWeights(m_PPBloom_Weights1, m_PPBloom_Weights2);
 }
 
 
@@ -180,6 +190,7 @@ void PanelRendering::SkyboxSettings(bool& makeChanges)
 	// --- Skybox Rotation ---
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
 	ImGui::Text("Skybox Rotation");
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
 	if (ImGui::DragFloat3("##SkybRot", m_SkyboxAngle.ptr())) makeChanges = true;
 	ImGui::NewLine();
 }
@@ -274,13 +285,24 @@ void PanelRendering::PostProcessingSettings(bool& makeChanges)
 	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
 	ImGui::Checkbox("Use PostPro Effects", &EngineApp->renderer3D->post_processing);
 
+	// --- PostPro Gamma Correction ---
+	ImGui::NewLine();
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
+	ImGui::Text("PostPro Gamma Correction");
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
+	ImGui::SetNextItemWidth(200.0f);
+	if (ImGui::SliderFloat("##PPGammaCorrection", &m_PPGamma, 0.1f, 5.0f))
+		makeChanges = true;
+
+	ImGui::NewLine();
+
 	// --- Use HDR & Exposure Slider ---
 	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
 	ImGui::Checkbox("Use HDR", &EngineApp->renderer3D->m_UseHDR);
 
 	if (EngineApp->renderer3D->m_UseHDR)
 	{
-		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 32.0f);
+		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 24.0f);
 		ImGui::Text("Exposure");
 		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 50.0f);
 		ImGui::SetNextItemWidth(200.0f);
@@ -290,14 +312,60 @@ void PanelRendering::PostProcessingSettings(bool& makeChanges)
 
 	ImGui::NewLine();
 
-	// --- PostPro Gamma Correction ---
-	//ImGui::NewLine();
-	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 47.0f);
-	ImGui::Text("PostPro Gamma Correction");
-	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
-	ImGui::SetNextItemWidth(200.0f);
-	if (ImGui::SliderFloat("##PPGammaCorrection", &m_PPGamma, 0.1f, 5.0f))
-		makeChanges = true;
+	// --- Use Bloom & Its stuff ---
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
+	ImGui::Checkbox("Use Bloom", &EngineApp->renderer3D->m_UseBloom);
 
-	ImGui::NewLine();
+	if (EngineApp->renderer3D->m_UseBloom)
+	{
+		//Blur Amount (how many times the for applyuing blur shader runs)
+		ImGui::NewLine();
+		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 165.0f);
+		ImGui::Text("Blur Amount");
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 165.0f);
+		ImGui::SetNextItemWidth(200.0f);
+		if (ImGui::SliderInt("##PPBBlurAmount", &m_PPBloomBlurAmount, 0, 30))
+			makeChanges = true;
+
+		//Minimum Brightness to blur (bloom PP)
+		ImGui::NewLine(); ImGui::NewLine();
+		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 165.0f);
+		ImGui::Text("Minimum Bright to Blur");
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 165.0f);
+		ImGui::SetNextItemWidth(200.0f);
+		if (ImGui::SliderFloat("##PPBMinBright", &m_PPBloomMinBright, 0.0f, 1.0f))
+			makeChanges = true;
+
+		//Brightness Threshold on Bloom
+		ImGui::NewLine(); ImGui::NewLine();
+		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 165.0f);
+		ImGui::Text("Brightness Threshold (R-G-B)");
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 115.0f);
+		ImGui::SetNextItemWidth(300.0f);
+		if (ImGui::DragFloat3("##PPBBrightThresh", m_PPBloomBrightThresh.ptr(), 0.001f, 0.0f, 1.0f, "%.5f"))
+			makeChanges = true;
+
+		//Blur Weights
+		ImGui::NewLine(); ImGui::NewLine();
+		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 165.0f);
+		ImGui::Text("Blur Weight");
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 115.0f);
+		ImGui::SetNextItemWidth(300.0f);
+		if (ImGui::DragFloat3("##PPBBlurWeight1", m_PPBloom_Weights1.ptr(), 0.0000001f, 0.0f, 1.0f, "%.10f"))
+			makeChanges = true;
+
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 165.0f);
+		ImGui::SetNextItemWidth(200.0f);
+		if (ImGui::DragFloat2("##PPBBlurWeight2", m_PPBloom_Weights2.ptr(), 0.0000001f, 0.0f, 1.0f, "%.10f"))
+			makeChanges = true;
+
+		// Render ONLY Bloom (blurred) Texture
+		ImGui::NewLine(); ImGui::NewLine();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
+		ImGui::Checkbox("Render Bloom Only", &EngineApp->renderer3D->m_RenderBloomOnly);
+
+		ImGui::NewLine();
+	}
+	else if (EngineApp->renderer3D->m_RenderBloomOnly)
+		EngineApp->renderer3D->m_RenderBloomOnly = false;
 }

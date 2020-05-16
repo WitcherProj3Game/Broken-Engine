@@ -84,6 +84,10 @@ uniform sampler2D u_AlbedoTexture;
 uniform sampler2D u_SpecularTexture;
 uniform sampler2D u_NormalTexture;
 
+//Bloom Uniforms
+uniform float u_MinBrightness = 0.5;
+uniform vec3 u_BrightnessThreshold = vec3(0.2126, 0.7152, 0.0722);
+
 //Light Uniforms
 struct BrokenLight
 {
@@ -256,10 +260,10 @@ void main()
 		FragColor = pow(FragColor, vec4(vec3(1.0/u_GammaCorrection), 1.0));
 
 		//Brightness Calculation & Output
-		vec3 BVec = vec3(0.2126, 0.7152, 0.0722);
+		//vec3 BVec = vec3(0.2126, 0.7152, 0.0722);
 		//vec3 BVec = vec3(0.0);
-		float brightness = dot(FragColor.rgb, BVec); //Dot btwn color & bright threshold
-		if(brightness > 0.5)
+		float brightness = dot(FragColor.rgb, u_BrightnessThreshold); //Dot btwn color & bright threshold
+		if(brightness > u_MinBrightness)
 			BrightColor = vec4(FragColor.rgb, 1.0); //If bigger than threshold, then is brightened
 	}
 	else

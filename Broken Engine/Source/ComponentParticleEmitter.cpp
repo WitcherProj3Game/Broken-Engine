@@ -259,7 +259,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				if (animation && particleMeshes.size() > 0) {
 					int time = currentPlayTime - particles[i]->spawnTime;
 					int index = (particleMeshes.size() * time) / (particles[i]->lifeTime / cycles);
-					particles[i]->plane = particleMeshes[(index + startFrame) % particleMeshes.size()];
+					particles[i]->plane = particleMeshes[(index + particles[i]->startFrame) % particleMeshes.size()];
 				}
 				else
 					particles[i]->plane = App->scene_manager->plane;
@@ -431,6 +431,7 @@ json ComponentParticleEmitter::Save() const
 	node["tiles_Y"] = std::to_string(tileSize_Y);
 	node["cycles"] = std::to_string(cycles);
 	node["startFrame"] = std::to_string(startFrame);
+	node["randomStartFrame"] = randomStartFrame;
 
 	node["num_colors"] = std::to_string(colors.size());
 
@@ -567,6 +568,8 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string _tiles_Y = node["tiles_Y"].is_null() ? "1" : node["tiles_Y"];
 	std::string _cycles = node["cycles"].is_null() ? "1" : node["cycles"];
 	std::string _startFrame = node["startFrame"].is_null() ? "0" : node["startFrame"];
+
+	randomStartFrame = node["randomStartFrame"].is_null() ? true : node["randomStartFrame"].get<bool>();
 
 	std::string LDuration = node["Duration"].is_null() ? "0" : node["Duration"];
 
@@ -1265,6 +1268,10 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 		ImGui::DragInt("##sframe", &startFrame, 1, 0, (tileSize_X * tileSize_Y) - 1);
+		ImGui::SameLine();
+		ImGui::Checkbox("##srandomfirstframe", &randomStartFrame);
+		ImGui::SameLine();
+		ImGui::Text("Random");
 		ImGui::Text("Cycles:");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
@@ -1490,6 +1497,7 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 			particles[index[i]]->gradientTimer = spawnClock;
 			particles[index[i]]->currentGradient = 0;
 			particles[index[i]]->emitterSpawnPosition = globalPosition;
+			particles[index[i]]->startFrame = randomStartFrame ? GetRandomValue(0, tileSize_X*tileSize_Y): startFrame;
 
 			//Set scale
 			if (scaleconstants == 1) {

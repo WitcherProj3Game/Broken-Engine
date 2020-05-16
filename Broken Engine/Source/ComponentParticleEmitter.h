@@ -126,6 +126,7 @@ private:
 	int tileSize_X = 1;
 	int tileSize_Y = 1;
 	int startFrame = 0;
+	bool randomStartFrame = false;
 	float cycles = 1;
 
 	//Particle properties

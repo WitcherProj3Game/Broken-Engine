@@ -63,15 +63,17 @@ void ComponentMeshRenderer::DrawComponent()
 	if (checkers)
 		flags |= checkers;
 
+	if (cast_shadows)
+		flags |= castShadows;
+
+	if (receive_shadows)
+		flags |= receiveShadows;
+
 	if (cmesh && cmesh->resource_mesh && material)
 	{
-		App->renderer3D->DrawMesh(GO->GetComponent<ComponentTransform>()->GetGlobalTransform(), cmesh->resource_mesh, material, cmesh->deformable_mesh, flags);
+		App->renderer3D->DrawMesh(GO->GetComponent<ComponentTransform>()->GetGlobalTransform(), cmesh->resource_mesh, material, cmesh->deformable_mesh, flags, Broken::White, only_shadows);
 		DrawNormals(*cmesh->resource_mesh, *GO->GetComponent<ComponentTransform>());
 	}
-}
-
-void ComponentMeshRenderer::DrawMesh(ResourceMesh& mesh) const 
-{
 }
 
 void ComponentMeshRenderer::DrawNormals(const ResourceMesh& mesh, const ComponentTransform& transform) const
@@ -177,17 +179,47 @@ void ComponentMeshRenderer::ONResourceEvent(uint UID, Resource::ResourceNotifica
 
 void ComponentMeshRenderer::CreateInspectorNode()
 {
+	// --- Mesh Node ---
 	ImGui::Checkbox("Vertex Normals", &draw_vertexnormals);
 	ImGui::SameLine();
 	ImGui::Checkbox("Face Normals  ", &draw_facenormals);
 	ImGui::SameLine();
 	ImGui::Checkbox("Checkers", &checkers);
 
+	// --- Shadows Node ---
+	ImGui::NewLine();
+	ImGui::Separator();
+	ImGui::Text("Shadowing");
+
+	ImGui::Text("Cast Shadows"); ImGui::SameLine();
+	if (ImGui::Checkbox("##CastSH", &cast_shadows))
+	{
+		if (only_shadows)
+			cast_shadows = true;
+	}
+
+	ImGui::Text("Receive Shadows"); ImGui::SameLine();
+	if (ImGui::Checkbox("##ReceiveSH", &receive_shadows))
+	{
+		if (only_shadows)
+			receive_shadows = false;
+	}
+	
+	ImGui::Text("Only Shadows"); ImGui::SameLine();
+	if (ImGui::Checkbox("##OnlySH", &only_shadows))
+	{
+		if (only_shadows)
+		{
+			cast_shadows = true;
+			receive_shadows = false;
+		}
+	}
+
+	// --- Material node ---
 	ImGui::NewLine();
 	ImGui::Separator();
 	ImGui::PushID("Material");
 
-	// --- Material node ---
 	if (material)
 	{
 		bool save_material = false;

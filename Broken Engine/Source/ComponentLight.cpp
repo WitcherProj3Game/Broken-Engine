@@ -67,6 +67,9 @@ void ComponentLight::Update()
 	ComponentTransform* trans = GetContainerGameObject()->GetComponent<ComponentTransform>();
 	if (trans)
 	{
+		App->renderer3D->DrawLine(trans->GetGlobalTransform(), trans->GetGlobalPosition(), float3::zero/*trans->GetRotation().Normalized() * 10.0f*/, Color(255.0f, 255.0f, 50.0f));
+
+
 		float3 position = float3::zero, scale = float3::one;
 		Quat q = Quat::identity;
 		trans->GetGlobalTransform().Decompose(position, q, scale);
@@ -205,7 +208,7 @@ const float4x4 ComponentLight::GetFrustViewProjMatrix() const
 // -------------------------------------------------------------------------------------------
 void ComponentLight::Draw()
 {
-	if (!m_DrawMesh)
+	if (!m_DrawMesh || !active)
 		return;
 
 	// --- Set Uniforms ---
@@ -226,16 +229,6 @@ void ComponentLight::Draw()
 
 	GLint viewLoc = glGetUniformLocation(shaderID, "u_View");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLViewMatrix().ptr());
-
-	float nearp = App->renderer3D->active_camera->GetNearPlane();
-
-	// right handed projection matrix
-	//float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
-	//float4x4 proj_RH(
-	//	f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
-	//	0.0f, f, 0.0f, 0.0f,
-	//	0.0f, 0.0f, 0.0f, -1.0f,
-	//	0.0f, 0.0f, nearp, 0.0f);
 
 	GLint projectLoc = glGetUniformLocation(shaderID, "u_Proj");
 	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLProjectionMatrix().ptr());
@@ -302,7 +295,7 @@ void ComponentLight::CreateInspectorNode()
 	ImGui::Text("Intensity");
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 	ImGui::SetNextItemWidth(300.0f);
-	ImGui::SliderFloat("", &m_Intensity, 0.0f, 100.0f, "%.3f", 2.0f);
+	ImGui::SliderFloat("##Light_Intensity", &m_Intensity, 0.0f, 100.0f, "%.3f", 2.0f);
 	ImGui::NewLine();
 
 	// --- Distance Multiplier ---
@@ -312,6 +305,43 @@ void ComponentLight::CreateInspectorNode()
 	ImGui::NewLine();
 
 	// --- Type-According Values ---
+	if (m_LightType == LightType::DIRECTIONAL)
+	{
+		// --- Set as Shadows Source ---
+		bool changeLight = false;
+		ImGui::Text("Shadows Source");
+		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 39.0f);
+		if(ImGui::Checkbox("##Light_ShadowsSource", &m_CurrentShadower)) changeLight = true;
+		ImGui::NewLine();
+
+		if (changeLight)
+		{
+			if (m_CurrentShadower)
+				App->renderer3D->SetShadowerLight(this);
+			else
+				App->renderer3D->SetShadowerLight(nullptr);
+
+			changeLight = false;
+		}
+
+		// --- Shadows Intensity ---
+		ImGui::Text("Shadows Intensity");
+		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		ImGui::SetNextItemWidth(300.0f);
+		ImGui::SliderFloat("##Shadow_Intensity", &m_ShadowsIntensity, 0.0f, 100.0f, "%.3f", 2.0f);
+		ImGui::NewLine();
+
+		// --- Shadows Bias ---
+		ImGui::Text("Shadows Bias");
+		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		ImGui::SetNextItemWidth(300.0f);
+		ImGui::SliderFloat("##Shadow_Bias", &m_ShadowBias, 0.000f, 2.000f, "%.4f");
+		ImGui::NewLine();
+
+	}
+	else if(m_CurrentShadower)
+		App->renderer3D->SetShadowerLight(nullptr);
+
 	if (m_LightType == LightType::SPOTLIGHT)
 	{
 		// --- Cutoff ---

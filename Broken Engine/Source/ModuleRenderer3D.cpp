@@ -326,32 +326,8 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 {
 	OPTICK_CATEGORY("Renderer PostUpdate", Optick::Category::Rendering);
 
-	// --- Set Shader Matrices ---
-	GLint viewLoc = glGetUniformLocation(defaultShader->ID, "u_View");
-	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLViewMatrix().ptr());
-
-	//float nearp = App->renderer3D->active_camera->GetNearPlane();
-
-	// right handed projection matrix (just different standard)
-	//float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
-	//float4x4 proj_RH(
-	//	f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
-	//	0.0f, f, 0.0f, 0.0f,
-	//	0.0f, 0.0f, 0.0f, -1.0f,
-	//	0.0f, 0.0f, nearp, 0.0f);
-
-	GLint projectLoc = glGetUniformLocation(defaultShader->ID, "u_Proj");
-	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, active_camera->GetOpenGLProjectionMatrix().ptr());
-
-	GLint modelLoc = glGetUniformLocation(defaultShader->ID, "u_Model");
-	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, float4x4::identity.Transposed().ptr());
-
-	GLint camPosLoc = glGetUniformLocation(defaultShader->ID, "u_CameraPosition");
-	float3 camPos = App->renderer3D->active_camera->GetCameraPosition();
-	glUniform3f(camPosLoc, camPos.x, camPos.y, camPos.z);
-
 	// --- Bind fbo ---
-    if (renderfbo)
+	if (renderfbo)
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
 	// --- Do not write to the stencil buffer ---
@@ -373,144 +349,74 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	App->scene_manager->DrawScene();
 	OPTICK_POP();
 
-	// --- Pick the Current Directional Casting Shadows --- //TEMPORARY
-	for (uint i = 0; i < m_LightsVec.size(); ++i)
-	{
-		if (m_LightsVec[i]->GetLightType() == LightType::DIRECTIONAL)
-		{
-			bool lightActive = (m_LightsVec[i]->GetActive() && m_LightsVec[i]->GetContainerGameObject()->GetActive());
-			if (lightActive)
-			{
-				current_directional = m_LightsVec[i];
-				break;
-			}
-		}
-	}
-
-	for (std::map<uint, ResourceShader*>::const_iterator it = App->resources->shaders.begin(); it != App->resources->shaders.end(); ++it)
-	{
-		if((*it).second)
-			SendShaderUniforms((*it).second->ID, false);
-	}
-
-	// --------------------------------------------------------------------------------------------------------------------------------------------
-	// --------------------------------------------------------------------------------------------------------------------------------------------
 	// --- Shadows Buffer (Render 1st Pass) ---
-	glBindFramebuffer(GL_FRAMEBUFFER, depthbufferFBO);
-	//glDepthFunc(GL_GREATER);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
+	if (m_EnableShadows && current_directional)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, depthbufferFBO);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
 
-	glDisable(GL_CULL_FACE);
-	//glCullFace(GL_FRONT);
-	SendShaderUniforms(shadowsShader->ID, true);
-	DrawRenderMeshes(true);
-	//glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
+		glDisable(GL_CULL_FACE);
+		//glCullFace(GL_FRONT);
+		SendShaderUniforms(shadowsShader->ID, true);
+		DrawRenderMeshes(true);
+		//glCullFace(GL_BACK);
+		glEnable(GL_CULL_FACE);
 
-
-	// -- Draw Shadows Framebuffer ---
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);		
+	}
 
 	// --- Standard Buffer (Render 2nd Pass) ---
 	if (renderfbo)
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-	// --- Set depth filter to greater (Passes if the incoming depth value is greater than the stored depth value) ---
-	//glDepthFunc(GL_GREATER);
-
-
-
-
 	// --- Draw Grid ---
 	if (display_grid)
 		DrawGrid();
+	
+	// --- Send Uniforms to all shaders which need them ---
+	for (std::map<uint, ResourceShader*>::const_iterator it = App->resources->shaders.begin(); it != App->resources->shaders.end(); ++it)
+		if ((*it).second && (*it).first != shadowsShader->GetUID() && (*it).first != ZDrawerShader->GetUID() && (*it).first != linepointShader->GetUID() && (*it).first != OutlineShader->GetUID() && (*it).first != screenShader->GetUID() && (*it).first != UI_Shader->GetUID())
+			SendShaderUniforms((*it).second->ID, false);
 
-	if (!m_DrawShadowMap)
-	{
-		SendShaderUniforms(defaultShader->ID, false);
+	OPTICK_PUSH("Meshes Lines and Boxes Rendering");
+	DrawRenderMeshes(false);
+	DrawRenderLines();
+	DrawRenderBoxes();
+	OPTICK_POP();
 
-		OPTICK_PUSH("Meshes Lines and Boxes Rendering");
-		DrawRenderMeshes(false);
-		DrawRenderLines();
-		OPTICK_POP();
+	OPTICK_PUSH("Lights Rendering");
+	std::vector<ComponentLight*>::iterator LightIterator = m_LightsVec.begin();
+	for (; LightIterator != m_LightsVec.end(); ++LightIterator)
+		(*LightIterator)->Draw();
+	OPTICK_POP();
 
-		OPTICK_PUSH("Lights Rendering");
-		std::vector<ComponentLight*>::iterator LightIterator = m_LightsVec.begin();
-		for (; LightIterator != m_LightsVec.end(); ++LightIterator)
-			(*LightIterator)->Draw();
-		OPTICK_POP();
+	// --- Transparent Meshes ---
+	glEnable(GL_BLEND);
 
-		DrawRenderBoxes();
+	if (m_ChangedBlending)
+		SetRendererBlending(); //Set Blending to Renderer's Default
 
-		glEnable(GL_BLEND);
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	OPTICK_PUSH("Transparent Meshes Rendering");
+	DrawTransparentRenderMeshes();
+	OPTICK_POP();
 
-		if (m_ChangedBlending)
-			SetRendererBlending(); //Set Blending to Renderer's Default
+	// -- Draw particles ---
+	OPTICK_PUSH("Particles Rendering");
+	for (int i = 0; i < particleEmitters.size(); ++i)
+		particleEmitters[i]->DrawParticles();
+	OPTICK_POP();
+	
+	// --- Set Blending to Renderer's Default ---
+	if (m_ChangedBlending)
+		SetRendererBlending();
 
-		DrawTransparentRenderMeshes();
-
-		// -- Draw particles ---
-		OPTICK_PUSH("Particles Rendering");
-		for (int i = 0; i < particleEmitters.size(); ++i)
-		{
-			particleEmitters[i]->DrawParticles();
-
-		}
-
-		// --- Set Blending to Renderer's Default ---
-		if (m_ChangedBlending)
-			SetRendererBlending();
-
-		OPTICK_POP();
-
-		glDisable(GL_BLEND);
-	}
-	// --------------------------------------------------------------------------------------------------------------------------------------------
-	// --------------------------------------------------------------------------------------------------------------------------------------------
-
-	//// --- Draw Grid ---
-	//if (display_grid)
-	//	DrawGrid();
-
-	//OPTICK_PUSH("Meshes Lines and Boxes Rendering");
-	//DrawRenderMeshes();
-	//DrawRenderLines();
-	//DrawRenderBoxes();
-	//OPTICK_POP();
+	glDisable(GL_BLEND);
 
 	// --- Selected Object Outlining ---
 	HandleObjectOutlining();
 
-	//// --- Draw ---
-	//glEnable(GL_BLEND);
-	//if(m_ChangedBlending)
-	//	SetRendererBlending(); //Set Blending to Renderer's Default
-
-	//DrawTransparentRenderMeshes();
-
-	//// -- Draw particles ---
-	//OPTICK_PUSH("Particles Rendering");
-	//for (int i = 0; i < particleEmitters.size(); ++i)
-	//{
-	//	particleEmitters[i]->DrawParticles();
-
-	//	// --- Set Blending to Renderer's Default ---
-	//	if (m_ChangedBlending)
-	//		SetRendererBlending();
-	//}
-
-	//OPTICK_POP();
-
-	//glDisable(GL_BLEND);
-
-	//OPTICK_PUSH("Lights Rendering");
-	//std::vector<ComponentLight*>::iterator LightIterator = m_LightsVec.begin();
-	//for (; LightIterator != m_LightsVec.end(); ++LightIterator)
-	//	(*LightIterator)->Draw();
-	//OPTICK_POP();
-
+	// --- UI ---
 	OPTICK_PUSH("UI Rendering");
 	App->ui_system->Draw();
 	OPTICK_POP();
@@ -522,22 +428,16 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	if (renderfbo)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// -- Draw framebuffer texture ---
-	DrawFramebuffer(depth_quadVAO, depthMapTexture, true);
-
+	// --- FBO Draw (with needed PostPro) ---
 	OPTICK_PUSH("Post Processing Rendering");
 	if (post_processing || drawfb)
 		DrawPostProcessing();
 	OPTICK_POP();
 
-	//if (drawfb)
-	//	DrawFramebuffer(quadVAO, rendertexture, false); ?????????????????????????
-
-	// --- Draw GUI and swap buffers ---
+	// --- Draw Editor GUI and swap buffers ---
 	OPTICK_PUSH("GUI Rendering");
 	App->gui->Draw();
 	OPTICK_POP();
-
 
 	// --- To prevent problems with viewports, disabled due to crashes and conflicts with docking, sets a window as current rendering context ---
 	SDL_GL_MakeCurrent(App->window->window, context);
@@ -656,8 +556,7 @@ const json& ModuleRenderer3D::SaveStatus() const
 
 void ModuleRenderer3D::OnResize(int width, int height)
 {
-	// --- Called by UpdateWindowSize() in Window module this when resizing windows to prevent rendering issues ---
-
+	//Called by UpdateWindowSize() in Window module this when resizing windows to prevent rendering issues
 	// --- Resetting View matrices ---
 	glViewport(0, 0, width, height);
 
@@ -736,12 +635,23 @@ void ModuleRenderer3D::SetCullingCamera(ComponentCamera* camera)
 	}
 }
 
-void ModuleRenderer3D::SwitchRenderingTexture()
+void ModuleRenderer3D::SetShadowerLight(ComponentLight* dirlight)
 {
-	if (m_CurrentRenderingTexture == rendertexture)
-		m_CurrentRenderingTexture = depthMapTexture;
+	if (current_directional == dirlight)
+		return;
+
+	if (dirlight == nullptr || (dirlight != nullptr && dirlight->GetLightType() == LightType::DIRECTIONAL))
+	{
+		if(current_directional)
+			current_directional->m_CurrentShadower = false;
+		
+		if(dirlight)
+			dirlight->m_CurrentShadower = true;
+
+		current_directional = dirlight;
+	}
 	else
-		m_CurrentRenderingTexture = rendertexture;
+		ENGINE_CONSOLE_LOG("Shadower Light must be Directional or Null!");
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -749,39 +659,25 @@ void ModuleRenderer3D::SwitchRenderingTexture()
 // ---------------------------------------------------------------------------------------------
 
 // --- Add render order to queue ---
-void ModuleRenderer3D::DrawMesh(const float4x4 transform, const ResourceMesh* mesh, ResourceMaterial* mat, const ResourceMesh* deformable_mesh, const RenderMeshFlags flags, const Color& color)
+void ModuleRenderer3D::DrawMesh(const float4x4 transform, const ResourceMesh* mesh, ResourceMaterial* mat, const ResourceMesh* deformable_mesh, const RenderMeshFlags flags, const Color& color, bool onlyShadow)
 {
 	// --- Check data validity
 	if (transform.IsFinite() && mesh && mat)
 	{
+		RenderMesh rmesh = RenderMesh(transform, mesh, mat, flags);
+		rmesh.deformable_mesh = deformable_mesh; // TEMPORAL!
+		rmesh.color = color;
+		rmesh.only_shadow = onlyShadow;
 
 		if (mat->has_transparencies)
 		{
 			// --- Add given instance to relevant vector ---
 			if (transparent_render_meshes.find(mesh->GetUID()) != transparent_render_meshes.end())
-			{
-				RenderMesh rmesh = RenderMesh(transform, mesh, mat, flags/*, color*/);
-				rmesh.deformable_mesh = deformable_mesh; // TEMPORAL!
-				rmesh.color = color;
-
-				//// --- Search for Character Controller Component ---
-				//ComponentCharacterController* cct = App->scene_manager->GetSelectedGameObject()->GetComponent<ComponentCharacterController>();
-
-				//// --- If Found, draw Character Controller shape ---
-				//if (cct && cct->IsEnabled())
-				//	cct->Draw();
-
 				transparent_render_meshes[mesh->GetUID()].push_back(rmesh);
-			}
 			else
 			{
 				// --- Build new vector to store mesh's instances ---
 				std::vector<RenderMesh> new_vec;
-
-				RenderMesh rmesh = RenderMesh(transform, mesh, mat, flags/*, color*/);
-				rmesh.deformable_mesh = deformable_mesh; // TEMPORAL!
-				rmesh.color = color;
-
 				new_vec.push_back(rmesh);
 				transparent_render_meshes[mesh->GetUID()] = new_vec;
 			}
@@ -790,29 +686,11 @@ void ModuleRenderer3D::DrawMesh(const float4x4 transform, const ResourceMesh* me
 		{
 			// --- Add given instance to relevant vector ---
 			if (render_meshes.find(mesh->GetUID()) != render_meshes.end())
-			{
-				RenderMesh rmesh = RenderMesh(transform, mesh, mat, flags/*, color*/);
-				rmesh.deformable_mesh = deformable_mesh; // TEMPORAL!
-				rmesh.color = color;
-
-				//// --- Search for Character Controller Component ---
-				//ComponentCharacterController* cct = App->scene_manager->GetSelectedGameObject()->GetComponent<ComponentCharacterController>();
-
-				//// --- If Found, draw Character Controller shape ---
-				//if (cct && cct->IsEnabled())
-				//	cct->Draw();
-
 				render_meshes[mesh->GetUID()].push_back(rmesh);
-			}
 			else
 			{
 				// --- Build new vector to store mesh's instances ---
 				std::vector<RenderMesh> new_vec;
-
-				RenderMesh rmesh = RenderMesh(transform, mesh, mat, flags/*, color*/);
-				rmesh.deformable_mesh = deformable_mesh; // TEMPORAL!
-				rmesh.color = color;
-
 				new_vec.push_back(rmesh);
 				render_meshes[mesh->GetUID()] = new_vec;
 			}
@@ -878,26 +756,6 @@ const std::string & ModuleRenderer3D::RenderSceneToTexture(std::vector<GameObjec
 		screenshot_camera->frustum.SetPos(center - Movement);
 
 	PreUpdate(0.0f);
-
-	//// --- Set Shader Matrices ---
-	//GLint viewLoc = glGetUniformLocation(defaultShader->ID, "view");
-	//glUniformMatrix4fv(viewLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLViewMatrix().ptr());
-
-	//float nearp = App->renderer3D->active_camera->GetNearPlane();
-
-	//// right handed projection matrix (just different standard)
-	//float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
-	//float4x4 proj_RH(
-	//	f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
-	//	0.0f, f, 0.0f, 0.0f,
-	//	0.0f, 0.0f, 0.0f, -1.0f,
-	//	0.0f, 0.0f, nearp, 0.0f);
-
-	//GLint projectLoc = glGetUniformLocation(defaultShader->ID, "projection");
-	//glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
-
-	//GLint modelLoc = glGetUniformLocation(defaultShader->ID, "model_matrix");
-	//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, float4x4::identity.Transposed().ptr());
 
 	// --- Bind fbo ---
 	if (renderfbo)
@@ -1027,17 +885,21 @@ void ModuleRenderer3D::DrawTransparentRenderMeshes()
 
 void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, bool depthPass)
 {
-
 	if (depthPass)
 	{
+		uint shader = shadowsShader->ID;
+		glUseProgram(shader);
 		for (uint i = 0; i < meshInstances.size(); ++i)
 		{
-			uint shader = shadowsShader->ID; //Change this to be just the shadows shader 
 			RenderMesh* mesh = &meshInstances[i];
 			float4x4 model = mesh->transform;
 
+			if ((mesh->flags & RenderMeshFlags_::castShadows) != RenderMeshFlags_::castShadows)
+				continue;
+
+			//(mesh flags & castshadows) != cast shadows
+
 			// --- Set Model Matrix Uniform ---
-			glUseProgram(shader);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "u_Model"), 1, GL_FALSE, model.Transposed().ptr());
 
 			if (mesh->resource_mesh->vertices && mesh->resource_mesh->Indices) // if mesh to draw
@@ -1057,6 +919,8 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 				glActiveTexture(GL_TEXTURE0);
 			}
 		}
+
+		glUseProgram(0);
 	}
 	else
 	{
@@ -1087,7 +951,6 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 			if (zdrawer)
 				shader = ZDrawerShader->ID;
 
-
 			// --- Get Mesh Material ---
 			if (mesh->mat->shader && shader != OutlineShader->ID && !zdrawer)
 			{
@@ -1100,7 +963,13 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 			// ------------------------ Shader Stuff ------------------------
-			glUseProgram(shader);
+			glUseProgram(shader);		
+
+
+			if (mesh->only_shadow)
+				continue;
+
+
 
 			// --- Transparency Uniform ---
 			glUniform1i(glGetUniformLocation(shader, "u_HasTransparencies"), (int)mesh->mat->has_transparencies);
@@ -1119,9 +988,15 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 			if (!mesh->mat->has_culling)
 				glDisable(GL_CULL_FACE);
 
+			//Shadows Stuff
 			glUniform1i(glGetUniformLocation(shader, "u_ShadowMap"), 4);
 			glActiveTexture(GL_TEXTURE0 + 4);
 			glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+
+			if (mesh->flags & RenderMeshFlags_::receiveShadows)
+				glUniform1i(glGetUniformLocation(shader, "u_ReceiveShadows"), true);
+			else
+				glUniform1i(glGetUniformLocation(shader, "u_ReceiveShadows"), false);
 
 			// --- Set Normal Mapping Draw ---
 			glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit"), (int)m_Draw_normalMapping_Lit);
@@ -1145,6 +1020,7 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 			// --- General Rendering Uniforms (material - texture - color related) ---
 			if (mesh->resource_mesh->vertices && mesh->resource_mesh->Indices) // if mesh to draw
 			{
+				//Def.Mesh
 				const ResourceMesh* rmesh = mesh->resource_mesh;
 				if (mesh->deformable_mesh)
 					rmesh = mesh->deformable_mesh;
@@ -1261,54 +1137,25 @@ void ModuleRenderer3D::SendShaderUniforms(uint shader, bool depthPass)
 {
 	float4x4 projMat = float4x4::identity;
 	float4x4 viewMat = float4x4::identity;
-	float4x4 lightSpaceMat = float4x4::identity;
 
 	// --- Display Z buffer ---
 	if (zdrawer)
 		shader = ZDrawerShader->ID;
 
 	glUseProgram(shader);
-
-	if (depthPass)
+	if (depthPass && current_directional)
 	{
-		if (current_directional)
-		{
-			projMat = current_directional->GetFrustProjectionMatrix();
-			viewMat = current_directional->GetFrustViewMatrix();
-			//lightSpaceMat = current_directional->GetFrustViewProjMatrix();
-			lightSpaceMat = (projMat * viewMat);
-		}
-		else
-		{
-			projMat = active_camera->GetOpenGLProjectionMatrix();
-			viewMat = active_camera->GetOpenGLViewMatrix();
-			lightSpaceMat = (projMat * viewMat);
-		}
+		projMat = current_directional->GetFrustProjectionMatrix();
+		viewMat = current_directional->GetFrustViewMatrix();
 	}
 	else
 	{
-
 		// --- Give ZDrawer near and far camera frustum planes pos ---
 		if (zdrawer)
 			glUniform2f(glGetUniformLocation(shader, "nearfar"), active_camera->GetNearPlane(), active_camera->GetFarPlane());
 
-		// --- Set Matrix Uniforms ---
-		glUniformMatrix4fv(glGetUniformLocation(shader, "u_View"), 1, GL_FALSE, active_camera->GetOpenGLViewMatrix().ptr());
+		// --- Set Time Uniform ---
 		glUniform1f(glGetUniformLocation(shader, "time"), App->time->time);
-
-		// --- Camera Position Uniform ---
-		float3 camPos = App->renderer3D->active_camera->GetCameraPosition();
-		glUniform3f(glGetUniformLocation(defaultShader->ID, "u_CameraPosition"), camPos.x, camPos.y, camPos.z);
-
-		////// Right handed projection matrix
-		//float f = 1.0f / tan(active_camera->GetFOV() * DEGTORAD / 2.0f);
-		//float4x4 proj_RH(
-		//	f / active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
-		//	0.0f, f, 0.0f, 0.0f,
-		//	0.0f, 0.0f, 0.0f, -1.0f,
-		//	0.0f, 0.0f, active_camera->GetNearPlane(), 0.0f);
-
-		glUniformMatrix4fv(glGetUniformLocation(shader, "u_Proj"), 1, GL_FALSE, active_camera->GetOpenGLProjectionMatrix().ptr());
 
 		// --- Set Normal Mapping Draw ---
 		glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping"), (int)m_Draw_normalMapping);
@@ -1319,27 +1166,30 @@ void ModuleRenderer3D::SendShaderUniforms(uint shader, bool depthPass)
 		glUniform1i(glGetUniformLocation(shader, "u_HasNormalMap"), 0);
 
 
+		// --- Send Lights ---
 		int lightsNumLoc = glGetUniformLocation(shader, "u_LightsNumber");
 		if (shader == defaultShader->ID || lightsNumLoc != -1)
 		{
-			// --- Send Lights ---
 			glUniform1i(lightsNumLoc, m_LightsVec.size());
 			for (uint i = 0; i < m_LightsVec.size(); ++i)
 				m_LightsVec[i]->SendUniforms(shader, i);
 		}
-		else
-			glUniform1i(glGetUniformLocation(shader, "u_LightsNumber"), 0);
+		else if(lightsNumLoc != -1)
+			glUniform1i(lightsNumLoc, 0);
 
+		// --- Camera Uniforms ---
+		float3 camPos = App->renderer3D->active_camera->GetCameraPosition();
+		glUniform3f(glGetUniformLocation(defaultShader->ID, "u_CameraPosition"), camPos.x, camPos.y, camPos.z);
 		projMat = active_camera->GetOpenGLProjectionMatrix();
 		viewMat = active_camera->GetOpenGLViewMatrix();
 
 		//Calculate Light Space Matrix
 		if (current_directional)
-			lightSpaceMat = current_directional->GetFrustViewProjMatrix();
-		else
-			lightSpaceMat = (active_camera->GetOpenGLProjectionMatrix() * active_camera->GetOpenGLViewMatrix());
-
-		glUniformMatrix4fv(glGetUniformLocation(shader, "u_LightSpace"), 1, GL_FALSE, lightSpaceMat.ptr());
+		{
+			glUniform1f(glGetUniformLocation(shader, "u_ShadowIntensity"), current_directional->m_ShadowsIntensity);
+			glUniform1f(glGetUniformLocation(shader, "u_ShadowBias"), current_directional->m_ShadowBias);
+			glUniformMatrix4fv(glGetUniformLocation(shader, "u_LightSpace"), 1, GL_FALSE, current_directional->GetFrustViewProjMatrix().ptr());
+		}
 	}
 
 	// --- Set Matrix Uniforms ---
@@ -1347,32 +1197,6 @@ void ModuleRenderer3D::SendShaderUniforms(uint shader, bool depthPass)
 	glUniformMatrix4fv(glGetUniformLocation(shader, "u_Proj"), 1, GL_FALSE, projMat.ptr());
 }
 
-void ModuleRenderer3D::DrawFramebuffer(uint drawQuadVAO, uint textureToRender, bool drawShadow)
-{
-	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-	// clear all relevant buffers
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-	glUseProgram(screenShader->ID);
-
-	if (drawShadow)
-		glUniform1i(glGetUniformLocation(screenShader->ID, "u_DrawShadows"), 1);
-	else
-		glUniform1i(glGetUniformLocation(screenShader->ID, "u_DrawShadows"), 0);
-
-	glBindVertexArray(drawQuadVAO);
-	glBindTexture(GL_TEXTURE_2D, textureToRender);	// use the color attachment texture as the texture of the quad plane
-	glActiveTexture(GL_TEXTURE0 + 1);
-	glUniform1i(glGetUniformLocation(screenShader->ID, "screenTexture"), 1);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	// --- Unbind buffers ---
-	glBindVertexArray(0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glUseProgram(0);
-}
 
 void ModuleRenderer3D::DrawPostProcessing()
 {

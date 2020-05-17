@@ -93,6 +93,12 @@ private:
 
 	bool m_SetToZero = false;
 	bool m_DrawMesh = true;
+
+public:
+
+	bool m_CurrentShadower = false;
+	float m_ShadowsIntensity = 1.0f;
+	float m_ShadowBias = 0.001f;
 };
 
 BE_END_NAMESPACE

@@ -90,6 +90,10 @@ uniform sampler2D u_SpecularTexture;
 uniform sampler2D u_NormalTexture;
 uniform sampler2D u_ShadowMap;
 
+uniform bool u_ReceiveShadows = true;
+uniform float u_ShadowIntensity = 1.0;
+uniform float u_ShadowBias = 0.001;
+
 //Light Uniforms
 struct BrokenLight
 {
@@ -121,20 +125,14 @@ float ShadowCalculation(vec3 dir, vec3 normal)
 	float currDept = projCoords.z;
 	//float shadow = currDept > closeDepth ? 1.0 : 0.0;
 
-	float bias = max(0.01 * (1.0 - dot(normal, dir)), 0.001);
+	float bias = max(0.01 * (1.0 - dot(normal, dir)), u_ShadowBias);
 	float shadow = ((currDept - bias) > closeDepth ? 1.0 : 0.0);
 	
 	if(projCoords.z > 1.0)
 		shadow = 0.0;
 
 
-	return (shadow);
-
-//
-//	float visibility = 1.0;
-//	if (texture(u_ShadowMap, projCoords.xy).z < projCoords.z)
-//		visibility = 0.5;
-//	return visibility;
+	return (shadow * u_ShadowIntensity);
 }
 
 //Light Calculations Functions ---------------------------------------------------------------------------------------
@@ -160,9 +158,10 @@ vec3 CalculateLightResult(vec3 LColor, vec3 LDir, vec3 normal, vec3 viewDir)
 	if(u_HasSpecularTexture == 1)
 		specular *= texture(u_SpecularTexture, v_TexCoord).rgb;
 
-	return (1.0 - ShadowCalculation(lightDir, normal)) * (diffuse + specular);
+	if(u_ReceiveShadows)
+		return (1.0 - ShadowCalculation(lightDir, normal)) * (diffuse + specular);
 
-	//return (diffuse + specular);
+	return (diffuse + specular);
 }
 
 

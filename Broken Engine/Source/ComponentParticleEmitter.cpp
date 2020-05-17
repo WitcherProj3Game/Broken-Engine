@@ -805,11 +805,6 @@ void ComponentParticleEmitter::Load(json& node)
 
 void ComponentParticleEmitter::CreateInspectorNode()
 {
-	// --- Delete Component ---
-	//if (ImGui::Button("Delete component"))
-	//	to_delete = true;
-
-
 	// --- Loop ---
 	ImGui::NewLine();
 	if (ImGui::Checkbox("##PELoop", &loop))
@@ -819,24 +814,6 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	ImGui::SameLine();
 	ImGui::Text("Loop");
 
-	// --- Billboarding Type ---
-	if (ImGui::Checkbox("##PEHBill", &horizontalBillboarding))
-		if (horizontalBillboarding && verticalBillboarding)
-			verticalBillboarding = false;
-
-	ImGui::SameLine();
-	ImGui::Text("Horizontal Billboarding");
-
-	if (ImGui::Checkbox("##PEVBill", &verticalBillboarding))
-		if (verticalBillboarding && horizontalBillboarding)
-			horizontalBillboarding = false;
-
-	ImGui::SameLine();
-	ImGui::Text("Vertical Billboarding");
-
-	// ------------------------------------------------------------------------
-	ImGui::NewLine();
-	ImGui::Separator();
 	ImGui::Text("Duration");
 	ImGui::SameLine();
 	if (ImGui::DragInt("##PEDuration", &duration))
@@ -1421,9 +1398,21 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			ImGui::TreePop();
 		}
 
+		// --- Billboarding Type ---
 		ImGui::NewLine();
-		//ImGui::Separator();
+		if (ImGui::Checkbox("##PEHBill", &horizontalBillboarding))
+			if (horizontalBillboarding && verticalBillboarding)
+				verticalBillboarding = false;
 
+		ImGui::SameLine();
+		ImGui::Text("Horizontal Billboarding");
+
+		if (ImGui::Checkbox("##PEVBill", &verticalBillboarding))
+			if (verticalBillboarding && horizontalBillboarding)
+				horizontalBillboarding = false;
+
+		ImGui::SameLine();
+		ImGui::Text("Vertical Billboarding");
 		ImGui::TreePop();
 	}
 }

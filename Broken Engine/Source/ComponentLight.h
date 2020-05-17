@@ -46,10 +46,6 @@ public:
 	const float4x4 GetFrustViewMatrix()				const;
 	const float4x4 GetFrustProjectionMatrix()		const;
 	const float4x4 GetFrustViewProjMatrix()			const;
-	const float GetFrustAR()						const { return m_LightFrustum.AspectRatio(); }
-	const float GetFrustFOV()						const { return m_LightFrustum.VerticalFov() * RADTODEG; }
-	const float GetFrustNearPlane()					const { return m_LightFrustum.NearPlaneDistance(); }
-	const float GetFrustFarPlane()					const { return m_LightFrustum.FarPlaneDistance(); }
 
 	// -- Setters ---
 	void SetLightDirection(float3 dir)								{ m_Direction = dir; }

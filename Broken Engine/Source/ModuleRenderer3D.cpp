@@ -382,14 +382,10 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 
 	// -- Draw particles ---
 	OPTICK_PUSH("Particles Rendering");
-	std::priority_queue<ComponentParticleEmitter*, std::vector<ComponentParticleEmitter*>, HigherPriority> emittersQueue;
 	for (int i = 0; i < particleEmitters.size(); ++i)
-		emittersQueue.push(App->particles->particleEmitters[i]);
-
-	while (!emittersQueue.empty())
 	{
-		emittersQueue.top()->DrawParticles();
-		emittersQueue.pop();
+		particleEmitters[i]->DrawParticles();
+
 		// --- Set Blending to Renderer's Default ---
 		if (m_ChangedBlending)
 			SetRendererBlending();

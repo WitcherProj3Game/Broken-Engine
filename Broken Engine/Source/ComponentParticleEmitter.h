@@ -114,10 +114,15 @@ private:
 	bool emisionActive = true;
 	int duration = 1000;
 	uint emisionStart = 0;
+
+	//Sprite rotations
 	bool rotationActive = false;
 	int rotationOvertime1[3] = { 0,0,0 };
 	int rotationOvertime2[3] = { 0,0,0 };
 	bool separateAxis = false;
+	bool randomInitialRotation = false;
+	int minInitialRotation[3] = { 0,0,0 };
+	int maxInitialRotation[3] = { 0,0,0 };
 
 	bool verticalBillboarding = false;
 	bool horizontalBillboarding = false;

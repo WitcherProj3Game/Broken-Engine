@@ -482,6 +482,15 @@ json ComponentParticleEmitter::Save() const
 	node["rotationOvertime2"][2] = std::to_string(rotationOvertime2[2]);
 	node["rotationconstants"] = std::to_string(rotationconstants);
 
+	node["randomInitialRotation"] = randomInitialRotation;
+
+	node["minInitialRotation"][0] = std::to_string(minInitialRotation[0]);
+	node["minInitialRotation"][1]= std::to_string(minInitialRotation[1]);
+	node["minInitialRotation"][2]= std::to_string(minInitialRotation[2]);
+	node["maxInitialRotation"][0]= std::to_string(maxInitialRotation[0]);
+	node["maxInitialRotation"][1]= std::to_string(maxInitialRotation[1]);
+	node["maxInitialRotation"][2]= std::to_string(maxInitialRotation[2]);
+
 	node["num_curves"] = std::to_string(curves.size());
 	for (int i = 0; i < curves.size(); ++i) {
 		CurveEditor* curve = curves[i];
@@ -597,7 +606,14 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string _rotationconstants = node["rotationconstants"].is_null() ? "0" : node["rotationconstants"];
 	std::string _scaleconstants = node["scaleconstants"].is_null() ? "0" : node["scaleconstants"];
 
+	std::string minInitialRotation_X = node["minInitialRotation"][0].is_null() ? "0" : node["minInitialRotation"][0];
+	std::string minInitialRotation_Y = node["minInitialRotation"][1].is_null() ? "0" : node["minInitialRotation"][1];
+	std::string minInitialRotation_Z = node["minInitialRotation"][2].is_null() ? "0" : node["minInitialRotation"][2];
+	std::string maxInitialRotation_X = node["maxInitialRotation"][0].is_null() ? "0" : node["maxInitialRotation"][0];
+	std::string maxInitialRotation_Y = node["maxInitialRotation"][1].is_null() ? "0" : node["maxInitialRotation"][1];
+	std::string maxInitialRotation_Z = node["maxInitialRotation"][2].is_null() ? "0" : node["maxInitialRotation"][2];
 
+	randomInitialRotation = node["randomInitialRotation"].is_null() ? false : node["randomInitialRotation"].get<bool>();
 
 	colorDuration = std::atoi(_gradientDuration.c_str());
 	int num = std::stof(_num_colors);
@@ -742,6 +758,14 @@ void ComponentParticleEmitter::Load(json& node)
 	rotationOvertime2[2] = std::stof(rotationOvertime2_Z);
 	rotationconstants = std::stof(_rotationconstants);
 	scaleconstants = std::stof(_scaleconstants);
+
+	minInitialRotation[0] = std::stoi(minInitialRotation_X);
+	minInitialRotation[1] = std::stoi(minInitialRotation_Y);
+	minInitialRotation[2] = std::stoi(minInitialRotation_Z);
+	maxInitialRotation[0] = std::stoi(maxInitialRotation_X);
+	maxInitialRotation[1] = std::stoi(maxInitialRotation_Y);
+	maxInitialRotation[2] = std::stoi(maxInitialRotation_Z);
+
 
 	if (scaleCurve == nullptr) {
 		scaleCurve = new CurveEditor("##scale", LINEAR);
@@ -1122,8 +1146,72 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	ImGui::Separator();
 
-	if (ImGui::TreeNode("Rotation over Lifetime"))
+	if (ImGui::TreeNode("Sprite rotation"))
 	{
+		ImGui::Text("Separate Axis");
+		ImGui::SameLine();
+		ImGui::Checkbox("##separateaxis", &separateAxis);
+
+		// -- Initial rotation --
+		ImGui::Text("Initial rotation:");
+		ImGui::SameLine();
+		ImGui::Text("  ");
+		ImGui::SameLine();
+		if (ImGui::Checkbox("##srandomInitialRotation", &randomInitialRotation))
+		{
+			maxInitialRotation[0] = minInitialRotation[0];
+			maxInitialRotation[1] = minInitialRotation[1];
+			maxInitialRotation[2] = minInitialRotation[2];
+		}
+		ImGui::SameLine();
+		ImGui::Text("Random");
+
+		if (!randomInitialRotation)
+		{
+			if (separateAxis) {
+				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+				ImGui::DragInt("##SinitialRotation1X", &minInitialRotation[0], 1, -10000, 10000);
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+				ImGui::DragInt("##SinitialRotation1Y", &minInitialRotation[1], 1, -10000, 10000);
+				ImGui::SameLine();
+			}
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragInt("##SinitialRotation1Z", &minInitialRotation[2], 1, -10000, 10000);
+		}
+		else
+		{
+			//Min value
+			ImGui::Text("Min:");
+			ImGui::SameLine();
+
+			if (separateAxis) {
+				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+				ImGui::DragInt("##SinitialRotation1X", &minInitialRotation[0], 1, -10000, maxInitialRotation[0]);
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+				ImGui::DragInt("##SinitialRotation1Y", &minInitialRotation[1], 1, -10000, maxInitialRotation[1]);
+				ImGui::SameLine();
+			}
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragInt("##SinitialRotation1Z", &minInitialRotation[2], 1, -10000, maxInitialRotation[2]);
+
+			//Max value
+			ImGui::Text("Max:");
+			ImGui::SameLine();
+			if (separateAxis) {
+				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+				ImGui::DragInt("##SinitialRotation2X", &maxInitialRotation[0], 1, minInitialRotation[0], 10000.0f);
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+				ImGui::DragInt("##SinitialRotation2Y", &maxInitialRotation[1], 1, minInitialRotation[1], 10000.0f);
+				ImGui::SameLine();
+			}
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragInt("##SinitialRotation2Z", &maxInitialRotation[2], 1, minInitialRotation[2], 10000.0f);
+		}
+
+		// -- Rotation speed
 		if (rotationconstants == 2) {
 			rotateCurve->DrawCurveEditor(); //Draw Curve Editor
 			ImGui::SameLine();
@@ -1131,11 +1219,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 				ImGui::OpenPopup("Component options");
 		}
 		else {
-			ImGui::Text("Separate Axis");
-			ImGui::SameLine();
-			ImGui::Checkbox("##separateaxis", &separateAxis);
-			ImGui::Text("Ang. Vel:");
-			ImGui::SameLine();
+			ImGui::Text("Rotation speed:");
 			int cursor = ImGui::GetCursorPosX();
 			if (!separateAxis) {
 				ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
@@ -1497,7 +1581,7 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 			particles[index[i]]->gradientTimer = spawnClock;
 			particles[index[i]]->currentGradient = 0;
 			particles[index[i]]->emitterSpawnPosition = globalPosition;
-			particles[index[i]]->startFrame = randomStartFrame ? GetRandomValue(0, tileSize_X*tileSize_Y): startFrame;
+			particles[index[i]]->startFrame = randomStartFrame ? GetRandomValue(0, double(tileSize_X)*double(tileSize_Y)): startFrame;
 
 			//Set scale
 			if (scaleconstants == 1) {
@@ -1510,8 +1594,33 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 				particles[index[i]]->scale.y = particlesScale.y;
 			}
 
-			//Set Rotation
-			particles[index[i]]->rotation = float3::zero;
+			// -- Rotation -- 
+			//Initial rotation
+			if (randomInitialRotation){
+				if (separateAxis){
+					particles[index[i]]->rotation = float3(	GetRandomValue(minInitialRotation[0], maxInitialRotation[0]) * DEGTORAD,
+															GetRandomValue(minInitialRotation[1], maxInitialRotation[1]) * DEGTORAD,
+															GetRandomValue(minInitialRotation[2], maxInitialRotation[2]) * DEGTORAD);
+				}
+				else{
+					particles[index[i]]->rotation = float3(0,0,GetRandomValue(minInitialRotation[2], maxInitialRotation[2]) * DEGTORAD);
+
+				}
+			}
+			else{
+				if (separateAxis){
+						particles[index[i]]->rotation = float3(	minInitialRotation[0] * DEGTORAD,
+																minInitialRotation[1] * DEGTORAD,
+																minInitialRotation[2] * DEGTORAD);
+				}
+				else {
+					particles[index[i]]->rotation = float3(	0,
+															0,
+															minInitialRotation[2] * DEGTORAD);
+				}
+			}
+
+			//Rotation velocity
 			float3 rot1 = float3::zero;
 			float3 rot2 = float3::zero;
 			if (separateAxis) {

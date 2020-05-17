@@ -340,6 +340,7 @@ void ComponentParticleEmitter::DrawParticles()
 
 	SetEmitterBlending();
 
+	// -- Frustum culling --
 	Plane cameraPlanes[6];
 	App->renderer3D->culling_camera->frustum.GetPlanes(cameraPlanes);
 
@@ -527,7 +528,6 @@ void ComponentParticleEmitter::Load(json& node)
 	scaleCurve = nullptr;
 	rotateCurve = nullptr;
 
-
 	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
 
 	//load the strings
@@ -688,8 +688,6 @@ void ComponentParticleEmitter::Load(json& node)
 
 	if (texture)
 		texture->AddUser(GO);
-
-
 
 	//Pass the strings to the needed dada types
 	emitterPosition.x = std::stof(LpositionX);
@@ -1414,6 +1412,12 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::SameLine();
 		ImGui::Text("Vertical Billboarding");
 		ImGui::TreePop();
+
+		ImGui::Text("Render priority");
+		ImGui::SameLine();
+		ImGui::DragInt("##srenderPriority", &priority);
+		
+			
 	}
 }
 

@@ -13,10 +13,10 @@ class Particle;
 class ResourceTexture;
 class CurveEditor;
 
-
 class BROKEN_API ComponentParticleEmitter : public Component
 {
 	friend class ModuleParticles;
+	friend struct HigherPriority;
 public:
 
 	ComponentParticleEmitter(GameObject* ContainerGO);
@@ -169,8 +169,19 @@ private:
 	BlendAutoFunction m_PartBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
 	BlendingTypes m_MPartBlend_Src = BlendingTypes::SRC_ALPHA, m_MPartBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
 
-	//Drawing
+	//Rendering
+	int priority = 0;
+
+	//Debug Drawing
 	OBB emisionAreaOBB;
+};
+
+struct BROKEN_API HigherPriority
+{
+	bool operator()(ComponentParticleEmitter* pe1,ComponentParticleEmitter* pe2)const
+	{
+		return pe1->priority > pe2->priority;
+	}
 };
 BE_END_NAMESPACE
 

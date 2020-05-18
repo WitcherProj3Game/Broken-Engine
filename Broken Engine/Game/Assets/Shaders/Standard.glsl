@@ -90,9 +90,22 @@ uniform sampler2D u_SpecularTexture;
 uniform sampler2D u_NormalTexture;
 uniform sampler2D u_ShadowMap;
 
+//Shadows Uniforms
 uniform bool u_ReceiveShadows = true;
 uniform float u_ShadowIntensity = 1.0;
 uniform float u_ShadowBias = 0.001;
+
+uniform float u_ShadowPoissonBlur = 700.0;
+uniform float u_ShadowOffsetBlur = 0.2;
+uniform float u_ShadowPCFDivisor = 9.0;
+uniform bool u_ShadowSmootherPCF = false;
+uniform bool u_ShadowSmootherPoissonDisk = true;
+uniform bool u_ShadowSmootherBoth = false;
+uniform bool u_ClampShadows = false;
+uniform float u_ShadowsSmoothMultiplicator = 1.0;
+
+//Other Variables
+vec2 poissonDisk[4] = vec2[](vec2(-0.94201624, -0.39906216 ), vec2(0.94558609, -0.76890725), vec2(-0.094184101, -0.92938870 ), vec2(0.34495938, 0.29387760));
 
 //Light Uniforms
 struct BrokenLight
@@ -121,16 +134,41 @@ float ShadowCalculation(vec3 dir, vec3 normal)
 	vec3 projCoords = v_FragPos_InLightSpace.xyz / v_FragPos_InLightSpace.w;
 	projCoords = projCoords * 0.5 + 0.5;
 
-	float closeDepth = texture(u_ShadowMap, projCoords.xy).r;
 	float currDept = projCoords.z;
-	//float shadow = currDept > closeDepth ? 1.0 : 0.0;
-
 	float bias = max(0.01 * (1.0 - dot(normal, dir)), u_ShadowBias);
-	float shadow = ((currDept - bias) > closeDepth ? 1.0 : 0.0);
 	
+	float shadow = 0.0;
+	if(u_ShadowSmootherPCF || u_ShadowSmootherBoth)
+	{
+		vec2 texelSize = 1.0/textureSize(u_ShadowMap, 0);
+		for(int x = -1; x <= 1; ++x)
+		{
+			for(int y = -1; y <= 1; ++y)
+			{
+				float pcfDepth = texture(u_ShadowMap, projCoords.xy + vec2(x,y)*texelSize).r;
+				shadow += currDept - bias > pcfDepth ? 1.0 : 0.0;
+			}
+		}
+		shadow /= u_ShadowPCFDivisor;
+	}
+
+	if(u_ShadowSmootherPoissonDisk || u_ShadowSmootherBoth)
+	{
+		if(!u_ShadowSmootherBoth)
+			shadow = ((currDept - bias) > texture(u_ShadowMap, projCoords.xy).z ? 1.0 : 0.0);
+
+		for(int i = 0; i < 4; ++i)
+			if(texture(u_ShadowMap, projCoords.xy+poissonDisk[i]/u_ShadowPoissonBlur).z <  currDept - bias)
+				shadow -= u_ShadowOffsetBlur;
+	}
+
 	if(projCoords.z > 1.0)
 		shadow = 0.0;
 
+	if(u_ClampShadows)
+		shadow = clamp(shadow, 0.0, 3.0);
+	else if(shadow > 1.0 || shadow < 0.0)
+		shadow *= u_ShadowsSmoothMultiplicator;
 
 	return (shadow * u_ShadowIntensity);
 }

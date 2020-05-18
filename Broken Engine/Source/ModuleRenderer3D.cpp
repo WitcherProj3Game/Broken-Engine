@@ -524,11 +524,14 @@ void ModuleRenderer3D::LoadStatus(const json& file)
 	m_BlendEquation = file["Renderer3D"].find("BlendEquation") == file["Renderer3D"].end() ? BlendingEquations::ADD : (BlendingEquations)file["Renderer3D"]["BlendEquation"].get<int>();
 	m_ManualBlend_Src = file["Renderer3D"].find("ManualAlphaFuncSrc") == file["Renderer3D"].end() ? BlendingTypes::SRC_ALPHA : (BlendingTypes)file["Renderer3D"]["ManualAlphaFuncSrc"].get<int>();
 	m_ManualBlend_Dst = file["Renderer3D"].find("ManualAlphaFuncDst") == file["Renderer3D"].end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)file["Renderer3D"]["ManualAlphaFuncDst"].get<int>();
+
+	m_EnableShadows = file["Renderer3D"].find("EnableShadows") == file["Renderer3D"].end() ? true : file["Renderer3D"]["EnableShadows"].get<bool>();
 }
 
 const json& ModuleRenderer3D::SaveStatus() const
 {
 	static json m_config;
+	m_config["EnableShadows"] = m_EnableShadows;
 
 	m_config["GammaCorrection"] = m_GammaCorrection;
 	m_config["AlphaFunc"] = (int)m_RendererBlendFunc;
@@ -1145,6 +1148,12 @@ void ModuleRenderer3D::SendShaderUniforms(uint shader, bool depthPass)
 	glUseProgram(shader);
 	if (depthPass && current_directional)
 	{
+		//Particles Example:
+		//float3x3 camRot = App->renderer3D->active_camera->GetOpenGLViewMatrix().RotatePart();
+		//float4x4 finalRot = float4x4::identity; --> finalRot = camRot*objRot;
+
+		//float4x4::OpenGLOrthoProjLH(0.01, 100000.0f, (float)App->window->GetWindowHeight(), (float)App->window->GetWindowWidth());
+
 		projMat = current_directional->GetFrustProjectionMatrix();
 		viewMat = current_directional->GetFrustViewMatrix();
 	}
@@ -1184,10 +1193,23 @@ void ModuleRenderer3D::SendShaderUniforms(uint shader, bool depthPass)
 		viewMat = active_camera->GetOpenGLViewMatrix();
 
 		//Calculate Light Space Matrix
-		if (current_directional)
+		if (shader == defaultShader->ID && current_directional)
 		{
+			// --- Shadow Properties ---
 			glUniform1f(glGetUniformLocation(shader, "u_ShadowIntensity"), current_directional->m_ShadowsIntensity);
 			glUniform1f(glGetUniformLocation(shader, "u_ShadowBias"), current_directional->m_ShadowBias);
+			glUniform1f(glGetUniformLocation(shader, "u_ShadowsSmoothMultiplicator"), current_directional->m_ShadowSmoothMultiplier);
+			glUniform1i(glGetUniformLocation(shader, "u_ClampShadows"), current_directional->m_ClampShadows);
+
+			glUniform1f(glGetUniformLocation(shader, "u_ShadowOffsetBlur"), current_directional->m_ShadowOffsetBlur);
+			glUniform1f(glGetUniformLocation(shader, "u_ShadowPoissonBlur"), current_directional->m_ShadowPoissonBlur);
+			glUniform1f(glGetUniformLocation(shader, "u_ShadowPCFDivisor"), current_directional->m_ShadowPCFDivisor);
+
+			glUniform1i(glGetUniformLocation(shader, "u_ShadowSmootherPCF"), current_directional->m_ShadowsSmoother == ShadowSmoother::PCF);
+			glUniform1i(glGetUniformLocation(shader, "u_ShadowSmootherPoissonDisk"), current_directional->m_ShadowsSmoother == ShadowSmoother::POISSON_DISK);
+			glUniform1i(glGetUniformLocation(shader, "u_ShadowSmootherBoth"), current_directional->m_ShadowsSmoother == ShadowSmoother::BOTH);
+
+			// --- DirLight Matrix Space ---
 			glUniformMatrix4fv(glGetUniformLocation(shader, "u_LightSpace"), 1, GL_FALSE, current_directional->GetFrustViewProjMatrix().ptr());
 		}
 	}

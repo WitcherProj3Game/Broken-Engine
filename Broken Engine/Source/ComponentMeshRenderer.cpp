@@ -129,6 +129,11 @@ json ComponentMeshRenderer::Save() const
 {
 	json node;
 	node["Active"] = this->active;
+
+	node["CastsShadows"] = cast_shadows;
+	node["ReceivesShadows"] = receive_shadows;
+	node["OnlyShadows"] = only_shadows;
+
 	node["Resources"]["ResourceMaterial"]["path"];
 
 	if (material)
@@ -140,6 +145,10 @@ json ComponentMeshRenderer::Save() const
 void ComponentMeshRenderer::Load(json& node)
 {
 	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
+
+	cast_shadows = node.find("CastsShadows") == node.end() ? true : node["CastsShadows"].get<bool>();
+	receive_shadows = node.find("ReceivesShadows") == node.end() ? true : node["ReceivesShadows"].get<bool>();
+	only_shadows = node.find("OnlyShadows") == node.end() ? false : node["OnlyShadows"].get<bool>();
 
 	std::string mat_path = node["Resources"]["ResourceMaterial"]["path"].is_null() ? "0" : node["Resources"]["ResourceMaterial"]["path"];
 	ImporterMeta* IMeta = App->resources->GetImporter<ImporterMeta>();

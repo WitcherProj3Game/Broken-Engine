@@ -10,6 +10,7 @@ BE_BEGIN_NAMESPACE
 class ResourceMesh;
 
 enum class LightType { NONE = -1, DIRECTIONAL, POINTLIGHT, SPOTLIGHT, MAX_LIGHT_TYPES };
+enum class ShadowSmoother { PCF, POISSON_DISK, BOTH };
 
 class BROKEN_API ComponentLight : public Component
 {
@@ -34,35 +35,35 @@ public:
 public:
 
 	// --- Getters --
-	inline const float3 GetLightDirection()				const			{ return m_Direction; }
-	inline const float3 GetLightColor()					const			{ return m_Color; }
-	inline const float3 GetLightAttenuationKLQ()		const			{ return m_AttenuationKLQFactors; }
-	inline const float2 GetLightInOutCutoff()			const			{ return m_InOutCutoffDegrees; }
-	inline const float  GetLightIntensity()				const			{ return m_Intensity; }
-	inline const float  GetLightDistanceMultiplier()	const			{ return m_DistanceMultiplier; }
-			
-	inline const LightType GetLightType()				const			{ return m_LightType; }
+	inline const float3 GetLightDirection()				const { return m_Direction; }
+	inline const float3 GetLightColor()					const { return m_Color; }
+	inline const float3 GetLightAttenuationKLQ()		const { return m_AttenuationKLQFactors; }
+	inline const float2 GetLightInOutCutoff()			const { return m_InOutCutoffDegrees; }
+	inline const float  GetLightIntensity()				const { return m_Intensity; }
+	inline const float  GetLightDistanceMultiplier()	const { return m_DistanceMultiplier; }
+
+	inline const LightType GetLightType()				const { return m_LightType; }
 
 	const float4x4 GetFrustViewMatrix()				const;
 	const float4x4 GetFrustProjectionMatrix()		const;
 	const float4x4 GetFrustViewProjMatrix()			const;
 
 	// -- Setters ---
-	void SetLightDirection(float3 dir)								{ m_Direction = dir; }
+	void SetLightDirection(float3 dir) { m_Direction = dir; }
 
-	void SetLightColor(float3 color)								{ m_Color = color; } //NOT THAT EASY! (material?)
-	void SetLightColor(Color color)									{ m_Color = float3(color.r, color.g, color.b); } //NOT THAT EASY! (material?)
+	void SetLightColor(float3 color) { m_Color = color; } //NOT THAT EASY! (material?)
+	void SetLightColor(Color color) { m_Color = float3(color.r, color.g, color.b); } //NOT THAT EASY! (material?)
 
-	void SetLightAttenuationFactors(float3 AttenuationKLQ)			{ m_AttenuationKLQFactors = AttenuationKLQ; }
-	void SetLightAttenuationFactors(float K, float L, float Q)		{ m_AttenuationKLQFactors = float3(K, L, Q); }
+	void SetLightAttenuationFactors(float3 AttenuationKLQ) { m_AttenuationKLQFactors = AttenuationKLQ; }
+	void SetLightAttenuationFactors(float K, float L, float Q) { m_AttenuationKLQFactors = float3(K, L, Q); }
 
-	void SetLightInOutCutoff(float2 IOCutoff)						{ m_InOutCutoffDegrees = IOCutoff; }
-	void SetLightInOutCutoff(float innerCutoff, float outerCutoff)	{ m_InOutCutoffDegrees = float2(innerCutoff, outerCutoff); }
+	void SetLightInOutCutoff(float2 IOCutoff) { m_InOutCutoffDegrees = IOCutoff; }
+	void SetLightInOutCutoff(float innerCutoff, float outerCutoff) { m_InOutCutoffDegrees = float2(innerCutoff, outerCutoff); }
 
-	void SetLightIntensity(float intensity)							{ m_Intensity = intensity; }
-	void SetLightDistanceMultiplier(float distMulti)				{ m_DistanceMultiplier = distMulti; }
+	void SetLightIntensity(float intensity) { m_Intensity = intensity; }
+	void SetLightDistanceMultiplier(float distMulti) { m_DistanceMultiplier = distMulti; }
 
-	void SetLightType(LightType type)								{ if (type != LightType::NONE && (uint)type < (uint)LightType::MAX_LIGHT_TYPES) m_LightType = type; }
+	void SetLightType(LightType type) { if (type != LightType::NONE && (uint)type < (uint)LightType::MAX_LIGHT_TYPES) m_LightType = type; }
 
 private:
 
@@ -90,11 +91,21 @@ private:
 	bool m_SetToZero = false;
 	bool m_DrawMesh = true;
 
+	const char* m_ShadowBlurAlgorithmsNamesVec[3] = { "PCF", "Poisson Disk", "Both" };
+
 public:
 
 	bool m_CurrentShadower = false;
 	float m_ShadowsIntensity = 1.0f;
 	float m_ShadowBias = 0.001f;
+
+	bool m_ClampShadows = false;
+	float m_ShadowSmoothMultiplier = 1.0f;
+
+	ShadowSmoother m_ShadowsSmoother = ShadowSmoother::POISSON_DISK;
+	float m_ShadowOffsetBlur = 0.2f; //Between 0 and 1
+	float m_ShadowPoissonBlur = 700.0f; //Between 0 and 50000
+	float m_ShadowPCFDivisor = 9.0f; //Between 0.1 and 20.0
 };
 
 BE_END_NAMESPACE

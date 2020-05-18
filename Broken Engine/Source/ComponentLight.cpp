@@ -4,6 +4,7 @@
 #include "Application.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleSceneManager.h"
+#include "ModuleGui.h"
 
 // -- Resources --
 #include "ResourceShader.h"
@@ -21,7 +22,6 @@ using namespace Broken;
 
 const std::string GetStringFromLightType(LightType type)
 {
-
 	std::string ret = "";
 	switch (type)
 	{
@@ -48,8 +48,10 @@ ComponentLight::ComponentLight(GameObject* ContainerGO) : Component(ContainerGO,
 	m_LightFrustum.SetFront(float3::unitZ);
 	m_LightFrustum.SetUp(float3::unitY);
 
+	
+
 	m_LightFrustum.SetViewPlaneDistances(2.0f, 75.0f);
-	m_LightFrustum.SetOrthographic(50.0f, 50.0f);
+	m_LightFrustum.SetOrthographic(100.0f, 100.0f);
 	//m_LightFrustum.SetPerspective(1.0f, 1.0f);
 	//m_LightFrustum.SetHorizontalFovAndAspectRatio(m_LightFrustum.HorizontalFov(), 1.0f);
 }
@@ -67,8 +69,10 @@ void ComponentLight::Update()
 	ComponentTransform* trans = GetContainerGameObject()->GetComponent<ComponentTransform>();
 	if (trans)
 	{
+		// --- Temporary ---
 		App->renderer3D->DrawLine(trans->GetGlobalTransform(), trans->GetGlobalPosition(), float3::zero/*trans->GetRotation().Normalized() * 10.0f*/, Color(255.0f, 255.0f, 50.0f));
-
+		DrawFrustum();
+		// --- Temporary ---
 
 		float3 position = float3::zero, scale = float3::one;
 		Quat q = Quat::identity;
@@ -288,56 +292,122 @@ void ComponentLight::CreateInspectorNode()
 	// --- Color ---
 	ImGui::Separator(); ImGui::NewLine();
 	ImGui::Text("Color");
-	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 37.0f);
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 130.0f);
 	ImGui::ColorEdit4("##LightColor", (float*)&m_Color, ImGuiColorEditFlags_NoInputs);		
 
 	// --- Intensity ---
 	ImGui::Text("Intensity");
-	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 103.0f);
 	ImGui::SetNextItemWidth(300.0f);
 	ImGui::SliderFloat("##Light_Intensity", &m_Intensity, 0.0f, 100.0f, "%.3f", 2.0f);
-	ImGui::NewLine();
+	//ImGui::NewLine();
 
 	// --- Distance Multiplier ---
 	ImGui::Text("Distance Multiplier");
-	ImGui::SameLine(); ImGui::SetNextItemWidth(65.0f);
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 33.0f);
+	ImGui::SetNextItemWidth(65.0f);
 	ImGui::DragFloat("##DistMulti", &m_DistanceMultiplier, 0.1f, 0.1f, INFINITY, "%.4f");
 	ImGui::NewLine();
 
 	// --- Type-According Values ---
 	if (m_LightType == LightType::DIRECTIONAL)
 	{
-		// --- Set as Shadows Source ---
-		bool changeLight = false;
-		ImGui::Text("Shadows Source");
-		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 39.0f);
-		if(ImGui::Checkbox("##Light_ShadowsSource", &m_CurrentShadower)) changeLight = true;
-		ImGui::NewLine();
-
-		if (changeLight)
+		//ImGui::NewLine();
+		//ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+		if (ImGui::TreeNodeEx("Light Shadows", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			if (m_CurrentShadower)
-				App->renderer3D->SetShadowerLight(this);
-			else
-				App->renderer3D->SetShadowerLight(nullptr);
+			// --- Set as Shadows Source ---
+			bool changeLight = false;
+			//ImGui::NewLine();
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+			ImGui::Text("Shadows Source");
+			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 42.0f);
+			if (ImGui::Checkbox("##Light_ShadowsSource", &m_CurrentShadower)) changeLight = true;
+			ImGui::NewLine();
 
-			changeLight = false;
+			if (changeLight)
+			{
+				if (m_CurrentShadower)
+					App->renderer3D->SetShadowerLight(this);
+				else
+					App->renderer3D->SetShadowerLight(nullptr);
+
+				changeLight = false;
+			}
+
+			if (App->renderer3D->GetShadowerLight() == this)
+			{
+				// --- Shadows Intensity ---
+				ImGui::NewLine();
+				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+				ImGui::Text("Shadows Intensity");
+				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 1.0f);
+				ImGui::SetNextItemWidth(300.0f);
+				ImGui::SliderFloat("##Shadow_Intensity", &m_ShadowsIntensity, 0.0f, 15.0f, "%.3f", 2.0f);
+
+				// --- Shadows Bias ---
+				ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+				ImGui::Text("Shadows Bias");
+				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 35.0f);
+				ImGui::SetNextItemWidth(300.0f);
+				ImGui::SliderFloat("##Shadow_Bias", &m_ShadowBias, 0.0000f, 0.1000f, "%.5f", 2.0f);
+				ImGui::NewLine();
+
+				// --- Shadows Clamp ---
+				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+				ImGui::Text("Clamp Shadows");
+				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 28.0f);
+				ImGui::SetNextItemWidth(300.0f);
+				ImGui::Checkbox("##ShadowsClamp", &m_ClampShadows);
+				ImGui::NewLine();
+
+				// --- Shadows Smooth Multipliplier ---
+				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+				ImGui::Text("Smooth Multiplier");
+				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+				ImGui::SetNextItemWidth(300.0f);
+				ImGui::SliderFloat("##Shadow_SmMulti", &m_ShadowSmoothMultiplier, -3.0f, 3.0f, "%.2f");
+				ImGui::NewLine();
+
+				// --- Shadow Smoother Algorithm ---
+				int index = (int)m_ShadowsSmoother;
+				ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+				if (App->gui->HandleDropdownSelector(index, "##ShadowsBlurAlgSel", m_ShadowBlurAlgorithmsNamesVec, 3))
+					m_ShadowsSmoother = (ShadowSmoother)index;
+
+				if (m_ShadowsSmoother == ShadowSmoother::POISSON_DISK || m_ShadowsSmoother == ShadowSmoother::BOTH)
+				{
+					// --- Poisson Offset Blur ---
+					ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
+					ImGui::Text("Poisson Offset");
+					ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 17.0f);
+					ImGui::SetNextItemWidth(300.0f);
+					ImGui::SliderFloat("##Shadow_PoissOffBlur", &m_ShadowOffsetBlur, 0.0000f, 1.0000f, "%.5f", 2.0f);
+					//ImGui::NewLine();
+
+					// --- Poisson Smoother Quantity ---
+					ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
+					ImGui::Text("Poisson Blur");
+					ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 31.0f);
+					ImGui::SetNextItemWidth(300.0f);
+					ImGui::SliderFloat("##Shadow_PoissBlurQuantity", &m_ShadowPoissonBlur, 0.0f, 20000.0f, "%.1f", 2.0f);
+					ImGui::NewLine();
+				}
+
+				if (m_ShadowsSmoother == ShadowSmoother::PCF || m_ShadowsSmoother == ShadowSmoother::BOTH)
+				{
+					// --- PCF Smoother Divisor ---
+					ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
+					ImGui::Text("PCF Smoother");
+					ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 31.0f);
+					ImGui::SetNextItemWidth(300.0f);
+					ImGui::SliderFloat("##Shadow_PCFBlurDiv", &m_ShadowPCFDivisor, 0.01f, 20.0f, "%.2f");
+					ImGui::NewLine();
+				}
+			}
+
+			ImGui::TreePop();
 		}
-
-		// --- Shadows Intensity ---
-		ImGui::Text("Shadows Intensity");
-		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
-		ImGui::SetNextItemWidth(300.0f);
-		ImGui::SliderFloat("##Shadow_Intensity", &m_ShadowsIntensity, 0.0f, 100.0f, "%.3f", 2.0f);
-		ImGui::NewLine();
-
-		// --- Shadows Bias ---
-		ImGui::Text("Shadows Bias");
-		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
-		ImGui::SetNextItemWidth(300.0f);
-		ImGui::SliderFloat("##Shadow_Bias", &m_ShadowBias, 0.000f, 2.000f, "%.4f");
-		ImGui::NewLine();
-
 	}
 	else if(m_CurrentShadower)
 		App->renderer3D->SetShadowerLight(nullptr);
@@ -399,6 +469,16 @@ json ComponentLight::Save() const
 	node["LightType"] = std::to_string((int)m_LightType);
 	node["DistanceMultiplier"] = std::to_string(m_DistanceMultiplier);
 
+	node["ShadowsSource"] = m_CurrentShadower;
+	node["ShadowIntensity"] = m_ShadowsIntensity;
+	node["ShadowBias"] = m_ShadowBias;
+	node["ClampShadows"] = m_ClampShadows;
+	node["ShadowsSmoothMulti"] = m_ShadowSmoothMultiplier;
+	node["ShadowSmootherAlg"] = (int)m_ShadowsSmoother;
+	node["ShadowOffsetBlur"] = m_ShadowOffsetBlur;
+	node["ShadowPoissonBlur"] = m_ShadowPoissonBlur;
+	node["ShadowPCFDivisor"] = m_ShadowPCFDivisor;
+
 	return node;
 }
 
@@ -437,4 +517,19 @@ void ComponentLight::Load(json& node)
 	m_Intensity = std::stof(str_intensity);
 	m_LightType = (LightType)(std::stoi(str_LType));
 	m_DistanceMultiplier = std::stof(str_distMult);
+
+	// --- Shadows Load ---
+	m_CurrentShadower = node.find("ShadowsSource") == node.end() ? false : node["ShadowsSource"].get<bool>();
+	m_ShadowsIntensity = node.find("ShadowIntensity") == node.end() ? 1.0f : node["ShadowIntensity"].get<float>();
+	m_ShadowBias = node.find("ShadowBias") == node.end() ? 0.001f : node["ShadowBias"].get<float>();
+	m_ClampShadows = node.find("ClampShadows") == node.end() ? false : node["ClampShadows"].get<bool>();
+	m_ShadowSmoothMultiplier = node.find("ShadowsSmoothMulti") == node.end() ? 1.0f : node["ShadowsSmoothMulti"].get<float>();
+
+	m_ShadowsSmoother = node.find("ShadowSmootherAlg") == node.end() ? ShadowSmoother::POISSON_DISK : (ShadowSmoother)node["ShadowSmootherAlg"].get<int>();
+	m_ShadowOffsetBlur = node.find("ShadowOffsetBlur") == node.end() ? 0.2f : node["ShadowOffsetBlur"].get<float>();
+	m_ShadowPoissonBlur = node.find("ShadowPoissonBlur") == node.end() ? 700.0f : node["ShadowPoissonBlur"].get<float>();
+	m_ShadowPCFDivisor = node.find("ShadowPCFDivisor") == node.end() ? 9.0f : node["ShadowPCFDivisor"].get<float>();
+
+	if (m_CurrentShadower)
+		App->renderer3D->SetShadowerLight(this);
 }

@@ -95,6 +95,7 @@ private:
 
 public:
 
+	float2 frustum_size = float2(50.0f, 50.0f);
 	bool m_CurrentShadower = false;
 	float m_ShadowsIntensity = 1.0f;
 	float m_ShadowBias = 0.001f;

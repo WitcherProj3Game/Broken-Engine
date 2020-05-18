@@ -51,7 +51,7 @@ ComponentLight::ComponentLight(GameObject* ContainerGO) : Component(ContainerGO,
 	
 
 	m_LightFrustum.SetViewPlaneDistances(2.0f, 75.0f);
-	m_LightFrustum.SetOrthographic(100.0f, 100.0f);
+	m_LightFrustum.SetOrthographic(frustum_size.x, frustum_size.y);
 	//m_LightFrustum.SetPerspective(1.0f, 1.0f);
 	//m_LightFrustum.SetHorizontalFovAndAspectRatio(m_LightFrustum.HorizontalFov(), 1.0f);
 }
@@ -70,7 +70,6 @@ void ComponentLight::Update()
 	if (trans)
 	{
 		// --- Temporary ---
-		App->renderer3D->DrawLine(trans->GetGlobalTransform(), trans->GetGlobalPosition(), float3::zero/*trans->GetRotation().Normalized() * 10.0f*/, Color(255.0f, 255.0f, 50.0f));
 		DrawFrustum();
 		// --- Temporary ---
 
@@ -93,6 +92,9 @@ void ComponentLight::Update()
 			float3 orientation_vec = float3(2 * (q.x * q.z + q.w * q.y), 2 * (q.y * q.z - q.w * q.x), 1 - 2 * (q.x * q.x + q.y * q.y));
 			m_Direction = -orientation_vec;
 		}
+
+		App->renderer3D->DrawLine(trans->GetGlobalTransform(), float3::zero, m_LightFrustum.Up() * frustum_size.y/*trans->GetRotation().Normalized() * 10.0f*/, Color(255.0f, 255.0f, 50.0f));
+
 	}	
 	else
 		m_Direction = float3(0.0f);
@@ -337,6 +339,9 @@ void ComponentLight::CreateInspectorNode()
 
 			if (App->renderer3D->GetShadowerLight() == this)
 			{
+				if(ImGui::InputFloat2("FrustumSize", frustum_size.ptr(), 0.1f))
+					m_LightFrustum.SetOrthographic(frustum_size.x, frustum_size.y);
+
 				// --- Shadows Intensity ---
 				ImGui::NewLine();
 				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
@@ -478,6 +483,9 @@ json ComponentLight::Save() const
 	node["ShadowOffsetBlur"] = m_ShadowOffsetBlur;
 	node["ShadowPoissonBlur"] = m_ShadowPoissonBlur;
 	node["ShadowPCFDivisor"] = m_ShadowPCFDivisor;
+	node["FrustumSizeX"] = frustum_size.x;
+	node["FrustumSizeY"] = frustum_size.y;
+
 
 	return node;
 }
@@ -524,6 +532,11 @@ void ComponentLight::Load(json& node)
 	m_ShadowBias = node.find("ShadowBias") == node.end() ? 0.001f : node["ShadowBias"].get<float>();
 	m_ClampShadows = node.find("ClampShadows") == node.end() ? false : node["ClampShadows"].get<bool>();
 	m_ShadowSmoothMultiplier = node.find("ShadowsSmoothMulti") == node.end() ? 1.0f : node["ShadowsSmoothMulti"].get<float>();
+
+	frustum_size.x = node.find("FrustumSizeX") == node.end() ? 50.0f : node["FrustumSizeX"].get<float>();
+	frustum_size.y = node.find("FrustumSizeY") == node.end() ? 50.0f : node["FrustumSizeY"].get<float>();
+
+	m_LightFrustum.SetOrthographic(frustum_size.x, frustum_size.y);
 
 	m_ShadowsSmoother = node.find("ShadowSmootherAlg") == node.end() ? ShadowSmoother::POISSON_DISK : (ShadowSmoother)node["ShadowSmootherAlg"].get<int>();
 	m_ShadowOffsetBlur = node.find("ShadowOffsetBlur") == node.end() ? 0.2f : node["ShadowOffsetBlur"].get<float>();

@@ -40,6 +40,9 @@ bool ResourceShader::LoadInMemory()
 {
 	bool ret = true;
 
+	// We try to lock this so we do not proceed if we are freeing memory
+	std::lock_guard<std::mutex> lk(memory_mutex);
+
 	// --- Load from binary file ---
 	if (!ret/*App->fs->Exists(resource_file.c_str())*/)
 	{
@@ -171,6 +174,9 @@ bool ResourceShader::LoadInMemory()
 
 void ResourceShader::FreeMemory() 
 {
+	// We lock this while deleting memory so we do not create it while deleting it
+	std::lock_guard<std::mutex> lk(memory_mutex);
+
 	DeleteShaderProgram();
 }
 

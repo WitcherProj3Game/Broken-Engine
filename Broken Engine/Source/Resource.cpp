@@ -1,11 +1,12 @@
 #include "Resource.h"
-#include "Resource.h"
+#include "GameObject.h"
+
+//Modules
 #include "Application.h"
 #include "ModuleResourceManager.h"
 #include "ModuleEventManager.h"
 #include "ModuleFileSystem.h"
-#include "GameObject.h"
-
+#include "ModuleThreading.h"
 
 #include "mmgr/mmgr.h"
 
@@ -97,7 +98,7 @@ void Resource::Release()
 	{
 		if (--instances == 0)
 		{
-			FreeMemory();
+			App->threading->ADDTASK(this, Resource::FreeMemory);
 		}
 	}
 	else

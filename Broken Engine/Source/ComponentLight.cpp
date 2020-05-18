@@ -70,8 +70,6 @@ void ComponentLight::Update()
 	if (trans)
 	{
 		// --- Temporary ---
-		DrawFrustum();
-		// --- Temporary ---
 
 		float3 position = float3::zero, scale = float3::one;
 		Quat q = Quat::identity;
@@ -93,8 +91,11 @@ void ComponentLight::Update()
 			m_Direction = -orientation_vec;
 		}
 
-		App->renderer3D->DrawLine(trans->GetGlobalTransform(), float3::zero, m_LightFrustum.Up() * frustum_size.y/*trans->GetRotation().Normalized() * 10.0f*/, Color(255.0f, 255.0f, 50.0f));
-
+		if (debug_draw)
+		{
+			App->renderer3D->DrawLine(trans->GetGlobalTransform(), float3::zero, m_LightFrustum.Up() * frustum_size.y/*trans->GetRotation().Normalized() * 10.0f*/, Color(255.0f, 255.0f, 50.0f));
+			DrawFrustum();
+		}
 	}	
 	else
 		m_Direction = float3(0.0f);
@@ -311,6 +312,8 @@ void ComponentLight::CreateInspectorNode()
 	ImGui::DragFloat("##DistMulti", &m_DistanceMultiplier, 0.1f, 0.1f, INFINITY, "%.4f");
 	ImGui::NewLine();
 
+	ImGui::Checkbox("DebugDraw", &debug_draw);
+
 	// --- Type-According Values ---
 	if (m_LightType == LightType::DIRECTIONAL)
 	{
@@ -485,6 +488,7 @@ json ComponentLight::Save() const
 	node["ShadowPCFDivisor"] = m_ShadowPCFDivisor;
 	node["FrustumSizeX"] = frustum_size.x;
 	node["FrustumSizeY"] = frustum_size.y;
+	node["DebugDraw"] = debug_draw;
 
 
 	return node;
@@ -537,6 +541,8 @@ void ComponentLight::Load(json& node)
 	frustum_size.y = node.find("FrustumSizeY") == node.end() ? 50.0f : node["FrustumSizeY"].get<float>();
 
 	m_LightFrustum.SetOrthographic(frustum_size.x, frustum_size.y);
+
+	debug_draw = node.find("DebugDraw") == node.end() ? false : node["DebugDraw"].get<bool>();
 
 	m_ShadowsSmoother = node.find("ShadowSmootherAlg") == node.end() ? ShadowSmoother::POISSON_DISK : (ShadowSmoother)node["ShadowSmootherAlg"].get<int>();
 	m_ShadowOffsetBlur = node.find("ShadowOffsetBlur") == node.end() ? 0.2f : node["ShadowOffsetBlur"].get<float>();

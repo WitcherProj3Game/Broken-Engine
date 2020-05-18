@@ -92,7 +92,7 @@ private:
 	bool m_DrawMesh = true;
 
 	const char* m_ShadowBlurAlgorithmsNamesVec[3] = { "PCF", "Poisson Disk", "Both" };
-
+	bool debug_draw = false;
 public:
 
 	float2 frustum_size = float2(50.0f, 50.0f);

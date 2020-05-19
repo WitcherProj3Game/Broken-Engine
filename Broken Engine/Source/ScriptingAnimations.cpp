@@ -29,10 +29,10 @@ void ScriptingAnimations::StartAnimation(const char* name, float speed, uint gam
 		if (anim)
 			anim->PlayAnimation(name, speed);
 		else
-			ENGINE_CONSOLE_LOG("[Script]: Animation component is NULL");
+			ENGINE_CONSOLE_LOG("[Script]: (PlayAnimation) Animation component is NULL");
 	}
 	else
-		ENGINE_CONSOLE_LOG("[Script]: Game Object passed is NULL");
+		ENGINE_CONSOLE_LOG("[Script]: (PlayAnimation) Game Object passed is NULL");
 }
 
 void ScriptingAnimations::SetCurrentAnimSpeed(float speed, uint gameobject_UUID)
@@ -46,10 +46,10 @@ void ScriptingAnimations::SetCurrentAnimSpeed(float speed, uint gameobject_UUID)
 		if (anim)
 			anim->SetCurrentAnimationSpeed(speed);
 		else
-			ENGINE_CONSOLE_LOG("[Script]: Animation component is NULL");
+			ENGINE_CONSOLE_LOG("[Script]: (SetCurrentAnimationSpeed) Animation component is NULL");
 	}
 	else
-		ENGINE_CONSOLE_LOG("[Script]: Game Object passed is NULL");
+		ENGINE_CONSOLE_LOG("[Script]: (SetCurrentAnimationSpeed) Game Object passed is NULL");
 
 }
 
@@ -64,10 +64,10 @@ void ScriptingAnimations::SetAnimSpeed(const char* name, float speed, uint gameo
 		if (anim)
 			anim->SetAnimationSpeed(name, speed);
 		else
-			ENGINE_CONSOLE_LOG("[Script]: Animation component is NULL");
+			ENGINE_CONSOLE_LOG("[Script]: (SetAnimationSpeed) Animation component is NULL");
 	}
 	else
-		ENGINE_CONSOLE_LOG("[Script]: Game Object passed is NULL");
+		ENGINE_CONSOLE_LOG("[Script]: (SetAnimationSpeed) Game Object passed is NULL");
 	
 
 }
@@ -82,10 +82,10 @@ void ScriptingAnimations::SetBlendTime(float value, uint gameobject_UUID)
 		if (anim)
 			anim->ChangeBlendTime(value);
 		else
-			ENGINE_CONSOLE_LOG("[Script]: Animation component is NULL");
+			ENGINE_CONSOLE_LOG("[Script]: (SetBlendTime) Animation component is NULL");
 	}
 	else
-		ENGINE_CONSOLE_LOG("[Script]: Game Object passed is NULL");
+		ENGINE_CONSOLE_LOG("[Script]: (SetBlendTime) Game Object passed is NULL");
 	
 	
 }
@@ -104,13 +104,13 @@ int ScriptingAnimations::CurrentAnimEnded(uint gameobject_UUID)
 			ret = (int)anim->CurrentAnimationEnded();
 		else 
 		{
-			ENGINE_CONSOLE_LOG("[Script]: Animation component is NULL");
+			ENGINE_CONSOLE_LOG("[Script]: (CurrentAnimationEnded) Animation component is NULL");
 			ret = -1;
 		}
 	}
 	else
 	{
-		ENGINE_CONSOLE_LOG("[Script]: Game Object passed is NULL");
+		ENGINE_CONSOLE_LOG("[Script]: (CurrentAnimationEnded) Game Object passed is NULL");
 		ret = -1;
 	}
 
@@ -127,10 +127,42 @@ float ScriptingAnimations::GetCurrentFrame(uint gameobject_UUID) {
 		if (anim)
 			ret = anim->GetCurrentFrame();
 		else
-			ENGINE_CONSOLE_LOG("![Script]: (GetFrame) Animation component is NULL");
+			ENGINE_CONSOLE_LOG("![Script]: (GetCurrentFrame) Animation component is NULL");
 	}
 	else 
-		ENGINE_CONSOLE_LOG("![Script]: (GetFrame) Game Object passed is NULL");
+		ENGINE_CONSOLE_LOG("![Script]: (GetCurrentFrame) Game Object passed is NULL");
 
 	return ret;
+}
+
+
+void ScriptingAnimations::StopAnimation(uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	if (go)
+	{
+		ComponentAnimation* anim = go->GetComponent<ComponentAnimation>();
+
+		if (anim)
+			int a = 1;
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (StopAnimation) Animation component is NULL");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (StopAnimation) Game Object passed is NULL");
+}
+
+void ScriptingAnimations::SetAnimPause(bool pause, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	if (go)
+	{
+		ComponentAnimation* anim = go->GetComponent<ComponentAnimation>();
+		if (anim)
+			anim->SetAnimationPause(pause);
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (SetAnimationPause) Animation component is NULL");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetAnimationPause) Game Object passed is NULL");
 }

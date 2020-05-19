@@ -81,7 +81,7 @@ void ComponentAnimation::Update()
 		DoLink();
 	}
 
-	if (App->GetAppState() == AppState::PLAY && !App->time->gamePaused)
+	if (App->GetAppState() == AppState::PLAY && !App->time->gamePaused && !animation_paused)
 	{
 		if (linked_bones == false)
 			DoBoneLink();
@@ -144,6 +144,7 @@ Animation* ComponentAnimation::GetDefaultAnimation() const
 
 void ComponentAnimation::PlayAnimation(const char* name, float speed)
 {
+	animation_paused = false;
 	for (int i = 0; i < animations.size(); ++i)
 	{
 		if (animations[i] == nullptr)
@@ -178,9 +179,10 @@ void ComponentAnimation::SetAnimationSpeed(const char* name, float speed)
 			break;
 		}
 		else if (animations[i]->name.compare(name) == 0)
+		{
 			time += time * (animations[i]->speed / speed);
 			animations[i]->speed = speed;
-			
+		}
 	}
 }
 

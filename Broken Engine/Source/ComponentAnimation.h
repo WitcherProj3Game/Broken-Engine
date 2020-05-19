@@ -49,6 +49,7 @@ public:
 	void SetCurrentAnimationSpeed(float speed);
 	float GetCurrentFrame() const;
 	bool CurrentAnimationEnded();
+	void SetAnimationPause(bool pause) { animation_paused = pause; }
 
 	// --- Save & Load ---
 	json Save() const override;
@@ -111,6 +112,8 @@ private:
 	Quat* start_rotation = nullptr;
 	float3* start_scale = nullptr;
 	Animation* next_animation = nullptr;
+
+	bool animation_paused = false;
 
 	bool to_copy = false;
 };

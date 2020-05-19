@@ -121,6 +121,7 @@ struct BrokenLight
 	vec2 InOutCutoff;
 
 	int LightType;
+	bool LightCastingShadows;
 };
 
 uniform int u_LightsNumber = 0;
@@ -174,7 +175,7 @@ float ShadowCalculation(vec3 dir, vec3 normal)
 }
 
 //Light Calculations Functions ---------------------------------------------------------------------------------------
-vec3 CalculateLightResult(vec3 LColor, vec3 LDir, vec3 normal, vec3 viewDir)
+vec3 CalculateLightResult(vec3 LColor, vec3 LDir, vec3 normal, vec3 viewDir, bool lightShadower)
 {
 	//Normalize light direction
 	vec3 lightDir = normalize(LDir);
@@ -196,7 +197,7 @@ vec3 CalculateLightResult(vec3 LColor, vec3 LDir, vec3 normal, vec3 viewDir)
 	if(u_HasSpecularTexture == 1)
 		specular *= texture(u_SpecularTexture, v_TexCoord).rgb;
 
-	if(u_ReceiveShadows)
+	if(u_ReceiveShadows && lightShadower)
 		return (1.0 - ShadowCalculation(lightDir, normal)) * (diffuse + specular);
 
 	return (diffuse + specular);
@@ -207,9 +208,9 @@ vec3 CalculateLightResult(vec3 LColor, vec3 LDir, vec3 normal, vec3 viewDir)
 vec3 CalculateDirectionalLight(BrokenLight light, vec3 normal, vec3 viewDir)
 {
 	if(u_HasNormalMap == 1)
-		return CalculateLightResult(light.color, /*v_TBN * */normalize(light.dir), normal, viewDir) * light.intensity;
+		return CalculateLightResult(light.color, /*v_TBN * */normalize(light.dir), normal, viewDir, light.LightCastingShadows) * light.intensity;
 	else
-		return CalculateLightResult(light.color, light.dir, normal, viewDir) * light.intensity;
+		return CalculateLightResult(light.color, light.dir, normal, viewDir, light.LightCastingShadows) * light.intensity;
 }
 
 //Point Light Calculation
@@ -226,7 +227,7 @@ vec3 CalculatePointlight(BrokenLight light, vec3 normal, vec3 viewDir)
 	float lightAttenuation = 1.0/(light.attenuationKLQ.x + light.attenuationKLQ.y * d + light.attenuationKLQ.z *(d * d));
 
 	//Result
-	return CalculateLightResult(light.color, direction, normal, viewDir) * lightAttenuation * light.intensity;
+	return CalculateLightResult(light.color, direction, normal, viewDir, false) * lightAttenuation * light.intensity;
 }
 
 //Spot Light Calculation
@@ -248,7 +249,7 @@ vec3 CalculateSpotlight(BrokenLight light, vec3 normal, vec3 viewDir)
 	float lightIntensity = clamp((theta - light.InOutCutoff.y) / epsilon, 0.0, 1.0) * light.intensity;
 
 	//Result
-	return CalculateLightResult(light.color, direction, normal, viewDir) * lightAttenuation * lightIntensity;
+	return CalculateLightResult(light.color, direction, normal, viewDir, false) * lightAttenuation * lightIntensity;
 }
 
 //------------------------------------------------------------------------------------------------------------------

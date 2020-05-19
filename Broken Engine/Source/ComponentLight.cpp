@@ -4,6 +4,7 @@
 #include "Application.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleSceneManager.h"
+#include "ModuleSelection.h"
 #include "ModuleGui.h"
 
 // -- Resources --
@@ -46,11 +47,9 @@ ComponentLight::ComponentLight(GameObject* ContainerGO) : Component(ContainerGO,
 	m_LightFrustum.SetKind(FrustumSpaceGL, FrustumRightHanded);
 	m_LightFrustum.SetPos(float3::zero);
 	m_LightFrustum.SetFront(float3::unitZ);
-	m_LightFrustum.SetUp(float3::unitY);
+	m_LightFrustum.SetUp(float3::unitY);	
 
-	
-
-	m_LightFrustum.SetViewPlaneDistances(2.0f, 75.0f);
+	m_LightFrustum.SetViewPlaneDistances(frusutm_planes.x, frusutm_planes.y);
 	m_LightFrustum.SetOrthographic(frustum_size.x, frustum_size.y);
 	//m_LightFrustum.SetPerspective(1.0f, 1.0f);
 	//m_LightFrustum.SetHorizontalFovAndAspectRatio(m_LightFrustum.HorizontalFov(), 1.0f);
@@ -67,36 +66,34 @@ ComponentLight::~ComponentLight()
 void ComponentLight::Update()
 {
 	ComponentTransform* trans = GetContainerGameObject()->GetComponent<ComponentTransform>();
-	if (trans)
+	if (trans && m_LightType != LightType::NONE && m_LightType != LightType::MAX_LIGHT_TYPES)
 	{
-		// --- Temporary ---
-
+		// --- Transformation Calculations ---
 		float3 position = float3::zero, scale = float3::one;
 		Quat q = Quat::identity;
 		trans->GetGlobalTransform().Decompose(position, q, scale);
 
 		m_LightFrustum.SetPos(position);
-
 		float3 fr = trans->GetGlobalTransform().Col3(2);
 		float3 upvec = trans->GetGlobalTransform().Col3(1);
-
 		m_LightFrustum.SetFront(fr);
 		m_LightFrustum.SetUp(upvec);
 
 		if (m_LightType == LightType::DIRECTIONAL)
-			m_Direction = trans->GetRotation() * DEGTORAD;
-		else if (m_LightType == LightType::POINTLIGHT || m_LightType == LightType::SPOTLIGHT)
+			m_Direction = -fr.Normalized();
+		else
 		{
 			float3 orientation_vec = float3(2 * (q.x * q.z + q.w * q.y), 2 * (q.y * q.z - q.w * q.x), 1 - 2 * (q.x * q.x + q.y * q.y));
 			m_Direction = -orientation_vec;
 		}
 
-		if (debug_draw)
-		{
-			App->renderer3D->DrawLine(trans->GetGlobalTransform(), float3::zero, m_LightFrustum.Up() * frustum_size.y/*trans->GetRotation().Normalized() * 10.0f*/, Color(255.0f, 255.0f, 50.0f));
+		// --- Visual Debug ---
+		if(m_LightType != LightType::POINTLIGHT && App->selection->IsSelected(GetContainerGameObject()))
+			DrawDirectionLines(m_LightType == LightType::SPOTLIGHT, position, fr);
+
+		if (dir_debug_draw && m_LightType == LightType::DIRECTIONAL)
 			DrawFrustum();
-		}
-	}	
+	}
 	else
 		m_Direction = float3(0.0f);
 }
@@ -120,9 +117,7 @@ void ComponentLight::SendUniforms(uint shaderID, uint lightIndex)
 	int cutoffLoc = glGetUniformLocation(shaderID, (light_index_str + ".InOutCutoff").c_str());
 	int LtypeLoc = glGetUniformLocation(shaderID, (light_index_str + ".LightType").c_str());
 	int distMultiLoc = glGetUniformLocation(shaderID, (light_index_str + ".distanceMultiplier").c_str());
-
-	//u_DistanceMultiplier distMultiLoc
-
+	int LshLoc = glGetUniformLocation(shaderID, (light_index_str + ".LightCastingShadows").c_str());
 	
 	if ((!active || m_LightType == LightType::NONE || m_LightType == LightType::MAX_LIGHT_TYPES) && !m_SetToZero)
 	{
@@ -148,6 +143,9 @@ void ComponentLight::SendUniforms(uint shaderID, uint lightIndex)
 
 		// --- Passing Light Distance Multiplicator ---
 		glUniform1f(distMultiLoc, 1.0f);
+		
+		// --- Shadower Light ---
+		glUniform1f(LshLoc, false);
 
 		m_SetToZero = true;
 	}
@@ -181,9 +179,24 @@ void ComponentLight::SendUniforms(uint shaderID, uint lightIndex)
 		// --- Passing Light Distance Multiplicator ---
 		glUniform1f(distMultiLoc, m_DistanceMultiplier);
 
+		// --- Shadower Light ---
+		glUniform1f(LshLoc, App->renderer3D->GetShadowerLight() == this);		
+
 		if(m_SetToZero)
 			m_SetToZero = false;
 	}
+}
+
+void ComponentLight::SetLightShadowsFrustumPlanes(float nearp, float farp)
+{
+	frusutm_planes = float2(nearp, farp);
+	m_LightFrustum.SetViewPlaneDistances(frusutm_planes.x, frusutm_planes.y);	
+}
+
+void ComponentLight::SetLightShadowsFrustumSize(float x, float y)
+{
+	frustum_size = float2(x, y);
+	m_LightFrustum.SetOrthographic(frustum_size.x, frustum_size.y);
 }
 
 const std::string ComponentLight::GetLightUniform(uint lightIndex, const char* uniformArrayName)
@@ -258,6 +271,37 @@ void ComponentLight::DrawFrustum()
 		App->renderer3D->DrawFrustum(m_LightFrustum, White);
 }
 
+void ComponentLight::DrawDirectionLines(bool spotlight, float3 pos, float3 front)
+{
+	float3 dlA = pos, dlB = front.Normalized() * 1.5f;
+	Color dl_color = Color(255.0f, 255.0f, 50.0f);
+	float3 dl_Yoff = float3(0.0f, 0.2f, 0.0f), dl_Xoff = float3(0.2f, 0.0f, 0.0f);
+
+	if (spotlight)
+		dlB = -dlB;
+
+	// Central Line
+	App->renderer3D->DrawLine(float4x4::identity, dlA, (dlA + dlB), dl_color);
+
+	// Lines in Y axis
+	App->renderer3D->DrawLine(float4x4::identity, dlA + dl_Yoff, (dlA + dl_Yoff + dlB), dl_color);
+	App->renderer3D->DrawLine(float4x4::identity, dlA - dl_Yoff, (dlA - dl_Yoff + dlB), dl_color);
+	App->renderer3D->DrawLine(float4x4::identity, dlA + dl_Yoff * 2.0f, (dlA + dl_Yoff * 2.0f + dlB), dl_color);
+	App->renderer3D->DrawLine(float4x4::identity, dlA - dl_Yoff * 2.0f, (dlA - dl_Yoff * 2.0f + dlB), dl_color);
+
+	// Lines in X axis
+	App->renderer3D->DrawLine(float4x4::identity, dlA + dl_Xoff, (dlA + dl_Xoff + dlB), dl_color);
+	App->renderer3D->DrawLine(float4x4::identity, dlA - dl_Xoff, (dlA - dl_Xoff + dlB), dl_color);
+	App->renderer3D->DrawLine(float4x4::identity, dlA + dl_Xoff * 2.0f, (dlA + dl_Xoff * 2.0f + dlB), dl_color);
+	App->renderer3D->DrawLine(float4x4::identity, dlA - dl_Xoff * 2.0f, (dlA - dl_Xoff * 2.0f + dlB), dl_color);
+
+	// Line in X&Y axis
+	App->renderer3D->DrawLine(float4x4::identity, dlA + dl_Xoff + dl_Yoff, (dlA + dl_Xoff + dl_Yoff + dlB), dl_color);
+	App->renderer3D->DrawLine(float4x4::identity, dlA - dl_Xoff + dl_Yoff, (dlA - dl_Xoff + dl_Yoff + dlB), dl_color);
+	App->renderer3D->DrawLine(float4x4::identity, dlA + dl_Xoff - dl_Yoff, (dlA + dl_Xoff - dl_Yoff + dlB), dl_color);
+	App->renderer3D->DrawLine(float4x4::identity, dlA - dl_Xoff - dl_Yoff, (dlA - dl_Xoff - dl_Yoff + dlB), dl_color);
+}
+
 // -------------------------------------------------------------------------------------------
 // --------------------------------------- UI Inspector --------------------------------------
 // -------------------------------------------------------------------------------------------
@@ -295,38 +339,33 @@ void ComponentLight::CreateInspectorNode()
 	// --- Color ---
 	ImGui::Separator(); ImGui::NewLine();
 	ImGui::Text("Color");
-	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 130.0f);
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 129.0f);
 	ImGui::ColorEdit4("##LightColor", (float*)&m_Color, ImGuiColorEditFlags_NoInputs);		
 
 	// --- Intensity ---
 	ImGui::Text("Intensity");
-	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 103.0f);
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 102.0f);
 	ImGui::SetNextItemWidth(300.0f);
 	ImGui::SliderFloat("##Light_Intensity", &m_Intensity, 0.0f, 100.0f, "%.3f", 2.0f);
 	//ImGui::NewLine();
 
 	// --- Distance Multiplier ---
 	ImGui::Text("Distance Multiplier");
-	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 33.0f);
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 32.0f);
 	ImGui::SetNextItemWidth(65.0f);
 	ImGui::DragFloat("##DistMulti", &m_DistanceMultiplier, 0.1f, 0.1f, INFINITY, "%.4f");
 	ImGui::NewLine();
 
-	ImGui::Checkbox("DebugDraw", &debug_draw);
-
-	// --- Type-According Values ---
+	// --- Directional Editor ---
 	if (m_LightType == LightType::DIRECTIONAL)
 	{
-		//ImGui::NewLine();
-		//ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 		if (ImGui::TreeNodeEx("Light Shadows", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			// --- Set as Shadows Source ---
 			bool changeLight = false;
-			//ImGui::NewLine();
 			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 			ImGui::Text("Shadows Source");
-			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 42.0f);
+			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 41.0f);
 			if (ImGui::Checkbox("##Light_ShadowsSource", &m_CurrentShadower)) changeLight = true;
 			ImGui::NewLine();
 
@@ -342,16 +381,47 @@ void ComponentLight::CreateInspectorNode()
 
 			if (App->renderer3D->GetShadowerLight() == this)
 			{
-				if(ImGui::InputFloat2("FrustumSize", frustum_size.ptr(), 0.1f))
-					m_LightFrustum.SetOrthographic(frustum_size.x, frustum_size.y);
+				// --- Draw Light Frustum ---
+				//ImGui::NewLine();
+				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+				ImGui::Text("Draw Frustum");
+				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 55.0f);
+				ImGui::Checkbox("##LightFrustumDraw", &dir_debug_draw);
+				ImGui::NewLine();
+
+				if (dir_debug_draw)
+				{
+					// --- Frustum Size ---
+					ImGui::NewLine();
+					ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+					ImGui::Text("Frustum Size");
+					ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 35.0f);
+					ImGui::SetNextItemWidth(150.0f);
+					if (ImGui::DragFloat2("##DLightFrustumSize", frustum_size.ptr(), 1.0f, 0.01f, INFINITY, "%.2f"))
+						m_LightFrustum.SetOrthographic(frustum_size.x, frustum_size.y);
+
+					ImGui::NewLine();
+					ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+					ImGui::Text("Frustum Planes");
+					ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 21.0f);
+					ImGui::SetNextItemWidth(75.0f);
+					if (ImGui::DragFloat("##DLightFrustumPlanesX", &frusutm_planes.x, 0.001f, 0.001f, frusutm_planes.y - 0.001f))
+						m_LightFrustum.SetViewPlaneDistances(frusutm_planes.x, frusutm_planes.y);
+					
+					ImGui::SameLine(); ImGui::SetNextItemWidth(75.0f);
+					if (ImGui::DragFloat("##DLightFrustumPlanesY", &frusutm_planes.y, 0.005f, frusutm_planes.x + 0.001f, INFINITY))
+						m_LightFrustum.SetViewPlaneDistances(frusutm_planes.x, frusutm_planes.y);
+
+					ImGui::NewLine();
+				}
 
 				// --- Shadows Intensity ---
 				ImGui::NewLine();
 				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
 				ImGui::Text("Shadows Intensity");
-				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 1.0f);
+				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 				ImGui::SetNextItemWidth(300.0f);
-				ImGui::SliderFloat("##Shadow_Intensity", &m_ShadowsIntensity, 0.0f, 15.0f, "%.3f", 2.0f);
+				ImGui::SliderFloat("##Shadow_Intensity", &m_ShadowsIntensity, 0.0f, 30.0f, "%.3f", 2.0f);
 
 				// --- Shadows Bias ---
 				ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
@@ -391,7 +461,6 @@ void ComponentLight::CreateInspectorNode()
 					ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 17.0f);
 					ImGui::SetNextItemWidth(300.0f);
 					ImGui::SliderFloat("##Shadow_PoissOffBlur", &m_ShadowOffsetBlur, 0.0000f, 1.0000f, "%.5f", 2.0f);
-					//ImGui::NewLine();
 
 					// --- Poisson Smoother Quantity ---
 					ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
@@ -420,6 +489,7 @@ void ComponentLight::CreateInspectorNode()
 	else if(m_CurrentShadower)
 		App->renderer3D->SetShadowerLight(nullptr);
 
+	// --- Spotlight & Pointlight Editor ---
 	if (m_LightType == LightType::SPOTLIGHT)
 	{
 		// --- Cutoff ---
@@ -442,6 +512,7 @@ void ComponentLight::CreateInspectorNode()
 		ImGui::Text("Quadratic Attenuation Value (Q):"); ImGui::SameLine(); ImGui::SetNextItemWidth(65.0f);
 		ImGui::DragFloat("##AttQ", &m_AttenuationKLQFactors.z, 0.00001f, 0.000000f, 10.0f, "%.5f");
 
+		// --- Back to Default Values ---
 		if (ImGui::Button("Default", { 57, 18 }))
 			m_AttenuationKLQFactors = float3(1.0f, 0.09f, 0.032f);
 	}
@@ -488,7 +559,7 @@ json ComponentLight::Save() const
 	node["ShadowPCFDivisor"] = m_ShadowPCFDivisor;
 	node["FrustumSizeX"] = frustum_size.x;
 	node["FrustumSizeY"] = frustum_size.y;
-	node["DebugDraw"] = debug_draw;
+	node["DebugDraw"] = dir_debug_draw;
 
 
 	return node;
@@ -542,7 +613,7 @@ void ComponentLight::Load(json& node)
 
 	m_LightFrustum.SetOrthographic(frustum_size.x, frustum_size.y);
 
-	debug_draw = node.find("DebugDraw") == node.end() ? false : node["DebugDraw"].get<bool>();
+	dir_debug_draw = node.find("DebugDraw") == node.end() ? false : node["DebugDraw"].get<bool>();
 
 	m_ShadowsSmoother = node.find("ShadowSmootherAlg") == node.end() ? ShadowSmoother::POISSON_DISK : (ShadowSmoother)node["ShadowSmootherAlg"].get<int>();
 	m_ShadowOffsetBlur = node.find("ShadowOffsetBlur") == node.end() ? 0.2f : node["ShadowOffsetBlur"].get<float>();

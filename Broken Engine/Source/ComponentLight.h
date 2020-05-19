@@ -65,10 +65,14 @@ public:
 
 	void SetLightType(LightType type) { if (type != LightType::NONE && (uint)type < (uint)LightType::MAX_LIGHT_TYPES) m_LightType = type; }
 
+	void SetLightShadowsFrustumPlanes(float nearp, float farp);
+	void SetLightShadowsFrustumSize(float x, float y);
+
 private:
 
 	const std::string GetLightUniform(uint lightIndex, const char* uniformArrayName);
 	void DrawFrustum();
+	void DrawDirectionLines(bool spotlight, float3 pos, float3 front);
 
 private:
 
@@ -92,10 +96,13 @@ private:
 	bool m_DrawMesh = true;
 
 	const char* m_ShadowBlurAlgorithmsNamesVec[3] = { "PCF", "Poisson Disk", "Both" };
-	bool debug_draw = false;
-public:
+	bool dir_debug_draw = false;
 
 	float2 frustum_size = float2(50.0f, 50.0f);
+	float2 frusutm_planes = float2(2.0f, 75.0f);
+
+public:
+
 	bool m_CurrentShadower = false;
 	float m_ShadowsIntensity = 1.0f;
 	float m_ShadowBias = 0.001f;

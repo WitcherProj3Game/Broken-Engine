@@ -161,11 +161,11 @@ Resource* ImporterMaterial::Load(const char* path) const
 		matShine = file.find("MaterialShininess") == file.end() ? 1.0f : file["MaterialShininess"].get<float>();
 		mat->has_transparencies = file.find("Transparencies") == file.end() ? false : file["Transparencies"].get<bool>();
 		mat->has_culling = file.find("Culling") == file.end() ? true : file["Culling"].get<bool>();
+		mat->m_AffectedBySceneColor = file.find("SceneColorAffected") == file.end() ? true : file["SceneColorAffected"].get<bool>(); 
 
 		// --- Blending Stuff ---
 		mat->m_MatAutoBlendFunc = file.find("MatAlphaFunc") == file.end() ? BlendAutoFunction::STANDARD_INTERPOLATIVE : (BlendAutoFunction)file["MatAlphaFunc"].get<int>();
 		mat->m_MatBlendEq = file.find("MatBlendEquation") == file.end() ? BlendingEquations::ADD : (BlendingEquations)file["MatBlendEquation"].get<int>();
-
 
 		mat->m_MatManualBlend_Src = file.find("MatManualAlphaFuncSrc") == file.end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)file["MatManualAlphaFuncSrc"].get<int>();
 		mat->m_MatManualBlend_Dst = file.find("MatManualAlphaFuncDst") == file.end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)file["MatManualAlphaFuncDst"].get<int>();
@@ -438,6 +438,7 @@ void ImporterMaterial::Save(ResourceMaterial* mat) const
 	file["MaterialShininess"] = mat->m_Shininess;
 	file["Transparencies"] = mat->has_transparencies;
 	file["Culling"] = mat->has_culling;
+	file["SceneColorAffected"] = mat->m_AffectedBySceneColor;
 
 	file["MatAlphaFunc"] = (int)mat->m_MatAutoBlendFunc;
 	file["MatBlendEquation"] = (int)mat->m_MatBlendEq;

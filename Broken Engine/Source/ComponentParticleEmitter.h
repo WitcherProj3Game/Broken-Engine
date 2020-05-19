@@ -163,6 +163,13 @@ private:
 	BlendAutoFunction m_PartBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
 	BlendingTypes m_MPartBlend_Src = BlendingTypes::SRC_ALPHA, m_MPartBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
 
+	//Lighting
+	bool m_AffectedByLight = true;
+	bool m_AffectedBySceneColor = true;
+	bool m_CastShadows = true;
+	bool m_ReceiveShadows = true;
+	bool m_OnlyShadows = false;
+
 	//Drawing
 	OBB emisionAreaOBB;
 };

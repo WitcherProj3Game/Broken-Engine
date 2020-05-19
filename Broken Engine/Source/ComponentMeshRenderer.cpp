@@ -279,9 +279,9 @@ void ComponentMeshRenderer::CreateInspectorNode()
 				// --- UNIFORMS ---
 				material->DisplayAndUpdateUniforms();
 
-				ImGui::Text("Use Textures");
+				ImGui::NewLine();
 				ImGui::SameLine();
-				if(ImGui::Checkbox("##CB", &material->m_UseTexture)) save_material = true;
+				if(ImGui::Checkbox("Use Textures", &material->m_UseTexture)) save_material = true;
 				ImGui::SameLine();
 				if (ImGui::Checkbox("Transparencies", &material->has_transparencies)) save_material = true;
 				ImGui::SameLine();
@@ -289,9 +289,11 @@ void ComponentMeshRenderer::CreateInspectorNode()
 
 				//Color
 				ImGui::Separator();
+				ImGui::NewLine();
 				if(ImGui::ColorEdit4("##AmbientColor", (float*)&material->m_AmbientColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar)) save_material = true;
 				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 				ImGui::Text("Ambient Color");
+				if (ImGui::Checkbox("Scene Color Affected", &material->m_AffectedBySceneColor)) save_material = true;
 
 				//Shininess
 				ImGui::Text("Shininess");

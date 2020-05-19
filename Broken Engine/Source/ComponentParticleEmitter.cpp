@@ -505,6 +505,13 @@ json ComponentParticleEmitter::Save() const
 	node["PartMBlFuncDst"] = (int)m_MPartBlend_Dst;
 	node["PartAutoBlending"] = m_PartAutoBlending;
 
+	// --- Lighting Save ---
+	node["PartLightAffected"] = m_AffectedByLight;
+	node["PartSceneColorAffected"] = m_AffectedBySceneColor;
+	node["PartCastShadows"] = m_CastShadows;
+	node["PartReceiveShadows"] = m_ReceiveShadows;
+	node["PartOnlyShadows"] = m_OnlyShadows;
+
 	return node;
 }
 
@@ -757,6 +764,13 @@ void ComponentParticleEmitter::Load(json& node)
 	m_MPartBlend_Src = node.find("PartMBlFuncSrc") == node.end() ? BlendingTypes::SRC_ALPHA : (BlendingTypes)node["PartMBlFuncSrc"].get<int>();
 	m_MPartBlend_Dst = node.find("PartMBlFuncDst") == node.end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)node["PartMBlFuncDst"].get<int>();
 	m_PartAutoBlending = node.find("PartAutoBlending") == node.end() ? true : node["PartAutoBlending"].get<bool>();
+
+	// --- Lighting Save ---
+	m_AffectedByLight = node.find("PartLightAffected") == node.end() ? true : node["PartLightAffected"].get<bool>();
+	m_AffectedBySceneColor = node.find("PartSceneColorAffected") == node.end() ? true : node["PartSceneColorAffected"].get<bool>();
+	m_CastShadows = node.find("PartCastShadows") == node.end() ? true : node["PartCastShadows"].get<bool>();
+	m_ReceiveShadows = node.find("PartReceiveShadows") == node.end() ? true : node["PartReceiveShadows"].get<bool>();
+	m_OnlyShadows = node.find("PartOnlyShadows") == node.end() ? false : node["PartOnlyShadows"].get<bool>();
 
 	// --- V/H Billbaording ---
 	if (node.find("HorizontalBill") != node.end())
@@ -1284,6 +1298,30 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	if (ImGui::TreeNode("Renderer"))
 	{
+		// Shadows & Lighting
+		ImGui::NewLine();
+		ImGui::SameLine();
+		ImGui::Checkbox("Light Affected ", &m_AffectedByLight);
+		ImGui::SameLine();
+		ImGui::Checkbox("Scene Color Affected", &m_AffectedBySceneColor);
+
+		ImGui::NewLine();
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Cast Shadows", &m_CastShadows))
+			if (m_OnlyShadows) m_CastShadows = false;
+
+		ImGui::SameLine();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 17.0f);
+		if (ImGui::Checkbox("Receive Shadows", &m_ReceiveShadows))
+			if (m_OnlyShadows) m_ReceiveShadows = false;
+
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Only Shadows", &m_OnlyShadows))
+		{
+			m_ReceiveShadows = false;
+			m_CastShadows = true;
+		}
+
 		// Image
 		ImGui::NewLine();
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);

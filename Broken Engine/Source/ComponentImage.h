@@ -29,6 +29,7 @@ public:
 
 public:
 	bool resize = true;
+	bool fullscreen = false;
 	float4 img_color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 public:

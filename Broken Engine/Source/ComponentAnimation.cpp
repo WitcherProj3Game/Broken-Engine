@@ -81,22 +81,25 @@ void ComponentAnimation::Update()
 		DoLink();
 	}
 
-	if (App->GetAppState() == AppState::PLAY && !App->time->gamePaused && !animation_paused)
+	if (App->GetAppState() == AppState::PLAY && !App->time->gamePaused)
 	{
-		if (linked_bones == false)
-			DoBoneLink();
-
-		time += App->time->GetGameDt();
-
-		if (animations.size() > 0)
+		if (!animation_paused)
 		{
-			if (blending == false)
-				UpdateJointsTransform();
-			else
-				BlendAnimations(blend_time_value);
+			if (linked_bones == false)
+				DoBoneLink();
 
-			if (has_skeleton)
-				UpdateMesh(GO);
+			time += App->time->GetGameDt();
+
+			if (animations.size() > 0)
+			{
+				if (blending == false)
+					UpdateJointsTransform();
+				else
+					BlendAnimations(blend_time_value);
+
+				if (has_skeleton)
+					UpdateMesh(GO);
+			}
 		}
 	}
 	else
@@ -107,10 +110,6 @@ void ComponentAnimation::Update()
 	if (to_copy)
 	{
 		// -- New Copy function goes here, or in the button itself
-
-		//ENGINE_AND_SYSTEM_CONSOLE_LOG("Animation info size: %d", anim_info.size());
-		
-
 		to_copy = false;
 	}
 
@@ -140,6 +139,12 @@ Animation* ComponentAnimation::GetDefaultAnimation() const
 	}
 
 	return nullptr;
+}
+
+void ComponentAnimation::StopAnimation()
+{
+	animation_paused = true;
+	Frame = playing_animation->end;
 }
 
 void ComponentAnimation::PlayAnimation(const char* name, float speed)

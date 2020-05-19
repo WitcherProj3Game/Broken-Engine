@@ -144,7 +144,7 @@ void ScriptingAnimations::StopAnimation(uint gameobject_UUID)
 		ComponentAnimation* anim = go->GetComponent<ComponentAnimation>();
 
 		if (anim)
-			int a = 1;
+			anim->StopAnimation();
 		else
 			ENGINE_CONSOLE_LOG("![Script]: (StopAnimation) Animation component is NULL");
 	}

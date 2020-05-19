@@ -50,6 +50,7 @@ public:
 	float GetCurrentFrame() const;
 	bool CurrentAnimationEnded();
 	void SetAnimationPause(bool pause) { animation_paused = pause; }
+	void StopAnimation();
 
 	// --- Save & Load ---
 	json Save() const override;

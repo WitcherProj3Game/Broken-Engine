@@ -137,15 +137,10 @@ void ScriptingInterface::SetBarPercentage(float percentage, uint go_UUID)
 
 void ScriptingInterface::SetCircularBarPercentage(float percentage, uint go_UUID)
 {
-<<<<<<< HEAD
-	GameObject *go = App->scene_manager->currentScene->GetGOWithUID(go_UUID);
-
-=======
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(go_UUID);
->>>>>>> origin/development
 	if (go)
 	{
-		ComponentCircularBar *bar = go->GetComponent<ComponentCircularBar>();
+		ComponentCircularBar* bar = go->GetComponent<ComponentCircularBar>();
 		if (bar)
 			bar->SetPercentage(percentage);
 		else

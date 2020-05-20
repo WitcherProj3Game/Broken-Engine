@@ -16,18 +16,11 @@ using namespace Broken;
 void ScriptingInterface::MakeUIComponentVisible(const char* comp_type, uint go_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(go_UUID);
-<<<<<<< HEAD
-	if (go) {
-
-		std::string name = comp_type;
-		if (name == "Bar") {
-=======
 	if (go)
 	{
 		std::string name = comp_type;
 		if (name == "Bar")
 		{
->>>>>>> origin/development
 			ComponentProgressBar* comp_bar = go->GetComponent<ComponentProgressBar>();
 			if(comp_bar)
 				comp_bar->visible = true;

@@ -195,6 +195,11 @@ void ComponentImage::CreateInspectorNode()
 	ImGui::InputInt("Priority", &priority);
 	ImGui::Separator();
 
+	ImGui::Checkbox("Fullscreen", &fullscreen);
+
+	if (fullscreen)
+		size2D = { App->gui->sceneWidth + 30, App->gui->sceneHeight + 30 };
+
 	// Size
 	ImGui::Text("Size:    ");
 	ImGui::SameLine();

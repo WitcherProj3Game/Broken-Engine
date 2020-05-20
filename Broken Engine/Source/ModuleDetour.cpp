@@ -137,8 +137,10 @@ bool ModuleDetour::createNavMesh(dtNavMeshCreateParams* params) {
 }
 
 void ModuleDetour::loadNavMeshFile(uint UID) {
-	if (navMeshResource != nullptr)
+	if (navMeshResource != nullptr) {
+		if (navMeshResource->GetUID() == UID) return;
 		navMeshResource->Release();
+	}
 
 	navMeshResource = (ResourceNavMesh*)App->resources->GetResource(UID);
 

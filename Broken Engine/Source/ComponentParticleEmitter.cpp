@@ -148,7 +148,7 @@ void ComponentParticleEmitter::Enable()
 
 	particleSystem->setExternalAcceleration(externalAcceleration);
 	active = true;
-
+	firstEmision = true;
 }
 
 void ComponentParticleEmitter::Disable()

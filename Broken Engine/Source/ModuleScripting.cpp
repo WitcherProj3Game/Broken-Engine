@@ -487,6 +487,8 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetBlendTime", &ScriptingAnimations::SetBlendTime)
 		.addFunction("CurrentAnimationEnded", &ScriptingAnimations::CurrentAnimEnded)
 		.addFunction("GetCurrentFrame", &ScriptingAnimations::GetCurrentFrame)
+		.addFunction("SetAnimationPause", &ScriptingAnimations::SetAnimPause)
+		.addFunction("StopAnimation", &ScriptingAnimations::StopAnimation)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------

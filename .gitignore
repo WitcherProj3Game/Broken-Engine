@@ -370,6 +370,8 @@ Broken Engine/Game/Temp/
 Broken Engine/Game/Builds/
 
 # Engine dlls and exes
+!Broken Engine/Game/dlls
+!Broken Engine/Game/dlls/**
 Broken Engine/Game/*.dll
 Broken Engine/Game/BEG.exe
 

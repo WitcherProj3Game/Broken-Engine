@@ -704,6 +704,18 @@ void AutoCompleteFileGen::EmplaceLightingFunctions()
 	SetDistMultiplier.variables.push_back("float_Multiplier"); SetDistMultiplier.variables.push_back("gameObject_UID");
 
 
+	SerializedFunction SetShadowerLight("SetShadowerLight", source.c_str());
+	SetShadowerLight.variables.push_back("gameobject_UUID");
+
+	SerializedFunction SetLightShadowsIntensity("SetLightShadowsIntensity", source.c_str());
+	SetLightShadowsIntensity.variables.push_back("intensity"); SetLightShadowsIntensity.variables.push_back("gameObject_UID");
+
+	SerializedFunction SetLightShadowsFrustumSize("SetLightShadowsFrustumSize", source.c_str());
+	SetLightShadowsFrustumSize.variables.push_back("x"); SetLightShadowsFrustumSize.variables.push_back("y"); SetLightShadowsFrustumSize.variables.push_back("gameObject_UID");
+
+	SerializedFunction SetLightShadowsFrustumPlanes("SetLightShadowsFrustumPlanes", source.c_str());
+	SetLightShadowsFrustumPlanes.variables.push_back("nearp"); SetLightShadowsFrustumPlanes.variables.push_back("farp"); SetLightShadowsFrustumPlanes.variables.push_back("gameObject_UID");
+
 	//PushBack all functions
 	engine_functions.push_back(GetLightColor);
 	engine_functions.push_back(GetLightAttenuation);
@@ -718,6 +730,11 @@ void AutoCompleteFileGen::EmplaceLightingFunctions()
 	engine_functions.push_back(SetLightAttenuation);
 	engine_functions.push_back(SetLightCutoff);
 	engine_functions.push_back(SetDistMultiplier);
+
+	engine_functions.push_back(SetShadowerLight);
+	engine_functions.push_back(SetLightShadowsIntensity);
+	engine_functions.push_back(SetLightShadowsFrustumSize);
+	engine_functions.push_back(SetLightShadowsFrustumPlanes);
 }
 
 void AutoCompleteFileGen::EmplaceAudioFunctions()

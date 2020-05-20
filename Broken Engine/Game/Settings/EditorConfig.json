@@ -12,11 +12,12 @@
         "Navigation": false,
         "Physics": true,
         "Project": true,
-        "Rendering": true,
+        "Rendering": false,
         "Resources": false,
         "Scene": true,
         "Settings": false,
         "ShaderEditor": false,
+        "ShadowsScene": true,
         "Toolbar": true
     },
     "Physics": {
@@ -199,6 +200,7 @@
     "Renderer3D": {
         "AlphaFunc": 0,
         "BlendEquation": 0,
+        "EnableShadows": true,
         "GammaCorrection": 2.680000066757202,
         "ManualAlphaFuncDst": 7,
         "ManualAlphaFuncSrc": 6,
@@ -224,10 +226,10 @@
         "borderless": false,
         "fullscreen": false,
         "fullscreenDesktop": false,
-        "height": 810,
+        "height": 1008,
         "resizable": true,
         "sceneX": 480,
         "sceneY": 640,
-        "width": 1440
+        "width": 950
     }
 }

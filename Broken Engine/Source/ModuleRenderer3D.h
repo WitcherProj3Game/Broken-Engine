@@ -28,12 +28,14 @@ enum BROKEN_API RenderMeshFlags_
 	checkers	= 1 << 2,
 	wire		= 1 << 3,
 	texture		= 1 << 4,
-	color       = 1 << 5
+	color       = 1 << 5,
+	castShadows = 1 << 6,
+	receiveShadows = 1 << 7
 };
 
 struct BROKEN_API RenderMesh
 {
-	RenderMesh(float4x4 transform, const ResourceMesh* mesh, ResourceMaterial* mat, const RenderMeshFlags flags = 0/*, const Color& color = White*/) : transform(transform), resource_mesh(mesh), mat(mat), flags(flags)/*, color(color)*/ {}
+	RenderMesh(float4x4 transform, const ResourceMesh* mesh, ResourceMaterial* mat, const RenderMeshFlags flags = 0) : transform(transform), resource_mesh(mesh), mat(mat), flags(flags)/*, color(color)*/ {}
 
 	RenderMesh() {};
 
@@ -42,10 +44,11 @@ struct BROKEN_API RenderMesh
 	ResourceMaterial* mat = nullptr;
 	Color color; // force a color draw, useful if no texture is given
 
-
 	// temporal!
 	const ResourceMesh* deformable_mesh = nullptr;
 
+	//Render only the shadow it produces
+	bool only_shadow = false;
 
 	// --- Add rendering options here ---
 	RenderMeshFlags flags = None;
@@ -143,7 +146,7 @@ public:
 	const int GetLightIndex(ComponentLight* light);
 
 	// --- Render Commands --- // Deformable mesh is Temporal!
-	void DrawMesh(const float4x4 transform, const ResourceMesh* mesh, ResourceMaterial* mat, const ResourceMesh* deformable_mesh = nullptr, const RenderMeshFlags flags = 0, const Color& color = White);
+	void DrawMesh(const float4x4 transform, const ResourceMesh* mesh, ResourceMaterial* mat, const ResourceMesh* deformable_mesh = nullptr, const RenderMeshFlags flags = 0, const Color& color = White, bool onlyShadow = false);
 	void DrawLine(const float4x4 transform, const float3 a, const float3 b, const Color& color);
 	void DrawAABB(const AABB& box, const Color& color);
 	void DrawOBB(const OBB& box, const Color& color);
@@ -165,6 +168,7 @@ public:
 	void SetRendererBlendingManualFunction(BlendingTypes src, BlendingTypes dst) { m_ManualBlend_Src = src;  m_ManualBlend_Dst = dst; }
 	void SetSkyboxColor(const float3& color) { m_SkyboxColor = color; }
 	void SetSkyboxExposure(float value) { m_SkyboxExposure = value; }
+	void SetShadowerLight(ComponentLight* dirlight);
 
 	// --- Getters ---
 	bool GetVSync() const { return vsync; }
@@ -175,6 +179,8 @@ public:
 	void GetRendererBlendingManualFunction(BlendingTypes& src, BlendingTypes& dst) const { src = m_ManualBlend_Src; dst = m_ManualBlend_Dst; }
 	float3 GetSkyboxColor() const { return m_SkyboxColor; }
 	float GetSkyboxExposure() const { return m_SkyboxExposure; }
+	const uint GetDepthMapTexture() const { return depthMapTexture; }
+	const ComponentLight* GetShadowerLight() { return current_directional; }
 
 private:
 
@@ -197,10 +203,10 @@ private:
 private:
 
 	// --- Draw Commands ---
-	void SendShaderUniforms(uint shader);
-	void DrawRenderMeshes();
+	void SendShaderUniforms(uint shader, bool depthPass);
+	void DrawRenderMeshes(bool depthPass);
 	void DrawTransparentRenderMeshes();
-	void DrawRenderMesh(std::vector<RenderMesh> meshInstances);
+	void DrawRenderMesh(std::vector<RenderMesh> meshInstances, bool depthPass);
 	void DrawPostProcessing();
 
 	// --- Draw Utilities ---
@@ -229,6 +235,7 @@ public:
 	ResourceShader* ZDrawerShader = nullptr;
 	ResourceShader* screenShader = nullptr;
 	ResourceShader* UI_Shader = nullptr;
+	ResourceShader* shadowsShader = nullptr;
 
 	ResourceShader* SkyboxShader = nullptr;
 
@@ -261,10 +268,13 @@ public:
 	bool m_Draw_normalMapping_Lit_Adv = false;
 	bool m_AutomaticBlendingFunc = true;
 	bool m_ChangedBlending = false;
+	bool m_EnableShadows = true;
 
 	uint rendertexture = 0;
 	uint depthMapTexture = 0;
 	float3 skyboxangle = float3::zero;
+
+	uint m_CurrentRenderingTexture = 0;
 
 	//Blend Functions chars vector (for names)
 	std::vector<const char*> m_BlendAutoFunctionsVec;
@@ -283,6 +293,7 @@ private:
 
 	//Lights vector
 	std::vector<ComponentLight*> m_LightsVec;
+	ComponentLight* current_directional = nullptr;
 
 	//Rendering Options
 	float m_GammaCorrection = 2.0f;
@@ -306,6 +317,8 @@ private:
 	uint Grid_VBO = 0;
 	uint quadVAO = 0;
 	uint quadVBO = 0;
+	uint depth_quadVAO = 0;
+	uint depth_quadVBO = 0;
 };
 BE_END_NAMESPACE
 #endif

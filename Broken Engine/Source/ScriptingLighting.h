@@ -26,6 +26,11 @@ public:
 	void SetAttenuation(float K, float L, float Q, uint gameobject_UUID);
 	void SetCutoff(float innerCutoff, float outerCutoff, uint gameobject_UUID);
 
+	void SetShadowerLight(uint gameobject_UUID);
+	void SetLightShadowsIntensity(float intensity, uint gameobject_UUID);
+	void SetLightShadowsFrustumSize(float x, float y, uint gameobject_UUID);
+	void SetLightShadowsFrustumPlanes(float nearp, float farp, uint gameobject_UUID);
+
 	// --- Getters ---
 	float GetIntensity(uint gameobject_UUID) const;
 	float GetDistanceMultiplier(uint gameobject_UUID) const;

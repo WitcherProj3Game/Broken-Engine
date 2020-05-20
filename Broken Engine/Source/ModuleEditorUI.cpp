@@ -69,6 +69,9 @@ bool ModuleEditorUI::Init(Broken::json& file) {
 	panelScene = new PanelScene("Scene");
 	panels.push_back(panelScene);
 
+	panelShadowsScene = new PanelShadowedScene("ShadowsScene");
+	panels.push_back(panelShadowsScene);
+
 	panelToolbar = new PanelToolbar("Toolbar");
 	panels.push_back(panelToolbar);
 
@@ -292,6 +295,10 @@ update_status ModuleEditorUI::Update(float dt)
 
 			if (ImGui::MenuItem("Scene")) {
 				panelScene->OnOff();
+			}
+
+			if (ImGui::MenuItem("ShadowsScene")) {
+				panelShadowsScene->OnOff();
 			}
 
 			if (ImGui::MenuItem("Toolbar")) {

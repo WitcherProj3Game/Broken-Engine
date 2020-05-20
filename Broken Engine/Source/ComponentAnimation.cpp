@@ -6,6 +6,7 @@
 #include "ModuleFileSystem.h"
 #include "ModuleTimeManager.h"
 #include "ModuleInput.h"
+#include "ModuleGui.h"
 
 // -- Components --
 #include "GameObject.h"
@@ -161,8 +162,11 @@ void ComponentAnimation::PlayAnimation(const char* name, float speed)
 
 void ComponentAnimation::ChangeBlendTime(float value)
 {
-	if(value > 0)
+	if (value > 0)
+	{
 		blend_time_value = value;
+		stored_blend_time = value;
+	}
 	else
 		ENGINE_AND_SYSTEM_CONSOLE_LOG("Can't change blend time, value has to be greater than 0");
 }
@@ -235,6 +239,7 @@ json ComponentAnimation::Save() const
 		node["Resources"]["ResourceAnimation"] = std::string(res_anim->GetResourceFile());
 
 	node["Animations"]["BlendTime"] = std::to_string(blend_time_value);
+	node["Animations"]["UseAnimBlendTime"] = use_animation_blendTime;
 	node["Animations"]["UseDefault"] = use_default_animation;
 
 	if (!res_animator)
@@ -286,6 +291,9 @@ void ComponentAnimation::Load(json& node)
 	//--------------------------------------------------------------------------------------------------------------------
 	std::string blend_time = node["Animations"]["BlendTime"].is_null() ? "0" : node["Animations"]["BlendTime"];
 	blend_time_value = std::stof(blend_time);
+	stored_blend_time = blend_time_value;
+
+	use_animation_blendTime = node["Animations"].find("UseAnimBlendTime") == node["Animations"].end() ? false : node["Animations"]["UseAnimBlendTime"].get<bool>();
 	use_default_animation = node["Animations"]["UseDefault"].is_null() ? false : (bool)node["Animations"]["UseDefault"];
 
 	if (!res_animator)
@@ -339,7 +347,14 @@ void ComponentAnimation::CreateInspectorNode()
 		if (res_anim)
 		{
 			ImGui::Text("Animation name: %s", res_anim->name.c_str());
-			ImGui::PushItemWidth(50); ImGui::InputFloat("Blend Duration", &blend_time_value);
+			ImGui::PushItemWidth(50);
+			if (ImGui::InputFloat("Blend Duration", &blend_time_value)) stored_blend_time = blend_time_value;
+			if (ImGui::Checkbox("Use Animations Blend Time", &use_animation_blendTime))
+				if (!use_animation_blendTime)
+					blend_time_value = stored_blend_time;
+
+			App->gui->HelpMarker("This will use each animation's blend time, else will use 'BlendDuration' value");
+
 			ImGui::Checkbox("Draw Bones", &draw_bones);
 			ImGui::Checkbox("Use Default Animation", &use_default_animation);
 
@@ -592,6 +607,9 @@ void ComponentAnimation::StartBlend(Animation* anim)
 {
 	blend_start_Frame = anim->start;
 	next_animation = anim;
+
+	if(use_animation_blendTime)
+		blend_time_value = playing_animation->blendTime;
 
 	if (end_position == nullptr)
 	{

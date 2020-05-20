@@ -101,12 +101,14 @@ private:
 	bool created_buffer = false;
 	bool has_skeleton = false;
 	bool blending = false;
+	bool use_animation_blendTime = false;
 
 	float Frame = 0;
 	float time = 0;
 
 	//---- blend vars ------------
-	float curr_blend_time = 0;
+	float curr_blend_time = 0.0f;
+	float stored_blend_time = 0.0f;
 	uint blend_start_Frame = 0;
 
 	float3* end_position = nullptr;

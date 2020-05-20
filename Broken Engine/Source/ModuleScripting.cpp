@@ -378,6 +378,11 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetLightAttenuation", &ScriptingLighting::SetAttenuation)
 		.addFunction("SetLightCutoff", &ScriptingLighting::SetCutoff)
 		.addFunction("SetDistMultiplier", &ScriptingLighting::SetDistanceMultiplier)
+
+		.addFunction("SetShadowerLight", &ScriptingLighting::SetShadowerLight)
+		.addFunction("SetLightShadowsIntensity", &ScriptingLighting::SetLightShadowsIntensity)
+		.addFunction("SetLightShadowsFrustumSize", &ScriptingLighting::SetLightShadowsFrustumSize)
+		.addFunction("SetLightShadowsFrustumPlanes", &ScriptingLighting::SetLightShadowsFrustumPlanes)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------

@@ -69,15 +69,15 @@ void Particle::Draw()
 	float nearp = App->renderer3D->active_camera->GetNearPlane();
 
 	// right handed projection matrix
-	float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
-	float4x4 proj_RH(
-		f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
-		0.0f, f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, -1.0f,
-		0.0f, 0.0f, nearp, 0.0f);
+	//float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
+	//float4x4 proj_RH(
+	//	f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
+	//	0.0f, f, 0.0f, 0.0f,
+	//	0.0f, 0.0f, 0.0f, -1.0f,
+	//	0.0f, 0.0f, nearp, 0.0f);
 
 	GLint projectLoc = glGetUniformLocation(shaderID, "u_Proj");
-	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
+	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLProjectionMatrix().ptr());
 
 	//Texturing & Color
 	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");

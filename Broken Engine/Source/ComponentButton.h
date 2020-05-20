@@ -41,6 +41,7 @@ public:
 	void OnClick();
 	void ChangeStateTo(State new_state) { state = new_state; }
 	void ChangeColorTo(Color new_color) { color = new_color; }
+	const Color GetButtonColor() const { return color; }
 
 	static inline Component::ComponentType GetType() { return Component::ComponentType::Button; }
 

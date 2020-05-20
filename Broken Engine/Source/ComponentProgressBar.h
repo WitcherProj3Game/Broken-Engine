@@ -29,9 +29,14 @@ public:
 
 	static inline Component::ComponentType GetType() { return Component::ComponentType::ProgressBar; }
 
-	//Scripting function
+	// --- Scripting functions ---
 	void SetPercentage(float p) { percentage = p; }
 	float GetPercentage() { return percentage; }
+
+	void SetTopColor(Color color) { colorP1 = color; }
+	const Color GetTopColor() const { return colorP1; }
+	void SetBotColor(Color color) { colorP2 = color; }
+	const Color GetBotColor() const { return colorP2; }
 
 private:
 	Color colorP1 = { 1.0f, 1.0f, 1.0f, 1.0f };

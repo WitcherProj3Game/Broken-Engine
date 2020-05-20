@@ -18,7 +18,12 @@
 #include "Optick/include/optick.h"
 
 #include <queue>
-#pragma comment( lib, "Freetype/lib/freetype.lib" )
+
+#ifndef _WIN64
+#	pragma comment( lib, "Freetype/libx86/freetype.lib" )
+#else
+#	pragma comment( lib, "Freetype/libx64/freetype.lib" )
+#endif
 
 #include "mmgr/mmgr.h"
 

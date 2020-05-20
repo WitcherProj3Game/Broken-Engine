@@ -19,11 +19,10 @@ ScriptingInterface::~ScriptingInterface() {}
 void ScriptingInterface::MakeUIComponentVisible(const char* comp_type, uint go_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(go_UUID);
-
 	if (go) {
 
 		std::string name = comp_type;
-		if (name.compare("Bar") == 0) {
+		if (name == "Bar") {
 			ComponentProgressBar* comp_bar = go->GetComponent<ComponentProgressBar>();
 			comp_bar->visible = true;
 		}
@@ -102,11 +101,11 @@ void ScriptingInterface::SetBarPercentage(float percentage, uint go_UUID)
 
 void ScriptingInterface::SetCircularBarPercentage(float percentage, uint go_UUID)
 {
-	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(go_UUID);
+	GameObject *go = App->scene_manager->currentScene->GetGOWithUID(go_UUID);
 
 	if (go)
 	{
-		ComponentCircularBar* bar = go->GetComponent<ComponentCircularBar>();
+		ComponentCircularBar *bar = go->GetComponent<ComponentCircularBar>();
 		if (bar)
 			bar->SetPercentage(percentage);
 		else

@@ -144,7 +144,7 @@
       <Message>Copy dll into game folder</Message>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>cmd $(SolutionDir)Game\Dllx32Setup.bat</Command>
+      <Command>cd "$(SolutionDir)Game" &amp;&amp; cmd.exe /C "$(SolutionDir)Game\Dllx32Setup.bat"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -170,7 +170,7 @@
       <Message>Copy dll into game folder</Message>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>cmd $(SolutionDir)Game\Dllx64Setup.bat</Command>
+      <Command>cd "$(SolutionDir)Game" &amp;&amp; cmd.exe /C "$(SolutionDir)Game\Dllx64Setup.bat"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
@@ -196,7 +196,7 @@
       <Message>Copy dll into game folder</Message>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>cmd $(SolutionDir)Game\Dllx32Setup.bat</Command>
+      <Command>cd "$(SolutionDir)Game" &amp;&amp; cmd.exe /C "$(SolutionDir)Game\Dllx32Setup.bat"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|x64'">
@@ -222,7 +222,7 @@
       <Message>Copy dll into game folder</Message>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>cmd $(SolutionDir)Game\Dllx64Setup.bat</Command>
+      <Command>cd "$(SolutionDir)Game" &amp;&amp; cmd.exe /C "$(SolutionDir)Game\Dllx64Setup.bat"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -245,7 +245,7 @@
       <Message>Copy dll into game folder</Message>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>cmd $(SolutionDir)Game\Dllx32Setup.bat</Command>
+      <Command>cd "$(SolutionDir)Game" &amp;&amp; cmd.exe /C "$(SolutionDir)Game\Dllx32Setup.bat"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -268,7 +268,7 @@
       <Message>Copy dll into game folder</Message>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>cmd $(SolutionDir)Game\Dllx64Setup.bat</Command>
+      <Command>cd "$(SolutionDir)Game" &amp;&amp; cmd.exe /C "$(SolutionDir)Game\Dllx64Setup.bat"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

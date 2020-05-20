@@ -104,13 +104,13 @@ private:
 public:
 
 	bool m_CurrentShadower = false;
-	float m_ShadowsIntensity = 1.0f;
+	float m_ShadowsIntensity = 1.067f;
 	float m_ShadowBias = 0.001f;
 
 	bool m_ClampShadows = false;
 	float m_ShadowSmoothMultiplier = 1.0f;
 
-	ShadowSmoother m_ShadowsSmoother = ShadowSmoother::POISSON_DISK;
+	ShadowSmoother m_ShadowsSmoother = ShadowSmoother::PCF;
 	float m_ShadowOffsetBlur = 0.2f; //Between 0 and 1
 	float m_ShadowPoissonBlur = 700.0f; //Between 0 and 50000
 	float m_ShadowPCFDivisor = 9.0f; //Between 0.1 and 20.0

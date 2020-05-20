@@ -12,7 +12,7 @@
         "Navigation": false,
         "Physics": true,
         "Project": true,
-        "Rendering": false,
+        "Rendering": true,
         "Resources": false,
         "Scene": true,
         "Settings": false,

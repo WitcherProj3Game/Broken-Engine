@@ -14,7 +14,7 @@ class Channel;
 
 struct BROKEN_API Animation
 {
-	Animation(std::string name, uint start, uint end, bool loop, bool Default) : name(name), start(start), end(end), loop(loop), Default(Default) {};
+	Animation(std::string name, uint start, uint end, bool loop, bool Default, float blend_time) : name(name), start(start), end(end), loop(loop), Default(Default), blendTime(blend_time) {};
 
 	std::string name;
 	int start = 0;
@@ -22,6 +22,7 @@ struct BROKEN_API Animation
 	bool loop = false;
 	bool Default = false;
 	float speed = 30;
+	float blendTime = 0.3f;
 };
 
 
@@ -35,6 +36,7 @@ class BROKEN_API ComponentAnimation : public Component
 	};
 
 public:
+
 	ComponentAnimation(GameObject* ContainerGO);
 	virtual ~ComponentAnimation();
 
@@ -61,7 +63,8 @@ public:
 	static inline Component::ComponentType GetType() { return Component::ComponentType::Animation; };
 
 private:
-	Animation* CreateAnimation(std::string name, uint start, uint end, bool loop, bool Default = false);
+
+	Animation* CreateAnimation(std::string name, uint start, uint end, bool loop, float blendTime = 0.3f, bool Default = false);
 	void DoLink();
 	void DoBoneLink();
 	void UpdateJointsTransform();
@@ -90,6 +93,7 @@ public:
 	bool use_default_animation = false;
 
 private:
+
 	std::vector<Link> links;
 
 	bool linked_channels = false;

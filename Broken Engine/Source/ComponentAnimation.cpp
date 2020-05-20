@@ -39,12 +39,10 @@ ComponentAnimation::~ComponentAnimation()
 		{
 			delete animations[i];
 			animations[i] = nullptr;
-		}
-		
+		}		
 	}
 
 	animations.clear();
-
 	if (end_position != nullptr)
 	{
 		delete[] end_position;
@@ -77,7 +75,6 @@ void ComponentAnimation::Update()
 		std::vector<GameObject*> childs;
 		GO->GetAllChilds(childs);
 		has_skeleton = HasSkeleton(childs);
-
 		DoLink();
 	}
 
@@ -89,13 +86,14 @@ void ComponentAnimation::Update()
 				DoBoneLink();
 
 			time += App->time->GetGameDt();
-
 			if (animations.size() > 0)
 			{
 				if (blending == false)
 					UpdateJointsTransform();
 				else
+				{
 					BlendAnimations(blend_time_value);
+				}
 
 				if (has_skeleton)
 					UpdateMesh(GO);
@@ -103,27 +101,23 @@ void ComponentAnimation::Update()
 		}
 	}
 	else
-	{
 		time = 0;
-	}
 
+	// -- New Copy function goes here, or in the button itself ---
 	if (to_copy)
-	{
-		// -- New Copy function goes here, or in the button itself
 		to_copy = false;
-	}
 
 	if(to_delete)
 		this->GetContainerGameObject()->RemoveComponent(this);
 }
 
-Animation* ComponentAnimation::CreateAnimation(std::string name, uint start, uint end, bool loop, bool Default)
+Animation* ComponentAnimation::CreateAnimation(std::string name, uint start, uint end, bool loop, float blendTime, bool Default)
 {
-	Animation* anim = new Animation(name, start, end, loop, Default);
+	Animation* anim = new Animation(name, start, end, loop, Default, blendTime);
 	if (res_anim != nullptr)
 		anim->speed = res_anim->ticksPerSecond;
-	animations.push_back(anim);
 
+	animations.push_back(anim);
 	return anim;
 }
 
@@ -132,9 +126,7 @@ Animation* ComponentAnimation::GetDefaultAnimation() const
 	for (int i = 0; i < animations.size(); i++)
 	{
 		if (animations[i]->Default)
-		{
 			return animations[i];
-		}
 
 	}
 
@@ -144,6 +136,7 @@ Animation* ComponentAnimation::GetDefaultAnimation() const
 void ComponentAnimation::StopAnimation()
 {
 	animation_paused = true;
+	playing_animation = GetDefaultAnimation();
 	Frame = playing_animation->end;
 }
 
@@ -202,7 +195,8 @@ void ComponentAnimation::SetCurrentAnimationSpeed(float speed)
 		ENGINE_AND_SYSTEM_CONSOLE_LOG("Current Animation is nullptr!");
 }
 
-float ComponentAnimation::GetCurrentFrame() const {
+float ComponentAnimation::GetCurrentFrame() const
+{
 	float ret = 0;
 
 	if (playing_animation)
@@ -234,8 +228,6 @@ json ComponentAnimation::Save() const
 {
 	json node;
 	node["Active"] = this->active;
-
-
 	node["Resources"]["ResourceAnimation"];
 
 	// --- Store path to component file ---
@@ -249,8 +241,6 @@ json ComponentAnimation::Save() const
 	{
 		// --- Saving animations ------------------
 		node["Animations"]["Size"] = std::to_string(animations.size());
-		
-
 		for (int i = 0; i < animations.size(); ++i)
 		{
 			std::string iterator = std::to_string(i);
@@ -259,13 +249,11 @@ json ComponentAnimation::Save() const
 			node["Animations"][iterator]["End"] = std::to_string(animations[i]->end);
 			node["Animations"][iterator]["Loop"] = animations[i]->loop;
 			node["Animations"][iterator]["Default"] = animations[i]->Default;
+			node["Animations"][iterator]["BlendTime"] = animations[i]->blendTime;
 		}
 	}
 	else
-	{
-		node["Resources"]["ResourceAnimator"] = std::to_string(res_animator->GetUID());
-	}
-	
+		node["Resources"]["ResourceAnimator"] = std::to_string(res_animator->GetUID());	
 
 	return node;
 }
@@ -293,19 +281,16 @@ void ComponentAnimation::Load(json& node)
 	// Load Animator resource -------------------------------------------------------------------------------------------
 	std::string res_uid = node["Resources"]["ResourceAnimator"].is_null() ? "0" : node["Resources"]["ResourceAnimator"];
 	int uid = std::stoi(res_uid);
-
 	LoadAnimator(true, uid);
 
 	//--------------------------------------------------------------------------------------------------------------------
 	std::string blend_time = node["Animations"]["BlendTime"].is_null() ? "0" : node["Animations"]["BlendTime"];
 	blend_time_value = std::stof(blend_time);
-
 	use_default_animation = node["Animations"]["UseDefault"].is_null() ? false : (bool)node["Animations"]["UseDefault"];
 
 	if (!res_animator)
 	{
 		//--- Loading animations ---
-
 		std::string size = node["Animations"]["Size"].is_null() ? "0" : node["Animations"]["Size"];
 		int anim_size = std::stoi(size);
 		for (int i = 0; i < anim_size; ++i)
@@ -316,13 +301,11 @@ void ComponentAnimation::Load(json& node)
 			std::string end = node["Animations"][iterator]["End"].is_null() ? "" : node["Animations"][iterator]["End"];
 			bool loop = node["Animations"][iterator]["Loop"].is_null() ? false : (bool)node["Animations"][iterator]["Loop"];
 			bool Default = node["Animations"][iterator]["Default"].is_null() ? false : (bool)node["Animations"][iterator]["Default"];
+			float anim_blend_time = node["Animations"][iterator].find("BlendTime") == node["Animations"][iterator].end() ? 0.3f : node["Animations"][iterator]["BlendTime"].get<float>();
 
-			CreateAnimation(name, std::stoi(start), std::stoi(end), loop, Default);
-
+			CreateAnimation(name, std::stoi(start), std::stoi(end), loop, anim_blend_time, Default);
 		}
 	}
-	
-
 }
 
 void ComponentAnimation::ONResourceEvent(uint UID, Resource::ResourceNotificationType type)
@@ -330,22 +313,19 @@ void ComponentAnimation::ONResourceEvent(uint UID, Resource::ResourceNotificatio
 	// --- Always check if your resources are already invalidated, since go sends events from all of its components resources ---
 	switch (type)
 	{
-	case Resource::ResourceNotificationType::Overwrite:
-		if (res_animator && UID == res_animator->GetUID())
-			LoadAnimator(false);
-			//res_anim = (ResourceAnimation*)App->resources->GetResource(UID);
-		break;
+		case Resource::ResourceNotificationType::Overwrite:
+			if (res_animator && UID == res_animator->GetUID())
+				LoadAnimator(false);
+			break;
 
-	case Resource::ResourceNotificationType::Deletion:
-		if (res_anim && UID == res_anim->GetUID())
-			res_anim = nullptr;
-
-		if (res_animator && UID == res_animator->GetUID())
-			res_animator = nullptr;
-		break;
-
-	default:
-		break;
+		case Resource::ResourceNotificationType::Deletion:
+			if (res_anim && UID == res_anim->GetUID())
+				res_anim = nullptr;
+			if (res_animator && UID == res_animator->GetUID())
+				res_animator = nullptr;
+			break;
+		default:
+			break;
 	}
 }
 
@@ -353,7 +333,6 @@ void ComponentAnimation::CreateInspectorNode()
 {
 	if (res_anim)
 	{
-
 		if (ImGui::Button("Delete component"))
 			to_delete = true;
 
@@ -365,19 +344,17 @@ void ComponentAnimation::CreateInspectorNode()
 			ImGui::Checkbox("Use Default Animation", &use_default_animation);
 
 			if (ImGui::Button("Create New Animation"))
-				CreateAnimation("New Animation", 0, 0, false);
+				CreateAnimation("New Animation", 0, 0, 0.3f, false);
 
 
 			if (res_animator)
 			{
 				if (ImGui::Button("Save animation info"))
 				{
-
 					res_animator->FreeMemory();
-
 					for (auto iterator = animations.begin(); iterator != animations.end(); ++iterator)
 					{
-						Animation* anim = new Animation((*iterator)->name, (*iterator)->start, (*iterator)->end, (*iterator)->loop, (*iterator)->Default);
+						Animation* anim = new Animation((*iterator)->name, (*iterator)->start, (*iterator)->end, (*iterator)->loop, (*iterator)->blendTime, (*iterator)->Default);
 						res_animator->animations.push_back(anim);
 					}
 
@@ -399,11 +376,8 @@ void ComponentAnimation::CreateInspectorNode()
 				{
 					uint UID = *(const uint*)payload->Data;
 					Resource* resource = App->resources->GetResource(UID, false);
-
 					if (resource && resource->GetType() == Resource::ResourceType::ANIMATOR)
-					{
 						LoadAnimator(true, UID);
-					}
 				}
 
 				ImGui::EndDragDropTarget();
@@ -412,6 +386,7 @@ void ComponentAnimation::CreateInspectorNode()
 			for (int i = 0; i < animations.size(); i++)
 			{
 				ImGui::Separator();
+
 				// --- Game Object Name Setter ---
 				char Anim_name[100] = "";
 				strcpy_s(Anim_name, 100, animations[i]->name.c_str());
@@ -428,6 +403,8 @@ void ComponentAnimation::CreateInspectorNode()
 				ImGui::PushItemWidth(100); ImGui::InputFloat(Speed.append(" Speed").c_str(), &animations[i]->speed, 1, 0);
 				std::string Loop = animations[i]->name;
 				ImGui::Checkbox(Loop.append(" Loop").c_str(), &animations[i]->loop);
+				std::string BlendTime = animations[i]->name;
+				ImGui::PushItemWidth(100); ImGui::InputFloat(BlendTime.append(" BlendTime").c_str(), &animations[i]->blendTime, 1, 0);
 
 				std::string name1 = animations[i]->name;
 				std::string Preview = "Preview ";
@@ -439,7 +416,6 @@ void ComponentAnimation::CreateInspectorNode()
 					else
 						ENGINE_CONSOLE_LOG("To preview an animation game has to be running!");
 				}
-
 
 				std::string Delete = "Delete ";
 				std::string button = Delete.append(name1);
@@ -506,26 +482,22 @@ void ComponentAnimation::DoBoneLink()
 }
 
 void ComponentAnimation::UpdateJointsTransform()
-{
-	
+{	
 	for (int i = 0; i < links.size() && playing_animation != nullptr; i++)
 	{
 		ComponentTransform* trans = links[i].gameObject->GetComponent<ComponentTransform>();
-
 		bool update_transforms = true;
-		// ----------------------- Frame count managment -----------------------------------
-		
-		Frame = playing_animation->start + (time * playing_animation->speed);
 
+		// ----------------------- Frame count managment -----------------------------------		
+		Frame = playing_animation->start + (time * playing_animation->speed);
 		if (Frame >= playing_animation->end)
 		{
 			if (use_default_animation)
 			{
 				if (!playing_animation->loop)
 					if (playing_animation->Default == false)
-					{
 						StartBlend(GetDefaultAnimation());
-					}
+
 				time = 0;
 			}
 			else
@@ -534,18 +506,15 @@ void ComponentAnimation::UpdateJointsTransform()
 					time = 0;
 				else
 					update_transforms = false;
-
 			}
 		}
 
 		if (update_transforms)
 		{
-			//-------------------------------------------------------------------------------------
 			// POSITION
 			float3 position = trans->GetPosition();
 			if (links[i].channel->PosHasKey())
 			{
-
 				std::map<double, float3>::iterator pos = links[i].channel->PositionKeys.find(Frame);
 				if (pos != links[i].channel->PositionKeys.end())
 					position = pos->second;
@@ -563,9 +532,10 @@ void ComponentAnimation::UpdateJointsTransform()
 						position = prev->second.Lerp(next->second, value);
 					}
 				}
-
 			}
+
 			trans->SetPosition(position);
+
 			//ROTATION
 			Quat rotation = trans->GetQuaternionRotation();
 			if (links[i].channel->RotHasKey())
@@ -612,8 +582,8 @@ void ComponentAnimation::UpdateJointsTransform()
 					}
 				}
 			}
-			trans->Scale(scale.x, scale.y, scale.z);
 
+			trans->Scale(scale.x, scale.y, scale.z);
 		}
 	}	
 }
@@ -689,16 +659,11 @@ void ComponentAnimation::BlendAnimations(float blend_time)
 void ComponentAnimation::UpdateMesh(GameObject* go)
 {
 	ComponentMesh* tmp = go->GetComponent<ComponentMesh>();
-
 	if (tmp != nullptr && tmp->bones.size()>0)
-	{
 		tmp->UpdateDefMesh();
-	}
 
 	for (int i = 0; i < go->childs.size(); i++)
-	{
 		UpdateMesh(go->childs[i]);
-	}
 }
 
 void ComponentAnimation::GetAllBones(GameObject* go, std::map<uint, ComponentMesh*>& meshes, std::vector<ComponentBone*>& bones)
@@ -708,7 +673,7 @@ void ComponentAnimation::GetAllBones(GameObject* go, std::map<uint, ComponentMes
 	if (mesh != nullptr)
 	{
 		if(mesh->resource_mesh)
-		meshes[mesh->resource_mesh->GetUID()] = mesh;
+			meshes[mesh->resource_mesh->GetUID()] = mesh;
 	}
 
 	ComponentBone* bone = go->GetComponent<ComponentBone>();
@@ -724,7 +689,7 @@ bool ComponentAnimation::HasSkeleton(std::vector<GameObject*> collector) const
 		if (collector[i]->GetComponent<ComponentBone>());
 			return true;
 
-		return false;
+	return false;
 }
 
 void ComponentAnimation::LoadAnimator(bool drop, uint UID)
@@ -736,11 +701,8 @@ void ComponentAnimation::LoadAnimator(bool drop, uint UID)
 			bool found = false;
 			for (auto iterator = res_animator->animations.begin(); iterator != res_animator->animations.end(); ++iterator)
 			{
-
 				if ((*it) == (*iterator))
-				{
 					found = true;
-				}
 			}
 
 			if (!found)

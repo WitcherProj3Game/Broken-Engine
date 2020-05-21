@@ -188,6 +188,7 @@ bool PanelHierarchy::Draw()
 					Broken::GameObject* lightGObj = EngineApp->scene_manager->CreateEmptyGameObject("DirectionalLight");
 					Broken::ComponentLight* light = (Broken::ComponentLight*)lightGObj->AddComponent(Broken::Component::ComponentType::Light);
 					light->SetLightType(Broken::LightType::DIRECTIONAL);
+					lightGObj->GetComponent<Broken::ComponentTransform>()->SetRotation({ 45, 0, 0 });
 				}
 
 				if (ImGui::MenuItem("Pointlight"))

@@ -393,6 +393,9 @@
     <ClInclude Include="Panel.h">
       <Filter>Sources\EditorPanels</Filter>
     </ClInclude>
+    <ClInclude Include="PanelShadowedScene.h">
+      <Filter>Sources\EditorPanels</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EngineApplication.cpp">
@@ -660,6 +663,9 @@
       <Filter>Sources\Helpers</Filter>
     </ClCompile>
     <ClCompile Include="Panel.cpp">
+      <Filter>Sources\EditorPanels</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelShadowedScene.cpp">
       <Filter>Sources\EditorPanels</Filter>
     </ClCompile>
   </ItemGroup>

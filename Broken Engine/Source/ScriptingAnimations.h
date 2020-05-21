@@ -13,6 +13,8 @@ public:
 	void StartAnimation(const char* name, float speed, uint gameobject_UUID);
 	void SetAnimSpeed(const char* name, float speed, uint gameobject_UUID);
 	void SetCurrentAnimSpeed(float speed, uint gameobject_UUID);
+	void SetAnimBlendTime(const char* name, float blendTime, uint gameobject_UUID);
+	void SetCurrentAnimBlendTime(float blendTime, uint gameobject_UUID);
 	void SetBlendTime(float value, uint gameobject_UUID);
 	int CurrentAnimEnded(uint gameobject_UUID);
 	float GetCurrentFrame(uint gameobject_UUID);

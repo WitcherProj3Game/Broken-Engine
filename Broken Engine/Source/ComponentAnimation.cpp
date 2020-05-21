@@ -199,6 +199,28 @@ void ComponentAnimation::SetCurrentAnimationSpeed(float speed)
 		ENGINE_AND_SYSTEM_CONSOLE_LOG("Current Animation is nullptr!");
 }
 
+void ComponentAnimation::SetAnimationBlendTime(const char* name, float blendTime)
+{
+	for (int i = 0; i < animations.size(); ++i)
+	{
+		if (animations[i] == nullptr)
+		{
+			ENGINE_AND_SYSTEM_CONSOLE_LOG("No animations at index %i", i);
+			break;
+		}
+		else if (animations[i]->name.compare(name) == 0)
+			animations[i]->blendTime = blendTime;
+	}
+}
+
+void ComponentAnimation::SetCurrentAnimationBlendTime(float blendTime)
+{
+	if (playing_animation)
+		playing_animation->blendTime = blendTime;
+	else
+		ENGINE_AND_SYSTEM_CONSOLE_LOG("Current Animation is nullptr!");
+}
+
 float ComponentAnimation::GetCurrentFrame() const
 {
 	float ret = 0;

@@ -49,6 +49,8 @@ public:
 	void ChangeBlendTime(float value);
 	void SetAnimationSpeed(const char* name, float speed);
 	void SetCurrentAnimationSpeed(float speed);
+	void SetAnimationBlendTime(const char* name, float blendTime);
+	void SetCurrentAnimationBlendTime(float blendTime);
 	float GetCurrentFrame() const;
 	bool CurrentAnimationEnded();
 	void SetAnimationPause(bool pause) { animation_paused = pause; }

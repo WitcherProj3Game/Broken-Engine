@@ -5,11 +5,6 @@
 
 #include "ComponentParticleEmitter.h"
 
-//MYTODO: Sergi: why would these be needed here?
-//#include "PhysX_3.4/Include/extensions/PxDefaultAllocator.h"
-//#include "PhysX_3.4/Include/extensions/PxDefaultErrorCallback.h"
-//#include "PhysX_3.4/Include/PxPhysicsAPI.h"
-
 #include "Optick/include/optick.h"
 
 #include "mmgr/mmgr.h"

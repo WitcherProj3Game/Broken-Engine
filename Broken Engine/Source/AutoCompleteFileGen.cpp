@@ -40,6 +40,12 @@ void AutoCompleteFileGen::EmplaceAnimationFunctions()
 	SerializedFunction GetCurrentFrame("GetCurrentFrame", source.c_str());
 	GetCurrentFrame.variables.push_back("gameObject_UID");
 
+	SerializedFunction SetAnimationPause("SetAnimationPause", source.c_str());
+	SetAnimationPause.variables.push_back("pause"); SetAnimationPause.variables.push_back("gameObject_UID");
+
+	SerializedFunction StopAnimation("StopAnimation", source.c_str());
+	StopAnimation.variables.push_back("gameObject_UID");
+
 	//Pushback all functions
 	engine_functions.push_back(PlayAnimation);
 	engine_functions.push_back(SetAnimationSpeed);

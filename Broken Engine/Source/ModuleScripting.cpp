@@ -492,6 +492,8 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetBlendTime", &ScriptingAnimations::SetBlendTime)
 		.addFunction("CurrentAnimationEnded", &ScriptingAnimations::CurrentAnimEnded)
 		.addFunction("GetCurrentFrame", &ScriptingAnimations::GetCurrentFrame)
+		.addFunction("SetAnimationPause", &ScriptingAnimations::SetAnimPause)
+		.addFunction("StopAnimation", &ScriptingAnimations::StopAnimation)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------
@@ -508,6 +510,16 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetText", &ScriptingInterface::SetUIText)
 		.addFunction("SetTextAndNumber", &ScriptingInterface::SetUITextAndNumber)
 		.addFunction("SetTextNumber", &ScriptingInterface::SetUITextNumber)
+
+		.addFunction("ChangeUIComponentColor", &ScriptingInterface::ChangeUIComponentColor)
+		.addFunction("ChangeUIComponentAlpha", &ScriptingInterface::ChangeUIComponentAlpha)
+		.addFunction("ChangeUIBarColor", &ScriptingInterface::ChangeUIBarColor)
+		.addFunction("ChangeUIBarAlpha", &ScriptingInterface::ChangeUIBarAlpha)
+		
+		.addFunction("GetUIComponentColor", &ScriptingInterface::GetUIComponentColor)
+		.addFunction("GetUIBarColor", &ScriptingInterface::GetUIBarColor)
+		.addFunction("GetUIComponentAlpha", &ScriptingInterface::GetUIComponentAlpha)
+		.addFunction("GetUIBarAlpha", &ScriptingInterface::GetUIBarAlpha)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------

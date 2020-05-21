@@ -33,11 +33,6 @@ public:
 
 	static inline Component::ComponentType GetType() { return Component::ComponentType::MeshRenderer; };
 
-private:
-
-	// --- Draw Functiions accessed by main Draw ---
-	void DrawMesh(ResourceMesh& mesh) const;
-
 public:
 
 	bool draw_vertexnormals = false;
@@ -46,6 +41,11 @@ public:
 	ResourceMaterial* material = nullptr;
 
 private:
+
+	//Shadows Control
+	bool cast_shadows = true;
+	bool receive_shadows = true;
+	bool only_shadows = false;
 
 	bool m_TemporalTextureTest = false;
 };

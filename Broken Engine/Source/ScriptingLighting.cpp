@@ -143,12 +143,72 @@ void ScriptingLighting::SetCutoff(float innerCutoff, float outerCutoff, uint gam
 	{
 		ComponentLight* light = go->GetComponent<ComponentLight>();
 		if (light)
-			return light->SetLightInOutCutoff(innerCutoff, outerCutoff);
+			light->SetLightInOutCutoff(innerCutoff, outerCutoff);
 		else
 			ENGINE_CONSOLE_LOG("![Script]: (SetLightCutoff) Light Component is null");
 	}
 	else
 		ENGINE_CONSOLE_LOG("![Script]: (SetLightCutoff) Could not find GameObject with UUID %d", gameobject_UUID);
+}
+
+void ScriptingLighting::SetShadowerLight(uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	if (go)
+	{
+		ComponentLight* light = go->GetComponent<ComponentLight>();
+		if (light)
+			App->renderer3D->SetShadowerLight(light);
+		else
+			ENGINE_CONSOLE_LOG("![Script]: () Light Component is null");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: () Could not find GameObject with UUID %d", gameobject_UUID);
+}
+
+void ScriptingLighting::SetLightShadowsIntensity(float intensity, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	if (go)
+	{
+		ComponentLight* light = go->GetComponent<ComponentLight>();
+		if (light)
+			light->m_ShadowsIntensity = intensity;
+		else
+			ENGINE_CONSOLE_LOG("![Script]: () Light Component is null");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: () Could not find GameObject with UUID %d", gameobject_UUID);
+}
+
+void ScriptingLighting::SetLightShadowsFrustumSize(float x, float y, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	if (go)
+	{
+		ComponentLight* light = go->GetComponent<ComponentLight>();
+		if (light)
+			light->SetLightShadowsFrustumSize(x, y);
+		else
+			ENGINE_CONSOLE_LOG("![Script]: () Light Component is null");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: () Could not find GameObject with UUID %d", gameobject_UUID);
+}
+
+void ScriptingLighting::SetLightShadowsFrustumPlanes(float nearp, float farp, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	if (go)
+	{
+		ComponentLight* light = go->GetComponent<ComponentLight>();
+		if (light)
+			light->SetLightShadowsFrustumPlanes(nearp, farp);
+		else
+			ENGINE_CONSOLE_LOG("![Script]: () Light Component is null");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: () Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
 // --- Getters ---

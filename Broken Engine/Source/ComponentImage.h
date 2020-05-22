@@ -33,7 +33,6 @@ public:
 	float4 img_color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 public:
-	ComponentCanvas* canvas = nullptr;
 	ResourceTexture* texture = nullptr;
 };
 

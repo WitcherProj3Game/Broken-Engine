@@ -56,7 +56,6 @@ public:
 	State state = NOTHING;
 
 public:
-	ComponentCanvas* canvas = nullptr;
 	ResourceTexture* texture = nullptr;
 	ComponentScript* script = nullptr;
 	GameObject* script_obj = nullptr;

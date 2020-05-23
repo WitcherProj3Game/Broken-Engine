@@ -365,7 +365,9 @@ void ComponentParticleEmitter::DrawParticles()
 		{
 			particles[paco]->Draw();
 			particles[paco]->h_billboard = horizontalBillboarding;
-			particles[paco]->v_billboard = verticalBillboarding;
+			particles[paco]->h_billboard = horizontalBillboarding;
+			particles[paco]->scene_colorAffected = m_AffectedBySceneColor;
+			particles[paco]->light_Affected = m_AffectedByLight;
 		}
 		it++;
 	}

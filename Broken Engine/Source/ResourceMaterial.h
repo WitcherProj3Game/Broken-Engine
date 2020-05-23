@@ -40,7 +40,7 @@ public:
 
 	bool has_transparencies = false;
 	bool has_culling = true;
-	float m_Shininess = 1.5f;
+	float m_Shininess = 1.0f;
 	bool m_AffectedBySceneColor = true;
 	float4 m_AmbientColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 	ResourceTexture* m_DiffuseResTexture = nullptr;

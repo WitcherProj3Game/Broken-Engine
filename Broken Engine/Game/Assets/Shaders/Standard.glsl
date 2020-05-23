@@ -72,8 +72,10 @@ in vec4 v_FragPos_InLightSpace;
 //Uniforms
 uniform float u_GammaCorrection = 1.0;
 uniform vec4 u_AmbientColor = vec4(1.0);
+uniform bool u_SceneColorAffected = true;
+uniform bool u_LightAffected = true;
 
-uniform float u_Shininess = 1.5;
+uniform float u_Shininess = 1.0;
 uniform int u_UseTextures = 0;
 
 uniform int u_HasDiffuseTexture = 0;
@@ -289,31 +291,38 @@ void main()
 	//Light Calculations
 	int lights_iterator = (u_LightsNumber > MAX_SHADER_LIGHTS ? MAX_SHADER_LIGHTS : u_LightsNumber);
 	vec3 colorResult = vec3(0.0);
-	for(int i = 0; i < lights_iterator; ++i)
+
+	if(u_LightAffected)
 	{
-		if(u_DrawNormalMapping_Lit_Adv == 0)
+		for(int i = 0; i < lights_iterator; ++i)
 		{
-			if(u_BkLights[i].LightType == 0) //Directional
-				colorResult += CalculateDirectionalLight(u_BkLights[i], normalVec, viewDirection);
+			//If we don't have to draw normal map debug
+			if(u_DrawNormalMapping_Lit_Adv == 0)
+			{
+				if(u_BkLights[i].LightType == 0) //Directional
+					colorResult += CalculateDirectionalLight(u_BkLights[i], normalVec, viewDirection);
 
-			else if(u_BkLights[i].LightType == 1) //Pointlight
-				colorResult += CalculatePointlight(u_BkLights[i], normalVec, viewDirection);
+				else if(u_BkLights[i].LightType == 1) //Pointlight
+					colorResult += CalculatePointlight(u_BkLights[i], normalVec, viewDirection);
 
-			else if(u_BkLights[i].LightType == 2) //Spotlight
-				colorResult += CalculateSpotlight(u_BkLights[i], normalVec, viewDirection);
-		}
-		else
-		{
-			if(u_BkLights[i].LightType == 0)
-				colorResult += v_TBN * normalize(u_BkLights[i].dir);
+				else if(u_BkLights[i].LightType == 2) //Spotlight
+					colorResult += CalculateSpotlight(u_BkLights[i], normalVec, viewDirection);
+			}
 			else
-				colorResult += v_TBN * normalize(u_BkLights[i].pos);
+			{
+				if(u_BkLights[i].LightType == 0)
+					colorResult += v_TBN * normalize(u_BkLights[i].dir);
+				else
+					colorResult += v_TBN * normalize(u_BkLights[i].pos);
+			}
 		}
 	}
 
 	if(u_DrawNormalMapping_Lit == 0 && u_DrawNormalMapping_Lit_Adv == 0)
 	{
-		vec3 finalColor = u_AmbientColor.rgb * v_Color.rgb;
+		vec3 finalColor = v_Color.rgb;
+		if(u_SceneColorAffected)
+			finalColor *= u_AmbientColor.rgb;
 
 		//Resulting Color
 		if(u_UseTextures == 0 || (u_HasTransparencies == 0 && u_UseTextures == 1 && texture(u_AlbedoTexture, v_TexCoord).a < 0.1))

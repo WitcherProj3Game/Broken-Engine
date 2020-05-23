@@ -30,7 +30,8 @@ enum BROKEN_API RenderMeshFlags_
 	texture		= 1 << 4,
 	color       = 1 << 5,
 	castShadows = 1 << 6,
-	receiveShadows = 1 << 7
+	receiveShadows = 1 << 7,
+	lightAffected = 1 << 8
 };
 
 struct BROKEN_API RenderMesh

@@ -80,9 +80,10 @@ void Particle::Draw()
 	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLProjectionMatrix().ptr());
 
 	//Texturing & Color
-	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");
-	glUniform4f(vertexColorLocation, color.x, color.y, color.z, color.w);
+	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), color.x, color.y, color.z, color.w);
 	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);
+	glUniform1i(glGetUniformLocation(shaderID, "u_SceneColorAffected"), scene_colorAffected);
+	glUniform1i(glGetUniformLocation(shaderID, "u_LightAffected"), light_Affected);
 
 	int TextureLocation = glGetUniformLocation(shaderID, "u_UseTextures");
 	glUniform1i(TextureLocation, (int)true);

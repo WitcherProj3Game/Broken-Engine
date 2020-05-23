@@ -1001,6 +1001,11 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 			else
 				glUniform1i(glGetUniformLocation(shader, "u_ReceiveShadows"), false);
 
+			if (mesh->flags & RenderMeshFlags_::lightAffected)
+				glUniform1i(glGetUniformLocation(shader, "u_LightAffected"), true);
+			else
+				glUniform1i(glGetUniformLocation(shader, "u_LightAffected"), false);
+
 			// --- Set Normal Mapping Draw ---
 			glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit"), (int)m_Draw_normalMapping_Lit);
 			glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit_Adv"), (int)m_Draw_normalMapping_Lit_Adv);
@@ -1033,6 +1038,7 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 				{
 					glUniform1f(glGetUniformLocation(shader, "u_Shininess"), mesh->mat->m_Shininess);
 					glUniform4f(glGetUniformLocation(shader, "u_Color"), mesh->mat->m_AmbientColor.x, mesh->mat->m_AmbientColor.y, mesh->mat->m_AmbientColor.z, mesh->mat->m_AmbientColor.w);
+					glUniform1i(glGetUniformLocation(shader, "u_SceneColorAffected"), mesh->mat->m_AffectedBySceneColor);
 
 					//Textures
 					glUniform1i(glGetUniformLocation(shader, "u_UseTextures"), (int)mesh->mat->m_UseTexture);

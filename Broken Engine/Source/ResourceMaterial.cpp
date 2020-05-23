@@ -143,7 +143,7 @@ void ResourceMaterial::CreateInspectorNode()
 	ImGui::Text("Shininess");
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 	ImGui::SetNextItemWidth(300.0f);
-	if(ImGui::SliderFloat("", &m_Shininess, -2.0f, 500.00f)) 
+	if(ImGui::SliderFloat("", &m_Shininess, -0.5f, 500.00f))
 		save_material = true;
 
 	// --- Print Texture Width and Height (Diffuse) ---

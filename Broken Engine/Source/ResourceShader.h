@@ -70,11 +70,13 @@ public:
 	std::string ShaderCode;
 	std::string vShaderCode;
 	std::string fShaderCode;
+	std::string gShaderCode;
 private:
-	unsigned int vertex, fragment = 0;
+	unsigned int vertex, fragment, geometry = 0;
 
 	bool CreateVertexShader(unsigned int& vertex, const char* vShaderCode);
 	bool CreateFragmentShader(unsigned int& fragment, const char* fShaderCode);
+	bool CreateGeometryShader(unsigned int& geometry, const char* gShaderCode);
 	bool CreateShaderProgram(unsigned int vertex, unsigned int fragment);
 	bool CreateShaderProgram();
 	void DeleteShaderProgram();

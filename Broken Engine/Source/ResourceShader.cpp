@@ -24,6 +24,7 @@ ResourceShader::ResourceShader(uint UID, const char* source_file) : Resource(Res
 
 	vShaderCode = App->renderer3D->VertexShaderTemplate;
 	fShaderCode = App->renderer3D->FragmentShaderTemplate;
+	gShaderCode = App->renderer3D->GeometryShaderTemplate;
 
 	CreateShaderProgram();
 
@@ -409,6 +410,20 @@ bool ResourceShader::CreateFragmentShader(unsigned int& fragment, const char* fS
 	// similar for Fragment Shader
 	fragment = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragment, 1, &fShaderCode, NULL);
+	glCompileShader(fragment);
+	// print compile errors if any
+	glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+
+	return success;
+}
+
+bool ResourceShader::CreateGeometryShader(unsigned int& geometry, const char* gShaderCode)
+{
+	GLint success = 0;
+
+	// similar for Fragment Shader
+	fragment = glCreateShader(GL_GEOMETRY_SHADER);
+	glShaderSource(fragment, 1, &gShaderCode, NULL);
 	glCompileShader(fragment);
 	// print compile errors if any
 	glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);

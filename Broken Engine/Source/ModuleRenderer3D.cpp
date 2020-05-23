@@ -1566,9 +1566,20 @@ void ModuleRenderer3D::CreateDefaultShaders()
 		"#endif //FRAGMENT_SHADER\n"
 		;
 
+	const char* geometryShaderT =
+		R"(#version 440 core 
+		#define GEOMETRY_SHADER 
+		#ifdef GEOMETRY_SHADER 
+		layout (triangles) in; 
+		layout (triangles) out; 
+		void main(){ 
+		} 
+		#endif //GEOMETRY_SHADER)"
+		;
+
 	VertexShaderTemplate = vertexShaderT;
 	FragmentShaderTemplate = fragmentShaderT;
-
+	GeometryShaderTemplate = geometryShaderT;
 
 	// --- Creating outline drawing shaders ---
 	const char* OutlineVertShaderSrc =

@@ -15,5 +15,6 @@
 #include "PanelPhysics.h"
 #include "PanelBuild.h"
 #include "PanelNavigation.h"
+#include "PanelShadowedScene.h"
 
 #endif // __PANELS_H__

@@ -132,6 +132,11 @@ void PanelRendering::GeneralRendererSettings(bool& makeChanges)
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 31.0f);
 	if (ImGui::ColorEdit3("##AmbientColor", (float*)&m_AmbientColorValue, ImGuiColorEditFlags_NoInputs))
 		makeChanges = true;
+
+	//m_EnableShadows
+	ImGui::NewLine();
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+	ImGui::Checkbox("Enable Shadows", &EngineApp->renderer3D->m_EnableShadows);
 }
 
 void PanelRendering::SkyboxSettings(bool& makeChanges)

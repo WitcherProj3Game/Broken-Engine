@@ -18,6 +18,7 @@ class PanelBuild;
 class PanelPhysics;
 class PanelNavigation;
 class PanelRendering;
+class PanelShadowedScene;
 
 
 class ModuleEditorUI : public Broken::Module
@@ -52,6 +53,7 @@ public:
 	PanelPhysics*		panelPhysics = nullptr;
 	PanelNavigation*	panelNavigation = nullptr;
 	PanelRendering*		panelRendering = nullptr;
+	PanelShadowedScene* panelShadowsScene = nullptr;
 
 private:
 	std::vector<Panel*> panels;

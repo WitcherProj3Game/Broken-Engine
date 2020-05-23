@@ -35,9 +35,6 @@ public:
 	void UpdatePosition(float2& increment);
 	void OrderCanvas();
 
-public:
-	ComponentCanvas* canvas = nullptr;
-
 private:
 	std::vector<UI_Element*> elements;
 };

@@ -5,7 +5,7 @@ We used as basis for the engine (fork), the Aitor Simona's [Central 3D Engine](h
 
 ## TOOLS & LIBRARIES USED
 
-We used [SDL 2.0.10](https://www.libsdl.org/), STL, [OpenGL 4.4](https://www.opengl.org/) with [GLAD 0.1.33](https://glad.dav1d.de/), [ImGui 1.72b](https://github.com/ocornut/imgui), [GPUDetect](https://github.com/GameTechDev/gpudetect), [MMRG](https://www.flipcode.com/archives/Presenting_A_Memory_Manager.shtml), [ParShapes](https://prideout.net/shapes), [Assimp 3.3](http://www.assimp.org/), [Devil 1.8.0](http://openil.sourceforge.net/), [JSON for Modern C++](https://nlohmann.github.io/json/), [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo).
+We used [SDL 2.0.10](https://www.libsdl.org/), STL, [OpenGL 4.4](https://www.opengl.org/) with [GLAD 0.1.33](https://glad.dav1d.de/), [ImGui 1.72b](https://github.com/ocornut/imgui), [GPUDetect](https://github.com/GameTechDev/gpudetect), [MMGR](https://www.flipcode.com/archives/Presenting_A_Memory_Manager.shtml), [ParShapes](https://prideout.net/shapes), [Assimp 3.3](http://www.assimp.org/), [Devil 1.8.0](http://openil.sourceforge.net/), [JSON for Modern C++](https://nlohmann.github.io/json/), [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo).
 
 In Addition:
 

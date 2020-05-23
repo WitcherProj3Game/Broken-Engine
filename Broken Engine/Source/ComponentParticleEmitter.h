@@ -13,10 +13,10 @@ class Particle;
 class ResourceTexture;
 class CurveEditor;
 
-
 class BROKEN_API ComponentParticleEmitter : public Component
 {
 	friend class ModuleParticles;
+	friend struct HigherPriority;
 public:
 
 	ComponentParticleEmitter(GameObject* ContainerGO);
@@ -114,10 +114,15 @@ private:
 	bool emisionActive = true;
 	int duration = 1000;
 	uint emisionStart = 0;
+
+	//Sprite rotations
 	bool rotationActive = false;
 	int rotationOvertime1[3] = { 0,0,0 };
 	int rotationOvertime2[3] = { 0,0,0 };
 	bool separateAxis = false;
+	bool randomInitialRotation = false;
+	int minInitialRotation[3] = { 0,0,0 };
+	int maxInitialRotation[3] = { 0,0,0 };
 
 	bool verticalBillboarding = false;
 	bool horizontalBillboarding = false;
@@ -126,6 +131,7 @@ private:
 	int tileSize_X = 1;
 	int tileSize_Y = 1;
 	int startFrame = 0;
+	bool randomStartFrame = false;
 	float cycles = 1;
 
 	//Particle properties
@@ -163,8 +169,19 @@ private:
 	BlendAutoFunction m_PartBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
 	BlendingTypes m_MPartBlend_Src = BlendingTypes::SRC_ALPHA, m_MPartBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
 
-	//Drawing
+	//Rendering
+	int priority = 0;
+
+	//Debug Drawing
 	OBB emisionAreaOBB;
+};
+
+struct BROKEN_API HigherPriority
+{
+	bool operator()(ComponentParticleEmitter* pe1,ComponentParticleEmitter* pe2)const
+	{
+		return pe1->priority > pe2->priority;
+	}
 };
 BE_END_NAMESPACE
 

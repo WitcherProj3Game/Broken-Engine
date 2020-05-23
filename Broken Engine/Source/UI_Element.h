@@ -6,6 +6,7 @@
 BE_BEGIN_NAMESPACE
 
 class GameObject;
+class ComponentCanvas;
 
 class BROKEN_API UI_Element : public Component
 {
@@ -30,6 +31,7 @@ public:
 	float2 size2D = { 50,50 };
 	float2 position2D = { 0,0 };
 	float rotation2D = 0.0f;
+	ComponentCanvas* canvas = nullptr;
 
 	int priority = 0;
 };

@@ -38,7 +38,6 @@ public:
 	Color color = White;
 
 public:
-	ComponentCanvas* canvas = nullptr;
 	ResourceFont* font = nullptr;
 
 private:

@@ -44,7 +44,6 @@ private:
 	float percentage = 100.0f;
 
 public:
-	ComponentCanvas* canvas = nullptr;
 	ResourceTexture* texture = nullptr;
 };
 

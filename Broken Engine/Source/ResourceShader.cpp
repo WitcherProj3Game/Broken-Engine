@@ -105,18 +105,23 @@ bool ResourceShader::LoadInMemory()
 					// --- Load original code ---
 					LoadStream(original_file.c_str());
 
+
 					// --- Separate vertex and fragment (and geometry if defined) ---
 					std::string ftag = "#define FRAGMENT_SHADER";
 					uint FragmentLoc = ShaderCode.find(ftag);
 
-					std::string gtag = "#define GEOMETRY_SHADER";
-					uint GeometryLoc = ShaderCode.find(gtag);
-
 					vShaderCode = ShaderCode.substr(0, FragmentLoc - 1);
-					fShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(FragmentLoc, GeometryLoc != std::string::npos ? GeometryLoc - 1: ShaderCode.size()));
+
+					fShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(FragmentLoc, ShaderCode.size()));
+
+					std::string gtag = "#define GEOMETRY_SHADER";
+					uint GeometryLoc = fShaderCode.find(gtag);
 
 					if (GeometryLoc != std::string::npos)
-						gShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(GeometryLoc, ShaderCode.size()));
+					{
+						gShaderCode = std::string("#version 440 core\n").append(fShaderCode.substr(GeometryLoc, fShaderCode.size()));
+						fShaderCode = fShaderCode.substr(0, GeometryLoc - 1);
+					}
 				}
 			}
 		}
@@ -136,14 +141,18 @@ bool ResourceShader::LoadInMemory()
 			std::string ftag = "#define FRAGMENT_SHADER";
 			uint FragmentLoc = ShaderCode.find(ftag);
 
-			std::string gtag = "#define GEOMETRY_SHADER";
-			uint GeometryLoc = ShaderCode.find(gtag);
-
 			vShaderCode = ShaderCode.substr(0, FragmentLoc - 1);
-			fShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(FragmentLoc, GeometryLoc != std::string::npos ? GeometryLoc - 1 : ShaderCode.size()));
+
+			fShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(FragmentLoc, ShaderCode.size()));
+
+			std::string gtag = "#define GEOMETRY_SHADER";
+			uint GeometryLoc = fShaderCode.find(gtag);
 
 			if (GeometryLoc != std::string::npos)
-				gShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(GeometryLoc, ShaderCode.size()));
+			{
+				gShaderCode = std::string("#version 440 core\n").append(fShaderCode.substr(GeometryLoc, fShaderCode.size()));
+				fShaderCode = fShaderCode.substr(0, GeometryLoc -1);
+			}
 
 			// --- Compile shaders ---
 			int success = 0;
@@ -598,14 +607,18 @@ void ResourceShader::OnOverwrite()
 		std::string ftag = "#define FRAGMENT_SHADER";
 		uint FragmentLoc = ShaderCode.find(ftag);
 
-		std::string gtag = "#define GEOMETRY_SHADER";
-		uint GeometryLoc = ShaderCode.find(gtag);
-
 		vShaderCode = ShaderCode.substr(0, FragmentLoc - 1);
-		fShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(FragmentLoc, GeometryLoc != std::string::npos ? GeometryLoc - 1 : ShaderCode.size()));
+
+		fShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(FragmentLoc, ShaderCode.size()));
+
+		std::string gtag = "#define GEOMETRY_SHADER";
+		uint GeometryLoc = fShaderCode.find(gtag);
 
 		if (GeometryLoc != std::string::npos)
-			gShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(GeometryLoc, ShaderCode.size()));
+		{
+			gShaderCode = std::string("#version 440 core\n").append(fShaderCode.substr(GeometryLoc, fShaderCode.size()));
+			fShaderCode = fShaderCode.substr(0, GeometryLoc - 1);
+		}
 	}
 
 	ReloadAndCompileShader();

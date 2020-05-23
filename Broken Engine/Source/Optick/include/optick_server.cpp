@@ -50,7 +50,11 @@ typedef UINT_PTR TcpSocket;
 
 
 #if defined(OPTICK_MSVC)
-#pragma comment( lib, "ws2_32.lib" )
+#	ifndef _WIN64
+#		pragma comment( lib, "Optick/libx86/ws2_32.lib" )
+#	else
+#		pragma comment( lib, "Optick/libx64/WS2_32.lib" )
+#	endif
 #endif
 
 namespace Optick

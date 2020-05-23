@@ -7,7 +7,7 @@
 #ifndef __WWISE_IDS_H__
 #define __WWISE_IDS_H__
 
-#include <AK/SoundEngine/Common/AkTypes.h>
+#include "AK/SoundEngine/Common/AkTypes.h"
 
 namespace AK
 {

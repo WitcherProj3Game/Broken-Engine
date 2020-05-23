@@ -333,18 +333,19 @@ void ComponentParticleEmitter::SetEmitterBlending() const
 	}
 }
 
-void ComponentParticleEmitter::DrawParticles()
+void ComponentParticleEmitter::DrawParticles(bool shadowsPass)
 {
 	if (!active || drawingIndices.empty())
 		return;
 
+	// --- Blending ---
 	SetEmitterBlending();
-
+	
 	// -- Frustum culling --
 	Plane cameraPlanes[6];
 	App->renderer3D->culling_camera->frustum.GetPlanes(cameraPlanes);
-
 	std::map<float, int>::iterator it = drawingIndices.begin();
+
 	while (it != drawingIndices.end())
 	{
 		int paco = (*it).second;
@@ -354,7 +355,7 @@ void ComponentParticleEmitter::DrawParticles()
 		for (int i = 0; i < 6; ++i)
 		{
 			//If the particles is on the positive side of one ore more planes, it's outside the frustum
-			if (cameraPlanes[i].IsOnPositiveSide(particles[paco]->position))
+			if (cameraPlanes[i].IsOnPositiveSide(particles[paco]->position) || (shadowsPass && !m_CastShadows) || (!shadowsPass && m_OnlyShadows))
 			{
 				draw = false;
 				break;
@@ -363,16 +364,18 @@ void ComponentParticleEmitter::DrawParticles()
 
 		if (draw)
 		{
-			particles[paco]->Draw();
 			particles[paco]->h_billboard = horizontalBillboarding;
 			particles[paco]->h_billboard = horizontalBillboarding;
 			particles[paco]->scene_colorAffected = m_AffectedBySceneColor;
 			particles[paco]->light_Affected = m_AffectedByLight;
+			particles[paco]->receive_shadows = m_ReceiveShadows;
+			particles[paco]->Draw(shadowsPass);
 		}
 		it++;
 	}
 
-	drawingIndices.clear();
+	if(!shadowsPass)
+		drawingIndices.clear();
 }
 
 void ComponentParticleEmitter::ChangeParticlesColor(float4 color)

@@ -352,18 +352,26 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	// --- Shadows Buffer (Render 1st Pass) ---
 	if (m_EnableShadows && current_directional)
 	{
+		OPTICK_PUSH("Shadows Render Pass");
 		glBindFramebuffer(GL_FRAMEBUFFER, depthbufferFBO);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
+		glEnable(GL_BLEND);
 
 		glDisable(GL_CULL_FACE);
 		//glCullFace(GL_FRONT);
+		
 		SendShaderUniforms(shadowsShader->ID, true);
 		DrawRenderMeshes(true);
+
+		for (int i = 0; i < particleEmitters.size(); ++i)
+			particleEmitters[i]->DrawParticles(true);
+		
 		//glCullFace(GL_BACK);
 		glEnable(GL_CULL_FACE);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);		
+		glDisable(GL_BLEND);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		OPTICK_POP();
 	}
 
 	// --- Standard Buffer (Render 2nd Pass) ---
@@ -404,7 +412,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	// -- Draw particles ---
 	OPTICK_PUSH("Particles Rendering");
 	for (int i = 0; i < particleEmitters.size(); ++i)
-		particleEmitters[i]->DrawParticles();
+		particleEmitters[i]->DrawParticles(false);
 	OPTICK_POP();
 	
 	// --- Set Blending to Renderer's Default ---
@@ -900,8 +908,6 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 			if ((mesh->flags & RenderMeshFlags_::castShadows) != RenderMeshFlags_::castShadows)
 				continue;
 
-			//(mesh flags & castshadows) != cast shadows
-
 			// --- Set Model Matrix Uniform ---
 			glUniformMatrix4fv(glGetUniformLocation(shader, "u_Model"), 1, GL_FALSE, model.Transposed().ptr());
 
@@ -910,6 +916,24 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 				const ResourceMesh* rmesh = mesh->resource_mesh;
 				if (mesh->deformable_mesh)
 					rmesh = mesh->deformable_mesh;
+
+				if (mesh->mat)
+				{
+					glUniform4f(glGetUniformLocation(shader, "u_Color"), mesh->mat->m_AmbientColor.x, mesh->mat->m_AmbientColor.y, mesh->mat->m_AmbientColor.z, mesh->mat->m_AmbientColor.w);
+					if (mesh->mat->m_DiffuseResTexture)
+					{
+						glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 1);
+						glUniform1i(glGetUniformLocation(shader, "u_AlbedoTexture"), 0);
+						glActiveTexture(GL_TEXTURE0 + 1);
+						glBindTexture(GL_TEXTURE_2D, mesh->mat->m_DiffuseResTexture->GetTexID());
+					}
+					else
+					{
+						glUniform1i(glGetUniformLocation(shader, "u_AlbedoTexture"), 0);
+						glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 0);
+					}
+				}
+
 
 				// --- Render ---
 				glBindVertexArray(rmesh->VAO);
@@ -930,8 +954,11 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 		// --- Meshes ---
 		for (uint i = 0; i < meshInstances.size(); ++i)
 		{
-			uint shader = defaultShader->ID;
 			RenderMesh* mesh = &meshInstances[i];
+			if (mesh->only_shadow)
+				continue;
+			
+			uint shader = defaultShader->ID;
 			float4x4 model = mesh->transform;
 			float3 colorToDraw = float3(1.0f);
 
@@ -966,13 +993,7 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 			// ------------------------ Shader Stuff ------------------------
-			glUseProgram(shader);		
-
-
-			if (mesh->only_shadow)
-				continue;
-
-
+			glUseProgram(shader);
 
 			// --- Transparency Uniform ---
 			glUniform1i(glGetUniformLocation(shader, "u_HasTransparencies"), (int)mesh->mat->has_transparencies);
@@ -2041,6 +2062,12 @@ void ModuleRenderer3D::DrawGrid()
 
 	GLint modelLoc = glGetUniformLocation(shaderID, "u_Model");
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, float4x4::identity.ptr());
+
+	if (current_directional)
+		glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_LightSpace"), 1, GL_FALSE, float4x4::identity.ptr());
+
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_View"), 1, GL_FALSE, active_camera->GetOpenGLViewMatrix().ptr());
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_Proj"), 1, GL_FALSE, active_camera->GetOpenGLProjectionMatrix().ptr());
 
 	float gridColor = 0.8f;
 	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");

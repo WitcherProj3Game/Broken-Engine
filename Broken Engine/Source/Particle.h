@@ -16,7 +16,7 @@ public:
 
 	void SetAnimation(ResourceMesh* mesh);
 
-	void Draw();
+	void Draw(bool shadowsPass);
 
 public:
 
@@ -43,6 +43,7 @@ public:
 	//Rendering Stuff
 	bool scene_colorAffected = true;
 	bool light_Affected = true;
+	bool receive_shadows = true;
 };
 
 BE_END_NAMESPACE

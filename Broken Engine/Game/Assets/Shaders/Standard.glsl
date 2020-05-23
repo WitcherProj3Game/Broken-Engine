@@ -199,10 +199,14 @@ vec3 CalculateLightResult(vec3 LColor, vec3 LDir, vec3 normal, vec3 viewDir, boo
 	if(u_HasSpecularTexture == 1)
 		specular *= texture(u_SpecularTexture, v_TexCoord).rgb;
 
-	if(u_ReceiveShadows && lightShadower)
-		return (1.0 - ShadowCalculation(lightDir, normal)) * (diffuse + specular);
+	vec3 ret = vec3(0.0);
+	if(u_LightAffected)
+		ret = diffuse + specular;
 
-	return (diffuse + specular);
+	if(u_ReceiveShadows && lightShadower)
+		ret *= (1.0 - ShadowCalculation(lightDir, normal));
+
+	return ret;
 }
 
 
@@ -290,33 +294,30 @@ void main()
 
 	//Light Calculations
 	int lights_iterator = (u_LightsNumber > MAX_SHADER_LIGHTS ? MAX_SHADER_LIGHTS : u_LightsNumber);
-	vec3 colorResult = vec3(0.0);
-
-	if(u_LightAffected)
+	vec3 colorResult = vec3(0.0);	
+	for(int i = 0; i < lights_iterator; ++i)
 	{
-		for(int i = 0; i < lights_iterator; ++i)
+		//If we don't have to draw normal map debug
+		if(u_DrawNormalMapping_Lit_Adv == 0)
 		{
-			//If we don't have to draw normal map debug
-			if(u_DrawNormalMapping_Lit_Adv == 0)
-			{
-				if(u_BkLights[i].LightType == 0) //Directional
-					colorResult += CalculateDirectionalLight(u_BkLights[i], normalVec, viewDirection);
+			if(u_BkLights[i].LightType == 0) //Directional
+				colorResult += CalculateDirectionalLight(u_BkLights[i], normalVec, viewDirection);
 
-				else if(u_BkLights[i].LightType == 1) //Pointlight
-					colorResult += CalculatePointlight(u_BkLights[i], normalVec, viewDirection);
+			else if(u_BkLights[i].LightType == 1) //Pointlight
+				colorResult += CalculatePointlight(u_BkLights[i], normalVec, viewDirection);
 
-				else if(u_BkLights[i].LightType == 2) //Spotlight
-					colorResult += CalculateSpotlight(u_BkLights[i], normalVec, viewDirection);
-			}
+			else if(u_BkLights[i].LightType == 2) //Spotlight
+				colorResult += CalculateSpotlight(u_BkLights[i], normalVec, viewDirection);
+		}
+		else
+		{
+			if(u_BkLights[i].LightType == 0)
+				colorResult += v_TBN * normalize(u_BkLights[i].dir);
 			else
-			{
-				if(u_BkLights[i].LightType == 0)
-					colorResult += v_TBN * normalize(u_BkLights[i].dir);
-				else
-					colorResult += v_TBN * normalize(u_BkLights[i].pos);
-			}
+				colorResult += v_TBN * normalize(u_BkLights[i].pos);
 		}
 	}
+	
 
 	if(u_DrawNormalMapping_Lit == 0 && u_DrawNormalMapping_Lit_Adv == 0)
 	{

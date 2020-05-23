@@ -24,7 +24,7 @@ ResourceShader::ResourceShader(uint UID, const char* source_file) : Resource(Res
 
 	vShaderCode = App->renderer3D->VertexShaderTemplate;
 	fShaderCode = App->renderer3D->FragmentShaderTemplate;
-	gShaderCode = App->renderer3D->GeometryShaderTemplate;
+	gShaderCode = "none";
 
 	CreateShaderProgram();
 
@@ -105,12 +105,18 @@ bool ResourceShader::LoadInMemory()
 					// --- Load original code ---
 					LoadStream(original_file.c_str());
 
-					// --- Separate vertex and fragment ---
+					// --- Separate vertex and fragment (and geometry if defined) ---
 					std::string ftag = "#define FRAGMENT_SHADER";
 					uint FragmentLoc = ShaderCode.find(ftag);
 
+					std::string gtag = "#define GEOMETRY_SHADER";
+					uint GeometryLoc = ShaderCode.find(gtag);
+
 					vShaderCode = ShaderCode.substr(0, FragmentLoc - 1);
-					fShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(FragmentLoc, ShaderCode.size()));
+					fShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(FragmentLoc, GeometryLoc != std::string::npos ? GeometryLoc - 1: ShaderCode.size()));
+
+					if (GeometryLoc != std::string::npos)
+						gShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(GeometryLoc, ShaderCode.size()));
 				}
 			}
 		}
@@ -126,12 +132,18 @@ bool ResourceShader::LoadInMemory()
 		{
 			DeleteShaderProgram();
 
-			// --- Separate vertex and fragment ---
+			// --- Separate vertex and fragment (and geometry if defined) ---
 			std::string ftag = "#define FRAGMENT_SHADER";
 			uint FragmentLoc = ShaderCode.find(ftag);
 
+			std::string gtag = "#define GEOMETRY_SHADER";
+			uint GeometryLoc = ShaderCode.find(gtag);
+
 			vShaderCode = ShaderCode.substr(0, FragmentLoc - 1);
-			fShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(FragmentLoc, ShaderCode.size()));
+			fShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(FragmentLoc, GeometryLoc != std::string::npos ? GeometryLoc - 1 : ShaderCode.size()));
+
+			if (GeometryLoc != std::string::npos)
+				gShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(GeometryLoc, ShaderCode.size()));
 
 			// --- Compile shaders ---
 			int success = 0;
@@ -152,8 +164,19 @@ bool ResourceShader::LoadInMemory()
 				glGetShaderInfoLog(fragment, 512, NULL, infoLog);
 				ENGINE_AND_SYSTEM_CONSOLE_LOG("|[error]:Fragment Shader compilation error: %s", infoLog);
 			}
+
+			if (gShaderCode != "none")
+			{
+				success = CreateGeometryShader(geometry, gShaderCode.data());
+
+				if (!success)
+				{
+					glGetShaderInfoLog(geometry, 512, NULL, infoLog);
+					ENGINE_AND_SYSTEM_CONSOLE_LOG("|[error]:Geometry Shader compilation error: %s", infoLog);
+				}
+			}
 	
-			success = CreateShaderProgram(vertex, fragment);
+			success = CreateShaderProgram(vertex, fragment, geometry);
 	
 			if (!success) 
 			{
@@ -164,6 +187,7 @@ bool ResourceShader::LoadInMemory()
 			// delete the shaders as they're linked into our program now and no longer necessary
 			glDeleteShader(vertex);
 			glDeleteShader(fragment);
+			glDeleteShader(geometry);
 		}
 	}
 
@@ -177,12 +201,14 @@ void ResourceShader::FreeMemory()
 
 void ResourceShader::ReloadAndCompileShader() 
 {
-	uint new_vertex, new_fragment = 0;
+	uint new_vertex, new_fragment, new_geometry = 0;
 
 	// --- Compile new data ---
 
 	const char* vertexcode = vShaderCode.c_str();
 	const char* fragmentcode = fShaderCode.c_str();
+	const char* geometrycode = gShaderCode.c_str();
+
 
 	GLint success = 0;
 	GLint accumulated_errors = 0;
@@ -214,15 +240,38 @@ void ResourceShader::ReloadAndCompileShader()
 	else
 		ENGINE_AND_SYSTEM_CONSOLE_LOG("Fragment Shader compiled successfully");
 
+	// --- Compile new geometry shader ---
+
+	if (gShaderCode != "none")
+	{
+		success = CreateGeometryShader(new_geometry, geometrycode);
+
+		if (!success)
+		{
+			glGetShaderInfoLog(new_geometry, 512, NULL, infoLog);
+			ENGINE_AND_SYSTEM_CONSOLE_LOG("|[error]:Geometry Shader compilation error: %s", infoLog);
+			accumulated_errors++;
+		}
+		else
+			ENGINE_AND_SYSTEM_CONSOLE_LOG("Geometry Shader compiled successfully");
+	}
+
 	if (accumulated_errors == 0) 
 	{
 		// --- Delete previous shader data ---
 		glDetachShader(ID, vertex);
 		glDetachShader(ID, fragment);
 
+		if (gShaderCode != "none")
+			glDetachShader(ID, geometry);
+
 		// --- Attach new shader objects and link ---
 		glAttachShader(ID, new_vertex);
 		glAttachShader(ID, new_fragment);
+
+		if (gShaderCode != "none")
+			glAttachShader(ID, new_geometry);
+
 		glLinkProgram(ID);
 		//glValidateProgram(ID);
 		glGetProgramiv(ID, GL_LINK_STATUS, &success);
@@ -242,20 +291,37 @@ void ResourceShader::ReloadAndCompileShader()
 			// --- Detach new shader objects ---
 			glDetachShader(ID, new_vertex);
 			glDetachShader(ID, new_fragment);
+
+			if (gShaderCode != "none")
+				glDetachShader(ID, new_geometry);
+
 			glDeleteShader(new_vertex);
 			glDeleteShader(new_fragment);
+
+			if (gShaderCode != "none")
+				glDeleteShader(new_geometry);
 
 			// --- Attach old shader objects ---
 			glAttachShader(ID, vertex);
 			glAttachShader(ID, fragment);
+
+			if (gShaderCode != "none")
+				glAttachShader(ID, geometry);
 		}
 		else 
 		{
 			// --- On success, delete old shader objects and update ids ---
 			glDeleteShader(vertex);
 			glDeleteShader(fragment);
+
+			if (gShaderCode != "none")
+				glDeleteShader(geometry);
+
 			vertex = new_vertex;
 			fragment = new_fragment;
+
+			if (gShaderCode != "none")
+				geometry = new_geometry;
 
 			ENGINE_AND_SYSTEM_CONSOLE_LOG("Shader Program linked successfully");
 		}
@@ -264,8 +330,10 @@ void ResourceShader::ReloadAndCompileShader()
 	{
 		glDeleteShader(new_vertex);
 		glDeleteShader(new_fragment);
-	}
 
+		if (gShaderCode != "none")
+			glDeleteShader(new_geometry);
+	}
 
 }
 
@@ -432,7 +500,7 @@ bool ResourceShader::CreateGeometryShader(unsigned int& geometry, const char* gS
 }
 
 // Internal use only!
-bool ResourceShader::CreateShaderProgram(unsigned int vertex, unsigned int fragment) 
+bool ResourceShader::CreateShaderProgram(unsigned int vertex, unsigned int fragment, unsigned int geometry) 
 {
 	GLint success = 0;
 
@@ -440,6 +508,7 @@ bool ResourceShader::CreateShaderProgram(unsigned int vertex, unsigned int fragm
 	ID = glCreateProgram();
 	glAttachShader(ID, vertex);
 	glAttachShader(ID, fragment);
+	glAttachShader(ID, geometry);
 	glLinkProgram(ID);
 	// print linking errors if any
 	glGetProgramiv(ID, GL_LINK_STATUS, &success);
@@ -525,12 +594,18 @@ void ResourceShader::OnOverwrite()
 	// --- If no fs failure occurred... ---
 	if (ret)
 	{
-		// --- Separate vertex and fragment ---
+		// --- Separate vertex and fragment (and geometry if defined) ---
 		std::string ftag = "#define FRAGMENT_SHADER";
 		uint FragmentLoc = ShaderCode.find(ftag);
 
+		std::string gtag = "#define GEOMETRY_SHADER";
+		uint GeometryLoc = ShaderCode.find(gtag);
+
 		vShaderCode = ShaderCode.substr(0, FragmentLoc - 1);
-		fShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(FragmentLoc, ShaderCode.size()));
+		fShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(FragmentLoc, GeometryLoc != std::string::npos ? GeometryLoc - 1 : ShaderCode.size()));
+
+		if (GeometryLoc != std::string::npos)
+			gShaderCode = std::string("#version 440 core\n").append(ShaderCode.substr(GeometryLoc, ShaderCode.size()));
 	}
 
 	ReloadAndCompileShader();

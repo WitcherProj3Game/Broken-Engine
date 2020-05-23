@@ -77,7 +77,7 @@ private:
 	bool CreateVertexShader(unsigned int& vertex, const char* vShaderCode);
 	bool CreateFragmentShader(unsigned int& fragment, const char* fShaderCode);
 	bool CreateGeometryShader(unsigned int& geometry, const char* gShaderCode);
-	bool CreateShaderProgram(unsigned int vertex, unsigned int fragment);
+	bool CreateShaderProgram(unsigned int vertex, unsigned int fragment, unsigned int geometry);
 	bool CreateShaderProgram();
 	void DeleteShaderProgram();
 

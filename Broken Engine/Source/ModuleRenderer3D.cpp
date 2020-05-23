@@ -1570,9 +1570,12 @@ void ModuleRenderer3D::CreateDefaultShaders()
 		R"(#version 440 core 
 		#define GEOMETRY_SHADER 
 		#ifdef GEOMETRY_SHADER 
-		layout (triangles) in; 
-		layout (triangles) out; 
+		layout (points) in; 
+		layout (points, max_vertices = 1) out; 
 		void main(){ 
+			gl_Position = gl_in[0].gl_Position;
+			EmitVertex();
+			EndPrimitive();
 		} 
 		#endif //GEOMETRY_SHADER)"
 		;

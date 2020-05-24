@@ -371,40 +371,19 @@ out fData
 
 void main()
 { 
-	gl_Position = gl_in[0].gl_Position;
-	frag.f_TexCoord = vertex[0].v_TexCoord;
-	frag.f_Color = vertex[0].v_Color;
-	frag.f_Normal = vertex[0].v_Normal;
-	frag.f_FragPos = vertex[0].v_FragPos;
-	frag.f_CamPos = vertex[0].v_CamPos;
-	frag.f_TBN = vertex[0].v_TBN;
-	frag.f_FragPos_InLightSpace = vertex[0].v_FragPos_InLightSpace;
+	for (int i = 0; i < gl_in.length(); i++) 
+	{
+		gl_Position = gl_in[i].gl_Position;
+		frag.f_TexCoord = vertex[i].v_TexCoord;
+		frag.f_Color = vertex[i].v_Color;
+		frag.f_Normal = vertex[i].v_Normal;
+		frag.f_FragPos = vertex[i].v_FragPos;
+		frag.f_CamPos = vertex[i].v_CamPos;
+		frag.f_TBN = vertex[i].v_TBN;
+		frag.f_FragPos_InLightSpace = vertex[i].v_FragPos_InLightSpace;
 
-	EmitVertex();
-
-
-	gl_Position = gl_in[1].gl_Position;
-	frag.f_TexCoord = vertex[1].v_TexCoord;
-	frag.f_Color = vertex[1].v_Color;
-	frag.f_Normal = vertex[1].v_Normal;
-	frag.f_FragPos = vertex[1].v_FragPos;
-	frag.f_CamPos = vertex[1].v_CamPos;
-	frag.f_TBN = vertex[1].v_TBN;
-	frag.f_FragPos_InLightSpace = vertex[1].v_FragPos_InLightSpace;
-
-	EmitVertex();
-
-
-	gl_Position = gl_in[1].gl_Position;
-	frag.f_TexCoord = vertex[2].v_TexCoord;
-	frag.f_Color = vertex[2].v_Color;
-	frag.f_Normal = vertex[2].v_Normal;
-	frag.f_FragPos = vertex[2].v_FragPos;
-	frag.f_CamPos = vertex[2].v_CamPos;
-	frag.f_TBN = vertex[2].v_TBN;
-	frag.f_FragPos_InLightSpace = vertex[2].v_FragPos_InLightSpace;
-
-	EmitVertex();
+		EmitVertex();
+	}
 
 	EndPrimitive();
 } 

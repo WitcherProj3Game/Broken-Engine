@@ -224,6 +224,7 @@ json ComponentImage::Save() const
 	node["Active"] = this->active;
 	node["visible"] = std::to_string(visible);
 	node["priority"] = std::to_string(priority);
+	node["fullscreen"] = fullscreen;
 
 	node["Resources"]["ResourceTexture"];
 
@@ -271,6 +272,8 @@ void ComponentImage::Load(json& node)
 	std::string priority_str = node["priority"].is_null() ? "0" : node["priority"];
 	visible = bool(std::stoi(visible_str));
 	priority = int(std::stoi(priority_str));
+
+	fullscreen = node.find("fullscreen") == node.end() ? false : node["fullscreen"].get<bool>();
 
 	std::string path = node["Resources"]["ResourceTexture"].is_null() ? "0" : node["Resources"]["ResourceTexture"];
 	App->fs->SplitFilePath(path.c_str(), nullptr, &path);

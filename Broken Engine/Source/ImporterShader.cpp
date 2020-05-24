@@ -104,6 +104,8 @@ void ImporterShader::Save(ResourceShader* shader) const
 				std::string fragmentCode = shader->fShaderCode;
 				std::string geometryCode = shader->gShaderCode;
 
+				file << std::setw(5) << shaderCode << std::endl;
+
 				uint floc = fragmentCode.find("#define FRAGMENT_SHADER");
 
 				if (floc != std::string::npos)
@@ -118,12 +120,13 @@ void ImporterShader::Save(ResourceShader* shader) const
 					if (gloc != std::string::npos)
 					{
 						geometryCode = geometryCode.substr(gloc, geometryCode.size());
-						fragmentCode += geometryCode;
+						fragmentCode.append("\n").append(geometryCode);
+						//file << std::setw(5) << fragmentCode << std::endl;
 					}
 				}
 
-				file << std::setw(5) << shaderCode << std::endl;
 				file << std::setw(5) << fragmentCode;
+
 
 				file.close();
 

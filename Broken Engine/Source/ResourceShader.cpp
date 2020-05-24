@@ -499,11 +499,11 @@ bool ResourceShader::CreateGeometryShader(unsigned int& geometry, const char* gS
 	GLint success = 0;
 
 	// similar for Fragment Shader
-	fragment = glCreateShader(GL_GEOMETRY_SHADER);
-	glShaderSource(fragment, 1, &gShaderCode, NULL);
-	glCompileShader(fragment);
+	geometry = glCreateShader(GL_GEOMETRY_SHADER);
+	glShaderSource(geometry, 1, &gShaderCode, NULL);
+	glCompileShader(geometry);
 	// print compile errors if any
-	glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+	glGetShaderiv(geometry, GL_COMPILE_STATUS, &success);
 
 	return success;
 }

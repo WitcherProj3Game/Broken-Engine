@@ -112,13 +112,13 @@ void ComponentImage::NextAnimationFrame()
 	if (loop)
 	{
 		current_frame++;
-		if (current_frame > end_frame) current_frame = start_frame;
+		if (current_frame > end_frame - 1) current_frame = start_frame;
 		else if (current_frame < start_frame) current_frame = start_frame;
 		//current_frame = (((current_frame + 1) % (end_frame == 0? 1 : end_frame))+start_frame)%animation_frames.size();
 		time = 0;
 
 	}
-	else if (current_frame < end_frame)
+	else if (current_frame < end_frame - 1)
 	{
 		current_frame++;
 		time = 0;

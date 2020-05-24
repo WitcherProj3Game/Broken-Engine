@@ -43,9 +43,9 @@ luabridge::LuaRef ScriptingGameobject::GetGOChilds(uint gameobject_UUID, lua_Sta
 	{
 		if (go->childs.size() > 0)
 		{
-			for (int i = 0; go->childs.size(); ++i)
+			for (int i = 0; i < go->childs.size(); ++i)
 			{
-				uint sonID = go->childs.at(i)->GetUID();
+				uint sonID = go->childs[i]->GetUID();
 				if (sonID != 0)
 					table.append(sonID);
 				else

@@ -459,6 +459,7 @@ json ComponentParticleEmitter::Save() const
 	node["Duration"] = std::to_string(duration);
 	node["HorizontalBill"] = std::to_string((int)horizontalBillboarding);
 	node["VerticalBill"] = std::to_string((int)verticalBillboarding);
+	node["ParticlesBillboarding"] = particlesBillboarding;
 
 	node["particlesScaleX"] = std::to_string(particlesScale.x);
 	node["particlesScaleY"] = std::to_string(particlesScale.y);
@@ -784,21 +785,22 @@ void ComponentParticleEmitter::Load(json& node)
 	m_PartAutoBlending = node.find("PartAutoBlending") == node.end() ? true : node["PartAutoBlending"].get<bool>();
 
 	// --- V/H Billbaording ---
-	if (node.find("HorizontalBill") != node.end())
+	particlesBillboarding = node.find("ParticlesBillboarding") == node.end() ? true : node["ParticlesBillboarding"].get<bool>();
+	horizontalBillboarding = verticalBillboarding = false;
+	if (!particlesBillboarding)
 	{
-		std::string hBill = node["HorizontalBill"];
-		horizontalBillboarding = (bool)std::stoi(hBill);
-	}
-	else
-		horizontalBillboarding = false;
+		if (node.find("HorizontalBill") != node.end())
+		{
+			std::string hBill = node["HorizontalBill"];
+			horizontalBillboarding = (bool)std::stoi(hBill);
+		}
 
-	if (node.find("VerticalBill") != node.end())
-	{
-		std::string vBill = node["VerticalBill"];
-		verticalBillboarding = (bool)std::stoi(vBill);
+		if (node.find("VerticalBill") != node.end())
+		{
+			std::string vBill = node["VerticalBill"];
+			verticalBillboarding = (bool)std::stoi(vBill);
+		}
 	}
-	else
-		verticalBillboarding = false;
 }
 
 void ComponentParticleEmitter::CreateInspectorNode()
@@ -1350,7 +1352,14 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	if (ImGui::TreeNode("Renderer"))
 	{
-		// Image
+		// --- Priority ---
+		ImGui::NewLine();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		ImGui::Text("Render priority");
+		ImGui::SameLine();
+		ImGui::DragInt("##srenderPriority", &priority);
+
+		// --- Image/Texture ---
 		ImGui::NewLine();
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		ImGui::Text("Texture");
@@ -1381,13 +1390,41 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			ImGui::EndDragDropTarget();
 		}
 
-
+		// --- Color ---
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		ImGui::ColorEdit4("##PEParticle Color", (float*)&colors[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 		ImGui::Text("Start Color");
 
-		// --- Tree Node for Blending
+		// --- Billboarding ---
+		ImGui::NewLine();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		if (ImGui::Checkbox("##PEBill", &particlesBillboarding))
+			if(!particlesBillboarding)
+				horizontalBillboarding = verticalBillboarding = false;
+
+		ImGui::SameLine();
+		ImGui::Text("Particles Billboarding");
+		if (particlesBillboarding)
+		{
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 37.0f);
+			if (ImGui::Checkbox("##PEHBill", &horizontalBillboarding))
+				if (horizontalBillboarding && verticalBillboarding)
+					verticalBillboarding = false;
+
+			ImGui::SameLine();
+			ImGui::Text("Horizontal Billboarding");
+
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 37.0f);
+			if (ImGui::Checkbox("##PEVBill", &verticalBillboarding))
+				if (verticalBillboarding && horizontalBillboarding)
+					horizontalBillboarding = false;
+
+			ImGui::SameLine();
+			ImGui::Text("Vertical Billboarding");
+		}
+
+		// --- Tree Node for Blending ---
 		ImGui::NewLine();
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		if (ImGui::TreeNode("Particle Emitter Blending"))
@@ -1396,28 +1433,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			ImGui::TreePop();
 		}
 
-		// --- Billboarding Type ---
-		ImGui::NewLine();
-		if (ImGui::Checkbox("##PEHBill", &horizontalBillboarding))
-			if (horizontalBillboarding && verticalBillboarding)
-				verticalBillboarding = false;
-
-		ImGui::SameLine();
-		ImGui::Text("Horizontal Billboarding");
-
-		if (ImGui::Checkbox("##PEVBill", &verticalBillboarding))
-			if (verticalBillboarding && horizontalBillboarding)
-				horizontalBillboarding = false;
-
-		ImGui::SameLine();
-		ImGui::Text("Vertical Billboarding");
 		ImGui::TreePop();
-
-		ImGui::Text("Render priority");
-		ImGui::SameLine();
-		ImGui::DragInt("##srenderPriority", &priority);
-		
-			
 	}
 }
 

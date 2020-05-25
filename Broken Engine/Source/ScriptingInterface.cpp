@@ -119,6 +119,41 @@ void ScriptingInterface::MakeUIComponentInvisible(const char* comp_type, uint go
 		ENGINE_CONSOLE_LOG("![Script]: (MakeElementInvisible) Alert! Could not find GameObject with UUID %d", go_UUID);
 }
 
+// --- Animations ---
+void ScriptingInterface::PlayUIAnimation(uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	if (go)
+	{
+		ComponentImage* UIImg = go->GetComponent<ComponentImage>();
+		if (UIImg)
+			UIImg->PlayAnimation();
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (PlayUIAnimation) Alert! GameObject with UUID %d has not a UI Image component!", gameobject_UUID);
+
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (PlayUIAnimation) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+}
+
+bool ScriptingInterface::UIAnimationFinished(uint gameobject_UUID) const
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	if (go)
+	{
+		ComponentImage* UIImg = go->GetComponent<ComponentImage>();
+		if (UIImg)
+			return UIImg->animation_finished;
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (UIAnimationFinished) Alert! GameObject with UUID %d has not a UI Image component!", gameobject_UUID);
+
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (UIAnimationFinished) Alert! Could not find GameObject with UUID %d", gameobject_UUID);
+
+	return true;
+}
+
 // --- Setters ---
 void ScriptingInterface::SetBarPercentage(float percentage, uint go_UUID)
 {

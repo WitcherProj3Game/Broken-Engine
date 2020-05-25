@@ -101,5 +101,4 @@ void Particle::Draw()
 	glUniform1i(TextureLocation, 0); //reset texture location
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0); // Stop using buffer (texture)
-
 }

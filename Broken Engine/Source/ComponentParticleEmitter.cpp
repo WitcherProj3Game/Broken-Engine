@@ -1580,7 +1580,8 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 			particles[index[i]]->currentGradient = 0;
 			particles[index[i]]->emitterSpawnPosition = globalPosition;
 			particles[index[i]]->startFrame = randomStartFrame ? GetRandomValue(0, double(tileSize_X)*double(tileSize_Y)): startFrame;
-
+			particles[index[i]]->h_billboard = horizontalBillboarding;
+			particles[index[i]]->v_billboard = verticalBillboarding;
 			//Set scale
 			if (scaleconstants == 1) {
 				float randomScaleValue = GetRandomValue(particlesScaleRandomFactor1, particlesScaleRandomFactor2);

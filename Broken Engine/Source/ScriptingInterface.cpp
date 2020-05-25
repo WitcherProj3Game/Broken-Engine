@@ -240,6 +240,59 @@ void ScriptingInterface::SetUITextNumber(float number, uint go_UUID)
 		ENGINE_CONSOLE_LOG("![Script]: (SetTextNumber) Alert! Could not find GameObject with UUID %d", go_UUID);
 }
 
+void ScriptingInterface::SetUIElementInteractable(const char* comp_type, uint go_UUID, bool value)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(go_UUID);
+	if (go)
+	{
+		std::string name = comp_type;
+		if (name == "Bar")
+		{
+			ComponentProgressBar* comp_bar = go->GetComponent<ComponentProgressBar>();
+			if (comp_bar)
+				comp_bar->interactable = value;
+			else
+				ENGINE_CONSOLE_LOG("![Script]: (MakeElementInteractable) Alert! Couldn't find Bar Component");
+		}
+		else if (name == "CircularBar")
+		{
+			ComponentCircularBar* comp_bar = go->GetComponent<ComponentCircularBar>();
+			if (comp_bar)
+				comp_bar->interactable = value;
+			else
+				ENGINE_CONSOLE_LOG("![Script]: (MakeElementInteractable) Alert! Couldn't find Circular Bar Component");
+		}
+		else if (name == "Text")
+		{
+			ComponentText* comp_text = go->GetComponent<ComponentText>();
+			if (comp_text)
+				comp_text->interactable = value;
+			else
+				ENGINE_CONSOLE_LOG("![Script]: (MakeElementInteractable) Alert! Couldn't find Text Component");
+		}
+		else if (name == "Image")
+		{
+			ComponentImage* comp_image = go->GetComponent<ComponentImage>();
+			if (comp_image)
+				comp_image->interactable = value;
+			else
+				ENGINE_CONSOLE_LOG("![Script]: (MakeElementInteractable) Alert! Couldn't find Image Component");
+		}
+		else if (name == "Button")
+		{
+			ComponentButton* comp_button = go->GetComponent<ComponentButton>();
+			if (comp_button)
+				comp_button->interactable = value;
+			else
+				ENGINE_CONSOLE_LOG("![Script]: (MakeElementInteractable) Alert! Couldn't find Button Component");
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (MakeElementInteractable) Alert! GameObject with UUID %d has not a %s component", go_UUID, comp_type);
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (MakeElementInteractable) Alert! Could not find GameObject with UUID %d", go_UUID);
+}
+
 
 // --- Colors ---
 void ScriptingInterface::ChangeUIComponentColor(const char* comp_type, float r, float g, float b, float a, uint go_UUID)

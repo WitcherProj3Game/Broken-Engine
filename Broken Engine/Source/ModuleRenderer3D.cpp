@@ -283,6 +283,7 @@ bool ModuleRenderer3D::Init(json& file)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	cubemapTexID = App->textures->CreateCubemap(cubemaptexIDs);
+	depthTextureCubemap = App->textures->CreateDepthCubemap();
 
 	return ret;
 }
@@ -469,6 +470,8 @@ bool ModuleRenderer3D::CleanUp()
 
 	glDeleteFramebuffers(1, &fbo);
 	glDeleteFramebuffers(1, &depthbufferFBO);
+	glDeleteFramebuffers(1, &depthbufferCubemapFBO);
+
 	SDL_GL_DeleteContext(context);
 
 	return true;
@@ -1315,6 +1318,12 @@ void ModuleRenderer3D::CreateFramebuffer()
 	glGenFramebuffers(1, &depthbufferFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthbufferFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+
+	glGenFramebuffers(1, &depthbufferCubemapFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthbufferCubemapFBO);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTextureCubemap, 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 

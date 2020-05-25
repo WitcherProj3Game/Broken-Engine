@@ -513,14 +513,17 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetTextNumber", &ScriptingInterface::SetUITextNumber)
 
 		.addFunction("ChangeUIComponentColor", &ScriptingInterface::ChangeUIComponentColor)
-		.addFunction("ChangeUIComponentAlpha", &ScriptingInterface::ChangeUIComponentAlpha)
 		.addFunction("ChangeUIBarColor", &ScriptingInterface::ChangeUIBarColor)
+		.addFunction("ChangeUIComponentAlpha", &ScriptingInterface::ChangeUIComponentAlpha)
 		.addFunction("ChangeUIBarAlpha", &ScriptingInterface::ChangeUIBarAlpha)
 		
 		.addFunction("GetUIComponentColor", &ScriptingInterface::GetUIComponentColor)
 		.addFunction("GetUIBarColor", &ScriptingInterface::GetUIBarColor)
 		.addFunction("GetUIComponentAlpha", &ScriptingInterface::GetUIComponentAlpha)
 		.addFunction("GetUIBarAlpha", &ScriptingInterface::GetUIBarAlpha)
+
+		.addFunction("PlayUIAnimation", &ScriptingInterface::PlayUIAnimation)
+		.addFunction("UIAnimationFinished", &ScriptingInterface::UIAnimationFinished)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------

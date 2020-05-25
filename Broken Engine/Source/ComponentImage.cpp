@@ -106,6 +106,7 @@ void ComponentImage::PlayAnimation()
 	current_frame = start_frame;
 	animation_finished = false;
 }
+
 // Scripting function
 void ComponentImage::NextAnimationFrame()
 {

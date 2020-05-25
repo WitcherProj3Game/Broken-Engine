@@ -32,10 +32,15 @@ public:
 	void ChangeUIComponentAlpha(const char* comp_type, float alpha, uint go_UUID);
 	void ChangeUIBarAlpha(const char* comp_type, bool topBarPlane, float alpha, uint go_UUID);
 
-	float GetUIComponentAlpha(const char* comp_type, uint gameobject_UUID) const;
-	float GetUIBarAlpha(const char* comp_type, bool topBarPlane, uint gameobject_UUID) const;
 	luabridge::LuaRef GetUIComponentColor(const char* comp_type, uint gameobject_UUID, lua_State* L) const;
 	luabridge::LuaRef GetUIBarColor(const char* comp_type, bool topBarPlane, uint gameobject_UUID, lua_State* L) const;
+	float GetUIComponentAlpha(const char* comp_type, uint gameobject_UUID) const;
+	float GetUIBarAlpha(const char* comp_type, bool topBarPlane, uint gameobject_UUID) const;
+
+
+	void PlayUIAnimation(uint gameobject_UUID);
+	bool UIAnimationFinished(uint gameobject_UUID) const;
+
 };
 BE_END_NAMESPACE
 #endif // __SCRIPTINGINTERFACE_H__

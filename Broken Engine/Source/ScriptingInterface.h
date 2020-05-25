@@ -26,6 +26,7 @@ public:
 	void SetUIText(const char* text, uint go_UUID);
 	void SetUITextAndNumber(const char* text, float number, uint go_UUID);
 	void SetUITextNumber(float number, uint go_UUID);
+	void SetUIElementInteractable(const char* comp_type, uint go_UUID, bool value);
 
 	void ChangeUIComponentColor(const char* comp_type, float r, float g, float b, float a, uint go_UUID);
 	void ChangeUIBarColor(const char* comp_type, bool topBarPlane, float r, float g, float b, float a, uint go_UUID);

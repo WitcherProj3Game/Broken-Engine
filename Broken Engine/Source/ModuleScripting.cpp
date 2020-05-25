@@ -511,6 +511,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetText", &ScriptingInterface::SetUIText)
 		.addFunction("SetTextAndNumber", &ScriptingInterface::SetUITextAndNumber)
 		.addFunction("SetTextNumber", &ScriptingInterface::SetUITextNumber)
+		.addFunction("SetUIElementInteractable", &ScriptingInterface::SetUIElementInteractable)
 
 		.addFunction("ChangeUIComponentColor", &ScriptingInterface::ChangeUIComponentColor)
 		.addFunction("ChangeUIBarColor", &ScriptingInterface::ChangeUIBarColor)
@@ -526,6 +527,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("UIAnimationFinished", &ScriptingInterface::UIAnimationFinished)
 		.endClass()
 
+			
 		// ----------------------------------------------------------------------------------
 		// SCENES
 		// ----------------------------------------------------------------------------------

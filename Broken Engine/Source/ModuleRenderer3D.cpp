@@ -318,6 +318,12 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, depthbufferCubemapFBO);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearDepth(1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	return UPDATE_CONTINUE;
 }
 
@@ -363,6 +369,19 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		DrawRenderMeshes(true);
 		//glCullFace(GL_BACK);
 		glEnable(GL_CULL_FACE);
+		
+		// --- Point shadows ---
+		glBindFramebuffer(GL_FRAMEBUFFER, depthbufferCubemapFBO);
+
+		std::vector<ComponentLight*>::iterator LightIteratori = m_LightsVec.begin();
+		for (; LightIteratori != m_LightsVec.end(); ++LightIteratori)
+		{
+			if ((*LightIteratori)->GetLightType() == LightType::POINTLIGHT)
+			{
+				DrawRenderMeshes(true);
+				break; // just 1 for now
+			}
+		}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);		
 	}
@@ -987,6 +1006,8 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 				glActiveTexture(GL_TEXTURE0 + 0);
 				glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexID);
 			}
+			else
+				glBindTexture(GL_TEXTURE_CUBE_MAP, depthTextureCubemap);
 
 			if (mesh->mat->has_transparencies)
 				mesh->mat->SetBlending();

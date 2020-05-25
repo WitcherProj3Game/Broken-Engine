@@ -3,6 +3,7 @@
 #include "OpenGL.h"
 #include "ModuleFileSystem.h"
 #include "ModuleResourceManager.h"
+#include "ModuleWindow.h"
 
 
 #include "DevIL/include/il.h"
@@ -272,7 +273,7 @@ uint ModuleTextures::CreateDepthCubemap()
 	unsigned int depthCubemap;
 	glGenTextures(1, &depthCubemap);
 
-	const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+	const unsigned int SHADOW_WIDTH = App->window->GetWindowWidth(), SHADOW_HEIGHT = App->window->GetWindowHeight();
 	glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
 	for (unsigned int i = 0; i < 6; ++i)
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,

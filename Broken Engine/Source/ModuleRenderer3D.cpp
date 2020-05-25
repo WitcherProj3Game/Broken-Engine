@@ -357,7 +357,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	OPTICK_POP();
 
 	// --- Shadows Buffer (Render 1st Pass) ---
-	if (m_EnableShadows && current_directional)
+	if (true/*m_EnableShadows*/ /*&& current_directional*/)
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, depthbufferFBO);
 		glEnable(GL_DEPTH_TEST);
@@ -378,6 +378,46 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		{
 			if ((*LightIteratori)->GetLightType() == LightType::POINTLIGHT)
 			{
+				float aspect = (float)App->window->GetWindowWidth() / (float)App->window->GetWindowHeight();
+
+				(*LightIteratori)->m_LightFrustum.SetVerticalFovAndAspectRatio(90, aspect);
+
+				float4x4 shadowProj = (*LightIteratori)->GetFrustProjectionMatrix();
+				(*LightIteratori)->m_LightFrustum.SetFront(float3(1.0, 0.0, 0.0));
+				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
+
+				std::vector<float4x4> shadowTransforms;
+				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+				(*LightIteratori)->m_LightFrustum.SetFront(float3(-1.0, 0.0, 0.0));
+				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
+
+				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+				(*LightIteratori)->m_LightFrustum.SetFront(float3(0.0, 1.0, 0.0));
+				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, 0.0, 1.0));
+
+				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+				(*LightIteratori)->m_LightFrustum.SetFront(float3(0.0, -1.0, 0.0));
+				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, 0.0, -1.0));
+
+				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+				(*LightIteratori)->m_LightFrustum.SetFront(float3(0.0, 0.0, 1.0));
+				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
+
+				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+				(*LightIteratori)->m_LightFrustum.SetFront(float3(0.0, 0.0, -1.0));
+				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
+
+				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+
+				for (unsigned int i = 0; i < 6; ++i)
+					glUniformMatrix4fv(glGetUniformLocation(shadowsShader->ID, std::string("shadowMatrices[" + std::to_string(i) + "]").c_str()), 1, GL_FALSE, shadowTransforms[i].ptr());
+					
+					//simpleDepthShader.setMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
+
+
+				//glUniformMatrix4fv(glGetUniformLocation(shadowsShader->ID, "u_View"), 1, GL_FALSE, viewMat.ptr());
+				glUniformMatrix4fv(glGetUniformLocation(shadowsShader->ID, "u_Proj"), 1, GL_FALSE, shadowProj.ptr());
+
 				DrawRenderMeshes(true);
 				break; // just 1 for now
 			}
@@ -1007,7 +1047,10 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 				glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexID);
 			}
 			else
+			{
+				glActiveTexture(GL_TEXTURE0 + 0);
 				glBindTexture(GL_TEXTURE_CUBE_MAP, depthTextureCubemap);
+			}
 
 			if (mesh->mat->has_transparencies)
 				mesh->mat->SetBlending();

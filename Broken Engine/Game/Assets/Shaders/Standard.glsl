@@ -95,6 +95,7 @@ uniform sampler2D u_AlbedoTexture;
 uniform sampler2D u_SpecularTexture;
 uniform sampler2D u_NormalTexture;
 uniform sampler2D u_ShadowMap;
+uniform samplerCube depthMap;
 
 //Shadows Uniforms
 uniform bool u_ReceiveShadows = true;
@@ -180,8 +181,25 @@ float ShadowCalculation(vec3 dir, vec3 normal)
 	return (shadow * u_ShadowIntensity);
 }
 
+float OmnidirectionalShadowCalculation(vec3 lightPos)
+{
+    // get vector between fragment position and light position
+    vec3 fragToLight = frag.f_FragPos - vec3(0,1,0); // should be lightPos
+    // use the light to fragment vector to sample from the depth map    
+    float closestDepth = texture(depthMap, fragToLight).r;
+    // it is currently in linear range between [0,1]. Re-transform back to original value
+    closestDepth *= 20; // should be far_plane
+    // now get current linear depth as the length between the fragment and light position
+    float currentDepth = length(fragToLight);
+    // now test for shadows
+    float bias = 0.05; 
+    float shadow = currentDepth -  bias > closestDepth ? 1.0 : 0.0;
+
+    return shadow;
+}
+
 //Light Calculations Functions ---------------------------------------------------------------------------------------
-vec3 CalculateLightResult(vec3 LColor, vec3 LDir, vec3 normal, vec3 viewDir, bool lightShadower)
+vec3 CalculateLightResult(vec3 LColor, vec3 LDir, vec3 normal, vec3 viewDir, bool lightShadower, vec3 pos)
 {
 	//Normalize light direction
 	vec3 lightDir = normalize(LDir);
@@ -204,7 +222,12 @@ vec3 CalculateLightResult(vec3 LColor, vec3 LDir, vec3 normal, vec3 viewDir, boo
 		specular *= texture(u_SpecularTexture, frag.f_TexCoord).rgb;
 
 	if(u_ReceiveShadows && lightShadower)
-		return (1.0 - ShadowCalculation(lightDir, normal)) * (diffuse + specular);
+	{
+		//return (1.0 - ShadowCalculation(lightDir, normal)) * (diffuse + specular);
+
+		return (1.0 - OmnidirectionalShadowCalculation(pos)) * (diffuse + specular);
+	}
+	return (1.0 - OmnidirectionalShadowCalculation(pos)) * (diffuse + specular);
 
 	return (diffuse + specular);
 }
@@ -214,9 +237,9 @@ vec3 CalculateLightResult(vec3 LColor, vec3 LDir, vec3 normal, vec3 viewDir, boo
 vec3 CalculateDirectionalLight(BrokenLight light, vec3 normal, vec3 viewDir)
 {
 	if(u_HasNormalMap == 1)
-		return CalculateLightResult(light.color, /*v_TBN * */normalize(light.dir), normal, viewDir, light.LightCastingShadows) * light.intensity;
+		return CalculateLightResult(light.color, /*v_TBN * */normalize(light.dir), normal, viewDir, light.LightCastingShadows, vec3(0,0,0)) * light.intensity;
 	else
-		return CalculateLightResult(light.color, light.dir, normal, viewDir, light.LightCastingShadows) * light.intensity;
+		return CalculateLightResult(light.color, light.dir, normal, viewDir, light.LightCastingShadows, vec3(0,0,0)) * light.intensity;
 }
 
 //Point Light Calculation
@@ -233,7 +256,7 @@ vec3 CalculatePointlight(BrokenLight light, vec3 normal, vec3 viewDir)
 	float lightAttenuation = 1.0/(light.attenuationKLQ.x + light.attenuationKLQ.y * d + light.attenuationKLQ.z *(d * d));
 
 	//Result
-	return CalculateLightResult(light.color, direction, normal, viewDir, false) * lightAttenuation * light.intensity;
+	return CalculateLightResult(light.color, direction, normal, viewDir, false, light.pos) * lightAttenuation * light.intensity;
 }
 
 //Spot Light Calculation
@@ -255,7 +278,7 @@ vec3 CalculateSpotlight(BrokenLight light, vec3 normal, vec3 viewDir)
 	float lightIntensity = clamp((theta - light.InOutCutoff.y) / epsilon, 0.0, 1.0) * light.intensity;
 
 	//Result
-	return CalculateLightResult(light.color, direction, normal, viewDir, false) * lightAttenuation * lightIntensity;
+	return CalculateLightResult(light.color, direction, normal, viewDir, false, vec3(0,0,0)) * lightAttenuation * lightIntensity;
 }
 
 //------------------------------------------------------------------------------------------------------------------

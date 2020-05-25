@@ -298,7 +298,11 @@ void PanelRendering::PostProcessingSettings(bool& makeChanges)
 
 	// --- Use HDR & Exposure Slider ---
 	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
-	ImGui::Checkbox("Use HDR", &EngineApp->renderer3D->m_UseHDR);
+	if (ImGui::Checkbox("Use HDR", &EngineApp->renderer3D->m_UseHDR))
+	{
+		if (!EngineApp->renderer3D->m_UseHDR)
+			EngineApp->renderer3D->m_UseBloom = false;
+	}
 
 	if (EngineApp->renderer3D->m_UseHDR)
 	{
@@ -314,7 +318,11 @@ void PanelRendering::PostProcessingSettings(bool& makeChanges)
 
 	// --- Use Bloom & Its stuff ---
 	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
-	ImGui::Checkbox("Use Bloom", &EngineApp->renderer3D->m_UseBloom);
+	if (ImGui::Checkbox("Use Bloom", &EngineApp->renderer3D->m_UseBloom))
+	{
+		if (EngineApp->renderer3D->m_UseBloom)
+			EngineApp->renderer3D->m_UseHDR = true;
+	}
 
 	if (EngineApp->renderer3D->m_UseBloom)
 	{

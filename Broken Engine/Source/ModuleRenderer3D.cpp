@@ -1274,15 +1274,15 @@ void ModuleRenderer3D::DrawPostProcessing()
 	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 	glDisable(GL_BLEND); // we do not want blending
 
-	if (!drawfb)
-		glEnable(GL_FRAMEBUFFER_SRGB); // our render texture is srgb so we need to enable this
+	// --- First Step: Color Correction
+	// MYTODO Sergi: TBA
 
-	// --- Bloom PostPro ---
+	// --- Second Step: HDR and Bloom ---
 	bool horizontal = true, first_iteration = true;
 	ResourceScene* currScene = App->scene_manager->currentScene;
 	uint BlurAmount = currScene->m_ScenePP_BloomBlurAmount;
 
-	if (!drawfb && m_UseBloom && currScene)
+	if (m_UseBloom && currScene)
 	{
 		glUseProgram(BlurShader->ID);
 		for (uint i = 0; i < BlurAmount; ++i)
@@ -1315,8 +1315,8 @@ void ModuleRenderer3D::DrawPostProcessing()
 	
 	uint shader = screenShader->ID; 
 	glUseProgram(shader);
-	glUniform1i(glGetUniformLocation(shader, "u_UseHDR"), m_UseHDR);
-	glUniform1i(glGetUniformLocation(shader, "u_UseBloom"), m_UseBloom);
+	glUniform1i(glGetUniformLocation(shader, "u_UseHDR"), m_UseHDR && !m_RenderBloomOnly);
+	glUniform1i(glGetUniformLocation(shader, "u_UseBloom"), m_UseBloom && !m_RenderBloomOnly);
 	if (currScene)
 	{
 		glUniform1f(glGetUniformLocation(shader, "u_GammaCorrection"), currScene->m_ScenePP_GammaCorr);
@@ -1325,7 +1325,7 @@ void ModuleRenderer3D::DrawPostProcessing()
 
 	uint textureToRend = rendertexture; //rendertexture brightnessTexture
 	if (m_RenderBloomOnly)
-		textureToRend = brightnessTexture;
+		textureToRend = pingpongBuffers[!horizontal];
 
 	//glUniform1i(glGetUniformLocation(shader, "screenTexture"), 0);
 	glActiveTexture(GL_TEXTURE0);
@@ -1343,8 +1343,8 @@ void ModuleRenderer3D::DrawPostProcessing()
 	if (!drawfb)
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDisable(GL_FRAMEBUFFER_SRGB);
 	}
+
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glUseProgram(0);
@@ -1424,13 +1424,13 @@ void ModuleRenderer3D::CreateFramebuffer()
 	// --- Create a texture to use it as render target ---
 	glGenTextures(1, &rendertexture);
 	glBindTexture(GL_TEXTURE_2D, rendertexture);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, App->window->GetWindowWidth(), App->window->GetWindowHeight());
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, App->window->GetWindowWidth(), App->window->GetWindowHeight());
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// --- Create a 2nd Color Buffer (texture) to use as brightness output of shader (for bloom) ---
 	glGenTextures(1, &brightnessTexture);
 	glBindTexture(GL_TEXTURE_2D, brightnessTexture);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, App->window->GetWindowWidth(), App->window->GetWindowHeight());
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, App->window->GetWindowWidth(), App->window->GetWindowHeight());
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// --- Generate attachments, DEPTH and STENCIL ---
@@ -1457,7 +1457,7 @@ void ModuleRenderer3D::CreateFramebuffer()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo_pingpong[i]);
 		glBindTexture(GL_TEXTURE_2D, pingpongBuffers[i]);
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, App->window->GetWindowWidth(), App->window->GetWindowHeight());
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, App->window->GetWindowWidth(), App->window->GetWindowHeight());
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongBuffers[i], 0);
 	}
 

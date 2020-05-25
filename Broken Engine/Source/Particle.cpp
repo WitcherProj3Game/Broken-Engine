@@ -97,11 +97,15 @@ void Particle::Draw(bool shadowsPass)
 
 	// --- Texturing & Color ---
 	// Texture
-	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), color.x, color.y, color.z, color.w);
-	glUniform1i(glGetUniformLocation(shaderID, "u_HasDiffuseTexture"), (int)true);
-	glUniform1i(glGetUniformLocation(shaderID, "u_AlbedoTexture"), 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture->GetTexID());
+	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), color.x, color.y, color.z, color.w);	
+	if (texture)
+	{
+		glUniform1i(glGetUniformLocation(shaderID, "u_UseTextures"), (int)true);
+		glUniform1i(glGetUniformLocation(shaderID, "u_HasDiffuseTexture"), (int)true);
+		glUniform1i(glGetUniformLocation(shaderID, "u_AlbedoTexture"), 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture->GetTexID());
+	}
 
 	if (!shadowsPass)
 	{
@@ -122,5 +126,6 @@ void Particle::Draw(bool shadowsPass)
 	// --- Back to Defaults ---
 	glBindVertexArray(0);
 	glUniform1i(glGetUniformLocation(shaderID, "u_HasDiffuseTexture"), 0); //reset texture location
+	glUniform1i(glGetUniformLocation(shaderID, "u_UseTextures"), 0);
 	glBindTexture(GL_TEXTURE_2D, 0); // Stop using buffer (texture)
 }

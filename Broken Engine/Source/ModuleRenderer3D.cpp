@@ -403,8 +403,9 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 
 	// -- Draw particles ---
 	OPTICK_PUSH("Particles Rendering");
-	for (int i = 0; i < particleEmitters.size(); ++i)
-		particleEmitters[i]->DrawParticles();
+	/*for (int i = 0; i < particleEmitters.size(); ++i)
+		particleEmitters[i]->DrawParticles();*/
+	App->particles->DrawParticles();
 	OPTICK_POP();
 	
 	// --- Set Blending to Renderer's Default ---

@@ -2044,7 +2044,7 @@ void ModuleRenderer3D::DrawRenderBoxes()
 void ModuleRenderer3D::DrawGrid()
 {
 	//App->renderer3D->defaultShader->use();
-	uint shaderID = App->renderer3D->defaultShader->ID;
+	uint shaderID = App->renderer3D->linepointShader->ID;
 	glUseProgram(shaderID);
 
 	GLint modelLoc = glGetUniformLocation(shaderID, "u_Model");

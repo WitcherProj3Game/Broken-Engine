@@ -65,6 +65,8 @@ void AutoCompleteFileGen::EmplaceUserInterfaceFunctions()
 	SerializedFunction MakeElementInvisible("MakeElementInvisible", source.c_str());
 	MakeElementInvisible.variables.push_back("comp_type"); MakeElementInvisible.variables.push_back("gameObject_UID");
 
+	SerializedFunction SetUIElementInteractable("SetUIElementInteractable", source.c_str());
+	SetUIElementInteractable.variables.push_back("comp_type"); SetUIElementInteractable.variables.push_back("gameObject_UID"); SetUIElementInteractable.variables.push_back("value");
 
 	SerializedFunction SetUIBarPercentage("SetUIBarPercentage", source.c_str());
 	SetUIBarPercentage.variables.push_back("percentage"); SetUIBarPercentage.variables.push_back("gameObject_UID");
@@ -125,6 +127,7 @@ void AutoCompleteFileGen::EmplaceUserInterfaceFunctions()
 	//PushBack All Functions
 	engine_functions.push_back(MakeElementVisible);
 	engine_functions.push_back(MakeElementInvisible);
+	engine_functions.push_back(SetUIElementInteractable);
 
 	engine_functions.push_back(SetUIBarPercentage);
 	engine_functions.push_back(SetUICircularBarPercentage);

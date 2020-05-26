@@ -100,6 +100,9 @@
     <Filter Include="Sources\BrokenEngine\3rd Party\Optick">
       <UniqueIdentifier>{ac29b9a7-8f05-4148-9fd7-bef38152b73a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\BrokenEngine\3rd Party\LUT">
+      <UniqueIdentifier>{2f22e3b6-f361-4f5a-b725-9e24f72377aa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BrokenCore.h">
@@ -773,9 +776,12 @@
     </ClInclude>
     <ClInclude Include="UI_Element.h">
       <Filter>Sources\BrokenEngine\Game Objects\Components\UI</Filter>
-	</ClInclude>
+    </ClInclude>
     <ClInclude Include="CurveEditor.h">
       <Filter>Sources\BrokenEngine\Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="LUT\lut.hpp">
+      <Filter>Sources\BrokenEngine\3rd Party\LUT</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

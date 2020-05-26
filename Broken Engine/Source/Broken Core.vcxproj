@@ -162,6 +162,7 @@
     <ClInclude Include="Components.h" />
     <ClInclude Include="ComponentScript.h" />
     <ClInclude Include="ComponentTransform.h" />
+    <ClInclude Include="LUT\lut.hpp" />
     <ClInclude Include="UI_Element.h" />
     <ClInclude Include="CurveEditor.h" />
     <ClInclude Include="EngineLog.h" />

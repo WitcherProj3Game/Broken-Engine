@@ -43,9 +43,10 @@ ComponentParticleEmitter::ComponentParticleEmitter(GameObject* ContainerGO) :Com
 
 	particles.resize(maxParticles);
 
-	for (int i = 0; i < maxParticles; ++i)
+	for (int i = 0; i < maxParticles; ++i) {
 		particles[i] = new Particle();
-
+		particles[i]->emitter = this;
+	}
 	texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
 	App->renderer3D->particleEmitters.push_back(this);
 
@@ -136,10 +137,13 @@ void ComponentParticleEmitter::Enable()
 	particleSystem = App->physics->mPhysics->createParticleSystem(maxParticles, perParticleRestOffset);
 	particleSystem->setMaxMotionDistance(100);
 
-	physx::PxFilterData filterData;
-	filterData.word0 = (1 << GO->layer);
-	filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup;
-	particleSystem->setSimulationFilterData(filterData);
+	if (collision_active)
+	{
+		physx::PxFilterData filterData;
+		filterData.word0 = (1 << GO->layer);
+		filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup;
+		particleSystem->setSimulationFilterData(filterData);
+	}
 
 	if (particleSystem)
 		App->physics->AddParticleActor(particleSystem, GO);
@@ -166,7 +170,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 
 	// Create particle depending on the time
 	if (emisionActive && App->GetAppState() == AppState::PLAY && !App->time->gamePaused) {
-		if (currentPlayTime - spawnClock > emisionRate)
+		if ((currentPlayTime - spawnClock > emisionRate )||playNow)
 		{
 			uint newParticlesAmount = ((currentPlayTime - spawnClock) / emisionRate) * particlesPerCreation;
 
@@ -174,13 +178,14 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				CreateParticles(newParticlesAmount);
 			else
 			{
-				if (newParticlesAmount > particlesPerCreation)
+				if (newParticlesAmount > particlesPerCreation || playNow)
 					CreateParticles(particlesPerCreation);
 				else
 					CreateParticles(newParticlesAmount);
 
 				firstEmision = false;
 			}
+			playNow = false;
 		}
 
 		if (emisionActive && !loop)
@@ -190,10 +195,13 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 		}
 	}
 
-	physx::PxFilterData filterData;
-	filterData.word0 = (1 << GO->layer); // word0 = own ID
-	filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup; // word1 = ID mask to filter pairs that trigger a contact callback;
-	particleSystem->setSimulationFilterData(filterData);
+	if (collision_active)
+	{
+		physx::PxFilterData filterData;
+		filterData.word0 = (1 << GO->layer); // word0 = own ID
+		filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup; // word1 = ID mask to filter pairs that trigger a contact callback;
+		particleSystem->setSimulationFilterData(filterData);
+	}
 
 	//Update particles
 	//lock SDK buffers of *PxParticleSystem* ps for reading
@@ -301,9 +309,10 @@ void ComponentParticleEmitter::SortParticles()
 		{
 			if (*flagsIt & physx::PxParticleFlag::eVALID)
 			{
-				float distance = App->renderer3D->active_camera->frustum.Pos().Distance(particles[i]->position);
-				drawingIndices[1.0f / distance] = i;
 
+				float distance = App->renderer3D->active_camera->frustum.NearPlane().Distance(particles[i]->position);	
+
+				drawingIndices[1.0f / distance] = i;
 				App->particles->particlesToDraw[1.0f / distance] = particles[i];
 			}
 		}
@@ -318,8 +327,8 @@ void ComponentParticleEmitter::SetEmitterBlending() const
 	bool blendEq_Same = (m_PartBlEquation == App->renderer3D->GetRendererBlendingEquation());
 	if (m_PartAutoBlending)
 	{
-		if (m_PartBlendFunc == App->renderer3D->GetRendererBlendAutoFunction() && blendEq_Same)
-			return;
+		//if (m_PartBlendFunc == App->renderer3D->GetRendererBlendAutoFunction() && blendEq_Same)
+		//	return;
 
 		App->renderer3D->PickBlendingAutoFunction(m_PartBlendFunc, m_PartBlEquation);
 		App->renderer3D->m_ChangedBlending = true;
@@ -338,18 +347,27 @@ void ComponentParticleEmitter::SetEmitterBlending() const
 	}
 }
 
-void ComponentParticleEmitter::DrawParticles()
+void ComponentParticleEmitter::DrawParticles(bool shadowsPass)
 {
 	if (!active || drawingIndices.empty())
 		return;
 
+	// --- Blending ---
 	SetEmitterBlending();
 
+	if (!shadowsPass)
+	{
+		if(particlesFaceCulling)
+			glEnable(GL_CULL_FACE);
+		else
+			glDisable(GL_CULL_FACE);
+	}
+	
 	// -- Frustum culling --
 	Plane cameraPlanes[6];
 	App->renderer3D->culling_camera->frustum.GetPlanes(cameraPlanes);
-
 	std::map<float, int>::iterator it = drawingIndices.begin();
+
 	while (it != drawingIndices.end())
 	{
 		int paco = (*it).second;
@@ -359,7 +377,7 @@ void ComponentParticleEmitter::DrawParticles()
 		for (int i = 0; i < 6; ++i)
 		{
 			//If the particles is on the positive side of one ore more planes, it's outside the frustum
-			if (cameraPlanes[i].IsOnPositiveSide(particles[paco]->position))
+			if (cameraPlanes[i].IsOnPositiveSide(particles[paco]->position) || (shadowsPass && !m_CastShadows) || (!shadowsPass && m_OnlyShadows))
 			{
 				draw = false;
 				break;
@@ -367,16 +385,18 @@ void ComponentParticleEmitter::DrawParticles()
 		}
 
 		if (draw)
-		{
-			particles[paco]->Draw();
-			particles[paco]->h_billboard = horizontalBillboarding;
-			particles[paco]->v_billboard = verticalBillboarding;
-			particles[paco]->cam_billboard = particlesBillboarding;
-		}
+			particles[paco]->Draw(shadowsPass);
+
 		it++;
 	}
 
-	drawingIndices.clear();
+	if (!shadowsPass)
+	{
+		if (!particlesFaceCulling)
+			glEnable(GL_CULL_FACE);
+
+		drawingIndices.clear();
+	}
 }
 
 void ComponentParticleEmitter::ChangeParticlesColor(float4 color)
@@ -465,7 +485,9 @@ json ComponentParticleEmitter::Save() const
 	node["Duration"] = std::to_string(duration);
 	node["HorizontalBill"] = std::to_string((int)horizontalBillboarding);
 	node["VerticalBill"] = std::to_string((int)verticalBillboarding);
-	node["ParticlesBillboarding"] = particlesBillboarding;
+	node["ParticlesBill"] = particlesBillboarding;
+	node["CollisionsActivated"] = collision_active;
+	node["ParticlesFaceCulling"] = particlesFaceCulling;
 
 	node["particlesScaleX"] = std::to_string(particlesScale.x);
 	node["particlesScaleY"] = std::to_string(particlesScale.y);
@@ -522,6 +544,13 @@ json ComponentParticleEmitter::Save() const
 	node["PartMBlFuncSrc"] = (int)m_MPartBlend_Src;
 	node["PartMBlFuncDst"] = (int)m_MPartBlend_Dst;
 	node["PartAutoBlending"] = m_PartAutoBlending;
+
+	// --- Lighting Save ---
+	node["PartLightAffected"] = m_AffectedByLight;
+	node["PartSceneColorAffected"] = m_AffectedBySceneColor;
+	node["PartCastShadows"] = m_CastShadows;
+	node["PartReceiveShadows"] = m_ReceiveShadows;
+	node["PartOnlyShadows"] = m_OnlyShadows;
 
 	return node;
 }
@@ -790,8 +819,21 @@ void ComponentParticleEmitter::Load(json& node)
 	m_MPartBlend_Dst = node.find("PartMBlFuncDst") == node.end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)node["PartMBlFuncDst"].get<int>();
 	m_PartAutoBlending = node.find("PartAutoBlending") == node.end() ? true : node["PartAutoBlending"].get<bool>();
 
+	// --- Lighting Save ---
+	m_AffectedByLight = node.find("PartLightAffected") == node.end() ? true : node["PartLightAffected"].get<bool>();
+	m_AffectedBySceneColor = node.find("PartSceneColorAffected") == node.end() ? true : node["PartSceneColorAffected"].get<bool>();
+	m_CastShadows = node.find("PartCastShadows") == node.end() ? true : node["PartCastShadows"].get<bool>();
+	m_ReceiveShadows = node.find("PartReceiveShadows") == node.end() ? true : node["PartReceiveShadows"].get<bool>();
+	m_OnlyShadows = node.find("PartOnlyShadows") == node.end() ? false : node["PartOnlyShadows"].get<bool>();
+
+	// --- Collisions --- 
+	collision_active = node.find("CollisionsActivated") == node.end() ? true : node["CollisionsActivated"].get<bool>();
+	
+	// --- Face Culling ---
+	particlesFaceCulling = node.find("ParticlesFaceCulling") == node.end() ? true : node["ParticlesFaceCulling"].get<bool>();
+
 	// --- V/H Billbaording ---
-	particlesBillboarding = node.find("ParticlesBillboarding") == node.end() ? true : node["ParticlesBillboarding"].get<bool>();
+	particlesBillboarding = node.find("ParticlesBill") == node.end() ? true : node["ParticlesBill"].get<bool>();
 	horizontalBillboarding = verticalBillboarding = false;
 	if (particlesBillboarding)
 	{
@@ -814,16 +856,17 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	// --- Loop ---
 	ImGui::NewLine();
 	if (ImGui::Checkbox("##PELoop", &loop))
-		if (loop)
+		if (loop) {
 			emisionActive = true;
-
+			firstEmision = true;
+		}
+	
 	ImGui::SameLine();
 	ImGui::Text("Loop");
 
 	ImGui::Text("Duration");
 	ImGui::SameLine();
-	if (ImGui::DragInt("##PEDuration", &duration))
-		Play();
+	ImGui::DragInt("##PEDuration", &duration);
 
 	//Emitter position
 	ImGui::Text("Position");
@@ -1004,9 +1047,17 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	int maxParticles = particlesPerCreation / emisionRate * particlesLifeTime;
 	ImGui::Text("Total particles alive: %d", maxParticles);
-
 	ImGui::Separator();
 
+	// --- Collisions ---
+	if (ImGui::TreeNode("Collision Options"))
+	{
+		ImGui::Text("Enable Collisions");
+		ImGui::Checkbox("##PE_EnableColl", &collision_active);
+		ImGui::TreePop();
+	}
+
+	ImGui::Separator();
 	if (ImGui::TreeNode("Direction & velocity"))
 	{
 		int cursor = 0;
@@ -1358,12 +1409,29 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	if (ImGui::TreeNode("Renderer"))
 	{
-		// --- Priority ---
+		// Shadows & Lighting
 		ImGui::NewLine();
-		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
-		ImGui::Text("Render priority");
 		ImGui::SameLine();
-		ImGui::DragInt("##srenderPriority", &priority);
+		ImGui::Checkbox("Light Affected ", &m_AffectedByLight);
+		ImGui::SameLine();
+		ImGui::Checkbox("Scene Color Affected", &m_AffectedBySceneColor);
+
+		ImGui::NewLine();
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Cast Shadows", &m_CastShadows))
+			if (m_OnlyShadows) m_CastShadows = false;
+
+		ImGui::SameLine();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 17.0f);
+		if (ImGui::Checkbox("Receive Shadows", &m_ReceiveShadows))
+			if (m_OnlyShadows) m_ReceiveShadows = false;
+
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Only Shadows", &m_OnlyShadows))
+		{
+			m_ReceiveShadows = false;
+			m_CastShadows = true;
+		}
 
 		// --- Image/Texture ---
 		ImGui::NewLine();
@@ -1400,10 +1468,16 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		ImGui::ColorEdit4("##PEParticle Color", (float*)&colors[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
-		ImGui::Text("Start Color");
+		ImGui::Text("Start Color");		
 
-		// --- Billboarding ---
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		ImGui::Checkbox("##PE_PartsCullF", &particlesFaceCulling);
+		ImGui::SameLine();
+		ImGui::Text("Particles Face Culling");
+
+		// --- Billboarding Type ---
 		ImGui::NewLine();
+
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		if (ImGui::Checkbox("##PEBill", &particlesBillboarding))
 			if(!particlesBillboarding)
@@ -1411,6 +1485,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 		ImGui::SameLine();
 		ImGui::Text("Particles Billboarding");
+
 		if (particlesBillboarding)
 		{
 			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 37.0f);
@@ -1599,6 +1674,11 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 			particles[index[i]]->startFrame = randomStartFrame ? GetRandomValue(0, double(tileSize_X)*double(tileSize_Y)): startFrame;
 			particles[index[i]]->h_billboard = horizontalBillboarding;
 			particles[index[i]]->v_billboard = verticalBillboarding;
+			particles[index[i]]->cam_billboard = particlesBillboarding;
+			particles[index[i]]->scene_colorAffected = m_AffectedBySceneColor;
+			particles[index[i]]->light_Affected = m_AffectedByLight;
+			particles[index[i]]->receive_shadows = m_ReceiveShadows;
+
 			//Set scale
 			if (scaleconstants == 1) {
 				float randomScaleValue = GetRandomValue(particlesScaleRandomFactor1, particlesScaleRandomFactor2);
@@ -1754,6 +1834,7 @@ void ComponentParticleEmitter::Play()
 	emisionStart = App->time->GetGameplayTimePassed() * 1000;
 	spawnClock = emisionStart;
 	firstEmision = true;
+	playNow = true;
 }
 
 void ComponentParticleEmitter::Stop()
@@ -1764,6 +1845,7 @@ void ComponentParticleEmitter::Stop()
 void ComponentParticleEmitter::SetLooping(bool active)
 {
 	loop = active;
+	firstEmision = true;
 }
 
 void ComponentParticleEmitter::SetEmisionRate(float ms)

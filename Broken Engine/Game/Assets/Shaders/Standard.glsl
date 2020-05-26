@@ -72,8 +72,10 @@ in vec4 v_FragPos_InLightSpace;
 //Uniforms
 uniform float u_GammaCorrection = 1.0;
 uniform vec4 u_AmbientColor = vec4(1.0);
+uniform bool u_SceneColorAffected = true;
+uniform bool u_LightAffected = true;
 
-uniform float u_Shininess = 1.5;
+uniform float u_Shininess = 1.0;
 uniform int u_UseTextures = 0;
 
 uniform int u_HasDiffuseTexture = 0;
@@ -197,10 +199,14 @@ vec3 CalculateLightResult(vec3 LColor, vec3 LDir, vec3 normal, vec3 viewDir, boo
 	if(u_HasSpecularTexture == 1)
 		specular *= texture(u_SpecularTexture, v_TexCoord).rgb;
 
-	if(u_ReceiveShadows && lightShadower)
-		return (1.0 - ShadowCalculation(lightDir, normal)) * (diffuse + specular);
+	vec3 ret = vec3(0.0);
+	if(u_LightAffected)
+		ret = diffuse + specular;
 
-	return (diffuse + specular);
+	if(u_ReceiveShadows && lightShadower)
+		ret *= (1.0 - ShadowCalculation(lightDir, normal));
+
+	return ret;
 }
 
 
@@ -288,9 +294,10 @@ void main()
 
 	//Light Calculations
 	int lights_iterator = (u_LightsNumber > MAX_SHADER_LIGHTS ? MAX_SHADER_LIGHTS : u_LightsNumber);
-	vec3 colorResult = vec3(0.0);
+	vec3 colorResult = vec3(0.0);	
 	for(int i = 0; i < lights_iterator; ++i)
 	{
+		//If we don't have to draw normal map debug
 		if(u_DrawNormalMapping_Lit_Adv == 0)
 		{
 			if(u_BkLights[i].LightType == 0) //Directional
@@ -310,10 +317,13 @@ void main()
 				colorResult += v_TBN * normalize(u_BkLights[i].pos);
 		}
 	}
+	
 
 	if(u_DrawNormalMapping_Lit == 0 && u_DrawNormalMapping_Lit_Adv == 0)
 	{
-		vec3 finalColor = u_AmbientColor.rgb * v_Color.rgb;
+		vec3 finalColor = v_Color.rgb;
+		if(u_SceneColorAffected)
+			finalColor *= u_AmbientColor.rgb;
 
 		//Resulting Color
 		if(u_UseTextures == 0 || (u_HasTransparencies == 0 && u_UseTextures == 1 && texture(u_AlbedoTexture, v_TexCoord).a < 0.1))

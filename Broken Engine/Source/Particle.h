@@ -8,6 +8,7 @@ BE_BEGIN_NAMESPACE
 
 class ResourceTexture;
 class ResourceMesh;
+class ComponentParticleEmitter;
 
 class BROKEN_API Particle {
 public:
@@ -16,10 +17,9 @@ public:
 
 	void SetAnimation(ResourceMesh* mesh);
 
-	void Draw();
+	void Draw(bool shadowsPass);
 
 public:
-
 
 	float3 position = { 0,0,0 };
 	float4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -41,6 +41,13 @@ public:
 
 	ResourceTexture* texture = nullptr;
 	ResourceMesh* plane = nullptr;
+
+	//Rendering Stuff
+	bool scene_colorAffected = true;
+	bool light_Affected = true;
+	bool receive_shadows = true;
+
+	ComponentParticleEmitter* emitter = nullptr;
 };
 
 BE_END_NAMESPACE

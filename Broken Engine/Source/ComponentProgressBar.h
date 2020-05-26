@@ -10,6 +10,7 @@ BE_BEGIN_NAMESPACE
 
 class ComponentCanvas;
 class ResourceTexture;
+class ComponentImage;
 
 class BROKEN_API ComponentProgressBar : public UI_Element
 {
@@ -43,9 +44,12 @@ private:
 	Color colorP2 = { 1.0f, 1.0f, 1.0f, 1.0f };
 	float percentage = 100.0f;
 
+	ComponentImage* background_image;
+	ComponentImage* bar_image;
+	bool created = false;
+	bool constraint_with_background = true;
 public:
-	ComponentCanvas* canvas = nullptr;
-	ResourceTexture* texture = nullptr;
+	//ResourceTexture* texture = nullptr;
 };
 
 BE_END_NAMESPACE

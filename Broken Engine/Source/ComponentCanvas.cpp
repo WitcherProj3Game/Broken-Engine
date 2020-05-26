@@ -46,6 +46,13 @@ ComponentCanvas::~ComponentCanvas()
 
 	if (canvas)
 		canvas->RemoveElement(this);
+
+	for (int i = 0; i < elements.size(); i++)
+	{
+		elements[i]->canvas = nullptr;
+	}
+
+	elements.clear();
 }
 
 void ComponentCanvas::Update()

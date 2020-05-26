@@ -218,17 +218,20 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 
 		for (unsigned i = 0; i < rd->validParticleRange; ++i, ++flagsIt, ++positionIt)
 		{
+			bool toDelete = false;
 			if (*flagsIt & physx::PxParticleFlag::eVALID)
 			{
-				//Check if particle should die
+				//-- CHECK DELETE -- 
 				if (currentPlayTime - particles[i]->spawnTime > particles[i]->lifeTime) {
 					indicesToErease.push_back(i);
 					particlesToRelease++;
+					toDelete = true;
 					continue;
 				}
 
 				float diff_time = (App->time->GetGameplayTimePassed() * 1000 - particles[i]->spawnTime);
 
+				// -- SCALE -- 
 				if (scaleconstants == 2) {
 					scaleOverTime = scaleCurve->GetCurrentValue(diff_time, particles[i]->lifeTime);
 					particles[i]->scale.x = scaleOverTime;
@@ -306,6 +309,8 @@ void ComponentParticleEmitter::SortParticles()
 			{
 				float distance = App->renderer3D->active_camera->frustum.Pos().Distance(particles[i]->position);
 				drawingIndices[1.0f / distance] = i;
+
+				App->particles->particlesToDraw[1.0f / distance] = particles[i];
 			}
 		}
 
@@ -346,6 +351,14 @@ void ComponentParticleEmitter::DrawParticles(bool shadowsPass)
 
 	// --- Blending ---
 	SetEmitterBlending();
+
+	if (!shadowsPass)
+	{
+		if(particlesFaceCulling)
+			glEnable(GL_CULL_FACE);
+		else
+			glDisable(GL_CULL_FACE);
+	}
 	
 	// -- Frustum culling --
 	Plane cameraPlanes[6];
@@ -374,8 +387,13 @@ void ComponentParticleEmitter::DrawParticles(bool shadowsPass)
 		it++;
 	}
 
-	if(!shadowsPass)
+	if (!shadowsPass)
+	{
+		if (!particlesFaceCulling)
+			glEnable(GL_CULL_FACE);
+
 		drawingIndices.clear();
+	}
 }
 
 void ComponentParticleEmitter::ChangeParticlesColor(float4 color)
@@ -811,7 +829,6 @@ void ComponentParticleEmitter::Load(json& node)
 	// --- V/H Billbaording ---
 	particlesBillboarding = node.find("ParticlesBill") == node.end() ? true : node["ParticlesBill"].get<bool>();
 	horizontalBillboarding = verticalBillboarding = false;
-
 	if (particlesBillboarding)
 	{
 		if (node.find("HorizontalBill") != node.end())
@@ -915,7 +932,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 
-	ImGui::DragFloat("##SEmitterX", &size.x, 0.05f, 0.0f, 100.0f);
+	ImGui::DragFloat("##SEmitterX", &size.x, 0.05f, 0.10f, 100.0f);
 
 	ImGui::SameLine();
 
@@ -923,7 +940,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 
-	ImGui::DragFloat("##SEmitterY", &size.y, 0.05f, 0.0f, 100.0f);
+	ImGui::DragFloat("##SEmitterY", &size.y, 0.05f, 0.10f, 100.0f);
 
 	ImGui::SameLine();
 
@@ -931,7 +948,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 
-	ImGui::DragFloat("##SEmitterZ", &size.z, 0.05f, 0.0f, 100.0f);
+	ImGui::DragFloat("##SEmitterZ", &size.z, 0.05f, 0.10f, 100.0f);
 
 	//External forces
 	ImGui::Text("External forces ");
@@ -1409,7 +1426,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			m_CastShadows = true;
 		}
 
-		// Image
+		// --- Image/Texture ---
 		ImGui::NewLine();
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		ImGui::Text("Texture");
@@ -1440,23 +1457,31 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			ImGui::EndDragDropTarget();
 		}
 
-
+		// --- Color ---
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		ImGui::ColorEdit4("##PEParticle Color", (float*)&colors[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 		ImGui::Text("Start Color");		
 
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		ImGui::Checkbox("##PE_PartsCullF", &particlesFaceCulling);
+		ImGui::SameLine();
+		ImGui::Text("Particles Face Culling");
+
 		// --- Billboarding Type ---
 		ImGui::NewLine();
 
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
-		ImGui::Checkbox("##PEBill", &particlesBillboarding);
+		if (ImGui::Checkbox("##PEBill", &particlesBillboarding))
+			if(!particlesBillboarding)
+				horizontalBillboarding = verticalBillboarding = false;
+
 		ImGui::SameLine();
 		ImGui::Text("Particles Billboarding");
 
 		if (particlesBillboarding)
 		{
-			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 37.0f);
 			if (ImGui::Checkbox("##PEHBill", &horizontalBillboarding))
 				if (horizontalBillboarding && verticalBillboarding)
 					verticalBillboarding = false;
@@ -1464,17 +1489,16 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			ImGui::SameLine();
 			ImGui::Text("Horizontal Billboarding");
 
-			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 37.0f);
 			if (ImGui::Checkbox("##PEVBill", &verticalBillboarding))
 				if (verticalBillboarding && horizontalBillboarding)
 					horizontalBillboarding = false;
 
 			ImGui::SameLine();
 			ImGui::Text("Vertical Billboarding");
-			ImGui::TreePop();
-		}	
+		}
 
-		// --- Tree Node for Blending
+		// --- Tree Node for Blending ---
 		ImGui::NewLine();
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		if (ImGui::TreeNode("Particle Emitter Blending"))
@@ -1482,6 +1506,8 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			HandleEditorBlendingSelector();
 			ImGui::TreePop();
 		}
+
+		ImGui::TreePop();
 	}
 }
 

@@ -364,8 +364,9 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		SendShaderUniforms(shadowsShader->ID, true);
 		DrawRenderMeshes(true);
 
-		for (int i = 0; i < particleEmitters.size(); ++i)
-			particleEmitters[i]->DrawParticles(true);
+		//for (int i = 0; i < particleEmitters.size(); ++i)
+		//	particleEmitters[i]->DrawParticles(true);
+		App->particles->DrawParticles(true);
 		
 		//glCullFace(GL_BACK);
 		glEnable(GL_CULL_FACE);
@@ -411,8 +412,9 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 
 	// -- Draw particles ---
 	OPTICK_PUSH("Particles Rendering");
-	for (int i = 0; i < particleEmitters.size(); ++i)
-		particleEmitters[i]->DrawParticles(false);
+	/*for (int i = 0; i < particleEmitters.size(); ++i)
+		particleEmitters[i]->DrawParticles();*/
+	App->particles->DrawParticles(false);
 	OPTICK_POP();
 	
 	// --- Set Blending to Renderer's Default ---

@@ -8,6 +8,7 @@ BE_BEGIN_NAMESPACE
 
 class ComponentParticleEmitter;
 struct HigherPriority;
+class Particle;
 
 class BROKEN_API ModuleParticles : public Module
 {
@@ -22,12 +23,14 @@ public:
 
 	void AddEmitter(ComponentParticleEmitter* componentEmitter);
 	void DeleteEmitter(ComponentParticleEmitter* componentEmitter);
+	void DrawParticles();
 
 	bool CleanUp() override;
 
 public: 
 
-	
+	std::map<float, Particle*> particlesToDraw;
+
 	std::vector<ComponentParticleEmitter*> particleEmitters;
 };
 

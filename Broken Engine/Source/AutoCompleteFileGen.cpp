@@ -65,6 +65,8 @@ void AutoCompleteFileGen::EmplaceUserInterfaceFunctions()
 	SerializedFunction MakeElementInvisible("MakeElementInvisible", source.c_str());
 	MakeElementInvisible.variables.push_back("comp_type"); MakeElementInvisible.variables.push_back("gameObject_UID");
 
+	SerializedFunction SetUIElementInteractable("SetUIElementInteractable", source.c_str());
+	SetUIElementInteractable.variables.push_back("comp_type"); SetUIElementInteractable.variables.push_back("gameObject_UID"); SetUIElementInteractable.variables.push_back("value");
 
 	SerializedFunction SetUIBarPercentage("SetUIBarPercentage", source.c_str());
 	SetUIBarPercentage.variables.push_back("percentage"); SetUIBarPercentage.variables.push_back("gameObject_UID");
@@ -81,15 +83,69 @@ void AutoCompleteFileGen::EmplaceUserInterfaceFunctions()
 	SerializedFunction SetTextNumber("SetTextNumber", source.c_str());
 	SetTextNumber.variables.push_back("number"); SetTextNumber.variables.push_back("gameObject_UID");
 
+
+	// Colors
+	SerializedFunction ChangeUIComponentColor("ChangeUIComponentColor", source.c_str());
+	ChangeUIComponentColor.variables.push_back("comp_type");
+	ChangeUIComponentColor.variables.push_back("r"); ChangeUIComponentColor.variables.push_back("g");
+	ChangeUIComponentColor.variables.push_back("b"); ChangeUIComponentColor.variables.push_back("a");
+	ChangeUIComponentColor.variables.push_back("go_UUID");
+
+	SerializedFunction ChangeUIBarColor("ChangeUIBarColor", source.c_str());
+	ChangeUIBarColor.variables.push_back("comp_type"); ChangeUIBarColor.variables.push_back("topBarPlane");
+	ChangeUIBarColor.variables.push_back("r"); ChangeUIBarColor.variables.push_back("g");
+	ChangeUIBarColor.variables.push_back("b"); ChangeUIBarColor.variables.push_back("a");
+	ChangeUIBarColor.variables.push_back("go_UUID");
+
+	SerializedFunction ChangeUIComponentAlpha("ChangeUIComponentAlpha", source.c_str());
+	ChangeUIComponentAlpha.variables.push_back("comp_type"); ChangeUIComponentAlpha.variables.push_back("alpha");
+	ChangeUIComponentAlpha.variables.push_back("go_UUID");
+
+	SerializedFunction ChangeUIBarAlpha("ChangeUIBarAlpha", source.c_str());
+	ChangeUIBarAlpha.variables.push_back("comp_type"); ChangeUIBarAlpha.variables.push_back("topBarPlane");
+	ChangeUIBarAlpha.variables.push_back("alpha"); ChangeUIBarAlpha.variables.push_back("go_UUID");
+
+	SerializedFunction GetUIComponentColor("GetUIComponentColor", source.c_str());
+	GetUIComponentColor.variables.push_back("comp_type"); GetUIComponentColor.variables.push_back("gameobject_UUID");
+
+	SerializedFunction GetUIBarColor("GetUIBarColor", source.c_str());
+	GetUIBarColor.variables.push_back("comp_type"); GetUIBarColor.variables.push_back("topBarPlane");
+	GetUIBarColor.variables.push_back("gameobject_UUID");
+	
+	SerializedFunction GetUIComponentAlpha("GetUIComponentAlpha", source.c_str());
+	GetUIComponentAlpha.variables.push_back("comp_type"); GetUIComponentAlpha.variables.push_back("gameobject_UUID");
+
+	SerializedFunction GetUIBarAlpha("GetUIBarAlpha", source.c_str());
+	GetUIBarAlpha.variables.push_back("comp_type"); GetUIBarAlpha.variables.push_back("topBarPlane");
+	GetUIBarAlpha.variables.push_back("gameobject_UUID");
+
+
+	//Animations
+	SerializedFunction PlayUIAnimation("PlayUIAnimation", source.c_str()); PlayUIAnimation.variables.push_back("gameobject_UUID");
+	SerializedFunction UIAnimationFinished("UIAnimationFinished", source.c_str()); UIAnimationFinished.variables.push_back("gameobject_UUID");
+
 	//PushBack All Functions
 	engine_functions.push_back(MakeElementVisible);
 	engine_functions.push_back(MakeElementInvisible);
+	engine_functions.push_back(SetUIElementInteractable);
 
 	engine_functions.push_back(SetUIBarPercentage);
 	engine_functions.push_back(SetUICircularBarPercentage);
 	engine_functions.push_back(SetText);
 	engine_functions.push_back(SetTextAndNumber);
 	engine_functions.push_back(SetTextNumber);
+
+	engine_functions.push_back(ChangeUIComponentColor);
+	engine_functions.push_back(ChangeUIBarColor);
+	engine_functions.push_back(ChangeUIComponentAlpha);
+	engine_functions.push_back(ChangeUIBarAlpha);
+	engine_functions.push_back(GetUIComponentColor);
+	engine_functions.push_back(GetUIBarColor);
+	engine_functions.push_back(GetUIComponentAlpha);
+	engine_functions.push_back(GetUIBarAlpha);
+
+	engine_functions.push_back(PlayUIAnimation);
+	engine_functions.push_back(UIAnimationFinished);
 }
 
 void AutoCompleteFileGen::EmplaceSceneFunctions()

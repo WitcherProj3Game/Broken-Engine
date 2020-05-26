@@ -178,7 +178,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				CreateParticles(newParticlesAmount);
 			else
 			{
-				if (newParticlesAmount > particlesPerCreation)
+				if (newParticlesAmount > particlesPerCreation || playNow)
 					CreateParticles(particlesPerCreation);
 				else
 					CreateParticles(newParticlesAmount);
@@ -309,9 +309,10 @@ void ComponentParticleEmitter::SortParticles()
 		{
 			if (*flagsIt & physx::PxParticleFlag::eVALID)
 			{
-				float distance = App->renderer3D->active_camera->frustum.Pos().Distance(particles[i]->position);
-				drawingIndices[1.0f / distance] = i;
 
+				float distance = App->renderer3D->active_camera->frustum.NearPlane().Distance(particles[i]->position);	
+
+				drawingIndices[1.0f / distance] = i;
 				App->particles->particlesToDraw[1.0f / distance] = particles[i];
 			}
 		}
@@ -856,13 +857,13 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			emisionActive = true;
 			firstEmision = true;
 		}
+	
 	ImGui::SameLine();
 	ImGui::Text("Loop");
 
 	ImGui::Text("Duration");
 	ImGui::SameLine();
-	if (ImGui::DragInt("##PEDuration", &duration))
-		Play();
+	ImGui::DragInt("##PEDuration", &duration);
 
 	//Emitter position
 	ImGui::Text("Position");

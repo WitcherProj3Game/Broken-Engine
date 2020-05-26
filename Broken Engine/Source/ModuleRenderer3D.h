@@ -306,6 +306,10 @@ private:
 	BlendingTypes m_ManualBlend_Src = BlendingTypes::SRC_ALPHA, m_ManualBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
 	BlendingEquations m_BlendEquation = BlendingEquations::ADD;
 
+	BlendAutoFunction m_CurrentRendererBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
+	BlendingTypes m_CurrentManualBlend_Src = BlendingTypes::SRC_ALPHA, m_CurrentManualBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
+	BlendingEquations m_CurrentBlendEquation = BlendingEquations::ADD;
+
 	//Other Generic Stuff
 	uint fbo = 0;
 	uint cubemapTexID = 0;

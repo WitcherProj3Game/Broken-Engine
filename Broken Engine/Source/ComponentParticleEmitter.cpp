@@ -327,8 +327,8 @@ void ComponentParticleEmitter::SetEmitterBlending() const
 	bool blendEq_Same = (m_PartBlEquation == App->renderer3D->GetRendererBlendingEquation());
 	if (m_PartAutoBlending)
 	{
-		if (m_PartBlendFunc == App->renderer3D->GetRendererBlendAutoFunction() && blendEq_Same)
-			return;
+		//if (m_PartBlendFunc == App->renderer3D->GetRendererBlendAutoFunction() && blendEq_Same)
+		//	return;
 
 		App->renderer3D->PickBlendingAutoFunction(m_PartBlendFunc, m_PartBlEquation);
 		App->renderer3D->m_ChangedBlending = true;
@@ -487,7 +487,7 @@ json ComponentParticleEmitter::Save() const
 	node["VerticalBill"] = std::to_string((int)verticalBillboarding);
 	node["ParticlesBill"] = particlesBillboarding;
 	node["CollisionsActivated"] = collision_active;
-
+	node["ParticlesFaceCulling"] = particlesFaceCulling;
 
 	node["particlesScaleX"] = std::to_string(particlesScale.x);
 	node["particlesScaleY"] = std::to_string(particlesScale.y);
@@ -828,6 +828,9 @@ void ComponentParticleEmitter::Load(json& node)
 
 	// --- Collisions --- 
 	collision_active = node.find("CollisionsActivated") == node.end() ? true : node["CollisionsActivated"].get<bool>();
+	
+	// --- Face Culling ---
+	particlesFaceCulling = node.find("ParticlesFaceCulling") == node.end() ? true : node["ParticlesFaceCulling"].get<bool>();
 
 	// --- V/H Billbaording ---
 	particlesBillboarding = node.find("ParticlesBill") == node.end() ? true : node["ParticlesBill"].get<bool>();

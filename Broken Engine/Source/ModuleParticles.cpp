@@ -12,8 +12,8 @@
 
 #include "mmgr/mmgr.h"
 
-using namespace Broken;
 
+using namespace Broken;
 ModuleParticles::ModuleParticles(bool start_enabled)
 {
 	name = "Particles";
@@ -74,8 +74,6 @@ void ModuleParticles::DrawParticles(bool shadowsPass)
 	Plane cameraPlanes[6];
 	App->renderer3D->culling_camera->frustum.GetPlanes(cameraPlanes);
 
-	ComponentParticleEmitter* lastEmitter = nullptr;
-
 	std::map<float, Particle*>::iterator it = particlesToDraw.begin();
 	while (it != particlesToDraw.end())
 	{
@@ -84,7 +82,8 @@ void ModuleParticles::DrawParticles(bool shadowsPass)
 		for (int i = 0; i < 6; ++i)
 		{
 			//If the particles is on the positive side of one ore more planes, it's outside the frustum
-			if (cameraPlanes[i].IsOnPositiveSide((*it).second->position))
+			bool shadowsHandle = ((shadowsPass && (*it).second->emitter->m_CastShadows == false) || (!shadowsPass && (*it).second->emitter->m_OnlyShadows));
+			if (cameraPlanes[i].IsOnPositiveSide((*it).second->position) || shadowsHandle)
 			{
 				draw = false;
 				break;
@@ -93,23 +92,19 @@ void ModuleParticles::DrawParticles(bool shadowsPass)
 
 		if (draw)
 		{
-			if (lastEmitter != (*it).second->emitter)
+			if (!shadowsPass && (*it).second->emitter)
 			{
-				lastEmitter = (*it).second->emitter;
-				lastEmitter->SetEmitterBlending();
-
-				if (!shadowsPass)
-				{
-					if (lastEmitter->particlesFaceCulling)
-						glEnable(GL_CULL_FACE);
-					else
-						glDisable(GL_CULL_FACE);
-				}
+				(*it).second->emitter->SetEmitterBlending();
+				if ((*it).second->emitter->particlesFaceCulling)
+					glEnable(GL_CULL_FACE);
+				else
+					glDisable(GL_CULL_FACE);
 			}
+
 			(*it).second->Draw(shadowsPass);
 
 			if (!shadowsPass)
-				if (!lastEmitter->particlesFaceCulling)
+				if ((*it).second->emitter->particlesFaceCulling == false)
 					glEnable(GL_CULL_FACE);
 		}
 		it++;

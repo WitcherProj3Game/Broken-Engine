@@ -52,9 +52,15 @@ void Particle::Draw(bool shadowsPass)
 		{
 			finalRot = camRot * rot;
 			finalRot.SetCol(1, { 0.0f, 1.0f, 0.0f, 0.0f });
+			//finalRot.SetRotatePartX(0.0f);
+			//finalRot.SetRotatePartY(0.0f);
 		}
 		else if (h_billboard)
-			finalRot.SetRotatePartX(-1.57f);
+		{
+			finalRot = finalRot * rot;
+			finalRot.SetRotatePart({ 1.0f, 0.0f, 0.0f }, -1.57f);
+			//finalRot.SetRotatePart({ 0.0f, 1.0f, 0.0f }, 0.0f);
+		}
 		else
 			finalRot = camRot * rot;
 	}

@@ -126,6 +126,7 @@ private:
 
 	bool verticalBillboarding = false;
 	bool horizontalBillboarding = false;
+	bool particlesBillboarding = true;
 
 	//Animation
 	int tileSize_X = 1;
@@ -146,6 +147,7 @@ private:
 	int lifetimeconstants = 0;
 	int velocityconstants = 0;
 	bool followEmitter = true;
+	bool collision_active = true;
 
 	//Colors
 	bool colorGradient = false;

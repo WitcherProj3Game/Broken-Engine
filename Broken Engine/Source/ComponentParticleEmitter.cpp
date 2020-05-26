@@ -136,10 +136,13 @@ void ComponentParticleEmitter::Enable()
 	particleSystem = App->physics->mPhysics->createParticleSystem(maxParticles, perParticleRestOffset);
 	particleSystem->setMaxMotionDistance(100);
 
-	physx::PxFilterData filterData;
-	filterData.word0 = (1 << GO->layer);
-	filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup;
-	particleSystem->setSimulationFilterData(filterData);
+	if (collision_active)
+	{
+		physx::PxFilterData filterData;
+		filterData.word0 = (1 << GO->layer);
+		filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup;
+		particleSystem->setSimulationFilterData(filterData);
+	}
 
 	if (particleSystem)
 		App->physics->AddParticleActor(particleSystem, GO);
@@ -190,10 +193,13 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 		}
 	}
 
-	physx::PxFilterData filterData;
-	filterData.word0 = (1 << GO->layer); // word0 = own ID
-	filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup; // word1 = ID mask to filter pairs that trigger a contact callback;
-	particleSystem->setSimulationFilterData(filterData);
+	if (collision_active)
+	{
+		physx::PxFilterData filterData;
+		filterData.word0 = (1 << GO->layer); // word0 = own ID
+		filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup; // word1 = ID mask to filter pairs that trigger a contact callback;
+		particleSystem->setSimulationFilterData(filterData);
+	}
 
 	//Update particles
 	//lock SDK buffers of *PxParticleSystem* ps for reading
@@ -363,14 +369,8 @@ void ComponentParticleEmitter::DrawParticles(bool shadowsPass)
 		}
 
 		if (draw)
-		{
-			particles[paco]->h_billboard = horizontalBillboarding;
-			particles[paco]->h_billboard = horizontalBillboarding;
-			particles[paco]->scene_colorAffected = m_AffectedBySceneColor;
-			particles[paco]->light_Affected = m_AffectedByLight;
-			particles[paco]->receive_shadows = m_ReceiveShadows;
 			particles[paco]->Draw(shadowsPass);
-		}
+
 		it++;
 	}
 
@@ -464,6 +464,9 @@ json ComponentParticleEmitter::Save() const
 	node["Duration"] = std::to_string(duration);
 	node["HorizontalBill"] = std::to_string((int)horizontalBillboarding);
 	node["VerticalBill"] = std::to_string((int)verticalBillboarding);
+	node["ParticlesBill"] = particlesBillboarding;
+	node["CollisionsActivated"] = collision_active;
+
 
 	node["particlesScaleX"] = std::to_string(particlesScale.x);
 	node["particlesScaleY"] = std::to_string(particlesScale.y);
@@ -802,22 +805,27 @@ void ComponentParticleEmitter::Load(json& node)
 	m_ReceiveShadows = node.find("PartReceiveShadows") == node.end() ? true : node["PartReceiveShadows"].get<bool>();
 	m_OnlyShadows = node.find("PartOnlyShadows") == node.end() ? false : node["PartOnlyShadows"].get<bool>();
 
-	// --- V/H Billbaording ---
-	if (node.find("HorizontalBill") != node.end())
-	{
-		std::string hBill = node["HorizontalBill"];
-		horizontalBillboarding = (bool)std::stoi(hBill);
-	}
-	else
-		horizontalBillboarding = false;
+	// --- Collisions --- 
+	collision_active = node.find("CollisionsActivated") == node.end() ? true : node["CollisionsActivated"].get<bool>();
 
-	if (node.find("VerticalBill") != node.end())
+	// --- V/H Billbaording ---
+	particlesBillboarding = node.find("ParticlesBill") == node.end() ? true : node["ParticlesBill"].get<bool>();
+	horizontalBillboarding = verticalBillboarding = false;
+
+	if (particlesBillboarding)
 	{
-		std::string vBill = node["VerticalBill"];
-		verticalBillboarding = (bool)std::stoi(vBill);
+		if (node.find("HorizontalBill") != node.end())
+		{
+			std::string hBill = node["HorizontalBill"];
+			horizontalBillboarding = (bool)std::stoi(hBill);
+		}
+
+		if (node.find("VerticalBill") != node.end())
+		{
+			std::string vBill = node["VerticalBill"];
+			verticalBillboarding = (bool)std::stoi(vBill);
+		}
 	}
-	else
-		verticalBillboarding = false;
 }
 
 void ComponentParticleEmitter::CreateInspectorNode()
@@ -1015,9 +1023,17 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	int maxParticles = particlesPerCreation / emisionRate * particlesLifeTime;
 	ImGui::Text("Total particles alive: %d", maxParticles);
-
 	ImGui::Separator();
 
+	// --- Collisions ---
+	if (ImGui::TreeNode("Collision Options"))
+	{
+		ImGui::Text("Enable Collisions");
+		ImGui::Checkbox("##PE_EnableColl", &collision_active);
+		ImGui::TreePop();
+	}
+
+	ImGui::Separator();
 	if (ImGui::TreeNode("Direction & velocity"))
 	{
 		int cursor = 0;
@@ -1428,7 +1444,35 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		ImGui::ColorEdit4("##PEParticle Color", (float*)&colors[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
-		ImGui::Text("Start Color");
+		ImGui::Text("Start Color");		
+
+		// --- Billboarding Type ---
+		ImGui::NewLine();
+
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		ImGui::Checkbox("##PEBill", &particlesBillboarding);
+		ImGui::SameLine();
+		ImGui::Text("Particles Billboarding");
+
+		if (particlesBillboarding)
+		{
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+			if (ImGui::Checkbox("##PEHBill", &horizontalBillboarding))
+				if (horizontalBillboarding && verticalBillboarding)
+					verticalBillboarding = false;
+
+			ImGui::SameLine();
+			ImGui::Text("Horizontal Billboarding");
+
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+			if (ImGui::Checkbox("##PEVBill", &verticalBillboarding))
+				if (verticalBillboarding && horizontalBillboarding)
+					horizontalBillboarding = false;
+
+			ImGui::SameLine();
+			ImGui::Text("Vertical Billboarding");
+			ImGui::TreePop();
+		}	
 
 		// --- Tree Node for Blending
 		ImGui::NewLine();
@@ -1438,29 +1482,6 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			HandleEditorBlendingSelector();
 			ImGui::TreePop();
 		}
-
-		// --- Billboarding Type ---
-		ImGui::NewLine();
-		if (ImGui::Checkbox("##PEHBill", &horizontalBillboarding))
-			if (horizontalBillboarding && verticalBillboarding)
-				verticalBillboarding = false;
-
-		ImGui::SameLine();
-		ImGui::Text("Horizontal Billboarding");
-
-		if (ImGui::Checkbox("##PEVBill", &verticalBillboarding))
-			if (verticalBillboarding && horizontalBillboarding)
-				horizontalBillboarding = false;
-
-		ImGui::SameLine();
-		ImGui::Text("Vertical Billboarding");
-		ImGui::TreePop();
-
-		ImGui::Text("Render priority");
-		ImGui::SameLine();
-		ImGui::DragInt("##srenderPriority", &priority);
-		
-			
 	}
 }
 
@@ -1618,6 +1639,12 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 			particles[index[i]]->currentGradient = 0;
 			particles[index[i]]->emitterSpawnPosition = globalPosition;
 			particles[index[i]]->startFrame = randomStartFrame ? GetRandomValue(0, double(tileSize_X)*double(tileSize_Y)): startFrame;
+			particles[index[i]]->h_billboard = horizontalBillboarding;
+			particles[index[i]]->v_billboard = verticalBillboarding;
+			particles[index[i]]->cam_billboard = particlesBillboarding;
+			particles[index[i]]->scene_colorAffected = m_AffectedBySceneColor;
+			particles[index[i]]->light_Affected = m_AffectedByLight;
+			particles[index[i]]->receive_shadows = m_ReceiveShadows;
 
 			//Set scale
 			if (scaleconstants == 1) {

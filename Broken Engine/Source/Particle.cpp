@@ -46,15 +46,20 @@ void Particle::Draw(bool shadowsPass)
 	float3x3 camRot = App->renderer3D->active_camera->GetOpenGLViewMatrix().RotatePart();
 	float4x4 finalRot = float4x4::identity;
 
-	if (v_billboard)
+	if (cam_billboard)
 	{
-		finalRot = camRot * rot;
-		finalRot.SetCol(1, { 0.0f, 1.0f, 0.0f, 0.0f });
+		if (v_billboard)
+		{
+			finalRot = camRot * rot;
+			finalRot.SetCol(1, { 0.0f, 1.0f, 0.0f, 0.0f });
+		}
+		else if (h_billboard)
+			finalRot.SetRotatePartX(-1.57f);
+		else
+			finalRot = camRot * rot;
 	}
-	else if (h_billboard)
-		finalRot.SetRotatePartX(-1.57f);
 	else
-		finalRot = camRot * rot;
+		finalRot = rot;
 
 	// --- Shader Choice ---
 	uint shaderID = 0;

@@ -489,6 +489,7 @@ void ModuleRenderer3D::LoadStatus(const json& file)
 	// --- General Stuff ---
 	m_GammaCorrection = file["Renderer3D"].find("GammaCorrection") == file["Renderer3D"].end() ? 1.0f : file["Renderer3D"]["GammaCorrection"].get<float>();
 	m_SkyboxExposure = file["Renderer3D"].find("SkyboxExposure") == file["Renderer3D"].end() ? 1.0f : file["Renderer3D"]["SkyboxExposure"].get<float>();
+	m_EnableShadows = file["Renderer3D"].find("EnableShadows") == file["Renderer3D"].end() ? true : file["Renderer3D"]["EnableShadows"].get<bool>();
 
 	//Scene Color
 	if (file["Renderer3D"].find("SceneAmbientColor") != file["Renderer3D"].end())
@@ -535,7 +536,9 @@ void ModuleRenderer3D::LoadStatus(const json& file)
 	m_ManualBlend_Src = file["Renderer3D"].find("ManualAlphaFuncSrc") == file["Renderer3D"].end() ? BlendingTypes::SRC_ALPHA : (BlendingTypes)file["Renderer3D"]["ManualAlphaFuncSrc"].get<int>();
 	m_ManualBlend_Dst = file["Renderer3D"].find("ManualAlphaFuncDst") == file["Renderer3D"].end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)file["Renderer3D"]["ManualAlphaFuncDst"].get<int>();
 
-	m_EnableShadows = file["Renderer3D"].find("EnableShadows") == file["Renderer3D"].end() ? true : file["Renderer3D"]["EnableShadows"].get<bool>();
+	m_CurrentRendererBlendFunc = m_RendererBlendFunc;
+	m_CurrentManualBlend_Src = m_ManualBlend_Src; m_CurrentManualBlend_Dst = m_ManualBlend_Dst;
+	m_CurrentBlendEquation = m_BlendEquation;
 }
 
 const json& ModuleRenderer3D::SaveStatus() const
@@ -1414,6 +1417,9 @@ void ModuleRenderer3D::PickBlendingEquation(BlendingEquations eq)
 
 void ModuleRenderer3D::PickBlendingAutoFunction(BlendAutoFunction blend_func, BlendingEquations eq)
 {
+	if (blend_func == m_CurrentRendererBlendFunc && eq == m_CurrentBlendEquation)
+		return;
+
 	switch (blend_func)
 	{
 		case (BlendAutoFunction::STANDARD_INTERPOLATIVE):
@@ -1434,12 +1440,21 @@ void ModuleRenderer3D::PickBlendingAutoFunction(BlendAutoFunction blend_func, Bl
 	}
 
 	PickBlendingEquation(eq);
+
+	m_CurrentRendererBlendFunc = blend_func;
+	m_CurrentBlendEquation = eq;
 }
 
 void  ModuleRenderer3D::PickBlendingManualFunction(BlendingTypes src, BlendingTypes dst, BlendingEquations eq)
 {
+	if (src == m_CurrentManualBlend_Src && dst == m_CurrentManualBlend_Dst && eq == m_CurrentBlendEquation)
+		return;
+	
 	glBlendFunc(BlendingTypesToOGL(src), BlendingTypesToOGL(dst));
 	PickBlendingEquation(eq);
+	
+	m_CurrentManualBlend_Src = src; m_CurrentManualBlend_Dst = dst;
+	m_CurrentBlendEquation = eq;
 }
 
 void ModuleRenderer3D::HandleObjectOutlining()

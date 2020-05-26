@@ -8,6 +8,7 @@ BE_BEGIN_NAMESPACE
 
 class ResourceTexture;
 class ResourceMesh;
+class ComponentParticleEmitter;
 
 class BROKEN_API Particle {
 public:
@@ -45,6 +46,8 @@ public:
 	bool scene_colorAffected = true;
 	bool light_Affected = true;
 	bool receive_shadows = true;
+
+	ComponentParticleEmitter* emitter = nullptr;
 };
 
 BE_END_NAMESPACE

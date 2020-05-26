@@ -73,7 +73,9 @@ void ModuleParticles::DrawParticles(bool shadowsPass)
 	// -- Frustum culling --
 	Plane cameraPlanes[6];
 	App->renderer3D->culling_camera->frustum.GetPlanes(cameraPlanes);
-	
+
+	ComponentParticleEmitter* lastEmitter = nullptr;
+
 	std::map<float, Particle*>::iterator it = particlesToDraw.begin();
 	while (it != particlesToDraw.end())
 	{
@@ -90,8 +92,26 @@ void ModuleParticles::DrawParticles(bool shadowsPass)
 		}
 
 		if (draw)
+		{
+			if (lastEmitter != (*it).second->emitter)
+			{
+				lastEmitter = (*it).second->emitter;
+				lastEmitter->SetEmitterBlending();
+
+				if (!shadowsPass)
+				{
+					if (lastEmitter->particlesFaceCulling)
+						glEnable(GL_CULL_FACE);
+					else
+						glDisable(GL_CULL_FACE);
+				}
+			}
 			(*it).second->Draw(shadowsPass);
 
+			if (!shadowsPass)
+				if (!lastEmitter->particlesFaceCulling)
+					glEnable(GL_CULL_FACE);
+		}
 		it++;
 	}
 

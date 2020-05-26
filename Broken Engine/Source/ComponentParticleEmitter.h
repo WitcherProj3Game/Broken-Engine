@@ -180,19 +180,13 @@ private:
 	bool m_OnlyShadows = false;
 
 	//Drawing
+	bool playNow = false;
+
 	//Rendering
 	int priority = 0;
 
 	//Debug Drawing
 	OBB emisionAreaOBB;
-};
-
-struct BROKEN_API HigherPriority
-{
-	bool operator()(ComponentParticleEmitter* pe1,ComponentParticleEmitter* pe2)const
-	{
-		return pe1->priority > pe2->priority;
-	}
 };
 BE_END_NAMESPACE
 

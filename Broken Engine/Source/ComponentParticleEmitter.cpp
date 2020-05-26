@@ -43,9 +43,10 @@ ComponentParticleEmitter::ComponentParticleEmitter(GameObject* ContainerGO) :Com
 
 	particles.resize(maxParticles);
 
-	for (int i = 0; i < maxParticles; ++i)
+	for (int i = 0; i < maxParticles; ++i) {
 		particles[i] = new Particle();
-
+		particles[i]->emitter = this;
+	}
 	texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
 	App->renderer3D->particleEmitters.push_back(this);
 
@@ -169,7 +170,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 
 	// Create particle depending on the time
 	if (emisionActive && App->GetAppState() == AppState::PLAY && !App->time->gamePaused) {
-		if (currentPlayTime - spawnClock > emisionRate)
+		if ((currentPlayTime - spawnClock > emisionRate )||playNow)
 		{
 			uint newParticlesAmount = ((currentPlayTime - spawnClock) / emisionRate) * particlesPerCreation;
 
@@ -184,6 +185,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 
 				firstEmision = false;
 			}
+			playNow = false;
 		}
 
 		if (emisionActive && !loop)
@@ -850,9 +852,10 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	// --- Loop ---
 	ImGui::NewLine();
 	if (ImGui::Checkbox("##PELoop", &loop))
-		if (loop)
+		if (loop) {
 			emisionActive = true;
-
+			firstEmision = true;
+		}
 	ImGui::SameLine();
 	ImGui::Text("Loop");
 
@@ -1827,6 +1830,7 @@ void ComponentParticleEmitter::Play()
 	emisionStart = App->time->GetGameplayTimePassed() * 1000;
 	spawnClock = emisionStart;
 	firstEmision = true;
+	playNow = true;
 }
 
 void ComponentParticleEmitter::Stop()
@@ -1837,6 +1841,7 @@ void ComponentParticleEmitter::Stop()
 void ComponentParticleEmitter::SetLooping(bool active)
 {
 	loop = active;
+	firstEmision = true;
 }
 
 void ComponentParticleEmitter::SetEmisionRate(float ms)

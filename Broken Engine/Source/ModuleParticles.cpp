@@ -68,7 +68,7 @@ bool ModuleParticles::CleanUp()
 	return true;
 }
 
-void ModuleParticles::DrawParticles()
+void ModuleParticles::DrawParticles(bool shadowsPass)
 {
 	// -- Frustum culling --
 	Plane cameraPlanes[6];
@@ -90,13 +90,11 @@ void ModuleParticles::DrawParticles()
 		}
 
 		if (draw)
-		{
-			(*it).second->Draw();
-			//(*it).second->h_billboard = horizontalBillboarding;
-			//(*it).second->v_billboard = verticalBillboarding;
-		}
+			(*it).second->Draw(shadowsPass);
+
 		it++;
 	}
 
-	particlesToDraw.clear();
+	if (!shadowsPass)
+		particlesToDraw.clear();
 }

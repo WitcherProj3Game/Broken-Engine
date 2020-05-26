@@ -127,6 +127,7 @@ private:
 	bool verticalBillboarding = false;
 	bool horizontalBillboarding = false;
 	bool particlesBillboarding = true;
+	bool particlesFaceCulling = true;
 
 	//Animation
 	int tileSize_X = 1;

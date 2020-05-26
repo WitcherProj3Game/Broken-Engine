@@ -37,6 +37,7 @@ public:
 
 	bool h_billboard = false;
 	bool v_billboard = false;
+	bool cam_billboard = true;
 
 	ResourceTexture* texture = nullptr;
 	ResourceMesh* plane = nullptr;

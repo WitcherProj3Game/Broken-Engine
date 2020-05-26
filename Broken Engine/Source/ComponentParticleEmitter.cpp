@@ -371,6 +371,7 @@ void ComponentParticleEmitter::DrawParticles()
 			particles[paco]->Draw();
 			particles[paco]->h_billboard = horizontalBillboarding;
 			particles[paco]->v_billboard = verticalBillboarding;
+			particles[paco]->cam_billboard = particlesBillboarding;
 		}
 		it++;
 	}
@@ -792,7 +793,7 @@ void ComponentParticleEmitter::Load(json& node)
 	// --- V/H Billbaording ---
 	particlesBillboarding = node.find("ParticlesBillboarding") == node.end() ? true : node["ParticlesBillboarding"].get<bool>();
 	horizontalBillboarding = verticalBillboarding = false;
-	if (!particlesBillboarding)
+	if (particlesBillboarding)
 	{
 		if (node.find("HorizontalBill") != node.end())
 		{

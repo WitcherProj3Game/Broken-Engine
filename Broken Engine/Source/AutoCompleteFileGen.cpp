@@ -186,12 +186,16 @@ void AutoCompleteFileGen::EmplaceNavigationFunctions()
 	CalculatePath.variables.push_back("origin_x"); CalculatePath.variables.push_back("origin_y"); CalculatePath.variables.push_back("origin_z");
 	CalculatePath.variables.push_back("dest_x"); CalculatePath.variables.push_back("dest_y"); CalculatePath.variables.push_back("dest_z"); CalculatePath.variables.push_back("areaMask");
 
+	SerializedFunction FindNearestPointInMesh("FindNearestPointInMesh", source.c_str());
+	FindNearestPointInMesh.variables.push_back("origin_x"); FindNearestPointInMesh.variables.push_back("origin_y"); FindNearestPointInMesh.variables.push_back("origin_z"); FindNearestPointInMesh.variables.push_back("areaMask"); 
+
 	//Pushback All Functions
 	engine_functions.push_back(AllAreas);
 	engine_functions.push_back(GetAreaFromName);
 	engine_functions.push_back(GetAreaCost);
 	engine_functions.push_back(SetAreaCost);
 	engine_functions.push_back(CalculatePath);
+	engine_functions.push_back(FindNearestPointInMesh);
 }
 
 void AutoCompleteFileGen::EmplaceScriptingInputsFunctions()

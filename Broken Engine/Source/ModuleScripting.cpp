@@ -550,6 +550,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("GetAreaCost", &ScriptingNavigation::GetAreaCost)
 		.addFunction("SetAreaCost", &ScriptingNavigation::SetAreaCost)
 		.addFunction("CalculatePath", &ScriptingNavigation::CalculatePath)
+		.addFunction("FindNearestPointInMesh", &ScriptingNavigation::FindNearestPointInMesh)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------

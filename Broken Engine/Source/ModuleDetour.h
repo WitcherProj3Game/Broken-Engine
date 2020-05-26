@@ -93,7 +93,7 @@ public:
 	static int allAreas() { return POLYFLAGS_ALL; }
 	// Will write the path to variable path, return number of verts
 	int calculatePath(float3 sourcePosition, float3 destination, int areaMask, std::vector<float3>& path);
-	float3 nearestPosInMesh(float3 sourcePosition, int areaMask);
+	bool nearestPosInMesh(float3 sourcePosition, int areaMask, float3& nearestPoint);
 
 	void setDefaultValues();
 	void setDefaultBakeValues();

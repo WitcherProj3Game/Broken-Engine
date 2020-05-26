@@ -342,6 +342,7 @@ bool ResourceScene::LoadInMemory()
 			useHDR = filePP.find("HDRUsage") == filePP.end() ? 1.0f : filePP["HDRUsage"].get<bool>();
 			HDRExp = filePP.find("HDRExposure") == filePP.end() ? 1.0f : filePP["HDRExposure"].get<float>();
 			PPGammaCorr = filePP.find("PPGammaCorrection") == filePP.end() ? 1.0f : filePP["PPGammaCorrection"].get<float>();
+			LUTuid = file["LUTuid"].is_null() ? 0 : file["LUTuid"];
 		}
 
 		App->renderer3D->m_UseHDR = useHDR;

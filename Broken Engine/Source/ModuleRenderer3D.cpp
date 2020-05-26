@@ -12,6 +12,7 @@
 #include "ModuleTimeManager.h"
 #include "ModuleSelection.h"
 #include "ModuleResourceManager.h"
+#include "ModuleFileSystem.h"
 
 // -- Components --
 #include "GameObject.h"
@@ -36,6 +37,7 @@
 
 #include "OpenGL.h"
 #include "Math.h"
+#include "LUT/lut.hpp"
 #include "Optick/include/optick.h"
 
 #pragma comment (lib, "glu32.lib")    /* link OpenGL Utility lib     */
@@ -84,6 +86,8 @@ ModuleRenderer3D::ModuleRenderer3D(bool start_enabled) : Module(start_enabled)
 	m_AlphaTypesVec.push_back("GL_CONSTANT_ALPHA");
 	m_AlphaTypesVec.push_back("GL_ONE_MINUS_CONSTANT_ALPHA");
 	m_AlphaTypesVec.push_back("GL_SRC_ALPHA_SATURATE");
+
+	octoon::image::lut::basic_lut(17, 4);
 }
 
 // Destructor

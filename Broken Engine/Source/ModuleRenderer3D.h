@@ -4,6 +4,7 @@
 #include "Module.h"
 #include "Color.h"
 #include "Math.h"
+#include "LUT/lut.hpp"
 
 #define MAX_LIGHTS 8
 
@@ -13,7 +14,6 @@ class ResourceShader;
 class ResourceMesh;
 class ResourceMaterial;
 class ComponentLight;
-class math::float4x4;
 class ComponentParticleEmitter;
 class GameObject;
 class ComponentLight;
@@ -174,6 +174,7 @@ public:
 	void SetPostProBloomBrightnessThreshold(float3 value);
 	void SetPostProBloomBlur(uint amount);
 	void SetPostProBloomWeights(float3 weights1, float2 weights2);
+	void LoadLUT(uint textureUID);
 
 	// --- Getters ---
 	bool GetVSync() const { return vsync; }
@@ -305,6 +306,9 @@ private:
 
 	//Lights vector
 	std::vector<ComponentLight*> m_LightsVec;
+
+	//LUT
+	octoon::image::detail::basic_lut<uint8_t> lut;
 
 
 	//Other Generic Stuff

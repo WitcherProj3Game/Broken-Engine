@@ -294,7 +294,7 @@ uint ModuleTextures::CreateTextureFromFile(const char* path, uint& width, uint& 
 	}
 
 	// --- Load the image into binded buffer and create texture from its pixel data ---
-	if (ilLoadImage(path))
+	if (ilLoadImage((const wchar_t*) path))
 		CreateTextureFromImage(TextureID, width, height, lib_path);
 	else
 		ENGINE_CONSOLE_LOG("|[error]: DevIL could not load the image. ERROR: %s", iluErrorString(ilGetError()));

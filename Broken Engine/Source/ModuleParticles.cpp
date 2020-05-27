@@ -70,42 +70,46 @@ bool ModuleParticles::CleanUp()
 
 void ModuleParticles::DrawParticles(bool shadowsPass)
 {
+
 	// -- Frustum culling --
 	Plane cameraPlanes[6];
 	App->renderer3D->culling_camera->frustum.GetPlanes(cameraPlanes);
 
-	std::map<float, Particle*>::iterator it = particlesToDraw.begin();
+	std::map<Particle*, float>::iterator it = particlesToDraw.begin();
 	while (it != particlesToDraw.end())
 	{
-		//Check if the particles are inside the frustum of the camera
-		bool draw = true;
-		for (int i = 0; i < 6; ++i)
+		if ((*it).first->emitter != nullptr)
 		{
-			//If the particles is on the positive side of one ore more planes, it's outside the frustum
-			bool shadowsHandle = ((shadowsPass && (*it).second->emitter->m_CastShadows == false) || (!shadowsPass && (*it).second->emitter->m_OnlyShadows));
-			if (cameraPlanes[i].IsOnPositiveSide((*it).second->position) || shadowsHandle)
+			//Check if the particles are inside the frustum of the camera
+			bool draw = true;
+			for (int i = 0; i < 6; ++i)
 			{
-				draw = false;
-				break;
-			}
-		}
-
-		if (draw)
-		{
-			if (!shadowsPass && (*it).second->emitter)
-			{
-				(*it).second->emitter->SetEmitterBlending();
-				if ((*it).second->emitter->particlesFaceCulling)
-					glEnable(GL_CULL_FACE);
-				else
-					glDisable(GL_CULL_FACE);
+				//If the particles is on the positive side of one ore more planes, it's outside the frustum
+				bool shadowsHandle = ((shadowsPass && (*it).first->emitter->m_CastShadows == false) || (!shadowsPass && (*it).first->emitter->m_OnlyShadows));
+				if (cameraPlanes[i].IsOnPositiveSide((*it).first->position) || shadowsHandle)
+				{
+					draw = false;
+					break;
+				}
 			}
 
-			(*it).second->Draw(shadowsPass);
+			if (draw)
+			{
+				if (!shadowsPass && (*it).first->emitter)
+				{
+					(*it).first->emitter->SetEmitterBlending();
+					if ((*it).first->emitter->particlesFaceCulling)
+						glEnable(GL_CULL_FACE);
+					else
+						glDisable(GL_CULL_FACE);
+				}
 
-			if (!shadowsPass)
-				if ((*it).second->emitter->particlesFaceCulling == false)
-					glEnable(GL_CULL_FACE);
+				(*it).first->Draw(shadowsPass);
+
+				if (!shadowsPass)
+					if ((*it).first->emitter->particlesFaceCulling == false)
+						glEnable(GL_CULL_FACE);
+			}
 		}
 		it++;
 	}

@@ -98,11 +98,11 @@ void ComponentCharacterController::Disable()
 			{
 				desc->position = controller->getFootPosition();
 				App->physics->actors.erase(shape->getActor());
-				controller->release();
-				controller = nullptr;
 				hasBeenDeactivated = true;
 			}
 		}
+		controller->release();
+		controller = nullptr;
 	}
 	active = false;
 }

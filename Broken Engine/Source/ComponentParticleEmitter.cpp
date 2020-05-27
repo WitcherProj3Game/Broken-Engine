@@ -165,10 +165,9 @@ void ComponentParticleEmitter::Disable()
 
 void ComponentParticleEmitter::UpdateParticles(float dt)
 {
-
 	int currentPlayTime = App->time->GetGameplayTimePassed() * 1000;
 
-	// Create particle depending on the time
+	//Create particle depending on the time
 	if (emisionActive && App->GetAppState() == AppState::PLAY && !App->time->gamePaused) {
 		if ((currentPlayTime - spawnClock > emisionRate )||playNow)
 		{
@@ -415,6 +414,8 @@ json ComponentParticleEmitter::Save() const
 {
 	json node;
 
+	node["PlayOnAwake"] = playOnAwake;
+
 	node["Active"] = this->active;
 
 	node["positionX"] = std::to_string(emitterPosition.x);
@@ -564,7 +565,7 @@ void ComponentParticleEmitter::Load(json& node)
 	scaleCurve = nullptr;
 	rotateCurve = nullptr;
 
-	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
+	this->active = node["Active"].is_null() ? false : (bool)node["Active"];
 
 	//load the strings
 	std::string LpositionX = node["positionX"].is_null() ? "0" : node["positionX"];
@@ -605,6 +606,9 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string _lifetimeconstants = node["lifetimeconstants"].is_null() ? "0" : node["lifetimeconstants"];
 
 	followEmitter = node["followEmitter"].is_null() ? true : node["followEmitter"].get<bool>();
+
+	playOnAwake = node["PlayOnAwake"].is_null() ? true : node["PlayOnAwake"].get<bool>();
+	emisionActive = playOnAwake;
 
 	std::string LParticlesSize = node["particlesSize"].is_null() ? "0" : node["particlesSize"];
 
@@ -853,6 +857,14 @@ void ComponentParticleEmitter::Load(json& node)
 
 void ComponentParticleEmitter::CreateInspectorNode()
 {
+	//Play on awake
+	ImGui::NewLine();
+	ImGui::Checkbox("##PlayOnAwake", &playOnAwake);
+	if (App->GetAppState() != AppState::PLAY)
+		emisionActive = playOnAwake;
+	ImGui::SameLine();
+	ImGui::Text("Play on awake");
+
 	// --- Loop ---
 	ImGui::NewLine();
 	if (ImGui::Checkbox("##PELoop", &loop))
@@ -867,6 +879,8 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	ImGui::Text("Duration");
 	ImGui::SameLine();
 	ImGui::DragInt("##PEDuration", &duration);
+
+	
 
 	//Emitter position
 	ImGui::Text("Position");

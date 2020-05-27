@@ -112,6 +112,7 @@ private:
 	physx::PxVec3 velocityRandomFactor2 = { 0,0,0 };
 	bool loop = true;
 	bool emisionActive = true;
+	bool playOnAwake = false;
 	int duration = 1000;
 	uint emisionStart = 0;
 

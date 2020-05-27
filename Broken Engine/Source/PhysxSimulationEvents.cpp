@@ -87,6 +87,7 @@ void PhysxSimulationEvents::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 
 		go1 = App->physics->actors[pairs[i].triggerActor];
 		go2 = App->physics->actors[pairs[i].otherActor];
 
+
 		if (go1 != nullptr && go2 != nullptr)
 		{
 			ComponentScript* script = go1->GetComponent<ComponentScript>();

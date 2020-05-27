@@ -29,7 +29,7 @@ public:
 
 public: 
 
-	std::map<float, Particle*> particlesToDraw;
+	std::map<Particle*, float> particlesToDraw;
 
 	std::vector<ComponentParticleEmitter*> particleEmitters;
 };

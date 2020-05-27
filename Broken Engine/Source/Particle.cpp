@@ -41,31 +41,26 @@ void Particle::Draw(bool shadowsPass)
 	// --- Update transform and rotation to face camera ---
 	float3 center = float3(position.x, position.y, position.z);
 
-	// --- Frame image with camera ---
-	float4x4 rot = float4x4::FromEulerXYZ(rotation.x, rotation.y, rotation.z);
+	// --- Billboarding ---
+	float3 particle_rotation = rotation;
 	float3x3 camRot = App->renderer3D->active_camera->GetOpenGLViewMatrix().RotatePart();
-	float4x4 finalRot = float4x4::identity;
 
+	float4x4 finalRot = float4x4::identity;
 	if (cam_billboard)
 	{
 		if (v_billboard)
 		{
-			finalRot = camRot * rot;
-			finalRot.SetCol(1, { 0.0f, 1.0f, 0.0f, 0.0f });
-			//finalRot.SetRotatePartX(0.0f);
-			//finalRot.SetRotatePartY(0.0f);
+			camRot.SetCol(1, { 0.0f, 1.0f, 0.0f});			
+			finalRot = camRot * float4x4::FromEulerXYZ(0.0f, particle_rotation.y, particle_rotation.z);
 		}
 		else if (h_billboard)
-		{
-			finalRot = finalRot * rot;
-			finalRot.SetRotatePart({ 1.0f, 0.0f, 0.0f }, -1.57f);
-			//finalRot.SetRotatePart({ 0.0f, 1.0f, 0.0f }, 0.0f);
-		}
+			finalRot = float4x4::FromEulerXYZ(-1.57f, 0.0f, particle_rotation.z);
 		else
-			finalRot = camRot * rot;
+			finalRot = camRot * float4x4::FromEulerXYZ(particle_rotation.x, particle_rotation.y, particle_rotation.z);		
 	}
 	else
-		finalRot = rot;
+		finalRot = float4x4::FromEulerXYZ(rotation.x, rotation.y, rotation.z);
+
 
 	// --- Shader Choice ---
 	uint shaderID = 0;

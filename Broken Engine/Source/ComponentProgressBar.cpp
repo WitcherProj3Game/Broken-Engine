@@ -77,6 +77,11 @@ void ComponentProgressBar::Update()
 
 		}
 
+		if(!bar_image)
+		{
+			bar_image = GO->GetComponent<ComponentImage>();
+		}
+
 		if (constraint_with_background)
 		{
 			background_image->size2D = size2D;

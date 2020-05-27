@@ -67,18 +67,23 @@ ComponentCharacterController::~ComponentCharacterController()
 
 void ComponentCharacterController::Enable()
 {
-	physx::PxShape* shape;
-	controller->getActor()->getShapes(&shape, 1);
-
-	if (shape->getActor() != nullptr)
+	if (hasBeenDeactivated)
 	{
-		if (hasBeenDeactivated)
-		{
-			App->physics->mScene->addActor(*shape->getActor());
-			hasBeenDeactivated = false;
-		}
-		//GetActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, false);
+		controller = App->physics->mControllerManager->createController(*desc);
+
+		physx::PxShape* shape;
+		controller->getActor()->getShapes(&shape, 1);
+
+		physx::PxFilterData filterData;
+		filterData.word0 = (1 << GO->layer); // word0 = own ID
+		filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup;
+		shape->setSimulationFilterData(filterData);
+
+		App->physics->addActor(shape->getActor(), GO);
+		controller->setFootPosition(desc->position);
+		hasBeenDeactivated = false;
 	}
+	//GetActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, false);
 	active = true;
 }
 
@@ -91,7 +96,9 @@ void ComponentCharacterController::Disable()
 		//GetActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, true);
 		if (!hasBeenDeactivated)
 		{
-			App->physics->mScene->removeActor(*shape->getActor());
+			desc->position = controller->getFootPosition();
+			controller->release();
+			controller = nullptr;
 			hasBeenDeactivated = true;
 		}
 	}
@@ -496,12 +503,18 @@ physx::PxControllerBehaviorFlags ComponentCharacterController::getBehaviorFlags(
 
 physx::PxControllerBehaviorFlags ComponentCharacterController::getBehaviorFlags(const physx::PxController& controller)
 {
+
 	physx::PxShape* shape1;
 	this->controller->getActor()->getShapes(&shape1, 1);
-	physx::PxRigidActor* a = this->controller->getActor();
 
 	physx::PxShape* shape;
 	controller.getActor()->getShapes(&shape, 1);
+
+
+	if (shape1 == nullptr || shape == nullptr)
+		physx::PxControllerBehaviorFlag::eCCT_USER_DEFINED_RIDE;
+
+	physx::PxRigidActor* a = this->controller->getActor();
 	physx::PxRigidActor* b = controller.getActor();
 
 	if (shape->getFlags() & physx::PxShapeFlag::eTRIGGER_SHAPE || shape1->getFlags() & physx::PxShapeFlag::eTRIGGER_SHAPE)

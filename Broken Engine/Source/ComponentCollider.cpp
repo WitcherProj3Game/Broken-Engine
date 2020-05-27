@@ -16,6 +16,7 @@
 #include "OpenGL.h"
 #include "ResourceScene.h"
 #include "ModuleThreading.h"
+#include "ComponentCharacterController.h"
 
 #include "PhysX_3.4/Include/PxPhysicsAPI.h"
 #include "PhysX_3.4/Include/PxSimulationEventCallback.h"
@@ -1013,8 +1014,10 @@ physx::PxRigidActor* ComponentCollider::GetActor() {
 
 void ComponentCollider::UpdateActorLayer(const int* layerMask) {
 	ComponentDynamicRigidBody* dynamicRB = GO->GetComponent<ComponentDynamicRigidBody>();
-
-	if (dynamicRB != nullptr)
+	ComponentCharacterController* controller = GO->GetComponent<ComponentCharacterController>();
+	if (controller) {
+		App->physics->UpdateActorLayer(dynamicRB->rigidBody, (LayerMask*)layerMask);
+	}else if (dynamicRB != nullptr)
 		App->physics->UpdateActorLayer(dynamicRB->rigidBody, (LayerMask*)layerMask);
 	else
 		App->physics->UpdateActorLayer(rigidStatic, (LayerMask*)layerMask);

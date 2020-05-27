@@ -87,8 +87,11 @@ void PhysxSimulationEvents::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 
 		go1 = App->physics->actors[pairs[i].triggerActor];
 		go2 = App->physics->actors[pairs[i].otherActor];
 
+
 		if (go1 != nullptr && go2 != nullptr)
 		{
+			ENGINE_CONSOLE_LOG("%s", go1->GetName());
+			ENGINE_CONSOLE_LOG("%s", go2->GetName());
 			ComponentScript* script = go1->GetComponent<ComponentScript>();
 			ComponentScript* script2 = go2->GetComponent<ComponentScript>();
 
@@ -100,10 +103,14 @@ void PhysxSimulationEvents::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 
 				ScriptFunc function;
 				function.name = "OnTriggerEnter";
 
-				if (script)
+				if (script) {
 					App->scripting->CallbackScriptFunction(script, function);
-				if (script2)
+					ENGINE_CONSOLE_LOG("DETECTED ON TRIGGER: SCRIPT 1");
+				}
+				if (script2) {
 					App->scripting->CallbackScriptFunction(script2, function);
+					ENGINE_CONSOLE_LOG("DETECTED ON TRIGGER: SCRIPT 2");
+				}
 			}
 			else if ((pairs[i].status & physx::PxPairFlag::eNOTIFY_TOUCH_LOST))
 			{

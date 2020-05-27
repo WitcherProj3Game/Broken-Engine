@@ -412,12 +412,15 @@ bool ModulePhysics::DeleteActor(physx::PxRigidActor* actor, bool dynamic)
 {
 	if (actors.size() > 0 && actor)
 	{
-		if (mScene)
+		if (mScene) {
+			actors.erase(actor);
 			mScene->removeActor(*actor);
-		if (dynamic)
+		}
+		if (dynamic) {
+			actors.erase(actor);
 			actor->release();
+		}
 
-		actors.erase(actor);
 		return true;
 	}
 
@@ -428,10 +431,11 @@ bool ModulePhysics::DeleteActor(physx::PxActor* actor)
 {
 	if (particleActors.size() > 0 && actor)
 	{
-		if (mScene)
+		if (mScene) {
+			particleActors.erase(actor);
 			mScene->removeActor(*actor);
+		}
 
-		particleActors.erase(actor);
 		return true;
 	}
 

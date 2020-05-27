@@ -55,6 +55,7 @@ ComponentCharacterController::ComponentCharacterController(GameObject* Container
 	//App->physics->addActor(controller->getActor(),GO);
 
 	initialPosition = capsuleDesc.position;
+	initialPosition2 = capsuleDesc.position;
 
 	name = "Character Controller";
 	mesh = (ResourceMesh*)App->resources->CreateResource(Resource::ResourceType::MESH, "DefaultCharacterController");
@@ -108,23 +109,6 @@ void ComponentCharacterController::Disable()
 void ComponentCharacterController::Update()
 {
 	vel = physx::PxVec3(0);
-
-	/*if (App->input->GetKey(SDL_SCANCODE_UP))
-		vel.z = -10.0f;
-
-	else if (App->input->GetKey(SDL_SCANCODE_DOWN))
-		vel.z = 10.0f;
-	else
-		vel.z = 0.0f;
-
-	if (App->input->GetKey(SDL_SCANCODE_RIGHT))
-		vel.x = 10.0f;
-
-	else if (App->input->GetKey(SDL_SCANCODE_LEFT))
-		vel.x = -10.0f;
-	else
-		vel.x = 0.0f;*/
-
 
 	ComponentTransform* cTransform = GO->GetComponent<ComponentTransform>();
 
@@ -276,7 +260,7 @@ void ComponentCharacterController::Move(float minDist)
 
 	physx::PxControllerFilters controllerFilter;
 	controllerFilter.mFilterData = &filterData;
-
+	if(controller)
 	controller->move(vel, minDist, App->time->GetGameDt(), controllerFilter);
 }
 
@@ -284,7 +268,7 @@ void ComponentCharacterController::Delete()
 {
 	physx::PxShape* shape = nullptr;
 
-	if (controller != nullptr)
+	if (controller)
 	{
 		controller->getActor()->getShapes(&shape, 1);
 		App->physics->DeleteActor(shape->getActor());
@@ -305,13 +289,22 @@ json ComponentCharacterController::Save() const
 	node["slopeLimit"] = std::to_string(slopeLimit);
 	node["radius"] = std::to_string(radius);
 	node["height"] = std::to_string(height);
-	node["positionX"] = std::to_string(controller->getFootPosition().x);
-	node["positionY"] = std::to_string(controller->getFootPosition().y);
-	node["positionZ"] = std::to_string(controller->getFootPosition().z);
+	if (controller) {
+		node["positionX"] = std::to_string(controller->getFootPosition().x);
+		node["positionY"] = std::to_string(controller->getFootPosition().y);
+		node["positionZ"] = std::to_string(controller->getFootPosition().z);
+	}
+	else {
+		node["positionX"] = std::to_string(initialPosition2.x);
+		node["positionY"] = std::to_string(initialPosition2.y);
+		node["positionZ"] = std::to_string(initialPosition2.z);
+	}
 	node["draw"] = std::to_string(draw);
 
-	if (controller->getNonWalkableMode() == physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING)
-		node["nonWalkableMode"] = std::to_string(0);
+	if (controller) {
+		if (controller->getNonWalkableMode() == physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING)
+			node["nonWalkableMode"] = std::to_string(0);
+	}
 	else
 		node["nonWalkableMode"] = std::to_string(1);
 
@@ -354,20 +347,27 @@ void ComponentCharacterController::Load(json& node)
 	SetRadius(radius);
 	SetHeight(height);
 
-	if (std::stof(nonWalkableMode) == 0)
-	{
-		controller->setNonWalkableMode(physx::PxControllerNonWalkableMode::Enum::ePREVENT_CLIMBING);
-		sliding = false;
-	}
-	else
-	{
-		controller->setNonWalkableMode(physx::PxControllerNonWalkableMode::Enum::ePREVENT_CLIMBING_AND_FORCE_SLIDING);
-		sliding = true;
+	if (controller) {
+		if (std::stof(nonWalkableMode) == 0)
+		{
+			controller->setNonWalkableMode(physx::PxControllerNonWalkableMode::Enum::ePREVENT_CLIMBING);
+			sliding = false;
+		}
+		else
+		{
+			controller->setNonWalkableMode(physx::PxControllerNonWalkableMode::Enum::ePREVENT_CLIMBING_AND_FORCE_SLIDING);
+			sliding = true;
+		}
 	}
 
 	physx::PxExtendedVec3 pos = physx::PxExtendedVec3(position.x, position.y, position.z);
+	initialPosition = pos;
+	initialPosition2 = pos;
+
 	creation = true;
-	controller->setFootPosition(physx::PxExtendedVec3(pos.x, pos.y, pos.z));
+
+	if(controller)
+		controller->setFootPosition(physx::PxExtendedVec3(pos.x, pos.y, pos.z));
 }
 
 void ComponentCharacterController::CreateInspectorNode()
@@ -420,7 +420,7 @@ void ComponentCharacterController::CreateInspectorNode()
 
 	if (ImGui::Checkbox("No Slide", &sliding))
 	{
-		if (sliding)
+		if (sliding && controller)
 			controller->setNonWalkableMode(physx::PxControllerNonWalkableMode::Enum::ePREVENT_CLIMBING_AND_FORCE_SLIDING);
 
 		else
@@ -432,26 +432,31 @@ void ComponentCharacterController::CreateInspectorNode()
 
 void ComponentCharacterController::SetContactOffset(float offset)
 {
+	if(controller)
 	controller->setContactOffset(offset);
 }
 
 void ComponentCharacterController::SetStepOffset(float offset)
 {
+	if (controller)
 	controller->setStepOffset(offset);
 }
 
 void ComponentCharacterController::SetSlopeLimit(float limit)
 {
+	if (controller)
 	static_cast<physx::PxCapsuleController*>(controller)->setSlopeLimit(cosf(DEGTORAD * limit));
 }
 
 void ComponentCharacterController::SetRadius(float radius)
 {
+	if (controller)
 	static_cast<physx::PxCapsuleController*>(controller)->setRadius(radius);
 }
 
 void ComponentCharacterController::SetHeight(float height)
 {
+	if (controller)
 	static_cast<physx::PxCapsuleController*>(controller)->resize(height);
 	//static_cast<physx::PxCapsuleController*>(controller)->setHeight(height);
 }
@@ -471,10 +476,14 @@ physx::PxControllerBehaviorFlags ComponentCharacterController::getBehaviorFlags(
 			ScriptFunc function;
 			function.name = "OnTriggerEnter";
 
-			if (script)
+			if (script) {
 				App->scripting->CallbackScriptFunction(script, function);
-			if (script2)
+				ENGINE_CONSOLE_LOG("DETECTED ON TRIGGER: SCRIPT 1");
+			}
+			if (script2) {
 				App->scripting->CallbackScriptFunction(script2, function);
+				ENGINE_CONSOLE_LOG("DETECTED ON TRIGGER: SCRIPT 2");
+			}
 		}
 	}
 	else
@@ -491,10 +500,12 @@ physx::PxControllerBehaviorFlags ComponentCharacterController::getBehaviorFlags(
 			ScriptFunc function;
 			function.name = "OnCollisionEnter";
 
-			if (script)
+			if (script) {
 				App->scripting->CallbackScriptFunction(script, function);
-			if (script2)
+			}
+			if (script2) {
 				App->scripting->CallbackScriptFunction(script2, function);
+			}
 		}
 	}
 
@@ -530,10 +541,14 @@ physx::PxControllerBehaviorFlags ComponentCharacterController::getBehaviorFlags(
 			ScriptFunc function;
 			function.name = "OnTriggerEnter";
 
-			if (script)
+			if (script) {
 				App->scripting->CallbackScriptFunction(script, function);
-			if (script2)
+				ENGINE_CONSOLE_LOG("DETECTED ON TRIGGER: SCRIPT 1");
+			}
+			if (script2) {
 				App->scripting->CallbackScriptFunction(script2, function);
+				ENGINE_CONSOLE_LOG("DETECTED ON TRIGGER: SCRIPT 2");
+			}
 		}
 	}
 	else
@@ -549,11 +564,12 @@ physx::PxControllerBehaviorFlags ComponentCharacterController::getBehaviorFlags(
 
 			ScriptFunc function;
 			function.name = "OnCollisionEnter";
-
-			if (script)
+			if (script) {
 				App->scripting->CallbackScriptFunction(script, function);
-			if (script2)
+			}
+			if (script2) {
 				App->scripting->CallbackScriptFunction(script2, function);
+			}
 		}
 	}
 

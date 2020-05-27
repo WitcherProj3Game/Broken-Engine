@@ -79,6 +79,7 @@ private:
 
 	physx::PxVec3 position = physx::PxVec3(0.0f, 0.0f, 0.0f);
 	physx::PxExtendedVec3 initialPosition = physx::PxExtendedVec3(0.0f, 0.0f, 0.0f);
+	physx::PxExtendedVec3 initialPosition2 = physx::PxExtendedVec3(0.0f, 0.0f, 0.0f);
 	physx::PxVec3 vel = physx::PxVec3(0);
 
 	bool creation = false;

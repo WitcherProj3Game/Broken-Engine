@@ -66,6 +66,7 @@ public:
 	bool hasBeenDeactivated = false;
 
 private:
+	physx::PxShape* shape;
 	physx::PxControllerDesc* desc = nullptr;
 	physx::PxCapsuleControllerDesc capsuleDesc;
 

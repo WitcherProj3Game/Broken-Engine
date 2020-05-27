@@ -305,7 +305,7 @@ void ModulePhysics::SimulatePhysics(float dt, float speed)
 
 
 void ModulePhysics::addActor(physx::PxRigidActor* actor, GameObject* gameObject) {
-	actors.insert(std::pair<physx::PxRigidActor*, GameObject*>(actor, gameObject));
+	actors[actor] = gameObject; //.insert(std::pair<physx::PxRigidActor*, GameObject*>(actor, gameObject));
 	mScene->addActor(*actor);
 }
 

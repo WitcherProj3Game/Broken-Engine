@@ -43,7 +43,6 @@ ComponentCharacterController::ComponentCharacterController(GameObject* Container
 
 	controller = App->physics->mControllerManager->createController(*desc);
 
-	physx::PxShape* shape;
 	controller->getActor()->getShapes(&shape, 1);
 
 	physx::PxFilterData filterData;
@@ -73,7 +72,6 @@ void ComponentCharacterController::Enable()
 	{
 		controller = App->physics->mControllerManager->createController(*desc);
 
-		physx::PxShape* shape;
 		controller->getActor()->getShapes(&shape, 1);
 
 		physx::PxFilterData filterData;
@@ -92,7 +90,6 @@ void ComponentCharacterController::Enable()
 void ComponentCharacterController::Disable()
 {
 	if (controller) {
-		physx::PxShape* shape;
 		controller->getActor()->getShapes(&shape, 1);
 		if (shape->getActor() != nullptr)
 		{
@@ -112,6 +109,7 @@ void ComponentCharacterController::Disable()
 
 void ComponentCharacterController::Update()
 {
+
 	vel = physx::PxVec3(0);
 
 	ComponentTransform* cTransform = GO->GetComponent<ComponentTransform>();
@@ -157,6 +155,14 @@ void ComponentCharacterController::Update()
 		{
 			Delete();
 			this->GetContainerGameObject()->RemoveComponent(this);
+		}
+		else if(App->physics->actors[shape->getActor()] == nullptr){
+			physx::PxFilterData filterData;
+			filterData.word0 = (1 << GO->layer); // word0 = own ID
+			filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup;
+			shape->setSimulationFilterData(filterData);
+
+			App->physics->addActor(shape->getActor(),GO);
 		}
 	}
 }

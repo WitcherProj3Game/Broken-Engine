@@ -28,7 +28,7 @@ public:
 	void Disable() override;
 
 	void UpdateParticles(float dt);
-	void DrawParticles();
+	void DrawParticles(bool shadowsPass);
 	void ChangeParticlesColor(float4 color);
 
 	static inline Component::ComponentType GetType() { return Component::ComponentType::ParticleEmitter; };
@@ -127,6 +127,7 @@ private:
 	bool verticalBillboarding = false;
 	bool horizontalBillboarding = false;
 	bool particlesBillboarding = true;
+	bool particlesFaceCulling = true;
 
 	//Animation
 	int tileSize_X = 1;
@@ -147,6 +148,7 @@ private:
 	int lifetimeconstants = 0;
 	int velocityconstants = 0;
 	bool followEmitter = true;
+	bool collision_active = true;
 
 	//Colors
 	bool colorGradient = false;
@@ -170,19 +172,21 @@ private:
 	BlendAutoFunction m_PartBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
 	BlendingTypes m_MPartBlend_Src = BlendingTypes::SRC_ALPHA, m_MPartBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
 
+	//Lighting
+	bool m_AffectedByLight = true;
+	bool m_AffectedBySceneColor = true;
+	bool m_CastShadows = true;
+	bool m_ReceiveShadows = true;
+	bool m_OnlyShadows = false;
+
+	//Drawing
+	bool playNow = false;
+
 	//Rendering
 	int priority = 0;
 
 	//Debug Drawing
 	OBB emisionAreaOBB;
-};
-
-struct BROKEN_API HigherPriority
-{
-	bool operator()(ComponentParticleEmitter* pe1,ComponentParticleEmitter* pe2)const
-	{
-		return pe1->priority > pe2->priority;
-	}
 };
 BE_END_NAMESPACE
 

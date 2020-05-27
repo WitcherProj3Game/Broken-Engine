@@ -23,7 +23,7 @@ public:
 
 	void AddEmitter(ComponentParticleEmitter* componentEmitter);
 	void DeleteEmitter(ComponentParticleEmitter* componentEmitter);
-	void DrawParticles();
+	void DrawParticles(bool shadowsPass);
 
 	bool CleanUp() override;
 

@@ -46,6 +46,7 @@ private:
 	bool cast_shadows = true;
 	bool receive_shadows = true;
 	bool only_shadows = false;
+	bool light_affected = true;
 
 	bool m_TemporalTextureTest = false;
 };

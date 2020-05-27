@@ -78,6 +78,9 @@ void ComponentImage::Update()
 	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
 		canvas = nullptr;
 
+	if (fullscreen)
+		size2D = { App->gui->sceneWidth + 30, App->gui->sceneHeight + 30 };
+
 	if (to_delete)
 		this->GetContainerGameObject()->RemoveComponent(this);
 
@@ -360,9 +363,6 @@ void ComponentImage::CreateInspectorNode()
 	ImGui::Separator();
 
 	ImGui::Checkbox("Fullscreen", &fullscreen);
-
-	if (fullscreen)
-		size2D = { App->gui->sceneWidth + 30, App->gui->sceneHeight + 30 };
 
 	if (is_progress_bar == false)
 	{

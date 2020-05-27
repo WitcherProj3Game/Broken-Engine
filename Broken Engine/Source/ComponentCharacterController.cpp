@@ -68,7 +68,7 @@ ComponentCharacterController::~ComponentCharacterController()
 
 void ComponentCharacterController::Enable()
 {
-	if (hasBeenDeactivated)
+	if (controller == nullptr)
 	{
 		controller = App->physics->mControllerManager->createController(*desc);
 
@@ -89,20 +89,24 @@ void ComponentCharacterController::Enable()
 
 void ComponentCharacterController::Disable()
 {
-	if (controller) {
-		controller->getActor()->getShapes(&shape, 1);
-		if (shape->getActor() != nullptr)
+	if (controller != nullptr) {
+		if (shape)
 		{
-			//GetActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, true);
-			if (!hasBeenDeactivated)
+			if (shape->getActor() != nullptr)
 			{
-				desc->position = controller->getFootPosition();
-				App->physics->actors.erase(shape->getActor());
-				hasBeenDeactivated = true;
+				//GetActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, true);
+				if (!hasBeenDeactivated )
+				{
+					desc->position = controller->getFootPosition();
+					if(App->physics->actors.size() > 0)
+					App->physics->actors.erase(shape->getActor());
+				}
 			}
 		}
+		shape = nullptr;
 		controller->release();
 		controller = nullptr;
+		hasBeenDeactivated = true;
 	}
 	active = false;
 }
@@ -278,9 +282,8 @@ void ComponentCharacterController::Delete()
 {
 	if (controller)
 	{
-		physx::PxShape* shape = nullptr;
-		controller->getActor()->getShapes(&shape, 1);
-		App->physics->actors.erase(shape->getActor());
+		if(shape && App->physics->actors.size()>0)
+			App->physics->actors.erase(shape->getActor());
 		controller->release();
 		controller = nullptr;
 	}

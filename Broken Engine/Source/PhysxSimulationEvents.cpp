@@ -101,12 +101,10 @@ void PhysxSimulationEvents::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 
 				ScriptFunc function;
 				function.name = "OnTriggerEnter";
 
-				if (script) {
+				if (script)
 					App->scripting->CallbackScriptFunction(script, function);
-				}
-				if (script2) {
+				if (script2)
 					App->scripting->CallbackScriptFunction(script2, function);
-				}
 			}
 			else if ((pairs[i].status & physx::PxPairFlag::eNOTIFY_TOUCH_LOST))
 			{

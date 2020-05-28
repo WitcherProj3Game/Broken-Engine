@@ -140,13 +140,13 @@ void ComponentParticleEmitter::Enable()
 	particleSystem = App->physics->mPhysics->createParticleSystem(maxParticles, perParticleRestOffset);
 	particleSystem->setMaxMotionDistance(100);
 
-	if (collision_active)
-	{
-		physx::PxFilterData filterData;
-		filterData.word0 = (1 << GO->layer);
-		filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup;
-		particleSystem->setSimulationFilterData(filterData);
-	}
+	//if (collision_active)
+	//{
+	//	physx::PxFilterData filterData;
+	//	filterData.word0 = (1 << GO->layer);
+	//	filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup;
+	//	particleSystem->setSimulationFilterData(filterData);
+	//}
 
 	if (particleSystem)
 		App->physics->AddParticleActor(particleSystem, GO);
@@ -197,13 +197,13 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 		}
 	}
 
-	if (collision_active)
-	{
-		physx::PxFilterData filterData;
-		filterData.word0 = (1 << GO->layer); // word0 = own ID
-		filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup; // word1 = ID mask to filter pairs that trigger a contact callback;
-		particleSystem->setSimulationFilterData(filterData);
-	}
+	//if (collision_active)
+	//{
+	//	physx::PxFilterData filterData;
+	//	filterData.word0 = (1 << GO->layer); // word0 = own ID
+	//	filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup; // word1 = ID mask to filter pairs that trigger a contact callback;
+	//	particleSystem->setSimulationFilterData(filterData);
+	//}
 
 	//Update particles
 	//lock SDK buffers of *PxParticleSystem* ps for reading
@@ -846,7 +846,8 @@ void ComponentParticleEmitter::Load(json& node)
 
 	// --- Collisions --- 
 	collision_active = node.find("CollisionsActivated") == node.end() ? true : node["CollisionsActivated"].get<bool>();
-	
+	SetActiveCollisions(collision_active);
+
 	// --- Face Culling ---
 	particlesFaceCulling = node.find("ParticlesFaceCulling") == node.end() ? true : node["ParticlesFaceCulling"].get<bool>();
 
@@ -1081,7 +1082,8 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	if (ImGui::TreeNode("Collision Options"))
 	{
 		ImGui::Text("Enable Collisions");
-		ImGui::Checkbox("##PE_EnableColl", &collision_active);
+		if (ImGui::Checkbox("##PE_EnableColl", &collision_active))
+			SetActiveCollisions(collision_active);
 		ImGui::TreePop();
 	}
 
@@ -1621,6 +1623,23 @@ void ComponentParticleEmitter::HandleEditorBlendingSelector()
 double ComponentParticleEmitter::GetRandomValue(double min, double max) //EREASE IN THE FUTURE
 {
 	return App->RandomNumberGenerator.GetDoubleRNinRange(min, max);
+}
+
+void ComponentParticleEmitter::SetActiveCollisions(bool collisionsActive)
+{
+	if (collisionsActive){
+		physx::PxFilterData filterData;
+		filterData.word0 = (1 << GO->layer);
+		filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup;
+		particleSystem->setSimulationFilterData(filterData);
+	}
+	else{
+		physx::PxFilterData filterData;
+		filterData.word0 = 0;
+		filterData.word1 = 0;
+		particleSystem->setSimulationFilterData(filterData);
+
+	}
 }
 
 void ComponentParticleEmitter::CreateParticles(uint particlesAmount)

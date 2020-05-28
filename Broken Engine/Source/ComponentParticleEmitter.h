@@ -83,6 +83,9 @@ private:
 	double GetRandomValue(double min, double max); //MUST EREASE IN THE FUTURE
 	void HandleEditorBlendingSelector();
 
+	// -- Decide if particles collide with the envioronment or not --
+	void SetActiveCollisions(bool collisionsActive);
+
 private:
 	physx::PxParticleSystem* particleSystem = nullptr;
 

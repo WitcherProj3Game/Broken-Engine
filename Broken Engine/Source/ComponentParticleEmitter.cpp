@@ -621,7 +621,7 @@ void ComponentParticleEmitter::Load(json& node)
 
 	followEmitter = node["followEmitter"].is_null() ? true : node["followEmitter"].get<bool>();
 
-	playOnAwake = node["PlayOnAwake"].is_null() ? true : node["PlayOnAwake"].get<bool>();
+	playOnAwake = node["PlayOnAwake"].is_null() ? false : node["PlayOnAwake"].get<bool>();
 	emisionActive = playOnAwake;
 
 	std::string LParticlesSize = node["particlesSize"].is_null() ? "0" : node["particlesSize"];

@@ -83,6 +83,9 @@ private:
 	double GetRandomValue(double min, double max); //MUST EREASE IN THE FUTURE
 	void HandleEditorBlendingSelector();
 
+	// -- Decide if particles collide with the envioronment or not --
+	void SetActiveCollisions(bool collisionsActive);
+
 private:
 	physx::PxParticleSystem* particleSystem = nullptr;
 
@@ -104,7 +107,7 @@ private:
 	float3 eulerRotation = float3::zero;
 	Quat emitterRotation = Quat::identity;
 	int particlesPerCreation = 1;
-	physx::PxVec3 size = { 0,0,0 };
+	physx::PxVec3 size = { 0.01,0.01,0.01 };
 	float emisionRate = 500.0f;	//in milliseconds
 	physx::PxVec3 externalAcceleration = { 0,10,0 };
 	physx::PxVec3 particlesVelocity = { 0,0,0 };
@@ -112,6 +115,7 @@ private:
 	physx::PxVec3 velocityRandomFactor2 = { 0,0,0 };
 	bool loop = true;
 	bool emisionActive = true;
+	bool playOnAwake = false;
 	int duration = 1000;
 	uint emisionStart = 0;
 

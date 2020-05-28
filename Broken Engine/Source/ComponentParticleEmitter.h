@@ -104,7 +104,7 @@ private:
 	float3 eulerRotation = float3::zero;
 	Quat emitterRotation = Quat::identity;
 	int particlesPerCreation = 1;
-	physx::PxVec3 size = { 0,0,0 };
+	physx::PxVec3 size = { 0.01,0.01,0.01 };
 	float emisionRate = 500.0f;	//in milliseconds
 	physx::PxVec3 externalAcceleration = { 0,10,0 };
 	physx::PxVec3 particlesVelocity = { 0,0,0 };

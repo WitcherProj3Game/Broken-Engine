@@ -33,6 +33,8 @@ public:
 	float3 rotationSpeed = { 0,0,0 };
 	float3 scaleSpeed = { 0,0,0 };
 	float3 emitterSpawnPosition = { 0,0,0 };
+	float distanceToCam = 0.0f;
+
 	int startFrame = 0;
 
 	bool h_billboard = false;

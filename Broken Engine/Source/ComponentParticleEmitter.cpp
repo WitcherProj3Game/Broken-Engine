@@ -73,7 +73,7 @@ ComponentParticleEmitter::~ComponentParticleEmitter()
 
 	for (int i = 0; i < maxParticles; ++i) {
 
-		App->particles->particlesToDraw.erase(particles[i]);
+		App->particles->particlesToDraw.erase(particles[i]->distanceToCam);
 		delete particles[i];
 		particles[i] = nullptr;
 	}
@@ -314,8 +314,9 @@ void ComponentParticleEmitter::SortParticles()
 
 				float distance = App->renderer3D->active_camera->frustum.NearPlane().Distance(particles[i]->position);	
 
-				drawingIndices[1.0f / distance] = i;
-				App->particles->particlesToDraw[particles[i]] = 1.0f / distance;
+				//drawingIndices[1.0f / distance] = i;
+				particles[i]->distanceToCam = 1.0f / distance;
+				App->particles->particlesToDraw[1.0f / distance] = particles[i];
 			}
 		}
 

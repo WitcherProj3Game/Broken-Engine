@@ -13,6 +13,7 @@ class ComponentCamera;
 class ResourceShader;
 class ResourceMesh;
 class ResourceMaterial;
+class ResourceTexture;
 class ComponentLight;
 class ComponentParticleEmitter;
 class GameObject;
@@ -194,6 +195,7 @@ public:
 	float3 GetPostProBloomBrightnessThreshold() const;
 	void GetPostProBloomBlur(uint& amount);
 	void GetPostProBloomWeights(float3& weights1, float2& weights2);
+	void SetLUT(ResourceTexture* newLUT);
 
 private:
 
@@ -249,6 +251,7 @@ public:
 	ResourceShader* screenShader = nullptr;
 	ResourceShader* UI_Shader = nullptr;
 	ResourceShader* BlurShader = nullptr;
+	ResourceShader* LUTShader = nullptr;
 
 	ResourceShader* SkyboxShader = nullptr;
 
@@ -281,6 +284,7 @@ public:
 	bool post_processing = true;
 	bool m_ChangedBlending = false;
 	bool m_AutomaticBlendingFunc = true;
+	bool m_UseColorCorrection = false;
 	bool m_UseHDR = false;
 	bool m_UseBloom = false;
 	bool m_RenderBloomOnly = false;
@@ -308,7 +312,7 @@ private:
 	std::vector<ComponentLight*> m_LightsVec;
 
 	//LUT
-	octoon::image::detail::basic_lut<uint8_t> lut;
+	uint currentLUT = 0;
 
 
 	//Other Generic Stuff

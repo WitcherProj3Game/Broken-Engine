@@ -22,8 +22,17 @@ in vec4 gl_FragCoord;
 void main()
 {
     vec3 textureColor = texture(screenTexture, gl_FragCoord.xy / textureSize(screenTexture, 0)).rgb;
-	int redIndex = min(textureColor.r / 15, 16);
-	int blueIndex = min(textureColor.b / 15, 16);
+    
+
+	// Calculate the indices inside LUT
+	int redIndex = textureColor.r / 17;
+    int greenIndex = textureColor.g / 17;
+	int blueIndex = textureColor.b / 17;
+
+    // Coordinates inside the LUT texture
+    vec2 LUTPosition = (16 * blueIndex + redIndex, greenIndex);
+
+	vec3 finalColor = texture(LUTTexture, LUTPosition).rgb;
 
 	// --- Output Fragment Color ---
 	FragColor = vec4(finalColor, 1.0);

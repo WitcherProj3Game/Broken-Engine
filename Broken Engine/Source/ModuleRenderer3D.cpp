@@ -688,6 +688,14 @@ void ModuleRenderer3D::GetPostProBloomBlur(uint& amount)
 		amount = App->scene_manager->currentScene->m_ScenePP_BloomBlurAmount;
 }
 
+void ModuleRenderer3D::SetLUT(ResourceTexture* newLUT)
+{
+	if (newLUT)
+		currentLUT = newLUT->GetTexID();
+	else
+		currentLUT = 0;
+}
+
 
 
 bool ModuleRenderer3D::SetVSync(bool _vsync)
@@ -1279,7 +1287,29 @@ void ModuleRenderer3D::DrawPostProcessing()
 	glDisable(GL_BLEND); // we do not want blending
 
 	// --- First Step: Color Correction
-	// MYTODO Sergi: TBA
+	if (m_UseColorCorrection && currentLUT)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		glUseProgram(LUTShader->ID);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, rendertexture);	// use the color attachment texture as the texture of the quad plane
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, currentLUT);
+z
+		glBindVertexArray(quadVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glBindVertexArray(0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glUseProgram(0);
+	}
 
 	// --- Second Step: HDR and Bloom ---
 	bool horizontal = true, first_iteration = true;
@@ -2089,6 +2119,13 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	BlurShader->SetName("Blur Shader");
 	BlurShader->LoadToMemory();
 	IShader->Save(BlurShader);
+
+	LUTShader = (ResourceShader*)App->resources->CreateResourceGivenUID(Resource::ResourceType::SHADER, "Assets/Shaders/PostProcessing/ColorCorrection.glsl", 17);
+	if (LUTShader)
+	{
+		LUTShader->SetName("Color Correction Shader");
+		LUTShader->LoadToMemory();
+	}
 
 	//For further shader creations:
 	/*

@@ -351,14 +351,12 @@ bool ResourceScene::LoadInMemory()
 			LUTuid = file["LUTuid"].is_null() ? 0 : file["LUTuid"].get<uint>();
 			useColorCorrection = file["useColorCorrection"].is_null() ? false : file["useColorCorrection"].get<bool>();
 		}
-
-		LUT = App->resources->GetResource<ResourceTexture*>(LUTuid, true);
-
+		
 		App->renderer3D->m_UseHDR = useHDR;
 		App->renderer3D->SetPostProHDRExposure(HDRExp);
 		App->renderer3D->SetPostProGammaCorrection(PPGammaCorr);
 		App->renderer3D->m_UseColorCorrection = useColorCorrection;
-		App->renderer3D->SetLUT(LUT);
+		App->renderer3D->SetLUT(LUTuid);
 	}
 
 	return true;

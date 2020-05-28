@@ -37,7 +37,6 @@
 
 #include "OpenGL.h"
 #include "Math.h"
-#include "LUT/lut.hpp"
 #include "Optick/include/optick.h"
 
 #pragma comment (lib, "glu32.lib")    /* link OpenGL Utility lib     */
@@ -86,8 +85,6 @@ ModuleRenderer3D::ModuleRenderer3D(bool start_enabled) : Module(start_enabled)
 	m_AlphaTypesVec.push_back("GL_CONSTANT_ALPHA");
 	m_AlphaTypesVec.push_back("GL_ONE_MINUS_CONSTANT_ALPHA");
 	m_AlphaTypesVec.push_back("GL_SRC_ALPHA_SATURATE");
-
-	octoon::image::lut::basic_lut(17, 4);
 }
 
 // Destructor
@@ -688,12 +685,12 @@ void ModuleRenderer3D::GetPostProBloomBlur(uint& amount)
 		amount = App->scene_manager->currentScene->m_ScenePP_BloomBlurAmount;
 }
 
-void ModuleRenderer3D::SetLUT(ResourceTexture* newLUT)
+void ModuleRenderer3D::SetLUT(uint newLUTUID)
 {
-	if (newLUT)
-		currentLUT = newLUT->GetTexID();
-	else
-		currentLUT = 0;
+	if (currentLUT)
+		currentLUT->Release();	
+
+	currentLUT = (ResourceTexture*) App->resources->GetResource(newLUTUID);
 }
 
 
@@ -1289,15 +1286,27 @@ void ModuleRenderer3D::DrawPostProcessing()
 	// --- First Step: Color Correction
 	if (m_UseColorCorrection && currentLUT)
 	{
+		uint ShaderID = LUTShader->ID;
+
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-		glUseProgram(LUTShader->ID);
+		glUseProgram(ShaderID);
+
+		GLint texLoc;
+
+		texLoc = glGetUniformLocation(ShaderID, "screenTexture");
+		glUniform1i(texLoc, 0);
+
+		texLoc = glGetUniformLocation(ShaderID, "LUTTexture");
+		glUniform1i(texLoc, 1);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, rendertexture);	// use the color attachment texture as the texture of the quad plane
 
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, currentLUT);
-z
+		glBindTexture(GL_TEXTURE_2D, currentLUT->GetTexID());
+
+		glActiveTexture(GL_TEXTURE0);
+
 		glBindVertexArray(quadVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -1361,11 +1370,13 @@ z
 	if (m_RenderBloomOnly)
 		textureToRend = pingpongBuffers[!horizontal];
 
-	//glUniform1i(glGetUniformLocation(shader, "screenTexture"), 0);
+	
+
+	glUniform1i(glGetUniformLocation(shader, "screenTexture"), 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureToRend);	// use the color attachment texture as the texture of the quad plane
 
-	//glUniform1i(glGetUniformLocation(shader, "bloomBlurTexture"), 1);
+	glUniform1i(glGetUniformLocation(shader, "bloomBlurTexture"), 1);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, pingpongBuffers[!horizontal]);	
 

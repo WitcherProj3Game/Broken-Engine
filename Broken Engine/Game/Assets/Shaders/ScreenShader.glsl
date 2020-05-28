@@ -14,16 +14,37 @@ void main()
 #ifdef FRAGMENT_SHADER
 
 uniform sampler2D screenTexture;
-uniform sampler2D LUTTexture;
+uniform sampler2D bloomBlurTexture;
+
+uniform bool u_UseBloom = true;
+
+uniform float u_GammaCorrection = 1.8;
+uniform float u_HDR_Exposure = 1.0;
+uniform bool u_UseHDR = true;
 
 out vec4 FragColor;
 in vec4 gl_FragCoord;
 
 void main()
 {
-    vec3 textureColor = texture(screenTexture, gl_FragCoord.xy / textureSize(screenTexture, 0)).rgb;
-	int redIndex = min(textureColor.r / 15, 16);
-	int blueIndex = min(textureColor.b / 15, 16);
+    vec3 textureOutput = texture(screenTexture, gl_FragCoord.xy / textureSize(screenTexture, 0)).rgb;
+	vec3 bloomTextureOutput = texture(bloomBlurTexture, gl_FragCoord.xy / textureSize(bloomBlurTexture, 0)).rgb;
+	vec3 finalColor = vec3(1.0);
+	
+	if(u_UseBloom)
+		textureOutput += bloomTextureOutput;	
+
+	// --- HDR Application (or not) ---
+	if(u_UseHDR == true)
+	{
+		//reinhard tone mapping with gamma correction
+		//vec3 mapped = texOutput/(texOutput+vec3(1.0));
+		vec3 mapped = vec3(1.0) - exp(-textureOutput * u_HDR_Exposure);
+		finalColor = pow(mapped, vec3(1.0/u_GammaCorrection));		
+	}
+	else
+		finalColor = pow(textureOutput, vec3(1.0/u_GammaCorrection));
+
 
 	// --- Output Fragment Color ---
 	FragColor = vec4(finalColor, 1.0);

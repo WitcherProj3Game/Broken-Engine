@@ -1,8 +1,13 @@
 #include "PanelRendering.h"
 
 // -- Modules --
-#include "ModuleGui.h"
 #include "EngineApplication.h"
+#include "ModuleGui.h"
+#include "ModuleRenderer3D.h"
+#include "ModuleResourceManager.h"
+
+// -- Resources --
+#include "ResourceTexture.h"
 
 // -- Utilities --
 #include "Imgui/imgui.h"
@@ -23,9 +28,9 @@ void PanelRendering::SetupValues()
 	m_GammaCorretionValue = EngineApp->renderer3D->GetGammaCorrection();
 	m_AmbientColorValue = EngineApp->renderer3D->GetSceneAmbientColor();
 
-	m_CurrBlendAutoFunc = EngineApp->renderer3D->GetRendererBlendAutoFunction();
-	EngineApp->renderer3D->GetRendererBlendingManualFunction(m_CurrentAlphaSrc, m_CurrentAlphaDst);
-	m_CurrBlendEquation = EngineApp->renderer3D->GetRendererBlendingEquation();
+	m_CurrBlendAutoFunc = (int) EngineApp->renderer3D->GetRendererBlendAutoFunction();
+	EngineApp->renderer3D->GetRendererBlendingManualFunction((Broken::BlendingTypes&) m_CurrentAlphaSrc, (Broken::BlendingTypes&) m_CurrentAlphaDst);
+	m_CurrBlendEquation = (int) EngineApp->renderer3D->GetRendererBlendingEquation();
 
 	m_SkyboxColorValue = EngineApp->renderer3D->GetSkyboxColor();
 	m_SkyboxExposureValue = EngineApp->renderer3D->GetSkyboxExposure();
@@ -47,9 +52,9 @@ void PanelRendering::SetRendererValues()
 	EngineApp->renderer3D->SetSkyboxExposure(m_SkyboxExposureValue);
 	EngineApp->renderer3D->SetSkyboxRotation(m_SkyboxAngle);
 
-	EngineApp->renderer3D->SetRendererBlendingAutoFunction(m_CurrBlendAutoFunc);
-	EngineApp->renderer3D->SetRendererBlendingManualFunction(m_CurrentAlphaSrc, m_CurrentAlphaDst);
-	EngineApp->renderer3D->SetRendererBlendingEquation(m_CurrBlendEquation);
+	EngineApp->renderer3D->SetRendererBlendingAutoFunction((Broken::BlendAutoFunction) m_CurrBlendAutoFunc);
+	EngineApp->renderer3D->SetRendererBlendingManualFunction((Broken::BlendingTypes) m_CurrentAlphaSrc, (Broken::BlendingTypes) m_CurrentAlphaDst);
+	EngineApp->renderer3D->SetRendererBlendingEquation((Broken::BlendingEquations) m_CurrBlendEquation);
 
 	EngineApp->renderer3D->SetGammaCorrection(m_GammaCorretionValue);
 	EngineApp->renderer3D->SetAmbientColor(m_AmbientColorValue);
@@ -207,10 +212,8 @@ void PanelRendering::BlendingSettings(bool& makeChanges)
 	ImGui::SetNextItemWidth(200.0f);
 
 	std::vector<const char*> blendEqF_Vec = EngineApp->renderer3D->m_BlendEquationFunctionsVec;
-	int index = (int)m_CurrBlendEquation;
-	if (EngineApp->gui->HandleDropdownSelector(index, "##AlphaEq", blendEqF_Vec.data(), blendEqF_Vec.size()))
+	if (EngineApp->gui->HandleDropdownSelector(m_CurrBlendEquation, "##AlphaEq", blendEqF_Vec.data(), blendEqF_Vec.size()))
 	{
-		m_CurrBlendEquation = (Broken::BlendingEquations)index;
 		makeChanges = true;
 	}
 
@@ -221,10 +224,8 @@ void PanelRendering::BlendingSettings(bool& makeChanges)
 	ImGui::SetNextItemWidth(200.0f);
 
 	std::vector<const char*> blendAutoF_Vec = EngineApp->renderer3D->m_BlendAutoFunctionsVec;
-	int index1 = (int)m_CurrBlendAutoFunc;
-	if (EngineApp->gui->HandleDropdownSelector(index1, "##AlphaAutoFunction", blendAutoF_Vec.data(), blendAutoF_Vec.size()))
+	if (EngineApp->gui->HandleDropdownSelector(m_CurrBlendAutoFunc, "##AlphaAutoFunction", blendAutoF_Vec.data(), blendAutoF_Vec.size()))
 	{
-		m_CurrBlendAutoFunc = (Broken::BlendAutoFunction)index1;
 		makeChanges = true;
 	}
 
@@ -251,10 +252,8 @@ void PanelRendering::BlendingSettings(bool& makeChanges)
 			ImGui::SetNextItemWidth(200.0f);
 
 			std::vector<const char*> blendTypes_Vec = EngineApp->renderer3D->m_AlphaTypesVec;
-			int index2 = (int)m_CurrentAlphaSrc;
-			if (EngineApp->gui->HandleDropdownSelector(index2, "##ManualAlphaSrc", blendTypes_Vec.data(), blendTypes_Vec.size()))
+			if (EngineApp->gui->HandleDropdownSelector(m_CurrentAlphaSrc, "##ManualAlphaSrc", blendTypes_Vec.data(), blendTypes_Vec.size()))
 			{
-				m_CurrentAlphaSrc = (Broken::BlendingTypes)index2;
 				makeChanges = true;
 			}
 
@@ -264,10 +263,8 @@ void PanelRendering::BlendingSettings(bool& makeChanges)
 			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
 			ImGui::SetNextItemWidth(200.0f);
 
-			int index3 = (int)m_CurrentAlphaDst;
-			if (EngineApp->gui->HandleDropdownSelector(index3, "##ManualAlphaDst", blendTypes_Vec.data(), blendTypes_Vec.size()))
+			if (EngineApp->gui->HandleDropdownSelector(m_CurrentAlphaDst, "##ManualAlphaDst", blendTypes_Vec.data(), blendTypes_Vec.size()))
 			{
-				m_CurrentAlphaDst = (Broken::BlendingTypes)index3;
 				makeChanges = true;
 			}
 
@@ -303,6 +300,42 @@ void PanelRendering::PostProcessingSettings(bool& makeChanges)
 	if (EngineApp->renderer3D->m_UseColorCorrection)
 	{
 		//MYTODO: Sergi TBA
+		// Show Texture Image
+		Broken::ResourceTexture *LUT = EngineApp->renderer3D->GetLUT();
+
+		if (LUT)
+			ImGui::ImageButton((void *)(uint)LUT->GetPreviewTexID(), ImVec2(20, 20));
+		else
+			ImGui::ImageButton(NULL, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 2);
+
+		// Handle drag & drop
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("resource"))
+			{
+				uint UID = *(const uint *)payload->Data;
+				Broken::Resource *resource = EngineApp->resources->GetResource(UID, false);
+
+				if (resource && resource->GetType() == Broken::Resource::ResourceType::TEXTURE)
+				{
+					Broken::ResourceTexture *newLUT = (Broken::ResourceTexture *)resource;
+
+					if (newLUT->Texture_height == 16 && newLUT->Texture_width == 16 * 16)
+						EngineApp->renderer3D->SetLUT(UID);
+				}
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+		ImGui::SameLine();
+		ImGui::Text("LUT");
+
+		// Unuse LUT
+		ImGui::SameLine();
+		if (ImGui::Button("Unuse LUT", {77, 18}) && LUT)
+		{
+			EngineApp->renderer3D->SetLUT(0);
+		}
 	}
 
 	ImGui::NewLine();

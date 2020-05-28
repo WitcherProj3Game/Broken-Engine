@@ -194,7 +194,8 @@ public:
 	float3 GetPostProBloomBrightnessThreshold() const;
 	void GetPostProBloomBlur(uint& amount);
 	void GetPostProBloomWeights(float3& weights1, float2& weights2);
-	void SetLUT(ResourceTexture* newLUT);
+	void SetLUT(uint newLUTUID);
+	ResourceTexture* GetLUT() const { return currentLUT; }
 
 private:
 
@@ -311,7 +312,7 @@ private:
 	std::vector<ComponentLight*> m_LightsVec;
 
 	//LUT
-	uint currentLUT = 0;
+	ResourceTexture* currentLUT = nullptr;
 
 
 	//Other Generic Stuff

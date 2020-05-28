@@ -1,7 +1,6 @@
 #ifndef __PANEL_RENDERING_H__
 #define __PANEL_RENDERING_H__
 
-#include "ModuleRenderer3D.h"
 #include "Panel.h"
 #include "Math.h"
 
@@ -42,12 +41,12 @@ private:
 	float2 m_PPBloom_Weights2 = float2(0.0540540541, 0.0162162162);
 
 	//Alpha Functions
-	Broken::BlendAutoFunction m_CurrBlendAutoFunc = Broken::BlendAutoFunction::STANDARD_INTERPOLATIVE;
-	Broken::BlendingEquations m_CurrBlendEquation = Broken::BlendingEquations::ADD;
+	int m_CurrBlendAutoFunc;
+	int m_CurrBlendEquation;
 
 	//Alpha Manual Functions
-	Broken::BlendingTypes m_CurrentAlphaSrc = Broken::BlendingTypes::SRC_ALPHA;
-	Broken::BlendingTypes m_CurrentAlphaDst = Broken::BlendingTypes::ONE_MINUS_SRC_ALPHA;
+	int m_CurrentAlphaSrc;
+	int m_CurrentAlphaDst;
 };
 
 #endif

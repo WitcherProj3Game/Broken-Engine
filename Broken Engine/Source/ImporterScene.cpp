@@ -6,6 +6,7 @@
 #include "ModuleDetour.h"
 
 #include "ResourceScene.h"
+#include "ResourceTexture.h"
 #include "GameObject.h"
 #include "ImporterMeta.h"
 #include "ResourceMeta.h"
@@ -90,7 +91,11 @@ void ImporterScene::SaveSceneToFile(ResourceScene* scene) const
 	file["ScenePostProcessing"]["HDRUsage"] = App->renderer3D->m_UseHDR;
 	file["ScenePostProcessing"]["HDRExposure"] = scene->m_ScenePP_HDRExposure;
 	file["ScenePostProcessing"]["PPGammaCorrection"] = scene->m_ScenePP_GammaCorr;
-
+	file["ScenePostProcessing"]["useColorCorrection"] = App->renderer3D->m_UseColorCorrection;
+	{
+	ResourceTexture* LUT = App->renderer3D->GetLUT();
+	file["ScenePostProcessing"]["LUTuid"] = LUT ? LUT->GetUID() : 0;
+	}
 
 	// --- Octree Data ---
 	//Before loading static objects, load the dimensions of the tree

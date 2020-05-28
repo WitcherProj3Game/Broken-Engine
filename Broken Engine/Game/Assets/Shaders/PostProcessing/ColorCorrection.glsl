@@ -21,19 +21,22 @@ in vec4 gl_FragCoord;
 
 void main()
 {
-    vec3 textureColor = texture(screenTexture, gl_FragCoord.xy / textureSize(screenTexture, 0)).rgb;
-    
-
-	// Calculate the indices inside LUT
-	int redIndex = textureColor.r / 17;
-    int greenIndex = textureColor.g / 17;
-	int blueIndex = textureColor.b / 17;
-
+    vec3 textureColor = texture2D(screenTexture, gl_FragCoord.xy / textureSize(screenTexture, 0)).rgb;
+	vec3 indexedColor = textureColor * 15;
     // Coordinates inside the LUT texture
-    vec2 LUTPosition = (16 * blueIndex + redIndex, greenIndex);
+    ivec2 LUTPosition1;
+	LUTPosition1.x = int((floor(indexedColor.b) * 16) + round(indexedColor.r));
+	LUTPosition1.y = int(15 - round(indexedColor.g)); // y is inverted
 
-	vec3 finalColor = texture(LUTTexture, LUTPosition).rgb;
+	vec3 filteredColor1 = texelFetch(LUTTexture, LUTPosition1, 0).rgb;
 
+	ivec2 LUTPosition2;
+	LUTPosition2.x = int((ceil(indexedColor.b) * 16) + round(indexedColor.r));
+	LUTPosition2.y = int(15 - round(indexedColor.g)); // y is inverted
+
+	vec3 filteredColor2 = texelFetch(LUTTexture, LUTPosition2, 0).rgb;
+
+	vec3 finalColor = mix(filteredColor1, filteredColor2, fract(indexedColor.b));
 	// --- Output Fragment Color ---
 	FragColor = vec4(finalColor, 1.0);
 }

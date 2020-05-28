@@ -8,7 +8,6 @@
 
 BE_BEGIN_NAMESPACE
 class GameObject;
-class ResourceTexture;
 
 class BROKEN_API ResourceScene : public Resource
 {
@@ -61,8 +60,6 @@ private:
 	
 	float3 m_ScenePP_BlurWeights1 = float3(0.2270270270, 0.1945945946, 0.1216216216);
 	float2 m_ScenePP_BlurWeights2 = float2(0.0540540541, 0.0162162162);
-
-	ResourceTexture* LUT = nullptr;
 
 	//Blending Stuff
 	bool m_SceneAutoBlend = true;

@@ -296,6 +296,17 @@ void PanelRendering::PostProcessingSettings(bool& makeChanges)
 
 	ImGui::NewLine();
 
+	// --- Use Color Correction and texture loading ---
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
+	ImGui::Checkbox("Color Correction", &EngineApp->renderer3D->m_UseColorCorrection)
+
+	if (EngineApp->renderer3D->m_UseColorCorrection)
+	{
+		//MYTODO: Sergi TBA
+	}
+
+	ImGui::NewLine();
+
 	// --- Use HDR & Exposure Slider ---
 	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
 	if (ImGui::Checkbox("Use HDR", &EngineApp->renderer3D->m_UseHDR))

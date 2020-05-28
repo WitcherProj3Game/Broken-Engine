@@ -11,6 +11,9 @@
 #include "ModulePhysics.h"
 #include "ModuleRenderer3D.h"
 
+// --- Resources ---
+#include "ResourceTexture.h"
+
 #include "GameObject.h"
 
 #include "ImporterScene.h"
@@ -335,19 +338,27 @@ bool ResourceScene::LoadInMemory()
 
 		//Scene Post-Pro
 		bool useHDR = false;
+		bool useColorCorrection = false;
 		float HDRExp = 1.0f, PPGammaCorr = 1.0f;
+		uint LUTuid = 0;
+
 		if (file.find("ScenePostProcessing") != file.end())
 		{
 			json filePP = file["ScenePostProcessing"];
 			useHDR = filePP.find("HDRUsage") == filePP.end() ? 1.0f : filePP["HDRUsage"].get<bool>();
 			HDRExp = filePP.find("HDRExposure") == filePP.end() ? 1.0f : filePP["HDRExposure"].get<float>();
 			PPGammaCorr = filePP.find("PPGammaCorrection") == filePP.end() ? 1.0f : filePP["PPGammaCorrection"].get<float>();
-			LUTuid = file["LUTuid"].is_null() ? 0 : file["LUTuid"];
+			LUTuid = file["LUTuid"].is_null() ? 0 : file["LUTuid"].get<uint>();
+			useColorCorrection = file["useColorCorrection"].is_null() ? false : file["useColorCorrection"].get<bool>();
 		}
+
+		LUT = App->resources->GetResource<ResourceTexture*>(LUTuid, true);
 
 		App->renderer3D->m_UseHDR = useHDR;
 		App->renderer3D->SetPostProHDRExposure(HDRExp);
 		App->renderer3D->SetPostProGammaCorrection(PPGammaCorr);
+		App->renderer3D->m_UseColorCorrection = useColorCorrection;
+		App->renderer3D->SetLUT(LUT);
 	}
 
 	return true;

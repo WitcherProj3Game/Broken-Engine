@@ -298,7 +298,7 @@ void PanelRendering::PostProcessingSettings(bool& makeChanges)
 
 	// --- Use Color Correction and texture loading ---
 	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 23.0f);
-	ImGui::Checkbox("Color Correction", &EngineApp->renderer3D->m_UseColorCorrection)
+	ImGui::Checkbox("Color Correction", &EngineApp->renderer3D->m_UseColorCorrection);
 
 	if (EngineApp->renderer3D->m_UseColorCorrection)
 	{

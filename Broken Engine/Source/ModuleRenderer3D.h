@@ -4,7 +4,6 @@
 #include "Module.h"
 #include "Color.h"
 #include "Math.h"
-#include "LUT/lut.hpp"
 
 #define MAX_LIGHTS 8
 

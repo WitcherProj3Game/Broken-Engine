@@ -312,11 +312,21 @@ void ComponentParticleEmitter::SortParticles()
 			if (*flagsIt & physx::PxParticleFlag::eVALID)
 			{
 
-				float distance = App->renderer3D->active_camera->frustum.NearPlane().Distance(particles[i]->position);	
+				float distance = 1.0f/App->renderer3D->active_camera->frustum.NearPlane().Distance(particles[i]->position);
 
 				//drawingIndices[1.0f / distance] = i;
-				particles[i]->distanceToCam = 1.0f / distance;
-				App->particles->particlesToDraw[1.0f / distance] = particles[i];
+
+				bool particleSent = false;
+				while (!particleSent) {
+					if (App->particles->particlesToDraw.find(distance) == App->particles->particlesToDraw.end()) {
+						App->particles->particlesToDraw[distance] = particles[i];
+						particles[i]->distanceToCam = distance;
+						particleSent = true;
+					}
+					else
+						distance -= 0.00001;
+
+				}
 			}
 		}
 

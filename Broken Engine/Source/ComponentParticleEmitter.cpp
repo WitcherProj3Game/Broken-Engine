@@ -881,20 +881,24 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	ImGui::Text("Play on awake");
 
 	// --- Loop ---
-	ImGui::NewLine();
 	if (ImGui::Checkbox("##PELoop", &loop))
-		if (loop) {
-			emisionActive = true;
-			firstEmision = true;
-		}
-	
-	ImGui::SameLine();
-	ImGui::Text("Loop");
+	if (loop)
+	{
+		emisionActive = true;
+		firstEmision = true;
+	}
 
+	ImGui::SameLine(); ImGui::Text("Loop");
+
+	//Follow emitter
+	ImGui::Checkbox("##SFollow emitter", &followEmitter);
+	ImGui::SameLine(); ImGui::Text("Follow emitter");	
+	
+	// Duration
+	ImGui::NewLine();
 	ImGui::Text("Duration");
 	ImGui::SameLine();
 	ImGui::DragInt("##PEDuration", &duration);
-
 	
 
 	//Emitter position
@@ -1014,12 +1018,8 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	if (forceChanged)
 		particleSystem->setExternalAcceleration(externalAcceleration);
 
-
-	//Follow emitter
-	ImGui::Text("Follow emitter");
-	ImGui::Checkbox("##SFollow emitter", &followEmitter);
-
 	//Emision rate
+	ImGui::NewLine();
 	ImGui::Text("Emision rate (ms)");
 	ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.3f);
 	ImGui::DragFloat("##SEmision rate", &emisionRate, 1.0f, 1.0f, 100000.0f);
@@ -1076,14 +1076,17 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	int maxParticles = particlesPerCreation / emisionRate * particlesLifeTime;
 	ImGui::Text("Total particles alive: %d", maxParticles);
+
+	ImGui::NewLine();
 	ImGui::Separator();
 
 	// --- Collisions ---
 	if (ImGui::TreeNode("Collision Options"))
 	{
-		ImGui::Text("Enable Collisions");
 		if (ImGui::Checkbox("##PE_EnableColl", &collision_active))
 			SetActiveCollisions(collision_active);
+		
+		ImGui::SameLine(); ImGui::Text("Enable Collisions");
 		ImGui::TreePop();
 	}
 
@@ -1441,7 +1444,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	{
 		// Shadows & Lighting
 		ImGui::NewLine();
-		ImGui::SameLine();
+		ImGui::NewLine(); ImGui::SameLine();
 		ImGui::Checkbox("Light Affected ", &m_AffectedByLight);
 		ImGui::SameLine();
 		ImGui::Checkbox("Scene Color Affected", &m_AffectedBySceneColor);

@@ -87,6 +87,24 @@ void ComponentButton::Update()
 
 	if (to_delete)
 		this->GetContainerGameObject()->RemoveComponent(this);
+
+
+	if (func_list[func_pos] != func_name)
+	{
+		func_list.clear();
+		func_list.push_back("None");
+		for (uint i = 0; i < script->script_functions.size(); ++i)
+			func_list.push_back(script->script_functions[i].name.c_str());
+
+		for (uint i = 0; i < func_list.size(); ++i) //get function pos
+		{
+			if (strcmp(func_list[i], func_name.c_str()) == 0)
+			{
+				func_pos = i;
+				break;
+			}
+		}
+	}
 }
 
 void ComponentButton::Draw()
@@ -246,7 +264,7 @@ void ComponentButton::Load(json& node)
 	if (script_obj)
 	{
 		script = (ComponentScript*)script_obj->HasComponent(Component::ComponentType::Script);
-
+		 
 		if (script != nullptr)
 		{
 			func_name = function_str.c_str();

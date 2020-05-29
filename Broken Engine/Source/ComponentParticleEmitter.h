@@ -13,10 +13,10 @@ class Particle;
 class ResourceTexture;
 class CurveEditor;
 
-
 class BROKEN_API ComponentParticleEmitter : public Component
 {
 	friend class ModuleParticles;
+	friend struct HigherPriority;
 public:
 
 	ComponentParticleEmitter(GameObject* ContainerGO);
@@ -28,7 +28,7 @@ public:
 	void Disable() override;
 
 	void UpdateParticles(float dt);
-	void DrawParticles();
+	void DrawParticles(bool shadowsPass);
 	void ChangeParticlesColor(float4 color);
 
 	static inline Component::ComponentType GetType() { return Component::ComponentType::ParticleEmitter; };
@@ -36,8 +36,10 @@ public:
 	// --- Save & Load ---
 	json Save() const override;
 	void Load(json& node) override;
-	void CreateInspectorNode() override;
 
+	// -- Other functionalities
+	void CreateInspectorNode() override;
+	void DrawEmitterArea();
 
 	//Scripting functions
 	//Emitter
@@ -81,6 +83,9 @@ private:
 	double GetRandomValue(double min, double max); //MUST EREASE IN THE FUTURE
 	void HandleEditorBlendingSelector();
 
+	// -- Decide if particles collide with the envioronment or not --
+	void SetActiveCollisions(bool collisionsActive);
+
 private:
 	physx::PxParticleSystem* particleSystem = nullptr;
 
@@ -102,7 +107,7 @@ private:
 	float3 eulerRotation = float3::zero;
 	Quat emitterRotation = Quat::identity;
 	int particlesPerCreation = 1;
-	physx::PxVec3 size = { 0,0,0 };
+	physx::PxVec3 size = { 0.01,0.01,0.01 };
 	float emisionRate = 500.0f;	//in milliseconds
 	physx::PxVec3 externalAcceleration = { 0,10,0 };
 	physx::PxVec3 particlesVelocity = { 0,0,0 };
@@ -110,20 +115,29 @@ private:
 	physx::PxVec3 velocityRandomFactor2 = { 0,0,0 };
 	bool loop = true;
 	bool emisionActive = true;
+	bool playOnAwake = false;
 	int duration = 1000;
 	uint emisionStart = 0;
+
+	//Sprite rotations
 	bool rotationActive = false;
 	int rotationOvertime1[3] = { 0,0,0 };
 	int rotationOvertime2[3] = { 0,0,0 };
 	bool separateAxis = false;
+	bool randomInitialRotation = false;
+	int minInitialRotation[3] = { 0,0,0 };
+	int maxInitialRotation[3] = { 0,0,0 };
 
 	bool verticalBillboarding = false;
 	bool horizontalBillboarding = false;
+	bool particlesBillboarding = true;
+	bool particlesFaceCulling = true;
 
 	//Animation
 	int tileSize_X = 1;
 	int tileSize_Y = 1;
 	int startFrame = 0;
+	bool randomStartFrame = false;
 	float cycles = 1;
 
 	//Particle properties
@@ -137,6 +151,8 @@ private:
 	ResourceTexture* texture = nullptr;
 	int lifetimeconstants = 0;
 	int velocityconstants = 0;
+	bool followEmitter = true;
+	bool collision_active = true;
 
 	//Colors
 	bool colorGradient = false;
@@ -160,6 +176,21 @@ private:
 	BlendAutoFunction m_PartBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
 	BlendingTypes m_MPartBlend_Src = BlendingTypes::SRC_ALPHA, m_MPartBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
 
+	//Lighting
+	bool m_AffectedByLight = true;
+	bool m_AffectedBySceneColor = true;
+	bool m_CastShadows = true;
+	bool m_ReceiveShadows = true;
+	bool m_OnlyShadows = false;
+
+	//Drawing
+	bool playNow = false;
+
+	//Rendering
+	int priority = 0;
+
+	//Debug Drawing
+	OBB emisionAreaOBB;
 };
 BE_END_NAMESPACE
 

@@ -10,6 +10,7 @@ BE_BEGIN_NAMESPACE
 
 class ComponentCanvas;
 class ResourceTexture;
+class ComponentImage;
 
 class BROKEN_API ComponentProgressBar : public UI_Element
 {
@@ -29,18 +30,26 @@ public:
 
 	static inline Component::ComponentType GetType() { return Component::ComponentType::ProgressBar; }
 
-	//Scripting function
+	// --- Scripting functions ---
 	void SetPercentage(float p) { percentage = p; }
 	float GetPercentage() { return percentage; }
+
+	void SetTopColor(Color color) { colorP1 = color; }
+	const Color GetTopColor() const { return colorP1; }
+	void SetBotColor(Color color) { colorP2 = color; }
+	const Color GetBotColor() const { return colorP2; }
 
 private:
 	Color colorP1 = { 1.0f, 1.0f, 1.0f, 1.0f };
 	Color colorP2 = { 1.0f, 1.0f, 1.0f, 1.0f };
 	float percentage = 100.0f;
 
+	ComponentImage* background_image;
+	ComponentImage* bar_image;
+	bool created = false;
+	bool constraint_with_background = true;
 public:
-	ComponentCanvas* canvas = nullptr;
-	ResourceTexture* texture = nullptr;
+	//ResourceTexture* texture = nullptr;
 };
 
 BE_END_NAMESPACE

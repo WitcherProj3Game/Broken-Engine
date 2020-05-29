@@ -29,9 +29,14 @@ public:
 
 	static inline Component::ComponentType GetType() { return Component::ComponentType::CircularBar; }
 
-	//Scripting function
+	// --- Scripting functions ---
 	void SetPercentage(float p) { percentage = p; }
 	float GetPercentage() { return percentage; }
+
+	void SetTopColor(Color color) { colorP1 = color; }
+	const Color GetTopColor() const { return colorP1; }
+	void SetBotColor(Color color) { colorP2 = color; }
+	const Color GetBotColor() const { return colorP2; }
 
 public:
 	bool axis = 0;
@@ -42,7 +47,6 @@ private:
 	float percentage = 100.0f;
 
 public:
-	ComponentCanvas* canvas = nullptr;
 	ResourceTexture* texture = nullptr;
 };
 

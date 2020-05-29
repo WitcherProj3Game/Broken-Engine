@@ -34,6 +34,33 @@ uint ScriptingGameobject::FindGameObject(const char* go_name)
 	return ret;
 }
 
+luabridge::LuaRef ScriptingGameobject::GetGOChilds(uint gameobject_UUID, lua_State* L) const
+{
+	luabridge::LuaRef table(L, luabridge::newTable(L));
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go != nullptr)
+	{
+		if (go->childs.size() > 0)
+		{
+			for (int i = 0; i < go->childs.size(); ++i)
+			{
+				uint sonID = go->childs[i]->GetUID();
+				if (sonID != 0)
+					table.append(sonID);
+				else
+					ENGINE_CONSOLE_LOG("![Script]: (GetGOChilds) Gameobject %d has a child that does not exist!", gameobject_UUID);
+			}
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (GetGOChilds) Gameobject %d has no childs!", gameobject_UUID);
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (GetGOChilds) Gameobject with UID %d does not exist!", gameobject_UUID);
+
+	return table;
+}
+
 uint ScriptingGameobject::FindChildGameObject(const char* go_name)
 {
 	uint ret = 0;

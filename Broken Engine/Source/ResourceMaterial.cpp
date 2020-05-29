@@ -127,9 +127,9 @@ void ResourceMaterial::CreateInspectorNode()
 	}
 
 	// --- Bools ---
-	ImGui::Text("Use Textures");
+	ImGui::NewLine();
 	ImGui::SameLine();
-	if(ImGui::Checkbox("##CB", &m_UseTexture)) save_material = true;
+	if(ImGui::Checkbox("Use Textures", &m_UseTexture)) save_material = true;
 	ImGui::SameLine();
 	if (ImGui::Checkbox("Transparencies", &has_transparencies)) save_material = true;
 	ImGui::SameLine();
@@ -137,16 +137,18 @@ void ResourceMaterial::CreateInspectorNode()
 
 	// --- Color ---
 	ImGui::Separator();
+	ImGui::NewLine();
 	if(ImGui::ColorEdit4("##AmbientColor", (float*)&m_AmbientColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar))
 		save_material = true;
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 	ImGui::Text("MatAmbientColor");
+	if (ImGui::Checkbox("Scene Color Affected", &m_AffectedBySceneColor)) save_material = true;
 
 	//--- Shininess ---
 	ImGui::Text("Shininess");
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 	ImGui::SetNextItemWidth(300.0f);
-	if(ImGui::SliderFloat("", &m_Shininess, -2.0f, 500.00f)) 
+	if(ImGui::SliderFloat("", &m_Shininess, -0.5f, 500.00f))
 		save_material = true;
 
 	// --- Print Texture Width and Height (Diffuse) ---

@@ -63,15 +63,20 @@ void ComponentMeshRenderer::DrawComponent()
 	if (checkers)
 		flags |= checkers;
 
+	if (cast_shadows)
+		flags |= castShadows;
+
+	if (receive_shadows)
+		flags |= receiveShadows;
+
+	if(light_affected)
+		flags |= lightAffected;
+
 	if (cmesh && cmesh->resource_mesh && material)
 	{
-		App->renderer3D->DrawMesh(GO->GetComponent<ComponentTransform>()->GetGlobalTransform(), cmesh->resource_mesh, material, cmesh->deformable_mesh, flags);
+		App->renderer3D->DrawMesh(GO->GetComponent<ComponentTransform>()->GetGlobalTransform(), cmesh->resource_mesh, material, cmesh->deformable_mesh, flags, Broken::White, only_shadows);
 		DrawNormals(*cmesh->resource_mesh, *GO->GetComponent<ComponentTransform>());
 	}
-}
-
-void ComponentMeshRenderer::DrawMesh(ResourceMesh& mesh) const 
-{
 }
 
 void ComponentMeshRenderer::DrawNormals(const ResourceMesh& mesh, const ComponentTransform& transform) const
@@ -127,6 +132,12 @@ json ComponentMeshRenderer::Save() const
 {
 	json node;
 	node["Active"] = this->active;
+
+	node["CastsShadows"] = cast_shadows;
+	node["ReceivesShadows"] = receive_shadows;
+	node["OnlyShadows"] = only_shadows;
+	node["LightAffected"] = light_affected;
+
 	node["Resources"]["ResourceMaterial"]["path"];
 
 	if (material)
@@ -138,6 +149,11 @@ json ComponentMeshRenderer::Save() const
 void ComponentMeshRenderer::Load(json& node)
 {
 	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
+
+	cast_shadows = node.find("CastsShadows") == node.end() ? true : node["CastsShadows"].get<bool>();
+	receive_shadows = node.find("ReceivesShadows") == node.end() ? true : node["ReceivesShadows"].get<bool>();
+	only_shadows = node.find("OnlyShadows") == node.end() ? false : node["OnlyShadows"].get<bool>();
+	light_affected = node.find("LightAffected") == node.end() ? true : node["LightAffected"].get<bool>();
 
 	std::string mat_path = node["Resources"]["ResourceMaterial"]["path"].is_null() ? "0" : node["Resources"]["ResourceMaterial"]["path"];
 	ImporterMeta* IMeta = App->resources->GetImporter<ImporterMeta>();
@@ -177,17 +193,51 @@ void ComponentMeshRenderer::ONResourceEvent(uint UID, Resource::ResourceNotifica
 
 void ComponentMeshRenderer::CreateInspectorNode()
 {
+	// --- Mesh Node ---
 	ImGui::Checkbox("Vertex Normals", &draw_vertexnormals);
 	ImGui::SameLine();
 	ImGui::Checkbox("Face Normals  ", &draw_facenormals);
 	ImGui::SameLine();
 	ImGui::Checkbox("Checkers", &checkers);
 
+	// --- Shadows Node ---
 	ImGui::NewLine();
 	ImGui::Separator();
-	ImGui::PushID("Material");
+	ImGui::Text("Shadowing");
+
+	ImGui::Text("Cast Shadows"); ImGui::SameLine();
+	if (ImGui::Checkbox("##CastSH", &cast_shadows))
+	{
+		if (only_shadows)
+			cast_shadows = true;
+	}
+
+	ImGui::Text("Receive Shadows"); ImGui::SameLine();
+	if (ImGui::Checkbox("##ReceiveSH", &receive_shadows))
+	{
+		if (only_shadows)
+			receive_shadows = false;
+	}
+	
+	ImGui::Text("Only Shadows"); ImGui::SameLine();
+	if (ImGui::Checkbox("##OnlySH", &only_shadows))
+	{
+		if (only_shadows)
+		{
+			cast_shadows = true;
+			receive_shadows = false;
+		}
+	}
 
 	// --- Material node ---
+	ImGui::NewLine();
+	ImGui::Separator();
+
+	ImGui::Text("Light Affected"); ImGui::SameLine();
+	ImGui::Checkbox("##LightAff", &light_affected);
+	ImGui::NewLine();	
+
+	ImGui::PushID("Material");
 	if (material)
 	{
 		bool save_material = false;
@@ -238,9 +288,9 @@ void ComponentMeshRenderer::CreateInspectorNode()
 				// --- UNIFORMS ---
 				material->DisplayAndUpdateUniforms();
 
-				ImGui::Text("Use Textures");
+				ImGui::NewLine();
 				ImGui::SameLine();
-				if(ImGui::Checkbox("##CB", &material->m_UseTexture)) save_material = true;
+				if(ImGui::Checkbox("Use Textures", &material->m_UseTexture)) save_material = true;
 				ImGui::SameLine();
 				if (ImGui::Checkbox("Transparencies", &material->has_transparencies)) save_material = true;
 				ImGui::SameLine();
@@ -248,15 +298,17 @@ void ComponentMeshRenderer::CreateInspectorNode()
 
 				//Color
 				ImGui::Separator();
+				ImGui::NewLine();
 				if(ImGui::ColorEdit4("##AmbientColor", (float*)&material->m_AmbientColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar)) save_material = true;
 				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 				ImGui::Text("Ambient Color");
+				if (ImGui::Checkbox("Scene Color Affected", &material->m_AffectedBySceneColor)) save_material = true;
 
 				//Shininess
 				ImGui::Text("Shininess");
 				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 				ImGui::SetNextItemWidth(300.0f);
-				if(ImGui::SliderFloat("", &material->m_Shininess, -2.0f, 500.00f, "%.3f", 1.5f)) save_material = true;
+				if(ImGui::SliderFloat("", &material->m_Shininess, -0.5f, 500.00f, "%.3f", 1.5f)) save_material = true;
 
 				//ImGui::Text("Shader Uniforms");
 

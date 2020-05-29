@@ -306,8 +306,15 @@ void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms)
 			|| strcmp(name, "u_GammaCorrection") == 0
 			|| strcmp(name, "u_AmbientColor") == 0
 			|| strcmp(name, "u_HasTransparencies") == 0
+			|| strcmp(name, "u_LightAffected") == 0
+			|| strcmp(name, "u_SceneColorAffected") == 0
 			|| strcmp(name, "u_IsText") == 0
 			|| strcmp(name, "u_Exposure") == 0
+			|| strcmp(name, "u_ReceiveShadows") == 0
+			|| strcmp(name, "u_ShadowIntensity") == 0	|| strcmp(name, "u_ShadowBias") == 0				|| strcmp(name, "u_ShadowsSmoothMultiplicator") == 0
+			|| strcmp(name, "u_ShadowPoissonBlur") == 0	|| strcmp(name, "u_ShadowOffsetBlur") == 0			|| strcmp(name, "u_ShadowPCFDivisor") == 0
+			|| strcmp(name, "u_ShadowSmootherPCF") == 0	|| strcmp(name, "u_ShadowSmootherPoissonDisk") == 0	|| strcmp(name, "u_ShadowSmootherBoth") == 0
+			|| strcmp(name, "u_ClampShadows") == 0
 			|| std::string(name).find("u_BkLights") != std::string::npos
 			|| strcmp(name, "time") == 0)
 			continue;

@@ -92,27 +92,30 @@ void ImporterPrefab::Save(ResourcePrefab* prefab) const
 
 		for (int i = 0; i < prefab_gos.size(); ++i)
 		{
+			std::string string_uid = std::to_string(prefab_gos[i]->GetUID());
+
 			// --- Create GO Structure ---
-			file[prefab_gos[i]->GetName()];
-			file[prefab_gos[i]->GetName()]["UID"] = std::to_string(prefab_gos[i]->GetUID());
-			file[prefab_gos[i]->GetName()]["Active"] = prefab_gos[i]->GetActive();
-			file[prefab_gos[i]->GetName()]["Static"] = prefab_gos[i]->Static;
+			file[string_uid];
+			file[string_uid]["Name"] = prefab_gos[i]->GetName();
+			//file[string_uid]["UID"] = std::to_string(prefab_gos[i]->GetUID());
+			file[string_uid]["Active"] = prefab_gos[i]->GetActive();
+			file[string_uid]["Static"] = prefab_gos[i]->Static;
 			//file[prefab_gos[i]->GetName()]["Index"] = prefab_gos[i]->index;
 			//file[prefab_gos[i]->GetName()]["Navigation Static"] = prefab_gos[i]->navigationStatic;
 			//file[prefab_gos[i]->GetName()]["Navigation Area"] = prefab_gos[i]->navigationArea;
-			file[prefab_gos[i]->GetName()]["Parent"] = std::to_string(prefab_gos[i]->parent->GetUID());
-			file[prefab_gos[i]->GetName()]["Components"];
-			file[prefab_gos[i]->GetName()]["PrefabChild"] = true;
-			file[prefab_gos[i]->GetName()]["PrefabInstance"] = prefab_gos[i]->is_prefab_instance;
+			file[string_uid]["Parent"] = std::to_string(prefab_gos[i]->parent->GetUID());
+			file[string_uid]["Components"];
+			file[string_uid]["PrefabChild"] = true;
+			file[string_uid]["PrefabInstance"] = prefab_gos[i]->is_prefab_instance;
 
 
 			if (prefab_gos[i]->model)
-				file[prefab_gos[i]->GetName()]["Model"] = std::string(prefab_gos[i]->model->GetOriginalFile());
+				file[string_uid]["Model"] = std::string(prefab_gos[i]->model->GetOriginalFile());
 
 			for (int j = 0; j < prefab_gos[i]->GetComponents().size(); ++j)
 			{
 				// --- Save Components to file ---
-				file[prefab_gos[i]->GetName()]["Components"][std::to_string((uint)prefab_gos[i]->GetComponents()[j]->GetType())] = prefab_gos[i]->GetComponents()[j]->Save();
+				file[string_uid]["Components"][std::to_string((uint)prefab_gos[i]->GetComponents()[j]->GetType())] = prefab_gos[i]->GetComponents()[j]->Save();
 				//file[prefab_gos[i]->GetName()]["Components"][std::to_string((uint)prefab_gos[i]->GetComponents()[j]->GetType())]["index"] = i;
 				//file[prefab_gos[i]->GetName()]["Components"][std::to_string((uint)prefab_gos[i]->GetComponents()[j]->GetType())]["UID"] = prefab_gos[i]->GetComponents()[j]->GetUID();
 			}

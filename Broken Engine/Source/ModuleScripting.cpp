@@ -686,7 +686,7 @@ void ModuleScripting::FillScriptInstanceComponentVars(ScriptInstance* script) {
 				}
 			}
 			else {
-				script->my_component->AddVariable(variable);
+				script->my_component->SetVariable(variable);
 			}
 		}
 	}
@@ -959,7 +959,7 @@ update_status ModuleScripting::Update(float realDT)
 	OPTICK_CATEGORY("Scripting Update", Optick::Category::Script);
 
 	// If a script was changed during runtime, hot reload
-	if (App->GetAppState() == AppState::EDITOR && hot_reloading_waiting) // Ask Aitor if this is correct (condition should return true only when no gameplay is being played)
+	if (!App->isGame && App->GetAppState() == AppState::EDITOR && hot_reloading_waiting) // Ask Aitor if this is correct (condition should return true only when no gameplay is being played)
 		DoHotReloading();
 
 	if(App->GetAppState() != AppState::PLAY)

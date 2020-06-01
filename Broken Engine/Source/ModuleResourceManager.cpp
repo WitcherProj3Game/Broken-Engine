@@ -18,7 +18,11 @@
 
 #include "Assimp/include/cimport.h"
 
-#pragma comment (lib, "Assimp/libx86/assimp.lib")
+#ifndef _WIN64
+#	pragma comment (lib, "Assimp/libx86/assimp.lib")
+#else
+#	pragma comment (lib, "Assimp/libx64/assimp.lib")
+#endif
 
 #include "mmgr/mmgr.h"
 

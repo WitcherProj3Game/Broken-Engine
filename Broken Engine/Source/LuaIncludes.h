@@ -9,7 +9,11 @@ extern "C"
 }
 
 //LUA lib
-#pragma comment(lib, "lua-535/liblua53.a")
+#ifndef _WIN64
+#   pragma comment(lib, "lua-535/libx86/lua53.lib")
+#else
+#   pragma comment(lib, "lua-535/libx64/lua53.lib")
+#endif
 
 //LUABRIDGE MUST BE INCLUDED AFTER LUA
 #include "LuaBridge-241/include/luabridge.h"

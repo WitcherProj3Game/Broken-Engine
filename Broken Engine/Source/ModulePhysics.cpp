@@ -24,35 +24,47 @@
 #include "PhysX_3.4/Include/extensions/PxRaycastCCD.h"
 #include "PhysX_3.4/Include/cooking/PxCooking.h"
 
-#ifndef _DEBUG
-#pragma comment(lib, "PhysX_3.4/lib/Checked/PhysX3CHECKED_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Checked/PhysX3CommonCHECKED_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Checked/PhysX3ExtensionsCHECKED.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Checked/PxFoundationCHECKED_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Checked/PxPvdSDKCHECKED_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Checked/PhysX3CharacterKinematicCHECKED_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Checked/SceneQueryCHECKED.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Checked/PhysX3CookingCHECKED_x86.lib")
-/*
-#pragma comment(lib, "PhysX_3.4/lib/Release/PhysX3_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Release/PhysX3Common_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Release/PhysX3Extensions.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Release/PxFoundation_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Release/PxPvdSDK_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Release/PhysX3CharacterKinematic_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Release/SceneQuery.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Release/PhysX3Cooking_x86.lib")
-*/
+#ifndef _WIN64
+#	ifndef _DEBUG
+#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PhysX3CHECKED_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PhysX3CommonCHECKED_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PhysX3ExtensionsCHECKED.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PxFoundationCHECKED_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PxPvdSDKCHECKED_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PhysX3CharacterKinematicCHECKED_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Checked/SceneQueryCHECKED.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PhysX3CookingCHECKED_x86.lib")
+#	else
+#		pragma comment(lib, "PhysX_3.4/libx86/Debug/PhysX3CommonDEBUG_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Debug/PhysX3DEBUG_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Debug/PhysX3ExtensionsDEBUG.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Debug/PxFoundationDEBUG_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Debug/PxPvdSDKDEBUG_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Debug/PhysX3CharacterKinematicDEBUG_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Debug/SceneQueryDEBUG.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Debug/PhysX3CookingDEBUG_x86.lib")
+#	endif // _DEBUG
 #else
-#pragma comment(lib, "PhysX_3.4/lib/Debug/PhysX3CommonDEBUG_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Debug/PhysX3DEBUG_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Debug/PhysX3ExtensionsDEBUG.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Debug/PxFoundationDEBUG_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Debug/PxPvdSDKDEBUG_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Debug/PhysX3CharacterKinematicDEBUG_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Debug/SceneQueryDEBUG.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Debug/PhysX3CookingDEBUG_x86.lib")
-#endif // _DEBUG
+#	ifndef _DEBUG
+#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PhysX3CHECKED_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PhysX3CommonCHECKED_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PhysX3ExtensionsCHECKED.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PxFoundationCHECKED_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PxPvdSDKCHECKED_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PhysX3CharacterKinematicCHECKED_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Checked/SceneQueryCHECKED.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PhysX3CookingCHECKED_x64.lib")
+#	else
+#		pragma comment(lib, "PhysX_3.4/libx64/Debug/PhysX3CommonDEBUG_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Debug/PhysX3DEBUG_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Debug/PhysX3ExtensionsDEBUG.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Debug/PxFoundationDEBUG_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Debug/PxPvdSDKDEBUG_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Debug/PhysX3CharacterKinematicDEBUG_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Debug/SceneQueryDEBUG.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Debug/PhysX3CookingDEBUG_x64.lib")
+#	endif // _DEBUG
+#endif
 
 //#include "mmgr/mmgr.h"
 

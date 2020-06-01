@@ -9,9 +9,16 @@
 #include "DevIL/include/ilu.h"
 #include "DevIL/include/ilut.h"
 
-#pragma comment (lib, "DevIL/libx86/DevIL.lib")
-#pragma comment (lib, "DevIL/libx86/ILU.lib")
-#pragma comment (lib, "DevIL/libx86/ILUT.lib")
+#ifndef _WIN64
+#	pragma comment (lib, "DevIL/libx86/DevIL.lib")
+#	pragma comment (lib, "DevIL/libx86/ILU.lib")
+#	pragma comment (lib, "DevIL/libx86/ILUT.lib")
+#else
+#	pragma comment (lib, "DevIL/libx64/DevIL.lib")
+#	pragma comment (lib, "DevIL/libx64/ILU.lib")
+#	pragma comment (lib, "DevIL/libx64/ILUT.lib")
+#endif
+
 
 #include "mmgr/mmgr.h"
 

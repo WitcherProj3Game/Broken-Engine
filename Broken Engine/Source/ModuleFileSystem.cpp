@@ -10,8 +10,13 @@
 #include "Assimp/include/cfileio.h"
 #include "Assimp/include/types.h"
 
-#pragma comment( lib, "PhysFS/libx86/physfs.lib" )
-#pragma comment (lib, "Assimp/libx86/assimp.lib")
+#ifndef _WIN64
+#	pragma comment( lib, "PhysFS/libx86/physfs.lib" )
+#	pragma comment (lib, "Assimp/libx86/assimp.lib")
+#else
+#	pragma comment( lib, "PhysFS/libx64/physfs.lib" )
+#	pragma comment (lib, "Assimp/libx64/assimp.lib")
+#endif
 
 #include "mmgr/mmgr.h"
 

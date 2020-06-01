@@ -99,27 +99,33 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <IncludePath>$(ProjectDir)Wwise;$(ProjectDir)/PhysX_3.4/Include;$(ProjectDir)Freetype/include/freetype;$(ProjectDir)Freetype/include;$(ProjectDir)RecastNavigation/DetourTileCache/Include;$(ProjectDir)RecastNavigation/DebugUtils/Include;$(ProjectDir)RecastNavigation/Detour/Include;$(IncludePath)</IncludePath>
     <TargetName>$(ProjectName)</TargetName>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(ProjectDir)Wwise;$(ProjectDir)/PhysX_3.4/Include;$(ProjectDir)Freetype/include/freetype;$(ProjectDir)Freetype/include;$(ProjectDir)RecastNavigation/DetourTileCache/Include;$(ProjectDir)RecastNavigation/DebugUtils/Include;$(ProjectDir)RecastNavigation/Detour/Include;$(IncludePath)</IncludePath>
     <TargetName>$(ProjectName)</TargetName>
+    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <IncludePath>$(ProjectDir)Wwise;$(ProjectDir)/PhysX_3.4/Include;$(ProjectDir)Freetype/include/freetype;$(ProjectDir)Freetype/include;$(ProjectDir)RecastNavigation/DetourTileCache/Include;$(ProjectDir)RecastNavigation/DebugUtils/Include;$(ProjectDir)RecastNavigation/Detour/Include;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(ProjectDir)Wwise;$(ProjectDir)/PhysX_3.4/Include;$(ProjectDir)Freetype/include/freetype;$(ProjectDir)Freetype/include;$(ProjectDir)RecastNavigation/DetourTileCache/Include;$(ProjectDir)RecastNavigation/DebugUtils/Include;$(ProjectDir)RecastNavigation/Detour/Include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
-    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <IncludePath>$(ProjectDir)Wwise;$(ProjectDir)/PhysX_3.4/Include;$(ProjectDir)Freetype/include/freetype;$(ProjectDir)Freetype/include;$(ProjectDir)RecastNavigation/DetourTileCache/Include;$(ProjectDir)RecastNavigation/DebugUtils/Include;$(ProjectDir)RecastNavigation/Detour/Include;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Build|x64'">
     <IncludePath>$(ProjectDir)Wwise;$(ProjectDir)/PhysX_3.4/Include;$(ProjectDir)Freetype/include/freetype;$(ProjectDir)Freetype/include;$(ProjectDir)RecastNavigation/DetourTileCache/Include;$(ProjectDir)RecastNavigation/DebugUtils/Include;$(ProjectDir)RecastNavigation/Detour/Include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -138,7 +144,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(ProjectName).dll" "$(SolutionDir)Game\$(ProjectName).dll"</Command>
+      <Command>copy /Y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)Game\$(ProjectName).dll"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy dll into game folder</Message>
@@ -190,7 +196,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(ProjectName).dll" "$(SolutionDir)Game\$(ProjectName).dll"</Command>
+      <Command>copy /Y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)Game\$(ProjectName).dll"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy dll into game folder</Message>

@@ -256,6 +256,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("FindGameObject", &ScriptingGameobject::FindGameObject)
 		.addFunction("FindChildGameObject", &ScriptingGameobject::FindChildGameObject)
 		.addFunction("FindChildGameObjectFromGO", &ScriptingGameobject::FindChildGameObjectFromGO)
+		.addFunction("GetGOChilds", &ScriptingGameobject::GetGOChilds)
 		.addFunction("GetMyUID", &ScriptingGameobject::GetMyUID)
 		.addFunction("GetParent", &ScriptingGameobject::GetScriptGOParent)
 		.addFunction("GetGameObjectParent", &ScriptingGameobject::GetGOParentFromUID)
@@ -512,18 +513,23 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetText", &ScriptingInterface::SetUIText)
 		.addFunction("SetTextAndNumber", &ScriptingInterface::SetUITextAndNumber)
 		.addFunction("SetTextNumber", &ScriptingInterface::SetUITextNumber)
+		.addFunction("SetUIElementInteractable", &ScriptingInterface::SetUIElementInteractable)
 
 		.addFunction("ChangeUIComponentColor", &ScriptingInterface::ChangeUIComponentColor)
-		.addFunction("ChangeUIComponentAlpha", &ScriptingInterface::ChangeUIComponentAlpha)
 		.addFunction("ChangeUIBarColor", &ScriptingInterface::ChangeUIBarColor)
+		.addFunction("ChangeUIComponentAlpha", &ScriptingInterface::ChangeUIComponentAlpha)
 		.addFunction("ChangeUIBarAlpha", &ScriptingInterface::ChangeUIBarAlpha)
 		
 		.addFunction("GetUIComponentColor", &ScriptingInterface::GetUIComponentColor)
 		.addFunction("GetUIBarColor", &ScriptingInterface::GetUIBarColor)
 		.addFunction("GetUIComponentAlpha", &ScriptingInterface::GetUIComponentAlpha)
 		.addFunction("GetUIBarAlpha", &ScriptingInterface::GetUIBarAlpha)
+
+		.addFunction("PlayUIAnimation", &ScriptingInterface::PlayUIAnimation)
+		.addFunction("UIAnimationFinished", &ScriptingInterface::UIAnimationFinished)
 		.endClass()
 
+			
 		// ----------------------------------------------------------------------------------
 		// SCENES
 		// ----------------------------------------------------------------------------------
@@ -546,6 +552,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("GetAreaCost", &ScriptingNavigation::GetAreaCost)
 		.addFunction("SetAreaCost", &ScriptingNavigation::SetAreaCost)
 		.addFunction("CalculatePath", &ScriptingNavigation::CalculatePath)
+		.addFunction("FindNearestPointInMesh", &ScriptingNavigation::FindNearestPointInMesh)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------
@@ -681,7 +688,7 @@ void ModuleScripting::FillScriptInstanceComponentVars(ScriptInstance* script) {
 				}
 			}
 			else {
-				script->my_component->AddVariable(variable);
+				script->my_component->SetVariable(variable);
 			}
 		}
 	}
@@ -954,7 +961,7 @@ update_status ModuleScripting::Update(float realDT)
 	OPTICK_CATEGORY("Scripting Update", Optick::Category::Script);
 
 	// If a script was changed during runtime, hot reload
-	if (App->GetAppState() == AppState::EDITOR && hot_reloading_waiting) // Ask Aitor if this is correct (condition should return true only when no gameplay is being played)
+	if (!App->isGame && App->GetAppState() == AppState::EDITOR && hot_reloading_waiting) // Ask Aitor if this is correct (condition should return true only when no gameplay is being played)
 		DoHotReloading();
 
 	if(App->GetAppState() != AppState::PLAY)

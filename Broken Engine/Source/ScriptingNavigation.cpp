@@ -45,3 +45,22 @@ luabridge::LuaRef ScriptingNavigation::CalculatePath(float origin_x, float origi
 
 	return ret;
 }
+
+luabridge::LuaRef ScriptingNavigation::FindNearestPointInMesh(float point_x, float point_y, float point_z, int areaMask, lua_State* L) {
+	float3 result;
+	float3 point = {point_x, point_y, point_z};
+
+	luabridge::LuaRef ret(L, luabridge::newTable(L));
+	bool success = App->detour->nearestPosInMesh(point, areaMask, result);
+
+	if (success) {
+		ret.append(result.x);
+		ret.append(result.y);
+		ret.append(result.z);
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (FindNearestPointInMesh) Could not find a point in NavMesh close enough to the point given!");
+	
+	return ret;
+}
+

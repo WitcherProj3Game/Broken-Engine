@@ -15,6 +15,7 @@ BE_BEGIN_NAMESPACE
 class ResourceTexture;
 class ComponentCanvas;
 class ComponentScript;
+class ComponentImage;
 
 class BROKEN_API ComponentButton : public UI_Element
 {
@@ -40,7 +41,7 @@ public:
 	void UpdateState();
 	void OnClick();
 	void ChangeStateTo(State new_state) { state = new_state; }
-	void ChangeColorTo(Color new_color) { color = new_color; }
+	void ChangeColorTo(Color new_color);
 	const Color GetButtonColor() const { return color; }
 
 	static inline Component::ComponentType GetType() { return Component::ComponentType::Button; }
@@ -56,9 +57,9 @@ public:
 	State state = NOTHING;
 
 public:
-	ResourceTexture* texture = nullptr;
 	ComponentScript* script = nullptr;
 	GameObject* script_obj = nullptr;
+	ComponentImage* image = nullptr;
 
 private:
 	SDL_Rect collider;

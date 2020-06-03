@@ -16,6 +16,7 @@
 #include "OpenGL.h"
 #include "ResourceScene.h"
 #include "ModuleThreading.h"
+#include "ComponentCharacterController.h"
 
 #include "PhysX_3.4/Include/PxPhysicsAPI.h"
 #include "PhysX_3.4/Include/PxSimulationEventCallback.h"
@@ -184,12 +185,12 @@ void ComponentCollider::UpdateLocalMatrix() {
 		rigidStatic->setGlobalPose(transform); //ON EDITOR
 	else
 	{
-		if ((App->gui->isUsingGuizmo && App->GetAppState() != AppState::PLAY) || cTransform->updateValues) { //ON EDITOR
+		if ((App->gui->isUsingGuizmo && App->GetAppState() != AppState::PLAY) || cTransform->updateValues || dynamicRB->is_kinematic) { //ON EDITOR
 
 			dynamicRB->rigidBody->setGlobalPose(transform); 
 			cTransform->updateValues = false;
 		}
-		if (dynamicRB->rigidBody != nullptr && App->GetAppState() == AppState::PLAY) //ON GAME
+		if (dynamicRB->rigidBody != nullptr && !dynamicRB->is_kinematic && App->GetAppState() == AppState::PLAY) //ON GAME
 		{
 			UpdateTransformByRigidBody(dynamicRB, cTransform, &transform);
 		}
@@ -1013,8 +1014,10 @@ physx::PxRigidActor* ComponentCollider::GetActor() {
 
 void ComponentCollider::UpdateActorLayer(const int* layerMask) {
 	ComponentDynamicRigidBody* dynamicRB = GO->GetComponent<ComponentDynamicRigidBody>();
-
-	if (dynamicRB != nullptr)
+	ComponentCharacterController* controller = GO->GetComponent<ComponentCharacterController>();
+	if (controller) {
+		App->physics->UpdateActorLayer(dynamicRB->rigidBody, (LayerMask*)layerMask);
+	}else if (dynamicRB != nullptr)
 		App->physics->UpdateActorLayer(dynamicRB->rigidBody, (LayerMask*)layerMask);
 	else
 		App->physics->UpdateActorLayer(rigidStatic, (LayerMask*)layerMask);

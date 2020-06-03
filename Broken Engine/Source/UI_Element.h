@@ -22,6 +22,7 @@ public:
 	virtual json Save() const = 0;
 	virtual void Load(json& node) = 0;
 	virtual void CreateInspectorNode() = 0;
+	void SetInteractable(bool value) { interactable = value; };
 
 public:
 	bool visible = true;

@@ -21,8 +21,8 @@ struct BROKEN_API Animation
 	int end = 0;
 	bool loop = false;
 	bool Default = false;
-	float speed = 30;
 	float blendTime = 0.3f;
+	float speed = 30;
 };
 
 

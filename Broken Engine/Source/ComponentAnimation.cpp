@@ -381,7 +381,7 @@ void ComponentAnimation::CreateInspectorNode()
 			ImGui::Checkbox("Use Default Animation", &use_default_animation);
 
 			if (ImGui::Button("Create New Animation"))
-				CreateAnimation("New Animation", 0, 0, 0.3f, false);
+				CreateAnimation("New Animation", 0, 0, false, 0.3f, false);
 
 
 			if (res_animator)
@@ -391,7 +391,7 @@ void ComponentAnimation::CreateInspectorNode()
 					res_animator->FreeMemory();
 					for (auto iterator = animations.begin(); iterator != animations.end(); ++iterator)
 					{
-						Animation* anim = new Animation((*iterator)->name, (*iterator)->start, (*iterator)->end, (*iterator)->loop, (*iterator)->blendTime, (*iterator)->Default);
+						Animation* anim = new Animation((*iterator)->name, (*iterator)->start, (*iterator)->end, (*iterator)->loop, (*iterator)->Default, (*iterator)->blendTime);
 						res_animator->animations.push_back(anim);
 					}
 
@@ -777,6 +777,6 @@ void ComponentAnimation::LoadAnimator(bool drop, uint UID)
 	if(res_animator)
 		for (auto it = res_animator->animations.begin(); it != res_animator->animations.end(); ++it)
 		{
-			CreateAnimation((*it)->name, (*it)->start, (*it)->end, (*it)->loop, (*it)->Default);
+			CreateAnimation((*it)->name, (*it)->start, (*it)->end, (*it)->loop, (*it)->blendTime, (*it)->Default);
 		}
 }

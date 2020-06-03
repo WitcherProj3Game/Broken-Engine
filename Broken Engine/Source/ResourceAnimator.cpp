@@ -42,10 +42,10 @@ bool ResourceAnimator::LoadInMemory()
 			std::string end_frm = file[it.key().c_str()]["end_frame"];
 			bool is_loop = file[it.key().c_str()]["loop"];
 			bool Default = file[it.key().c_str()]["default"];
-			float anim_blend_time = file[it.key()]["anim_blend_time"];
+			std::string anim_blend_time = file[it.key().c_str()]["anim_blend_time"].is_null() ? "0.3" : file[it.key().c_str()]["anim_blend_time"];
 			//std::string speed = file[it.key().c_str()]["speed"];
 			
-			Animation* anim = new Animation(name, std::stoi(start_frm), std::stoi(end_frm), is_loop, Default, anim_blend_time);
+			Animation* anim = new Animation(name, std::stoi(start_frm), std::stoi(end_frm), is_loop, Default, std::stof(anim_blend_time));
 			animations.push_back(anim);
 		}
 	}

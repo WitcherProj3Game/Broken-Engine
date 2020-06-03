@@ -52,7 +52,7 @@ void ImporterAnimator::Save(ResourceAnimator* animator) const
 		node[animator->animations[i]->name]["end_frame"] = std::to_string(animator->animations[i]->end);
 		node[animator->animations[i]->name]["loop"] = animator->animations[i]->loop;
 		node[animator->animations[i]->name]["default"] = animator->animations[i]->Default;
-		node[animator->animations[i]->name]["anim_blend_time"] = animator->animations[i]->blendTime;
+		node[animator->animations[i]->name]["anim_blend_time"] = std::to_string(animator->animations[i]->blendTime);
 		//node[animator->animations[i]->name]["speed"] = animator->animations[i]->speed;
 	}
 

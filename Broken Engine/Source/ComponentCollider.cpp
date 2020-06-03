@@ -190,7 +190,7 @@ void ComponentCollider::UpdateLocalMatrix() {
 			dynamicRB->rigidBody->setGlobalPose(transform); 
 			cTransform->updateValues = false;
 		}
-		if (dynamicRB->rigidBody != nullptr && !dynamicRB->is_kinematic && App->GetAppState() == AppState::PLAY) //ON GAME
+		if (dynamicRB->rigidBody != nullptr && !dynamicRB->is_kinematic /*&& !dynamicRB->rigidBody->isSleeping()*/ && App->GetAppState() == AppState::PLAY) //ON GAME
 		{
 			UpdateTransformByRigidBody(dynamicRB, cTransform, &transform);
 		}

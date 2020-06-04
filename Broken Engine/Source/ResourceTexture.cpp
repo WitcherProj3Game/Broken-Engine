@@ -13,10 +13,10 @@ ResourceTexture::ResourceTexture(uint UID, const char* source_file) : Resource(R
 	extension = ".dds";
 	resource_file = TEXTURES_FOLDER + std::to_string(UID) + extension;
 	buffer_id = App->textures->GetDefaultTextureID();
-	previewTexID = App->gui->defaultfileTexID;
+	previewTexID = App->gui->textureTexID;
 
 	// --- Force Texture memory load so we can display a preview ---
-	LoadToMemory();
+	//LoadToMemory();
 }
 
 ResourceTexture::~ResourceTexture()
@@ -40,7 +40,10 @@ bool ResourceTexture::LoadInMemory()
 
 void ResourceTexture::FreeMemory()
 {
-	glDeleteTextures(1, (GLuint*)&buffer_id);
+	if(buffer_id != App->gui->textureTexID)
+		glDeleteTextures(1, (GLuint*)&buffer_id);
+
+	previewTexID = buffer_id = App->gui->textureTexID;
 }
 
 void ResourceTexture::OnOverwrite()

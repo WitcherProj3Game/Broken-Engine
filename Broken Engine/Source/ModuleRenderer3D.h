@@ -206,7 +206,7 @@ private:
 	// --- Draw Commands ---
 	void SendShaderUniforms(uint shader, bool depthPass);
 	void DrawRenderMeshes(bool depthPass);
-	void DrawTransparentRenderMeshes();
+	void DrawTransparentRenderMeshes(bool depthPass);
 	void DrawRenderMesh(std::vector<RenderMesh> meshInstances, bool depthPass);
 	void DrawPostProcessing();
 

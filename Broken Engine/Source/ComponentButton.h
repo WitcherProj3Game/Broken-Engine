@@ -46,6 +46,9 @@ public:
 
 	static inline Component::ComponentType GetType() { return Component::ComponentType::Button; }
 
+	float2 GetParentPos();
+	float2 GetFinalPosition();
+
 	// --- Save & Load ---
 	json Save() const override;
 	void Load(json& node) override;

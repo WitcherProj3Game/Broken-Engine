@@ -1910,9 +1910,29 @@ void ComponentParticleEmitter::DrawEmitterArea()
 
 void ComponentParticleEmitter::CalculateAABBs()
 {
-	Quat totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
-	Quat externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
+	Quat totalRotation = Quat::identity;
+	Quat externalRotation = Quat::identity;
 	float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
+
+	Quat globalRotation;
+	float3 scale_, position_;
+
+	switch (rotationType)
+	{
+	case Broken::ROTATION_PARENT::GO_GLOBAL:
+		GO->GetComponent<ComponentTransform>()->GetGlobalTransform().Decompose(position_, globalRotation, scale_);
+		totalRotation = globalRotation * emitterRotation;
+		externalRotation = globalRotation;
+		break;
+	case Broken::ROTATION_PARENT::NONE:
+		totalRotation = emitterRotation;
+		break;
+	}
+
+
+	//Quat totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
+	//Quat externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
+	//float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
 
 	AABB aabb(float3(-size.x, -size.y, -size.z), float3(size.x, size.y, size.z));
 
@@ -1922,10 +1942,6 @@ void ComponentParticleEmitter::CalculateAABBs()
 	positionFromEmitterPosQuat = externalRotation * positionFromEmitterPosQuat * externalRotation.Conjugated();
 
 	emisionAreaOBB.pos = emisionAreaOBB.pos + float3(positionFromEmitterPosQuat.x + globalPosition.x, positionFromEmitterPosQuat.y + globalPosition.y, positionFromEmitterPosQuat.z + globalPosition.z);
-
-	//Quat velocityQuat = Quat(velocity.x, velocity.y, velocity.z, 0);
-	//velocityQuat = totalRotation * velocityQuat * totalRotation.Conjugated();
-	//velocityBuffer[i] = physx::PxVec3(velocityQuat.x, velocityQuat.y, velocityQuat.z);
 
 	particlesAreaAABB.SetFrom(emisionAreaOBB);
 

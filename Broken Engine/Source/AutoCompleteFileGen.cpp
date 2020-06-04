@@ -655,7 +655,8 @@ void AutoCompleteFileGen::EmplaceParticlesFunctions()
 
 	
 	SerializedFunction SetParticlesScale("SetParticlesScale", source.c_str());
-	SetParticlesScale.variables.push_back("x"); SetParticlesScale.variables.push_back("y"); SetParticlesScale.variables.push_back("gameObject_UID");
+	SetParticlesScale.variables.push_back("x"); SetParticlesScale.variables.push_back("y"); SetParticlesScale.variables.push_back("z");
+	SetParticlesScale.variables.push_back("gameObject_UID");
 	
 	SerializedFunction SetRandomParticlesScale("SetRandomParticlesScale", source.c_str());
 	SetRandomParticlesScale.variables.push_back("randomFactor"); SetRandomParticlesScale.variables.push_back("gameObject_UID");

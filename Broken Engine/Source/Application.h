@@ -103,7 +103,7 @@ protected:
 	std::string			orgName;
 	std::string			configpath;
 	/// Logging mutexes
-	std::mutex logMutex;
+	std::mutex 			logMutex;
 
 private:
 	JSONLoader			JLoader;

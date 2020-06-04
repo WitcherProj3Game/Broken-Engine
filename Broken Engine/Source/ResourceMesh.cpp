@@ -282,7 +282,7 @@ void ResourceMesh::OnDelete()
 	FreeMemory();
 
 	if(App->fs->Exists(resource_file.c_str()))
-	App->fs->Remove(resource_file.c_str());
+		App->fs->Remove(resource_file.c_str());
 	App->fs->Remove(previewTexPath.c_str());
 
 	App->resources->RemoveResourceFromFolder(this);

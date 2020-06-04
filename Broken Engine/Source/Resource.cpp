@@ -99,6 +99,7 @@ void Resource::Release()
 		if (--instances == 0)
 		{
 			App->threading->ADDTASK(this, Resource::FreeMemory);
+			//App->threading->FinishInFrame(); // We want to finish this task in this frame to avoid problems
 		}
 	}
 	else

@@ -106,7 +106,7 @@ bool ModuleResourceManager::Start()
 
 	// --- Create default font ---
 	DefaultFont = (ResourceFont*)CreateResourceGivenUID(Resource::ResourceType::FONT, "Assets/Fonts/arial.ttf",7);
-	DefaultFont->LoadToMemory();
+	DefaultFont->Init();
 
 	// --- Add file filters, so we only search for relevant files ---
 	filters.push_back("fbx");
@@ -1543,24 +1543,17 @@ update_status ModuleResourceManager::Update(float dt)
 
 	// --- We check defer saves and if they are not still being used (bool is false) we save them ---
 	if (save_timer.ReadMs() >= RESOURCE_SAVE_TIME) {
-		if (resources_to_save.size() > 0)
-		{
-			for (std::map<Resource *, bool>::iterator it = resources_to_save.begin(); it != resources_to_save.end();)
-			{
-				if ((*it).second)
-				{
-					(*it).second = false;
-					it++;
-				}
-				else
-				{
-					App->threading->ADDTASK(this, ModuleResourceManager::SaveResource, (*it).first);
-					it = resources_to_save.erase(it);
-				}
+		for (std::map<Resource*, bool>::iterator it = resources_to_save.begin(); it != resources_to_save.end();) {
+			if ((*it).second) {
+				(*it).second = false;
+				it++;
 			}
-			
-			App->threading->FinishProcessing();
+			else {
+				App->threading->ADDTASK(this, ModuleResourceManager::SaveResource, (*it).first);
+				it = resources_to_save.erase(it);
+			}
 		}
+		App->threading->FinishProcessing();
 		save_timer.Start();
 	}
 
@@ -1581,6 +1574,7 @@ bool ModuleResourceManager::CleanUp()
 	// --- Delete resources ---
 	for (std::map<uint, ResourceFolder*>::iterator it = folders.begin(); it != folders.end(); it++)
 	{
+		it->second->FreeMemory();
 		delete it->second;
 	}
 
@@ -1597,6 +1591,7 @@ bool ModuleResourceManager::CleanUp()
 
 	for (std::map<uint, ResourceModel*>::iterator it = models.begin(); it != models.end(); it++)
 	{
+		it->second->FreeMemory();
 		delete it->second;
 	}
 
@@ -1604,6 +1599,7 @@ bool ModuleResourceManager::CleanUp()
 
 	for (std::map<uint, ResourcePrefab*>::iterator it = prefabs.begin(); it != prefabs.end(); it++)
 	{
+		it->second->FreeMemory();
 		delete it->second;
 	}
 
@@ -1611,139 +1607,7 @@ bool ModuleResourceManager::CleanUp()
 
 	for (std::map<uint, ResourceMaterial*>::iterator it = materials.begin(); it != materials.end(); it++)
 	{
-		if (it->second->IsInMemory())
-			App->threading->ADDTASK(it->second, ResourceMaterial::FreeMemory);
-		else 
-		{
-			delete it->second;
-			it-- = materials.erase(it);
-		}
-	}
-
-	//materials.clear();
-
-	for (std::map<uint, ResourceShader*>::iterator it = shaders.begin(); it != shaders.end(); it++)
-	{
-		if (it->second->IsInMemory())
-			App->threading->ADDTASK(it->second, ResourceShader::FreeMemory);
-		else 
-		{
-			delete it->second;
-			it-- = shaders.erase(it);
-		}
-	}
-
-	//shaders.clear();
-
-	for (std::map<uint, ResourceMesh*>::iterator it = meshes.begin(); it != meshes.end(); it++)
-	{
-		if (it->second->IsInMemory())
-			App->threading->ADDTASK(it->second, ResourceMesh::FreeMemory);
-		else 
-		{
-			delete it->second;
-			it-- = meshes.erase(it);
-		}
-	}
-
-	//meshes.clear();
-
-	for (std::map<uint, ResourceBone*>::iterator it = bones.begin(); it != bones.end(); it++)
-	{
-		if (it->second->IsInMemory())
-			App->threading->ADDTASK(it->second, ResourceBone::FreeMemory);
-		else 
-		{
-			delete it->second;
-			it-- = bones.erase(it);
-		}
-	}
-
-	//bones.clear();
-
-	for (std::map<uint, ResourceAnimation*>::iterator it = animations.begin(); it != animations.end(); it++)
-	{
-		if (it->second->IsInMemory())
-			App->threading->ADDTASK(it->second, ResourceAnimation::FreeMemory);
-		else 
-		{
-			delete it->second;
-			it-- = animations.erase(it);
-		}
-	}
-
-	//animations.clear();
-
-	for (std::map<uint, ResourceAnimator*>::iterator it = anim_info.begin(); it != anim_info.end(); it++)
-	{
-		if (it->second->IsInMemory())
-			App->threading->ADDTASK(it->second, ResourceAnimator::FreeMemory);
-		else 
-		{
-			delete it->second;
-			it-- = anim_info.erase(it);
-		}
-	}
-
-	//anim_info.clear();
-
-	for (std::map<uint, ResourceTexture*>::iterator it = textures.begin(); it != textures.end(); it++)
-	{
-		if (it->second->IsInMemory())
-			App->threading->ADDTASK(it->second, ResourceTexture::FreeMemory);
-		else 
-		{
-			delete it->second;
-			it-- = textures.erase(it);
-		}
-	}
-
-	//textures.clear();
-
-	for (std::map<uint, ResourceScript*>::iterator it = scripts.begin(); it != scripts.end(); it++)
-	{
-		delete it->second;
-	}
-
-	scripts.clear();
-
-	for (std::map<uint, ResourceMeta*>::iterator it = metas.begin(); it != metas.end(); it++)
-	{
-		delete it->second;
-	}
-
-	metas.clear();
-
-	for (std::map<uint, ResourceFont*>::iterator it = fonts.begin(); it != fonts.end(); it++)
-	{
-		if (it->second->IsInMemory())
-			App->threading->ADDTASK(it->second, ResourceFont::FreeMemory);
-		else 
-		{
-			delete it->second;
-			it-- = fonts.erase(it);
-		}
-	}
-
-	//fonts.clear();
-
-	for (std::map<uint, ResourceNavMesh*>::iterator it = navmeshes.begin(); it != navmeshes.end(); it++) {
-		if (it->second->IsInMemory())
-			App->threading->ADDTASK(it->second, ResourceNavMesh::FreeMemory);
-		else 
-		{
-			delete it->second;
-			it-- = navmeshes.erase(it);
-		}
-	}
-
-	//navmeshes.clear();
-
-
-	App->threading->FinishProcessing();
-
-	for (std::map<uint, ResourceMaterial*>::iterator it = materials.begin(); it != materials.end(); it++)
-	{
+		it->second->FreeMemory();
 		delete it->second;
 	}
 
@@ -1751,6 +1615,7 @@ bool ModuleResourceManager::CleanUp()
 
 	for (std::map<uint, ResourceShader*>::iterator it = shaders.begin(); it != shaders.end(); it++)
 	{
+		it->second->FreeMemory();
 		delete it->second;
 	}
 
@@ -1758,6 +1623,7 @@ bool ModuleResourceManager::CleanUp()
 
 	for (std::map<uint, ResourceMesh*>::iterator it = meshes.begin(); it != meshes.end(); it++)
 	{
+		it->second->FreeMemory();
 		delete it->second;
 	}
 
@@ -1765,6 +1631,7 @@ bool ModuleResourceManager::CleanUp()
 
 	for (std::map<uint, ResourceBone*>::iterator it = bones.begin(); it != bones.end(); it++)
 	{
+		it->second->FreeMemory();
 		delete it->second;
 	}
 
@@ -1772,6 +1639,7 @@ bool ModuleResourceManager::CleanUp()
 
 	for (std::map<uint, ResourceAnimation*>::iterator it = animations.begin(); it != animations.end(); it++)
 	{
+		it->second->FreeMemory();
 		delete it->second;
 	}
 
@@ -1779,6 +1647,7 @@ bool ModuleResourceManager::CleanUp()
 
 	for (std::map<uint, ResourceAnimator*>::iterator it = anim_info.begin(); it != anim_info.end(); it++)
 	{
+		it->second->FreeMemory();
 		delete it->second;
 	}
 
@@ -1786,19 +1655,38 @@ bool ModuleResourceManager::CleanUp()
 
 	for (std::map<uint, ResourceTexture*>::iterator it = textures.begin(); it != textures.end(); it++)
 	{
+		it->second->FreeMemory();
 		delete it->second;
 	}
 
 	textures.clear();
 
+	for (std::map<uint, ResourceScript*>::iterator it = scripts.begin(); it != scripts.end(); it++)
+	{
+		it->second->FreeMemory();
+		delete it->second;
+	}
+
+	scripts.clear();
+
+	for (std::map<uint, ResourceMeta*>::iterator it = metas.begin(); it != metas.end(); it++)
+	{
+		it->second->FreeMemory();
+		delete it->second;
+	}
+
+	metas.clear();
+
 	for (std::map<uint, ResourceFont*>::iterator it = fonts.begin(); it != fonts.end(); it++)
 	{
+		it->second->FreeMemory();
 		delete it->second;
 	}
 
 	fonts.clear();
 
 	for (std::map<uint, ResourceNavMesh*>::iterator it = navmeshes.begin(); it != navmeshes.end(); it++) {
+		it->second->FreeMemory();
 		delete it->second;
 	}
 

@@ -21,7 +21,7 @@
 #	else
 #		include "Wwise/AK/Comm/AkCommunication.h"
 #		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx86/CommunicationCentral.lib")
-#		pragma comment( lib, "Wwise/libx64/ws2_32.lib")
+#		pragma comment( lib, "Wwise/libx86/ws2_32.lib")
 #		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx86/AkSoundEngine.lib")
 #		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx86/AkMusicEngine.lib")
 #		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx86/AkMemoryMgr.lib")
@@ -38,7 +38,7 @@
 #	else
 #		include "Wwise/AK/Comm/AkCommunication.h"
 #		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx64/CommunicationCentral.lib")
-#		pragma comment( lib, "Wwise/libx86/ws2_32.lib")
+#		pragma comment( lib, "Wwise/libx64/ws2_32.lib")
 #		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx64/AkSoundEngine.lib")
 #		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx64/AkMusicEngine.lib")
 #		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx64/AkMemoryMgr.lib")

@@ -114,9 +114,9 @@ Resource* ImporterMaterial::Load(const char* path) const
 
 	json file = App->GetJLoader()->Load(path);
 
-	std::string diffuse_texture_path = file["ResourceDiffuse"].is_null() ? "NaN.dds" : file["ResourceDiffuse"].get<std::string>();
-	std::string specular_texture_path = file["ResourceSpecular"].is_null() ? "NaN.dds" : file["ResourceSpecular"].get<std::string>();
-	std::string normal_texture_path = file["ResourceNormalTexture"].is_null() ? "NaN.dds" : file["ResourceNormalTexture"].get<std::string>();
+	std::string diffuse_texture_path = "NaN.dds";
+	std::string specular_texture_path = "NaN.dds";
+	std::string normal_texture_path = "NaN.dds";
 
 	ImporterMeta* IMeta = App->resources->GetImporter<ImporterMeta>();
 	ResourceMeta* meta = (ResourceMeta*)IMeta->Load(path);
@@ -134,6 +134,13 @@ Resource* ImporterMaterial::Load(const char* path) const
 
 	if (!file.is_null())
 	{
+		if (mat)
+		{
+			mat->DiffuseResTexturePath = file["ResourceDiffuse"].is_null() ? "NaN.dds" : file["ResourceDiffuse"].get<std::string>();
+			mat->SpecularResTexturePath = file["ResourceSpecular"].is_null() ? "NaN.dds" : file["ResourceSpecular"].get<std::string>();
+			mat->NormalResTexturePath = file["ResourceNormalTexture"].is_null() ? "NaN.dds" : file["ResourceNormalTexture"].get<std::string>();
+		}
+
 		// --- Load Tex preview ---
 		std::string previewTexpath = file["PreviewTexture"].is_null() ? "none" : file["PreviewTexture"];
 		uint width, height = 0;
@@ -161,7 +168,7 @@ Resource* ImporterMaterial::Load(const char* path) const
 		matShine = file.find("MaterialShininess") == file.end() ? 1.0f : file["MaterialShininess"].get<float>();
 		mat->has_transparencies = file.find("Transparencies") == file.end() ? false : file["Transparencies"].get<bool>();
 		mat->has_culling = file.find("Culling") == file.end() ? true : file["Culling"].get<bool>();
-		mat->m_AffectedBySceneColor = file.find("SceneColorAffected") == file.end() ? true : file["SceneColorAffected"].get<bool>(); 
+		mat->m_AffectedBySceneColor = file.find("SceneColorAffected") == file.end() ? true : file["SceneColorAffected"].get<bool>();
 
 		// --- Blending Stuff ---
 		mat->m_MatAutoBlendFunc = file.find("MatAlphaFunc") == file.end() ? BlendAutoFunction::STANDARD_INTERPOLATIVE : (BlendAutoFunction)file["MatAlphaFunc"].get<int>();
@@ -174,7 +181,7 @@ Resource* ImporterMaterial::Load(const char* path) const
 		// --- Texture Stuff ---
 		Importer::ImportData IDataDiff(diffuse_texture_path.c_str());
 
-		if(diffuse_texture_path != "NaN.dds")
+		if (diffuse_texture_path != "NaN.dds")
 			diffuse = (ResourceTexture*)App->resources->ImportAssets(IDataDiff);
 
 		Importer::ImportData IDataSpec(specular_texture_path.c_str());
@@ -183,8 +190,8 @@ Resource* ImporterMaterial::Load(const char* path) const
 			specular = (ResourceTexture*)App->resources->ImportAssets(IDataSpec);
 
 		Importer::ImportData IDataNormTex(normal_texture_path.c_str());
-		
-		if(normal_texture_path != "NaN.dds")
+
+		if (normal_texture_path != "NaN.dds")
 			normalMap = (ResourceTexture*)App->resources->ImportAssets(IDataNormTex);
 
 		// --- Load Shader and Uniforms ---

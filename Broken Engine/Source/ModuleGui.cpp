@@ -234,7 +234,7 @@ ImGuiContext* ModuleGui::getImgUICtx() const {
 
 void ModuleGui::HandleInput(SDL_Event * event) const
 {
-	if(!App->isGame)
+	if(this->isEnabled() && !App->isGame)
 		ImGui_ImplSDL2_ProcessEvent(event);
 }
 

@@ -186,12 +186,12 @@ void ComponentCollider::UpdateLocalMatrix() {
 		rigidStatic->setGlobalPose(transform); //ON EDITOR
 	else
 	{
-		if ((App->gui->isUsingGuizmo && App->GetAppState() != AppState::PLAY) || cTransform->updateValues) { //ON EDITOR
+		if ((App->gui->isUsingGuizmo && App->GetAppState() != AppState::PLAY) || cTransform->updateValues || dynamicRB->is_kinematic) { //ON EDITOR
 
 			dynamicRB->rigidBody->setGlobalPose(transform); 
 			cTransform->updateValues = false;
 		}
-		if (dynamicRB->rigidBody != nullptr && App->GetAppState() == AppState::PLAY) //ON GAME
+		if (dynamicRB->rigidBody != nullptr && !dynamicRB->is_kinematic && App->GetAppState() == AppState::PLAY) //ON GAME
 		{
 			UpdateTransformByRigidBody(dynamicRB, cTransform, &transform);
 		}

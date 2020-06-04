@@ -36,7 +36,7 @@ Resource* ImporterFont::Import(ImportData& IData) const
 
 	if (font != nullptr)
 	{
-		font->Init();
+		font->LoadToMemory();
 	}
 
 	return font;
@@ -61,9 +61,9 @@ Resource* ImporterFont::Load(const char* path) const
 		App->resources->AddResourceToFolder(font);
 	}
 	
-	if (font != nullptr)
+	if (font != nullptr && !font->IsInMemory())
 	{
-		font->Init();
+		font->LoadToMemory();
 	}
 
 	return font;

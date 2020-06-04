@@ -38,6 +38,8 @@ public:
 	float GetUIComponentAlpha(const char* comp_type, uint gameobject_UUID) const;
 	float GetUIBarAlpha(const char* comp_type, bool topBarPlane, uint gameobject_UUID) const;
 
+	void SetUIElementPosition(const char* comp_type, float x, float y, uint go_UUID);
+
 
 	void PlayUIAnimation(uint gameobject_UUID);
 	bool UIAnimationFinished(uint gameobject_UUID) const;

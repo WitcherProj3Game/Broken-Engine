@@ -61,75 +61,77 @@ void ComponentScript::CreateInspectorNode() {
 		for (int i = 0; i < script_variables.size(); ++i)
 		{
 			std::string auxName = script_variables[i].name.c_str();
-			ImGui::Text(auxName.c_str()); ImGui::SameLine(200.f); ImGui::SetNextItemWidth(ImGui::GetWindowWidth() / 7.0f);
-			auxName.assign("##Var" + auxName);
+			std::string check = auxName.substr(0, auxName.find_first_of("_"));
 
-			VarType type = script_variables[i].type;
-			if (type == VarType::DOUBLE)
-			{
-				float auxVal(script_variables[i].editor_value.as_double);
+			if (check.compare("hidden") != 0) {
+				ImGui::Text(auxName.c_str()); ImGui::SameLine(200.f); ImGui::SetNextItemWidth(ImGui::GetWindowWidth() / 7.0f);
+				auxName.assign("##Var" + auxName);
 
-				// Handle drag & drop of resources and GameObjects
-				if (ImGui::BeginDragDropTarget())
+				VarType type = script_variables[i].type;
+				if (type == VarType::DOUBLE)
 				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("resource"))
-					{
-						uint UID = *(const uint*)payload->Data;
-						Broken::Resource* resource = App->resources->GetResource(UID, false);
+					float auxVal(script_variables[i].editor_value.as_double);
 
-						if (resource && (resource->GetType() == Broken::Resource::ResourceType::SCENE || resource->GetType() == Broken::Resource::ResourceType::PREFAB))
+					// Handle drag & drop of resources and GameObjects
+					if (ImGui::BeginDragDropTarget())
+					{
+						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("resource"))
 						{
-							script_variables[i].editor_value.as_double = UID;
-							script_variables[i].object_name = resource->GetName();
-							script_variables[i].display_object_name = true;
+							uint UID = *(const uint*)payload->Data;
+							Broken::Resource* resource = App->resources->GetResource(UID, false);
+
+							if (resource && (resource->GetType() == Broken::Resource::ResourceType::SCENE || resource->GetType() == Broken::Resource::ResourceType::PREFAB))
+							{
+								script_variables[i].editor_value.as_double = UID;
+								script_variables[i].object_name = resource->GetName();
+								script_variables[i].display_object_name = true;
+								script_variables[i].changed_value = true;
+							}
+						}
+						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GO"))
+						{
+							uint UID = *(const uint*)payload->Data;
+							GameObject* Go = App->scene_manager->currentScene->GetGOWithUID(UID);
+							if (Go != nullptr)
+							{
+								script_variables[i].editor_value.as_double = UID;
+								script_variables[i].object_name = Go->GetName();
+								script_variables[i].display_object_name = true;
+								script_variables[i].changed_value = true;
+							}
+						}
+						ImGui::EndDragDropTarget();
+					}
+
+					if (script_variables[i].display_object_name) {
+						char string[256];
+						strcpy(string, script_variables[i].object_name.c_str());
+						ImGui::InputText(auxName.c_str(), string, 100, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll);
+					}
+					else {
+						if (ImGui::DragFloat(auxName.c_str(), &auxVal, 0.05f, 0.0f, 0.0f, "%.2f", 1.0f)) {
+							script_variables[i].editor_value.as_double = auxVal;
 							script_variables[i].changed_value = true;
 						}
 					}
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GO"))
-					{
-						uint UID = *(const uint*)payload->Data;
-						GameObject* Go = App->scene_manager->currentScene->GetGOWithUID(UID);
-						if ( Go != nullptr)
-						{
-							script_variables[i].editor_value.as_double = UID;
-							script_variables[i].object_name = Go->GetName();
-							script_variables[i].display_object_name = true;
-							script_variables[i].changed_value = true;
-						}
-					}
-					ImGui::EndDragDropTarget();
 
-					ImGui::EndDragDropTarget();
 				}
-
-				if (script_variables[i].display_object_name) {						
+				else if (type == VarType::BOOLEAN)
+				{
+					if (ImGui::Checkbox(auxName.c_str(), &script_variables[i].editor_value.as_boolean))
+						script_variables[i].changed_value = true;
+				}
+				else if (type == VarType::STRING)
+				{
 					char string[256];
-					strcpy(string, script_variables[i].object_name.c_str());
+					strcpy(string, script_variables[i].editor_value.as_string);
+
 					ImGui::InputText(auxName.c_str(), string, 100, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll);
-				}
-				else {
-					if (ImGui::DragFloat(auxName.c_str(), &auxVal, 0.05f, 0.0f, 0.0f, "%.2f", 1.0f)) {
-						script_variables[i].editor_value.as_double = auxVal;
+
+					if (strcmp(script_variables[i].editor_value.as_string, string) != 0) {
+						strcpy(script_variables[i].editor_value.as_string, string);
 						script_variables[i].changed_value = true;
 					}
-				}
-
-			}
-			else if (type == VarType::BOOLEAN)
-			{
-				if (ImGui::Checkbox(auxName.c_str(), &script_variables[i].editor_value.as_boolean))
-					script_variables[i].changed_value = true;
-			}
-			else if (type == VarType::STRING)
-			{
-				char string[256];
-				strcpy(string, script_variables[i].editor_value.as_string);
-
-				ImGui::InputText(auxName.c_str(), string, 100, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll);
-
-				if (strcmp(script_variables[i].editor_value.as_string, string) != 0) {
-					strcpy(script_variables[i].editor_value.as_string, string);
-					script_variables[i].changed_value = true;
 				}
 			}
 		}
@@ -195,6 +197,40 @@ bool ComponentScript::ScriptFuncAlreadyInComponent(std::string name)
 		}
 	}
 	return false;
+}
+
+void ComponentScript::AddVariable(const ScriptVar& new_var)
+{
+	bool inserted = false;
+	for (std::vector<ScriptVar>::iterator it = script_variables.begin(); it != script_variables.end(); it++)
+	{
+		if ((*it).name >= new_var.name)
+		{
+			script_variables.insert(it, new_var);
+			inserted = true;
+			break;
+		}
+	}
+	if (!inserted)
+		script_variables.push_back(new_var);
+}
+
+void ComponentScript::SetVariable(const ScriptVar& new_var)
+{
+	bool set = false;
+	for (std::vector<ScriptVar>::iterator it = script_variables.begin(); it != script_variables.end(); it++)
+	{
+		if ((*it).name == new_var.name)
+		{
+			(*it) = new_var;
+			set = true;
+			break;
+		}
+	}
+	
+	// If it wasn't in the vector we add it
+	if (!set)
+		AddVariable(new_var);
 }
 
 json ComponentScript::Save() const
@@ -268,36 +304,40 @@ void ComponentScript::Load(json& node)
 	// Load the public variables of the script
 	char name[50];
 	uint cnt = node["Script variables"]["Count"];
-	script_variables.resize(cnt);
+	script_variables.reserve(cnt);
+
+	ScriptVar current;
 
 	for (int i = 0; i < cnt; ++i) {
 
 		sprintf_s(name, 50, "Variable %d", i);
 		json js1 = node["Script variables"][name]["Name"];
-		script_variables[i].name = js1.get<std::string>(); 
+		current.name = js1.get<std::string>(); 
 
-		script_variables[i].display_object_name = node["Script variables"][name]["DisplayObjectName"];
+		current.display_object_name = node["Script variables"][name]["DisplayObjectName"];
 		json js2 = node["Script variables"][name]["ObjectName"];
-		script_variables[i].object_name = js2.get<std::string>();
+		current.object_name = js2.get<std::string>();
 
 		json js3 = node["Script variables"][name]["Type"];
 		std::string type = js3.get<std::string>();
 
-		script_variables[i].changed_value = true; // We make sure the value will be changed in the script when we press PLAY
+		current.changed_value = true; // We make sure the value will be changed in the script when we press PLAY
 
 		if (type.compare("Boolean") == 0) {
-			script_variables[i].type = VarType::BOOLEAN;
-			script_variables[i].editor_value.as_boolean = node["Script variables"][name]["Value"];
+			current.type = VarType::BOOLEAN;
+			current.editor_value.as_boolean = node["Script variables"][name]["Value"];
 		}
 		else if (type.compare("Double") == 0) {
-			script_variables[i].type = VarType::DOUBLE;
-			script_variables[i].editor_value.as_double = node["Script variables"][name]["Value"];
+			current.type = VarType::DOUBLE;
+			current.editor_value.as_double = node["Script variables"][name]["Value"];
 		} 
 		else if (type.compare("String") == 0) {
-			script_variables[i].type = VarType::STRING;
+			current.type = VarType::STRING;
 			json js3 = node["Script variables"][name]["Value"];
 			std::string as_string = js3.get<std::string>();
-			script_variables[i].ChangeEditorValue(as_string.c_str());
+			current.ChangeEditorValue(as_string.c_str());
 		}
+
+		SetVariable(current);
 	}
 }

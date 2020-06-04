@@ -212,12 +212,12 @@ void ModuleSelection::ApplyOBBTransformation()
 	float nearp = App->renderer3D->active_camera->GetNearPlane();
 
 	// right handed projection matrix
-	float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
-	float4x4 proj_RH(
-		f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
-		0.0f, f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, -1.0f,
-		aabb_start.x * 0.01f, aabb_start.y * 0.01f, nearp, 0.0f);
+	//float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
+	//float4x4 proj_RH(
+	//	f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
+	//	0.0f, f, 0.0f, 0.0f,
+	//	0.0f, 0.0f, 0.0f, -1.0f,
+	//	aabb_start.x * 0.01f, aabb_start.y * 0.01f, nearp, 0.0f);
 
 	aabb.Transform(App->camera->camera->GetOpenGLViewMatrix());
 	//aabb.Transform(App->camera->camera->GetOpenGLViewMatrix());
@@ -491,6 +491,7 @@ bool ModuleSelection::ComponentCanBePasted() const
 {
 	return (component_type != Component::ComponentType::Unknown);
 }
+
 void ModuleSelection::CopyComponentValues(Component* component)
 {
 	component_type = component->GetType();
@@ -503,8 +504,15 @@ void ModuleSelection::CopyComponentValues(Component* component)
 
 void ModuleSelection::PasteComponentValues(Component* component)
 {
-	if (component_type != Component::ComponentType::Unknown)
-		component->Load(component_node);
+	if (component_type == Component::ComponentType::Unknown || component_type != component->GetType())
+		return;
+
+	component->Load(component_node);
+
+	if (component_type == Component::ComponentType::Transform)
+	{
+		((ComponentTransform*)component)->updateValues = true;
+	}
 }
 
 void ModuleSelection::PasteComponentValuesToSelected()
@@ -512,16 +520,18 @@ void ModuleSelection::PasteComponentValuesToSelected()
 	for (GameObject* obj : *GetSelected())
 	{
 		if (Component * component = obj->HasComponent(component_type))
-			component->Load(component_node);
+		{
+			PasteComponentValues(component);
+		}
 	}
 }
 
-void ModuleSelection::DeleteComponentToSelected()
+void ModuleSelection::DeleteComponentToSelected(Component* component)
 {
 	for (GameObject* obj : *GetSelected())
 	{
-		if (Component * component = obj->HasComponent(component_type))
-			component->to_delete = true;
+		if (Component * c = obj->HasComponent(component->GetType()))
+			c->to_delete = true;
 	}
 
 }

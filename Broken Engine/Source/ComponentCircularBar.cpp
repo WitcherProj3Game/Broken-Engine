@@ -26,12 +26,19 @@
 
 using namespace Broken;
 
-ComponentCircularBar::ComponentCircularBar(GameObject* gameObject) : Component(gameObject, Component::ComponentType::CircularBar)
+ComponentCircularBar::ComponentCircularBar(GameObject* gameObject) : UI_Element(gameObject, Component::ComponentType::CircularBar)
 {
 	visible = true;
+	size2D = { 125, 125 };
+
 	//texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
-	canvas = (ComponentCanvas*)gameObject->AddComponent(Component::ComponentType::Canvas);
-	canvas->AddElement(this);
+	if (GO->parent && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = (ComponentCanvas*)GO->parent->GetComponent<ComponentCanvas>();
+
+		if(canvas)
+			canvas->AddElement(this);
+	}
 }
 
 ComponentCircularBar::~ComponentCircularBar()
@@ -41,10 +48,21 @@ ComponentCircularBar::~ComponentCircularBar()
 		texture->Release();
 		texture->RemoveUser(GO);
 	}
+
+	if (canvas)
+		canvas->RemoveElement(this);
 }
 
 void ComponentCircularBar::Update()
 {
+	if (GO->parent != nullptr && canvas == nullptr && GO->parent->HasComponent(Component::ComponentType::Canvas))
+	{
+		canvas = (ComponentCanvas*)GO->parent->GetComponent<ComponentCanvas>();
+		canvas->AddElement(this);
+	}
+	else if (GO->parent && !GO->parent->HasComponent(Component::ComponentType::Canvas) && canvas)
+		canvas = nullptr;
+
 	if (to_delete)
 		this->GetContainerGameObject()->RemoveComponent(this);
 }
@@ -92,17 +110,18 @@ void ComponentCircularBar::DrawCircle(Color color, bool axis, float _percentage)
 
 
 	// right handed projection matrix
-	float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
-	float4x4 proj_RH(
-		f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
-		0.0f, f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, -1.0f,
-		0.0f, 0.0f, nearp, 0.0f);
+	//float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
+	//float4x4 proj_RH(
+	//	f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
+	//	0.0f, f, 0.0f, 0.0f,
+	//	0.0f, 0.0f, 0.0f, -1.0f,
+	//	0.0f, 0.0f, nearp, 0.0f);
 
 	GLint projectLoc = glGetUniformLocation(shaderID, "u_Proj");
-	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, proj_RH.ptr());
+	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLProjectionMatrix().ptr());
 
 	// --- Texturing & Coloring ---
+	glUniform1f(glGetUniformLocation(shaderID, "u_GammaCorrection"), App->renderer3D->GetGammaCorrection());
 	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");
 	glUniform4f(vertexColorLocation, color.r, color.g, color.b, color.a);
 	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);
@@ -142,6 +161,10 @@ json ComponentCircularBar::Save() const
 	if (texture)
 		node["Resources"]["ResourceTexture"] = std::string(texture->GetResourceFile());
 
+	node["Active"] = this->active;
+	node["visible"] = std::to_string(visible);
+	node["priority"] = std::to_string(priority);
+
 	node["position2Dx"] = std::to_string(position2D.x);
 	node["position2Dy"] = std::to_string(position2D.y);
 
@@ -174,6 +197,10 @@ void ComponentCircularBar::Load(json& node)
 	if (texture)
 		texture->AddUser(GO);
 
+	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
+	std::string visible_str = node["visible"].is_null() ? "0" : node["visible"];
+	std::string priority_str = node["priority"].is_null() ? "0" : node["priority"];
+
 	std::string position2Dx = node["position2Dx"].is_null() ? "0" : node["position2Dx"];
 	std::string position2Dy = node["position2Dy"].is_null() ? "0" : node["position2Dy"];
 
@@ -195,7 +222,8 @@ void ComponentCircularBar::Load(json& node)
 
 	percentage = node["Percentage"].is_null() ? 100 : (float)node["Percentage"];
 
-
+	visible = bool(std::stoi(visible_str));
+	priority = int(std::stoi(priority_str));
 
 	colorP1 = { std::stof(Color1_R),std::stof(Color1_G), std::stof(Color1_B), std::stof(Color1_A) };
 	colorP2 = { std::stof(Color2_R),std::stof(Color2_G), std::stof(Color2_B), std::stof(Color2_A) };
@@ -205,6 +233,10 @@ void ComponentCircularBar::CreateInspectorNode()
 {
 	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
 	ImGui::Checkbox("Visible", &visible);
+	ImGui::Separator();
+
+	ImGui::SetNextItemWidth(100);
+	ImGui::InputInt("Priority", &priority);
 	ImGui::Separator();
 
 	// Percentage (test)

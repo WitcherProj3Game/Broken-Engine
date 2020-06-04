@@ -15,6 +15,7 @@
 #include "ModuleSelection.h"
 #include "ModuleScripting.h"
 #include "ModuleGui.h"
+#include "ModuleTimeManager.h"
 
 #include "par/par_shapes.h"
 
@@ -439,6 +440,7 @@ void ModuleSceneManager::SaveScene(ResourceScene* scene)
 				IMeta->Save(meta);
 		}
 
+		scene->octreeBox = tree.root->box;
 		IScene->SaveSceneToFile(scene);
 
 		App->resources->AddResourceToFolder(scene);
@@ -451,6 +453,7 @@ void ModuleSceneManager::SetActiveScene(ResourceScene* scene)
 	if (scene)
 	{
 		App->selection->ClearSelection();
+		App->time->Gametime_clock.Stop();
 		//SelectedGameObject = nullptr;
 
 		// --- Unload current scene ---
@@ -493,16 +496,18 @@ void ModuleSceneManager::SetActiveScene(ResourceScene* scene)
 				App->scene_manager->SaveScene(App->scene_manager->temporalScene);
 			}
 		}
+		App->physics->physAccumulatedTime = 0.0f;//Reset Physics
+		App->time->Gametime_clock.Start();
 	}
 	else
 		ENGINE_CONSOLE_LOG("|[error]: Trying to load invalid scene");
 
 }
 
-GameObject* ModuleSceneManager::CreateEmptyGameObject()
+GameObject* ModuleSceneManager::CreateEmptyGameObject(const char* name) 
 {
 	// --- Create New Game Object Name ---
-	std::string Name = "GameObject ";
+	std::string Name = name;
 	Name.append("(");
 	Name.append(std::to_string(go_count));
 	Name.append(")");
@@ -724,10 +729,11 @@ void ModuleSceneManager::CreateCylinder(float radius, float height, ResourceMesh
 void ModuleSceneManager::CreatePlane(float sizeX, float sizeY, float sizeZ, ResourceMesh* rmesh)
 {
 	// --- Create par shapes sphere ---
-	par_shapes_mesh* mesh = par_shapes_create_plane(1, 1);
+	par_shapes_mesh* mesh = par_shapes_create_plane(1,1);
 
 	if (mesh)
 	{
+		par_shapes_translate(mesh, -0.5, -0.5, 0);
 		par_shapes_scale(mesh, sizeX, sizeY, sizeZ);
 		LoadParMesh(mesh, rmesh, true);
 	}
@@ -802,32 +808,50 @@ void ModuleSceneManager::CreateCapsule(float radius, float height, ResourceMesh*
 
 GameObject * ModuleSceneManager::LoadCube()
 {
-	return LoadPrimitiveObject(cube->GetUID());
+	GameObject* obj = LoadPrimitiveObject(cube->GetUID());
+	std::string name = "Cube (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadPlane()
 {
-	return LoadPrimitiveObject(plane->GetUID());
+	GameObject* obj = LoadPrimitiveObject(plane->GetUID());
+	std::string name = "Plane (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadSphere()
 {
-	return LoadPrimitiveObject(sphere->GetUID());
+	GameObject* obj = LoadPrimitiveObject(sphere->GetUID());
+	std::string name = "Sphere (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadCylinder()
 {
-	return LoadPrimitiveObject(cylinder->GetUID());
+	GameObject* obj = LoadPrimitiveObject(cylinder->GetUID());
+	std::string name = "Cylinder (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadDisk()
 {
-	return LoadPrimitiveObject(disk->GetUID());
+	GameObject* obj = LoadPrimitiveObject(disk->GetUID());
+	std::string name = "Disk (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadCapsule()
 {
-	return LoadPrimitiveObject(capsule->GetUID());
+	GameObject* obj = LoadPrimitiveObject(capsule->GetUID());
+	std::string name = "Capsule (" + std::to_string(go_count - 1) + ")";
+	obj->SetName(name.c_str());
+	return obj;
 }
 
 GameObject* ModuleSceneManager::LoadPrimitiveObject(uint PrimitiveMeshID)

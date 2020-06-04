@@ -12,11 +12,12 @@
         "Navigation": false,
         "Physics": true,
         "Project": true,
-        "Rendering": true,
+        "Rendering": false,
         "Resources": false,
         "Scene": true,
         "Settings": false,
         "ShaderEditor": false,
+        "ShadowsScene": true,
         "Toolbar": true
     },
     "Physics": {
@@ -197,21 +198,38 @@
         "staticFriction": 1.0
     },
     "Renderer3D": {
-        "GammaCorrection": 1.8650000095367432,
+        "AlphaFunc": 0,
+        "BlendEquation": 0,
+        "EnableShadows": true,
+        "GammaCorrection": 2.680000066757202,
+        "ManualAlphaFuncDst": 7,
+        "ManualAlphaFuncSrc": 6,
+        "RendAutoBlending": true,
         "SceneAmbientColor": {
-            "R": 1.0,
+            "B": 1.0,
             "G": 1.0,
-            "B": 1.0
+            "R": 1.0
+        },
+        "SkyboxColorTint": {
+            "B": 1.0,
+            "G": 1.0,
+            "R": 1.0
+        },
+        "SkyboxExposure": 1.0,
+        "SkyboxRotation": {
+            "X": 0.0,
+            "Y": 0.0,
+            "Z": 0.0
         }
     },
     "Window": {
         "borderless": false,
         "fullscreen": false,
         "fullscreenDesktop": false,
-        "height": 810,
+        "height": 1008,
         "resizable": true,
         "sceneX": 480,
         "sceneY": 640,
-        "width": 1440
+        "width": 950
     }
 }

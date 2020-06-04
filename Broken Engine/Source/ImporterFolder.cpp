@@ -62,7 +62,7 @@ void ImporterFolder::Save(ResourceFolder* folder) const
 {
 	if (folder)
 	{
-		App->fs->CreateDirectoryA(folder->GetResourceFile());
+		App->fs->CreateDirectory(folder->GetResourceFile());
 
 		std::string new_path = folder->GetOriginalFile();
 		new_path.pop_back();

@@ -106,7 +106,7 @@ bool ModuleResourceManager::Start()
 
 	// --- Create default font ---
 	DefaultFont = (ResourceFont*)CreateResourceGivenUID(Resource::ResourceType::FONT, "Assets/Fonts/arial.ttf",7);
-	DefaultFont->Init();
+	DefaultFont->LoadToMemory();
 
 	// --- Add file filters, so we only search for relevant files ---
 	filters.push_back("fbx");
@@ -1053,7 +1053,7 @@ Resource* ModuleResourceManager::CreateResourceGivenUID(Resource::ResourceType t
 		resource = (Resource*)new ResourceFont(UID, source_file);
 		fonts[resource->GetUID()] = (ResourceFont*)resource;
 		break;
-	
+
 	case Resource::ResourceType::NAVMESH:
 		resource = (Resource*)new ResourceNavMesh(UID, source_file);
 		navmeshes[resource->GetUID()] = (ResourceNavMesh*)resource;
@@ -1072,6 +1072,7 @@ Resource* ModuleResourceManager::CreateResourceGivenUID(Resource::ResourceType t
 }
 
 
+// ------------------------------------------------------ GETTERS ------------------------------------------------------
 Resource::ResourceType ModuleResourceManager::GetResourceTypeFromPath(const char* path)
 {
 	static_assert(static_cast<int>(Resource::ResourceType::UNKNOWN) == 15, "Resource Switch needs to be updated");
@@ -1106,14 +1107,98 @@ ResourceFolder* ModuleResourceManager::GetAssetsFolder()
 	return AssetsFolder;
 }
 
-uint ModuleResourceManager::GetFileFormatVersion()
+uint ModuleResourceManager::GetFileFormatVersion() const
 {
 	return fileFormatVersion;
 }
 
-uint ModuleResourceManager::GetDefaultMaterialUID()
+// ----- Materials & Shaders Getter -----
+uint ModuleResourceManager::GetDefaultMaterialUID() const
 {
 	return DefaultMaterial->GetUID();
+}
+
+// ------------------------------------------------------ RESOURCES UTILITIES ------------------------------------------------------
+ResourceMaterial* ModuleResourceManager::GetDefaultMaterial() const
+{
+	return DefaultMaterial;
+}
+
+ResourceMaterial* ModuleResourceManager::GetMaterialByName(const char* mat_name) const
+{
+	std::string name = mat_name;
+	if (name.compare(DefaultMaterial->GetName()) == 0)
+		return DefaultMaterial;
+
+	std::map<uint, ResourceMaterial*>::const_iterator it = materials.begin();
+	for (; it != materials.end(); ++it)
+	{
+		if ((*it).second == nullptr || (*it).first == DefaultMaterial->GetUID())
+			continue;
+
+		if (name.compare((*it).second->GetName()) == 0)
+			return (*it).second;
+	}
+
+	return nullptr;
+}
+
+ResourceMaterial* ModuleResourceManager::GetMaterialByUUID(const uint mat_UUID) const
+{
+	if(mat_UUID == DefaultMaterial->GetUID())
+		return DefaultMaterial;
+
+	std::pair<uint, ResourceMaterial*> ret = (*materials.find(mat_UUID));
+	if (ret.second != nullptr)
+		return ret.second;
+	else
+		return nullptr;
+}
+
+ResourceShader* ModuleResourceManager::GetShaderByName(const char* shader_name) const
+{
+	std::string name = shader_name;
+	std::map<uint, ResourceShader*>::const_iterator it = shaders.begin();
+
+	for (; it != shaders.end(); ++it)
+	{
+		if ((*it).second == nullptr)
+			continue;
+
+		if (name.compare((*it).second->GetName()) == 0)
+			return (*it).second;
+	}
+
+	return nullptr;
+}
+
+ResourceShader* ModuleResourceManager::GetShaderByUUID(const uint mat_UUID) const
+{
+	std::pair<uint, ResourceShader*> ret = (*shaders.find(mat_UUID));
+	if (ret.second != nullptr)
+		return ret.second;
+	else
+		return nullptr;
+}
+
+ResourceTexture* ModuleResourceManager::GetTextureResourceByName(const char* texture_name) const
+{
+	ResourceTexture* ret = nullptr;
+
+	std::string name = texture_name;
+	for (std::map<uint, ResourceTexture*>::const_iterator it = textures.begin(); it != textures.end(); ++it)
+	{
+		if ((*it).second == nullptr)
+			continue;
+
+		if (name.compare((*it).second->GetName()) == 0)
+		{
+			ret = (*it).second;
+			break;
+		}
+	}
+
+	return ret;
 }
 
 void ModuleResourceManager::SaveResource(Resource* resource) const {
@@ -1480,7 +1565,7 @@ bool ModuleResourceManager::CleanUp()
 	static_assert(static_cast<int>(Resource::ResourceType::UNKNOWN) == 15, "Resource Clean Up needs to be updated");
 
 	// --- We finish all defer saves ---
-	for (std::map<Resource*, bool>::iterator it = resources_to_save.begin(); it != resources_to_save.end(); ++it) 
+	for (std::map<Resource*, bool>::iterator it = resources_to_save.begin(); it != resources_to_save.end(); ++it)
 		App->threading->ADDTASK(this, ModuleResourceManager::SaveResource, (*it).first);
 
 	App->threading->FinishProcessing();

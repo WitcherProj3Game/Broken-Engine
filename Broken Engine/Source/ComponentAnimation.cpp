@@ -83,20 +83,23 @@ void ComponentAnimation::Update()
 
 	if (App->GetAppState() == AppState::PLAY && !App->time->gamePaused)
 	{
-		if (linked_bones == false)
-			DoBoneLink();
-
-		time += App->time->GetGameDt();
-
-		if (animations.size() > 0)
+		if (!animation_paused)
 		{
-			if (blending == false)
-				UpdateJointsTransform();
-			else
-				BlendAnimations(blend_time_value);
+			if (linked_bones == false)
+				DoBoneLink();
 
-			if (has_skeleton)
-				UpdateMesh(GO);
+			time += App->time->GetGameDt();
+
+			if (animations.size() > 0)
+			{
+				if (blending == false)
+					UpdateJointsTransform();
+				else
+					BlendAnimations(blend_time_value);
+
+				if (has_skeleton)
+					UpdateMesh(GO);
+			}
 		}
 	}
 	else
@@ -107,10 +110,6 @@ void ComponentAnimation::Update()
 	if (to_copy)
 	{
 		// -- New Copy function goes here, or in the button itself
-
-		//ENGINE_AND_SYSTEM_CONSOLE_LOG("Animation info size: %d", anim_info.size());
-		
-
 		to_copy = false;
 	}
 
@@ -142,8 +141,15 @@ Animation* ComponentAnimation::GetDefaultAnimation() const
 	return nullptr;
 }
 
+void ComponentAnimation::StopAnimation()
+{
+	animation_paused = true;
+	Frame = playing_animation->end;
+}
+
 void ComponentAnimation::PlayAnimation(const char* name, float speed)
 {
+	animation_paused = false;
 	for (int i = 0; i < animations.size(); ++i)
 	{
 		if (animations[i] == nullptr)
@@ -178,14 +184,20 @@ void ComponentAnimation::SetAnimationSpeed(const char* name, float speed)
 			break;
 		}
 		else if (animations[i]->name.compare(name) == 0)
+		{
+			time += time * (animations[i]->speed / speed);
 			animations[i]->speed = speed;
+		}
 	}
 }
 
 void ComponentAnimation::SetCurrentAnimationSpeed(float speed)
 {
-	if(playing_animation)
+	if (playing_animation)
+	{
+		time += time * (playing_animation->speed / speed);
 		playing_animation->speed = speed;
+	}
 	else
 		ENGINE_AND_SYSTEM_CONSOLE_LOG("Current Animation is nullptr!");
 }
@@ -229,13 +241,15 @@ json ComponentAnimation::Save() const
 	// --- Store path to component file ---
 	if (res_anim)
 		node["Resources"]["ResourceAnimation"] = std::string(res_anim->GetResourceFile());
-	
+
+	node["Animations"]["BlendTime"] = std::to_string(blend_time_value);
+	node["Animations"]["UseDefault"] = use_default_animation;
+
 	if (!res_animator)
 	{
 		// --- Saving animations ------------------
 		node["Animations"]["Size"] = std::to_string(animations.size());
-		node["Animations"]["BlendTime"] = std::to_string(blend_time_value);
-		node["Animations"]["UseDefault"] = use_default_animation;
+		
 
 		for (int i = 0; i < animations.size(); ++i)
 		{
@@ -283,6 +297,10 @@ void ComponentAnimation::Load(json& node)
 	LoadAnimator(true, uid);
 
 	//--------------------------------------------------------------------------------------------------------------------
+	std::string blend_time = node["Animations"]["BlendTime"].is_null() ? "0" : node["Animations"]["BlendTime"];
+	blend_time_value = std::stof(blend_time);
+
+	use_default_animation = node["Animations"]["UseDefault"].is_null() ? false : (bool)node["Animations"]["UseDefault"];
 
 	if (!res_animator)
 	{
@@ -290,12 +308,6 @@ void ComponentAnimation::Load(json& node)
 
 		std::string size = node["Animations"]["Size"].is_null() ? "0" : node["Animations"]["Size"];
 		int anim_size = std::stoi(size);
-
-		std::string blend_time = node["Animations"]["BlendTime"].is_null() ? "0" : node["Animations"]["BlendTime"];
-		blend_time_value = std::stof(blend_time);
-
-		use_default_animation = node["Animations"]["UseDefault"].is_null() ? false : (bool)node["Animations"]["UseDefault"];
-
 		for (int i = 0; i < anim_size; ++i)
 		{
 			std::string iterator = std::to_string(i);
@@ -502,7 +514,9 @@ void ComponentAnimation::UpdateJointsTransform()
 
 		bool update_transforms = true;
 		// ----------------------- Frame count managment -----------------------------------
+		
 		Frame = playing_animation->start + (time * playing_animation->speed);
+
 		if (Frame >= playing_animation->end)
 		{
 			if (use_default_animation)
@@ -574,7 +588,7 @@ void ComponentAnimation::UpdateJointsTransform()
 					}
 				}
 			}
-			trans->SetQuatRotation(rotation);
+			trans->SetRotation(rotation);
 
 			//SCALE
 			float3 scale = trans->GetScale();
@@ -657,7 +671,7 @@ void ComponentAnimation::BlendAnimations(float blend_time)
 		if (start_position[i].x != 1234)
 			trans->SetPosition(end_position[i].Lerp(start_position[i], value));
 		if (start_rotation[i].x != 1234)
-			trans->SetQuatRotation(end_rotation[i].Slerp(start_rotation[i], value));
+			trans->SetRotation(end_rotation[i].Slerp(start_rotation[i], value));
 		if (start_scale[i].x != 1234)
 			trans->Scale(end_scale[i].Lerp(start_scale[i], value).x, end_scale[i].Lerp(start_scale[i], value).y, end_scale[i].Lerp(start_scale[i], value).z);
 	}

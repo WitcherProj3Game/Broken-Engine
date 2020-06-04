@@ -9,6 +9,8 @@
 #include "ModuleSceneManager.h"
 #include "ResourceScene.h"
 #include "ModuleEventManager.h"
+#include "ModuleTimeManager.h"
+#include "AutoCompleteFileGen.h"
 
 #include "ResourceScript.h"
 #include "ComponentScript.h"
@@ -25,6 +27,7 @@
 #include "ScriptingScenes.h"
 #include "ScriptingNavigation.h"
 #include "ScriptingLighting.h"
+#include "ScriptingMaterials.h"
 #include "ScriptVar.h"
 #include <iterator>
 
@@ -144,6 +147,10 @@ bool ModuleScripting::JustCompile(std::string absolute_path) {
 		.addConstructor<void(*) (void)>()
 		.endClass()
 
+		.beginClass <ScriptingMaterials>("Materials")
+		.addConstructor<void(*) (void)>()
+		.endClass()
+
 		.beginClass <ScriptingAudio>("Audio")
 		.addConstructor<void(*) (void)>()
 		.endClass()
@@ -210,6 +217,14 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("RandomNumber", &ScriptingSystem::RandomNumber)
 		.addFunction("RandomNumberInRange", &ScriptingSystem::RandomNumberInRange)
 		.addFunction("RandomNumberList", &ScriptingSystem::RandomNumberList)
+
+		.addFunction("MathFloatLerp", &ScriptingSystem::MathFloatLerp)
+		.addFunction("MathFloatInverseLerp", &ScriptingSystem::MathFloatInvLerp)
+		.addFunction("MathFloat2Lerp", &ScriptingSystem::MathFloat2Lerp)
+		.addFunction("MathFloat3Lerp", &ScriptingSystem::MathFloat3Lerp)
+		//.addFunction("MathFloat4Lerp", &ScriptingSystem::MathFloat4Lerp)
+		//.addFunction("MathQuatLerp", &ScriptingSystem::MathQuatLerp)
+		//.addFunction("MathQuatSlerp", &ScriptingSystem::MathQuatSlerp)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------
@@ -241,6 +256,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("FindGameObject", &ScriptingGameobject::FindGameObject)
 		.addFunction("FindChildGameObject", &ScriptingGameobject::FindChildGameObject)
 		.addFunction("FindChildGameObjectFromGO", &ScriptingGameobject::FindChildGameObjectFromGO)
+		.addFunction("GetGOChilds", &ScriptingGameobject::GetGOChilds)
 		.addFunction("GetMyUID", &ScriptingGameobject::GetMyUID)
 		.addFunction("GetParent", &ScriptingGameobject::GetScriptGOParent)
 		.addFunction("GetGameObjectParent", &ScriptingGameobject::GetGOParentFromUID)
@@ -292,6 +308,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("OnCollisionStay", &ScriptingPhysics::OnCollisionStay)
 		.addFunction("OnCollisionExit", &ScriptingPhysics::OnCollisionExit)
 
+		.addFunction("SetActiveController", &ScriptingPhysics::SetActiveController)
 		.addFunction("Move", &ScriptingPhysics::Move)
 		.addFunction("GetCharacterPosition", &ScriptingPhysics::GetCharacterPosition)
 		.addFunction("SetCharacterPosition", &ScriptingPhysics::SetCharacterPosition)
@@ -310,7 +327,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 
 		.addFunction("ActivateParticlesEmission", &ScriptingParticles::ActivateParticleEmitter)
 		.addFunction("DeactivateParticlesEmission", &ScriptingParticles::DeactivateParticleEmitter)
-		
+
 		.addFunction("PlayParticleEmitter", &ScriptingParticles::PlayParticleEmitter)
 		.addFunction("StopParticleEmitter", &ScriptingParticles::StopParticleEmitter)
 		.addFunction("SetEmissionRate", &ScriptingParticles::SetEmissionRateFromScript)
@@ -329,7 +346,19 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 
 		.addFunction("SetParticlesScale", &ScriptingParticles::SetParticleScaleFromScript)
 		.addFunction("SetRandomParticlesScale", &ScriptingParticles::SetRandomParticleScale)
-		.endClass()
+
+		.addFunction("SetParticleColor", &ScriptingParticles::SetParticleColor)
+		
+		.addFunction("SetScaleOverTime", &ScriptingParticles::SetScaleOverTime)
+		.addFunction("SetTextureByUID", &ScriptingParticles::SetTextureByUUID)
+		.addFunction("SetTextureByName", &ScriptingParticles::SetTextureByName)
+
+		.addFunction("SetParticlesRotationOverTime", &ScriptingParticles::SetParticlesRotationOverTime)
+		.addFunction("SetParticlesRandomRotationOverTime", &ScriptingParticles::SetParticlesRandomRotationOverTime)
+		.addFunction("SetParticles3DRotationOverTime", &ScriptingParticles::SetParticles3DRotationOverTime)
+		.addFunction("SetParticles3DRandomRotationOverTime", &ScriptingParticles::SetParticles3DRandomRotationOverTime)
+		.addFunction("RemoveParticlesRandomRotation", &ScriptingParticles::RemoveParticlesRandomRotation)
+			.endClass()
 
 		// ----------------------------------------------------------------------------------
 		// LIGHTING
@@ -350,6 +379,82 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetLightAttenuation", &ScriptingLighting::SetAttenuation)
 		.addFunction("SetLightCutoff", &ScriptingLighting::SetCutoff)
 		.addFunction("SetDistMultiplier", &ScriptingLighting::SetDistanceMultiplier)
+
+		.addFunction("SetShadowerLight", &ScriptingLighting::SetShadowerLight)
+		.addFunction("SetLightShadowsIntensity", &ScriptingLighting::SetLightShadowsIntensity)
+		.addFunction("SetLightShadowsFrustumSize", &ScriptingLighting::SetLightShadowsFrustumSize)
+		.addFunction("SetLightShadowsFrustumPlanes", &ScriptingLighting::SetLightShadowsFrustumPlanes)
+		.endClass()
+
+		// ----------------------------------------------------------------------------------
+		// MATERIALS
+		// ----------------------------------------------------------------------------------
+		.beginClass <ScriptingMaterials>("Materials")
+		.addConstructor<void(*) (void)>()
+
+		//Materials Standard Values (by Material!)
+		.addFunction("SetMaterialTransparent", &ScriptingMaterials::SetMaterialTransparency)
+		.addFunction("SetMaterialCulling", &ScriptingMaterials::SetMaterialCulling)
+		.addFunction("SetMaterialShininess", &ScriptingMaterials::SetMaterialShininess)
+		.addFunction("SetMaterialTextureUsage", &ScriptingMaterials::SetMaterialTextureUsage)
+		.addFunction("SetMaterialAlpha", &ScriptingMaterials::SetMaterialAlpha)
+		.addFunction("SetMaterialColor", &ScriptingMaterials::SetMaterialColor)
+
+		.addFunction("GetMaterialTransparency", &ScriptingMaterials::GetMaterialTransparency)
+		.addFunction("GetMaterialCulling", &ScriptingMaterials::GetMaterialCulling)
+		.addFunction("GetMaterialTextureUsage", &ScriptingMaterials::GetMaterialTextureUsage)
+		.addFunction("GetMaterialShininess", &ScriptingMaterials::GetMaterialShininess)
+		.addFunction("GetMaterialAlpha", &ScriptingMaterials::GetMaterialAlpha)
+		.addFunction("GetMaterialColor", &ScriptingMaterials::GetMaterialColor)
+
+		//Materials Standard Values (by Object!)
+		.addFunction("SetObjectMaterialTransparent", &ScriptingMaterials::SetTransparency)
+		.addFunction("SetObjectMaterialCulling", &ScriptingMaterials::SetCulling)
+		.addFunction("SetObjectMaterialShininess", &ScriptingMaterials::SetShininess)
+		.addFunction("SetObjectMaterialTextureUsage", &ScriptingMaterials::SetTextureUsage)
+		.addFunction("SetObjectMaterialAlpha", &ScriptingMaterials::SetAlpha)
+		.addFunction("SetObjectMaterialColor", &ScriptingMaterials::SetColor)
+		
+		.addFunction("GetObjectMaterialTransparency", &ScriptingMaterials::GetTransparency)
+		.addFunction("GetObjectMaterialCulling", &ScriptingMaterials::GetCulling)
+		.addFunction("GetObjectMaterialTextureUsage", &ScriptingMaterials::GetTextureUsage)
+		.addFunction("GetObjectMaterialShininess", &ScriptingMaterials::GetShininess)
+		.addFunction("GetObjectMaterialAlpha", &ScriptingMaterials::GetAlpha)
+		.addFunction("GetObjectMaterialColor", &ScriptingMaterials::GetColor)
+
+		//Materials Setters/Getters
+		.addFunction("SetMaterialByName", &ScriptingMaterials::SetMaterialByName)
+		.addFunction("SetMaterialByUID", &ScriptingMaterials::SetMaterialByUUID)
+
+		.addFunction("GetCurrentMatName", &ScriptingMaterials::GetCurrentMaterialName)
+		.addFunction("GetCurrentMatUID", &ScriptingMaterials::GetCurrentMaterialUUID)
+		.addFunction("GetMaterialNameFromUID", &ScriptingMaterials::GetMaterialNameByUUID)
+		.addFunction("GetMaterialUIDFromName", &ScriptingMaterials::GetMaterialUUIDByName)
+
+		//Materials Shaders
+		.addFunction("SetShaderByName", &ScriptingMaterials::SetShaderByName)
+		.addFunction("SetShaderByUID", &ScriptingMaterials::SetShaderByUUID)
+		.addFunction("SetShaderToMaterial", &ScriptingMaterials::SetShaderToMaterial)
+
+		.addFunction("GetCurrentShaderName", &ScriptingMaterials::GetCurrentShaderName)
+		.addFunction("GetCurrentShaderUID", &ScriptingMaterials::GetCurrentShaderUUID)
+		.addFunction("GetShaderNameFromUID", &ScriptingMaterials::GetShaderNameByUUID)
+		.addFunction("GetShaderUIDFromName", &ScriptingMaterials::GetShaderUUIDByName)
+
+		//Uniforms
+		.addFunction("SetUniformInt", &ScriptingMaterials::SetUniformInt)
+		.addFunction("SetUniformFloat", &ScriptingMaterials::SetUniformFloat)
+		.addFunction("SetUniformVec2", &ScriptingMaterials::SetUniformVec2)
+		.addFunction("SetUniformVec3", &ScriptingMaterials::SetUniformVec3)
+		.addFunction("SetUniformVec4", &ScriptingMaterials::SetUniformVec4)
+		.addFunction("SetUniformBool", &ScriptingMaterials::SetUniformBool)
+
+		.addFunction("GetUniformInt", &ScriptingMaterials::GetUniformInt)
+		.addFunction("GetUniformFloat", &ScriptingMaterials::GetUniformFloat)
+		.addFunction("GetUniformVec2", &ScriptingMaterials::GetUniformVec2)
+		.addFunction("GetUniformVec3", &ScriptingMaterials::GetUniformVec3)
+		.addFunction("GetUniformVec4", &ScriptingMaterials::GetUniformVec4)
+		
 		.endClass()
 
 		// ----------------------------------------------------------------------------------
@@ -359,15 +464,21 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addConstructor<void(*) (void)>()
 
 		.addFunction("SetVolume", &ScriptingAudio::SetVolume)
+		.addFunction("SetAudioTrigger", &ScriptingAudio::SetAudioTrigger)
+
 		.addFunction("PlayAudioEvent", &ScriptingAudio::PlayAudioEvent)
 		.addFunction("StopAudioEvent", &ScriptingAudio::StopAudioEvent)
 		.addFunction("PauseAudioEvent", &ScriptingAudio::PauseAudioEvent)
 		.addFunction("ResumeAudioEvent", &ScriptingAudio::ResumeAudioEvent)
-		.addFunction("SetVolume", &ScriptingAudio::SetVolume)
+
 		.addFunction("PlayAudioEventGO", &ScriptingAudio::PlayAudioEventGO)
 		.addFunction("StopAudioEventGO", &ScriptingAudio::StopAudioEventGO)
 		.addFunction("PauseAudioEventGO", &ScriptingAudio::PauseAudioEventGO)
 		.addFunction("ResumeAudioEventGO", &ScriptingAudio::ResumeAudioEventGO)
+		.addFunction("SetAudioSwitch", &ScriptingAudio::SetAudioSwitch)
+		.addFunction("SetAudioTrigger", &ScriptingAudio::SetAudioTrigger)
+		.addFunction("SetAudioState", &ScriptingAudio::SetAudioState)
+		.addFunction("SetAudioRTPCValue", &ScriptingAudio::SetAudioRTPCValue)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------
@@ -382,6 +493,8 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("SetBlendTime", &ScriptingAnimations::SetBlendTime)
 		.addFunction("CurrentAnimationEnded", &ScriptingAnimations::CurrentAnimEnded)
 		.addFunction("GetCurrentFrame", &ScriptingAnimations::GetCurrentFrame)
+		.addFunction("SetAnimationPause", &ScriptingAnimations::SetAnimPause)
+		.addFunction("StopAnimation", &ScriptingAnimations::StopAnimation)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------
@@ -392,14 +505,30 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 
 		.addFunction("MakeElementVisible", &ScriptingInterface::MakeUIComponentVisible)
 		.addFunction("MakeElementInvisible", &ScriptingInterface::MakeUIComponentInvisible)
+		.addFunction("SetUIElementPosition", &ScriptingInterface::SetUIElementPosition)
 
 		.addFunction("SetUIBarPercentage", &ScriptingInterface::SetBarPercentage)
 		.addFunction("SetUICircularBarPercentage", &ScriptingInterface::SetCircularBarPercentage)
 		.addFunction("SetText", &ScriptingInterface::SetUIText)
 		.addFunction("SetTextAndNumber", &ScriptingInterface::SetUITextAndNumber)
 		.addFunction("SetTextNumber", &ScriptingInterface::SetUITextNumber)
+		.addFunction("SetUIElementInteractable", &ScriptingInterface::SetUIElementInteractable)
+
+		.addFunction("ChangeUIComponentColor", &ScriptingInterface::ChangeUIComponentColor)
+		.addFunction("ChangeUIBarColor", &ScriptingInterface::ChangeUIBarColor)
+		.addFunction("ChangeUIComponentAlpha", &ScriptingInterface::ChangeUIComponentAlpha)
+		.addFunction("ChangeUIBarAlpha", &ScriptingInterface::ChangeUIBarAlpha)
+		
+		.addFunction("GetUIComponentColor", &ScriptingInterface::GetUIComponentColor)
+		.addFunction("GetUIBarColor", &ScriptingInterface::GetUIBarColor)
+		.addFunction("GetUIComponentAlpha", &ScriptingInterface::GetUIComponentAlpha)
+		.addFunction("GetUIBarAlpha", &ScriptingInterface::GetUIBarAlpha)
+
+		.addFunction("PlayUIAnimation", &ScriptingInterface::PlayUIAnimation)
+		.addFunction("UIAnimationFinished", &ScriptingInterface::UIAnimationFinished)
 		.endClass()
 
+			
 		// ----------------------------------------------------------------------------------
 		// SCENES
 		// ----------------------------------------------------------------------------------
@@ -422,6 +551,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("GetAreaCost", &ScriptingNavigation::GetAreaCost)
 		.addFunction("SetAreaCost", &ScriptingNavigation::SetAreaCost)
 		.addFunction("CalculatePath", &ScriptingNavigation::CalculatePath)
+		.addFunction("FindNearestPointInMesh", &ScriptingNavigation::FindNearestPointInMesh)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------
@@ -557,7 +687,7 @@ void ModuleScripting::FillScriptInstanceComponentVars(ScriptInstance* script) {
 				}
 			}
 			else {
-				script->my_component->script_variables.push_back(variable);
+				script->my_component->SetVariable(variable);
 			}
 		}
 	}
@@ -682,28 +812,10 @@ void ModuleScripting::CallbackScriptFunction(ComponentScript* script_component, 
 
 void ModuleScripting::CompileDebugging()
 {
-	std::string abs_path = App->fs->GetBasePath();
-	App->fs->NormalizePath(abs_path);
+	std::string working_dir = App->fs->GetWorkingDirectory();
+	App->fs->NormalizePath(working_dir);
 
-	std::size_t d_pos = 0;
-	d_pos = abs_path.find("Debug");
-	std::size_t r_pos = 0;
-	r_pos = abs_path.find("Release");
-
-	if (d_pos != 4294967295)  // If we are in DEBUG
-	{
-		abs_path = abs_path.substr(0, d_pos);
-		abs_path += "Game/";
-	}
-	else if (r_pos != 4294967295) // If we are in RELEASE
-	{
-		abs_path = abs_path.substr(0, r_pos);
-		abs_path += "Game/";
-	}
-
-	abs_path += "Lua_Debug";
-
-	debug_path = abs_path;
+	debug_path = working_dir + "/Lua_Debug";
 
 	luabridge::getGlobalNamespace(L)
 		.beginNamespace("Scripting")
@@ -761,10 +873,10 @@ void ModuleScripting::DeployScriptingGlobals()
 {
 	ENGINE_CONSOLE_LOG("Attempting to compile and run Globals.lua!");
 	std::string path = "Lua_Globals/Globals.lua"; // This is the relative path were the file must be, we do this to ensure we won't have problems with Assets folder and people trying to add this file as a script to a gameobject
-	
+
 	if (App->fs->Exists(path.c_str())) //If the file exists compile if not sound the alarm
 	{
-		std::string abs_path = GetScriptingBasePath();
+		std::string abs_path = App->fs->GetWorkingDirectory();
 		abs_path += path;
 
 		//Now, Compile&Run in LUA
@@ -784,6 +896,30 @@ void ModuleScripting::DeployScriptingGlobals()
 		this->cannot_start = true;
 		ENGINE_CONSOLE_LOG("File %s doesn't exist! This file is essential for Scripting!",path.c_str());
 		ENGINE_CONSOLE_LOG("|[ERROR]Scripting won't start until %s can be properly found and compiles", path.c_str());
+	}
+}
+
+//The purpose of this function is to initialize the scripting vars of an instantiated gameObject on creation
+void ModuleScripting::EmplaceEditorValues(ScriptInstance* script)
+{
+	std::string aux_str = "null";
+	for (std::vector<ScriptVar>::iterator it = script->my_component->script_variables.begin(); it != script->my_component->script_variables.end(); ++it)
+	{
+		if ((*it).changed_value) {
+			switch ((*it).type) {
+			case VarType::DOUBLE:
+				script->my_table_class[(*it).name.c_str()] = (*it).editor_value.as_double;
+				break;
+			case VarType::STRING:
+				aux_str = (*it).editor_value.as_string;
+				script->my_table_class[(*it).name.c_str()] = aux_str.c_str();
+				break;
+			case VarType::BOOLEAN:
+				script->my_table_class[(*it).name.c_str()] = (*it).editor_value.as_boolean;
+				break;
+			}
+			(*it).changed_value = false;
+		}
 	}
 }
 
@@ -824,7 +960,7 @@ update_status ModuleScripting::Update(float realDT)
 	OPTICK_CATEGORY("Scripting Update", Optick::Category::Script);
 
 	// If a script was changed during runtime, hot reload
-	if (App->GetAppState() == AppState::EDITOR && hot_reloading_waiting) // Ask Aitor if this is correct (condition should return true only when no gameplay is being played)
+	if (!App->isGame && App->GetAppState() == AppState::EDITOR && hot_reloading_waiting) // Ask Aitor if this is correct (condition should return true only when no gameplay is being played)
 		DoHotReloading();
 
 	if(App->GetAppState() != AppState::PLAY)
@@ -837,6 +973,8 @@ update_status ModuleScripting::Update(float realDT)
 			(*it)->started = false;
 		}
 	}
+
+	GameUpdate(App->time->GetGameDt());
 	// Carles to Didac
 	// 1. You can use the "IsWhatever" functions of App to check the current game state.
 	// 2. "App->IsGameFirstFrame()" marks the first frame a GameUpdate() will happen, if you want to do anything right before the game plays in preparation
@@ -900,7 +1038,7 @@ update_status ModuleScripting::GameUpdate(float gameDT)
 						else
 						{
 							current_script->my_table_class["Update"]();	// Update is done on every iteration of the script as long as it remains active
-							
+
 							if(current_script != nullptr)
 								FillScriptInstanceComponentVars(current_script); // Show variables at runtime
 						}
@@ -917,37 +1055,6 @@ update_status ModuleScripting::GameUpdate(float gameDT)
 	previous_AppState = (_AppState)App->GetAppState();
 
 	return UPDATE_CONTINUE;
-}
-
-//Return the base path of the folder where the .exe file is found
-std::string ModuleScripting::GetScriptingBasePath()
-{
-	std::string ret = "";
-
-	ret = App->fs->GetBasePath();
-	App->fs->NormalizePath(ret);
-
-	//If we are in the build of the game we will skip this process
-	if (App->isGame == false)
-	{
-		std::size_t d_pos = 0;
-		d_pos = ret.find("Debug");
-		std::size_t r_pos = 0;
-		r_pos = ret.find("Release");
-
-		if (d_pos != 4294967295)  // If we are in DEBUG
-		{
-			ret = ret.substr(0, d_pos);
-			ret += "Game/";
-		}
-		else if (r_pos != 4294967295) // If we are in RELEASE
-		{
-			ret = ret.substr(0, r_pos);
-			ret += "Game/";
-		}
-	}
-
-	return ret;
 }
 
 void ModuleScripting::CleanUpInstances() {

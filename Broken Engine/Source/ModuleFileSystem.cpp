@@ -23,6 +23,10 @@ ModuleFileSystem::ModuleFileSystem(bool start_enabled, const char* game_path) : 
 
 	// needs to be created before Init so other modules can use it
 	char* base_path = SDL_GetBasePath();
+	char buf[256];
+	GetCurrentDirectoryA(256, buf);
+	working_directory = buf;
+	working_directory += '/';
 	PHYSFS_init(base_path);
 	SDL_free(base_path);
 
@@ -453,7 +457,7 @@ void ModuleFileSystem::WatchDirectory(const char* directory) {
 	// --- Watch the directory for file creation and deletion ---
 	// --- Watch the subtree for directory creation and deletion ---
 
-	dwChangeHandles[0] = FindFirstChangeNotification(
+	dwChangeHandles[0] = FindFirstChangeNotificationA(
 		directory,                       // directory to watch
 		TRUE,                          // watch the subtree
 		FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME 
@@ -776,4 +780,8 @@ void ModuleFileSystem::CreateAssimpIO() {
 
 aiFileIO* ModuleFileSystem::GetAssimpIO() {
 	return AssimpIO;
+}
+
+const char* ModuleFileSystem::GetWorkingDirectory() const {
+	return working_directory.c_str();
 }

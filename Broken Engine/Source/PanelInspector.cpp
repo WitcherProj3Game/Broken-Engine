@@ -54,7 +54,7 @@ bool PanelInspector::Draw()
 		if (Selected != nullptr)
 		{
 			// --- Game Object ---
-			CreateGameObjectNode(*Selected);
+			CreateGameObjectNode(Selected);
 
 			// --- Components ---
 
@@ -112,7 +112,7 @@ bool PanelInspector::Draw()
 							{
 								if (ImGui::MenuItem("Confirm delete"))
 								{
-									EngineApp->selection->DeleteComponentToSelected();
+									EngineApp->selection->DeleteComponentToSelected((*it));
 
 								}
 								ImGui::EndMenu();
@@ -212,6 +212,16 @@ bool PanelInspector::Draw()
 				type = Broken::Component::ComponentType::Button;
 			}
 
+			else if (item_current == "UI ProgressBar")
+			{
+				type = Broken::Component::ComponentType::ProgressBar;
+			}
+
+			else if (item_current == "UI CircularBar")
+			{
+				type = Broken::Component::ComponentType::CircularBar;
+			}
+
 			else if (item_current == "Dynamic RigidBody")
 			{
 				type = Broken::Component::ComponentType::DynamicRigidBody;
@@ -237,9 +247,7 @@ bool PanelInspector::Draw()
 			if (type != Broken::Component::ComponentType::Unknown)
 			{
 				for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
-				{
 					obj->AddComponent(type);
-				}
 			}
 			item_current = items[0];
 
@@ -273,7 +281,7 @@ bool PanelInspector::Draw()
 
 // SELECTED TODO: test editing for multiselection
 // OPTIMIZE DEFAULT SHOWN PROPERTIES -> LESS SELECTION ITERATIONS
-void PanelInspector::CreateGameObjectNode(Broken::GameObject& Selected) const
+void PanelInspector::CreateGameObjectNode(Broken::GameObject* Selected) const
 {
 	ImGui::BeginChild("child", ImVec2(0, 70), true);
 
@@ -298,28 +306,29 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject& Selected) const
 	}
 	ImGui::SameLine();
 
-	// --- Game Object Name Setter ---
-	static char GOName[128] = "";
-	static std::string number = "";
-	strcpy_s(GOName, 128, Selected.GetName());
+	if (Selected != nullptr) {
+		// --- Game Object Name Setter ---
+		static char GOName[128] = "";
+		static std::string number = "";
+		strcpy_s(GOName, 128, Selected->GetName());
 
-	if (ImGui::InputText("", GOName, 128, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
+		if (ImGui::InputText("", GOName, 128, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
 
-		for (int i = 0; i < EngineApp->selection->GetSelected()->size(); i++)
-		{
-			if (i == 0)
+			for (int i = 0; i < EngineApp->selection->GetSelected()->size(); i++)
 			{
-				EngineApp->selection->GetSelected()->at(i)->SetName(GOName);
-			}
-			else
-			{
-				number = " (" + std::to_string(i) + ")";
-				number = GOName + number;
+				if (i == 0)
+				{
+					EngineApp->selection->GetSelected()->at(i)->SetName(GOName);
+				}
+				else
+				{
+					number = " (" + std::to_string(i) + ")";
+					number = GOName + number;
 
-				EngineApp->selection->GetSelected()->at(i)->SetName(number.c_str());
+					EngineApp->selection->GetSelected()->at(i)->SetName(number.c_str());
+				}
 			}
-		}
-
+	}
 
 	static bool objectStatic = true;
 	bool checkbox_static = true;
@@ -393,56 +402,54 @@ void PanelInspector::CreateGameObjectNode(Broken::GameObject& Selected) const
 	static ImGuiComboFlags flags = 0;
 
 	//int layer = App->selection->GetLastSelected()->GetLayer();
-	int layer = Selected.GetLayer();
+	if (Selected != nullptr) {
+		int layer = Selected->GetLayer();
 
-	std::string layer_name = layers->at(layer).name.c_str();
-	for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
-	{
-		if (layer != obj->GetLayer())
+		std::string layer_name = layers->at(layer).name.c_str();
+		for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
 		{
-			layer_name = "----";
-			break;
+			if (layer != obj->GetLayer())
+			{
+				layer_name = "----";
+				break;
+			}
 		}
-	}
 
-	//const char* item_current = layers->at(Selected.layer).name.c_str();
-	ImGui::Text("Layer: ");
-	ImGui::SameLine();
-	if (ImGui::BeginCombo("##Layer:", layer_name.c_str(), flags))
-	{
-		for (int n = 0; n < layers->size(); n++)
+		//const char* item_current = layers->at(Selected.layer).name.c_str();
+		ImGui::Text("Layer: ");
+		ImGui::SameLine();
+		if (ImGui::BeginCombo("##Layer:", layer_name.c_str(), flags))
 		{
-			if (!layers->at(n).active)
-				continue;
+			for (int n = 0; n < layers->size(); n++)
+			{
+				if (!layers->at(n).active)
+					continue;
 
-			bool is_selected = (layer_name == layers->at(n).name.c_str());
+				bool is_selected = (layer_name == layers->at(n).name.c_str());
 
-			if (ImGui::Selectable(layers->at(n).name.c_str(), is_selected)) {
-				// Changing layer
-				for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
-				{
-					layer_name = layers->at(n).name.c_str();
-					obj->layer = layers->at(n).layer;
+				if (ImGui::Selectable(layers->at(n).name.c_str(), is_selected)) {
+					// Changing layer
+					for (Broken::GameObject* obj : *EngineApp->selection->GetSelected())
+					{
+						layer_name = layers->at(n).name.c_str();
+						obj->layer = layers->at(n).layer;
 
-					Broken::ComponentCollider* col = obj->GetComponent<Broken::ComponentCollider>();
-					Broken::ComponentParticleEmitter* particle = obj->GetComponent<Broken::ComponentParticleEmitter>();
+						Broken::ComponentCollider* col = obj->GetComponent<Broken::ComponentCollider>();
+						Broken::ComponentParticleEmitter* particle = obj->GetComponent<Broken::ComponentParticleEmitter>();
 
-					if (col)
-						col->UpdateActorLayer((int*)&layers->at(n).layer);
+						if (col)
+							col->UpdateActorLayer((int*)&layers->at(n).layer);
 
-					if (particle)
-						particle->UpdateActorLayer((int*)&layers->at(n).layer);
+						if (particle)
+							particle->UpdateActorLayer((int*)&layers->at(n).layer);
+					}
+				}
+				if (is_selected) {
+					ImGui::SetItemDefaultFocus();
 				}
 			}
-			if (is_selected) {
-				ImGui::SetItemDefaultFocus();
-			}
+			ImGui::EndCombo();
 		}
-		ImGui::EndCombo();
-	}
-	else {
-		//Selected.layer = layers->at(Selected.layer >> 1).layer;
-		//UpdateFilter
 	}
 
 	ImGui::EndChild();

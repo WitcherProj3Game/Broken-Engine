@@ -16,6 +16,7 @@
 #include "OpenGL.h"
 #include "ResourceScene.h"
 #include "ModuleThreading.h"
+#include "ComponentCharacterController.h"
 
 #include "PhysX_3.4/Include/PxPhysicsAPI.h"
 #include "PhysX_3.4/Include/PxSimulationEventCallback.h"
@@ -37,7 +38,8 @@ ComponentCollider::ComponentCollider(GameObject* ContainerGO) : Component(Contai
 
 ComponentCollider::~ComponentCollider()
 {
-	mesh->Release();
+	if (mesh->IsInMemory())
+		mesh->Release();
 }
 
 void ComponentCollider::Update()
@@ -184,12 +186,12 @@ void ComponentCollider::UpdateLocalMatrix() {
 		rigidStatic->setGlobalPose(transform); //ON EDITOR
 	else
 	{
-		if ((App->gui->isUsingGuizmo && App->GetAppState() != AppState::PLAY) || cTransform->updateValues) { //ON EDITOR
+		if ((App->gui->isUsingGuizmo && App->GetAppState() != AppState::PLAY) || cTransform->updateValues || dynamicRB->is_kinematic) { //ON EDITOR
 
 			dynamicRB->rigidBody->setGlobalPose(transform); 
 			cTransform->updateValues = false;
 		}
-		if (dynamicRB->rigidBody != nullptr && App->GetAppState() == AppState::PLAY) //ON GAME
+		if (dynamicRB->rigidBody != nullptr && !dynamicRB->is_kinematic && App->GetAppState() == AppState::PLAY) //ON GAME
 		{
 			UpdateTransformByRigidBody(dynamicRB, cTransform, &transform);
 		}
@@ -206,39 +208,24 @@ void ComponentCollider::UpdateTransformByRigidBody(ComponentDynamicRigidBody* RB
 		toPlay = true;
 	}
 
-	/*if (App->GetAppState() == AppState::PLAY && !toPlay && !App->time->gamePaused)
-	{
-		float3 pos, scale;
-		Quat rot;
-		globalMatrix.Decompose(pos, rot, scale);
 
-		physx::PxVec3 posi(pos.x, pos.y, pos.z);
-		physx::PxQuat quati(rot.x, rot.y, rot.z, rot.w);
-		physx::PxTransform transform(posi, quati);
-
-		RB->rigidBody->setGlobalPose(transform);
-
-		toPlay = true;
-	}*/
-	//float4x4 trans = float4x4::FromTRS(float3(transform.p.x, transform.p.y - globalMatrix.scaleY/2, transform.p.z), Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), cTransform->GetGlobalTransform().ExtractScale());
-
-	//REVIEW ADD QUATERNION OF PARENT/SCALE (CHECK)
 	transform = RB->rigidBody->getGlobalPose();
+	float3 position = float3(
+		(transform.p.x - globalMatrix.x) + cTransform->GetGlobalTransform().x,
+		(transform.p.y - globalMatrix.y) + cTransform->GetGlobalTransform().y,
+		(transform.p.z - globalMatrix.z) + cTransform->GetGlobalTransform().z);
 
-	float4x4 new_transform(Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), float3(transform.p.x, transform.p.y, transform.p.z));
-	float4x4 trans = new_transform - globalMatrix;
-	trans.Scale(float3(0,0,0));
-	float4x4 final = cTransform->GetGlobalTransform() + trans;
+	float4x4 new_transform = float4x4::FromTRS(
+		position,
+		Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w), 
+		cTransform->GetGlobalTransform().Transposed().GetScale());
 
-	cTransform->SetGlobalTransform(final);
-	cTransform->SetPosition(cTransform->GetLocalTransform().x, cTransform->GetLocalTransform().y, cTransform->GetLocalTransform().z);
-	cTransform->SetRotation(Quat(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
-	//globalMatrix = cTransform->GetGlobalTransform();
+	cTransform->SetGlobalTransform(new_transform);
 }
 
 json ComponentCollider::Save() const
 {
-	ENGINE_CONSOLE_LOG("Saved");
+	//ENGINE_CONSOLE_LOG("Saved");
 	json node;
 
 	node["Active"] = this->active;
@@ -328,7 +315,7 @@ void ComponentCollider::Load(json& node)
 {
 	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
 
-	ENGINE_CONSOLE_LOG("Load");
+	//ENGINE_CONSOLE_LOG("Load");
 	//CreateCollider(COLLIDER_TYPE::NONE, true);
 
 	std::string localPositionx = node["localPositionx"].is_null() ? "0" : node["localPositionx"];
@@ -724,10 +711,7 @@ void ComponentCollider::CreateCollider(ComponentCollider::COLLIDER_TYPE type, bo
 		{
 			qInverse.InverseAndNormalize();
 			Quat tmp = q * qInverse;
-			transform->rotation = tmp;
-
-			transform->SetRotation(transform->rotation);
-			transform->UpdateLocalTransform();
+			transform->SetRotation(tmp);
 
 			GO->UpdateAABB();
 
@@ -1031,8 +1015,10 @@ physx::PxRigidActor* ComponentCollider::GetActor() {
 
 void ComponentCollider::UpdateActorLayer(const int* layerMask) {
 	ComponentDynamicRigidBody* dynamicRB = GO->GetComponent<ComponentDynamicRigidBody>();
-
-	if (dynamicRB != nullptr)
+	ComponentCharacterController* controller = GO->GetComponent<ComponentCharacterController>();
+	if (controller) {
+		App->physics->UpdateActorLayer(dynamicRB->rigidBody, (LayerMask*)layerMask);
+	}else if (dynamicRB != nullptr)
 		App->physics->UpdateActorLayer(dynamicRB->rigidBody, (LayerMask*)layerMask);
 	else
 		App->physics->UpdateActorLayer(rigidStatic, (LayerMask*)layerMask);

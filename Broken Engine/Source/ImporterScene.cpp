@@ -39,16 +39,16 @@ Resource* ImporterScene::Load(const char* path) const
 	ResourceScene* scene = nullptr;
 
 	// --- Load Scene file ---
-	if (path) 
+	if (path)
 	{
 		ImporterMeta* IMeta = App->resources->GetImporter<ImporterMeta>();
 		ResourceMeta* meta = (ResourceMeta*)IMeta->Load(path);
 
-		if (meta) 
+		if (meta)
 		{
 			scene = App->resources->scenes.find(meta->GetUID()) != App->resources->scenes.end() ? App->resources->scenes.find(meta->GetUID())->second : (ResourceScene*)App->resources->CreateResourceGivenUID(Resource::ResourceType::SCENE, meta->GetOriginalFile(), meta->GetUID());
 		}
-		else 
+		else
 		{
 			scene = (ResourceScene*)App->resources->CreateResource(Resource::ResourceType::SCENE, path);
 		}
@@ -61,8 +61,21 @@ Resource* ImporterScene::Load(const char* path) const
 void ImporterScene::SaveSceneToFile(ResourceScene* scene) const
 {
 	// --- Save Scene/Model to file ---
-
 	json file;
+
+	//Save Scene Color
+	float3 sceneColor = scene->GetSceneAmbientColor();
+	file["SceneAmbientColor"]["R"] = sceneColor.x;
+	file["SceneAmbientColor"]["G"] = sceneColor.y;
+	file["SceneAmbientColor"]["B"] = sceneColor.z;
+	//Before loading static objects, load the dimensions of the tree
+	file["octreeBox"]["minX"] = scene->octreeBox.MinX();
+	file["octreeBox"]["minY"] = scene->octreeBox.MinY();
+	file["octreeBox"]["minZ"] = scene->octreeBox.MinZ();
+
+	file["octreeBox"]["maxX"] = scene->octreeBox.MaxX();
+	file["octreeBox"]["maxY"] = scene->octreeBox.MaxY();
+	file["octreeBox"]["maxZ"] = scene->octreeBox.MaxZ();
 
 	for (std::unordered_map<uint, GameObject*>::iterator it = scene->NoStaticGameObjects.begin(); it != scene->NoStaticGameObjects.end(); ++it)
 	{
@@ -72,7 +85,6 @@ void ImporterScene::SaveSceneToFile(ResourceScene* scene) const
 		file[string_uid]["Name"] = (*it).second->GetName();
 		file[string_uid]["Active"] = (*it).second->GetActive();
 		file[string_uid]["Static"] = (*it).second->Static;
-		file[string_uid]["Index"] = (*it).second->index;
 		file[string_uid]["Navigation Static"] = (*it).second->navigationStatic;
 		file[string_uid]["Navigation Area"] = (*it).second->navigationArea;
 		file[string_uid]["Index"] = (*it).second->index;
@@ -87,10 +99,12 @@ void ImporterScene::SaveSceneToFile(ResourceScene* scene) const
 
 		for (uint i = 0; i < (*it).second->GetComponents().size(); ++i)
 		{
-			// --- Save Components to file ---
-			file[string_uid]["Components"][std::to_string((uint)(*it).second->GetComponents()[i]->GetType())] = (*it).second->GetComponents()[i]->Save();
-			file[string_uid]["Components"][std::to_string((uint)(*it).second->GetComponents()[i]->GetType())]["index"] = i;
-			file[string_uid]["Components"][std::to_string((uint)(*it).second->GetComponents()[i]->GetType())]["UID"] = (*it).second->GetComponents()[i]->GetUID();
+			if ((*it).second->GetComponents()[i] != nullptr) {
+				// --- Save Components to file ---
+				file[string_uid]["Components"][std::to_string((uint)(*it).second->GetComponents()[i]->GetType())] = (*it).second->GetComponents()[i]->Save();
+				file[string_uid]["Components"][std::to_string((uint)(*it).second->GetComponents()[i]->GetType())]["index"] = i;
+				file[string_uid]["Components"][std::to_string((uint)(*it).second->GetComponents()[i]->GetType())]["UID"] = (*it).second->GetComponents()[i]->GetUID();
+			}
 		}
 	}
 

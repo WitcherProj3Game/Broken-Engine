@@ -2,11 +2,17 @@
 #define MODULE_PARTICLES_H__
 
 #include "Module.h"
+#include <queue>
 
 BE_BEGIN_NAMESPACE
+
 class ComponentParticleEmitter;
+struct HigherPriority;
+class Particle;
+
 class BROKEN_API ModuleParticles : public Module
 {
+	friend class ComponentParticleEmitter;
 public:
 	ModuleParticles(bool start_enabled);
 	~ModuleParticles();
@@ -17,10 +23,13 @@ public:
 
 	void AddEmitter(ComponentParticleEmitter* componentEmitter);
 	void DeleteEmitter(ComponentParticleEmitter* componentEmitter);
+	void DrawParticles(bool shadowsPass);
 
 	bool CleanUp() override;
 
-private:
+public: 
+
+	std::map<float, Particle*> particlesToDraw;
 
 	std::vector<ComponentParticleEmitter*> particleEmitters;
 };

@@ -2,7 +2,6 @@
 
 // -- Modules --
 #include "Application.h"
-#include "ModuleRenderer3D.h"
 #include "ModuleGui.h"
 #include "ModuleFileSystem.h"
 #include "ModuleResourceManager.h"
@@ -28,6 +27,8 @@ ResourceMaterial::ResourceMaterial(uint UID, const char* source_file) : Resource
 	previewTexID = App->gui->materialTexID;
 
 	shader->GetAllUniforms(uniforms);
+
+	LoadToMemory();
 }
 
 ResourceMaterial::~ResourceMaterial() 
@@ -37,6 +38,8 @@ ResourceMaterial::~ResourceMaterial()
 
 bool ResourceMaterial::LoadInMemory() 
 {
+	// We try to lock this so we do not proceed if we are freeing memory
+	std::lock_guard<std::mutex> lk(memory_mutex);
 	//shader->GetAllUniforms(uniforms);
 
 	return true;
@@ -44,12 +47,40 @@ bool ResourceMaterial::LoadInMemory()
 
 void ResourceMaterial::FreeMemory() 
 {
+	// We lock this while deleting memory so we do not create it while deleting it
+	std::lock_guard<std::mutex> lk(memory_mutex);
+
 	for (uint i = 0; i < uniforms.size(); ++i) 
 	{
 		delete uniforms[i];
 	}
 
 	uniforms.clear();
+}
+
+void ResourceMaterial::SetBlending() const
+{
+	bool blendEq_Same = (m_MatBlendEq == App->renderer3D->GetRendererBlendingEquation());
+	if (m_AutoBlending)
+	{
+		if(m_MatAutoBlendFunc == App->renderer3D->GetRendererBlendAutoFunction() && blendEq_Same)
+			return;
+
+		App->renderer3D->PickBlendingAutoFunction(m_MatAutoBlendFunc, m_MatBlendEq);
+		App->renderer3D->m_ChangedBlending = true;
+	}
+	else
+	{
+		BlendingTypes src, dst;
+		App->renderer3D->GetRendererBlendingManualFunction(src, dst);
+
+		bool manualBlend_Same = (m_MatManualBlend_Src == src && m_MatManualBlend_Dst == dst);
+		if (manualBlend_Same && blendEq_Same)
+			return;
+
+		App->renderer3D->PickBlendingManualFunction(m_MatManualBlend_Src, m_MatManualBlend_Dst, m_MatBlendEq);
+		App->renderer3D->m_ChangedBlending = true;
+	}
 }
 
 void ResourceMaterial::CreateInspectorNode()
@@ -66,6 +97,7 @@ void ResourceMaterial::CreateInspectorNode()
 	ImGui::Text("Shader");
 	ImGui::SameLine();
 
+	// --- Shader ---
 	if (shader)
 	{
 		const char* item_current = shader->GetName();
@@ -88,198 +120,202 @@ void ResourceMaterial::CreateInspectorNode()
 			
 			ImGui::EndCombo();
 		}
+
+		// --- Uniforms ---
+		shader->GetAllUniforms(uniforms);
+		DisplayAndUpdateUniforms();
 	}
 
-	// --- Uniforms ---
-	shader->GetAllUniforms(uniforms);
-	DisplayAndUpdateUniforms();
-
-	ImGui::Text("Use Textures");
+	// --- Bools ---
+	ImGui::NewLine();
 	ImGui::SameLine();
-	if(ImGui::Checkbox("##CB", &m_UseTexture)) 
-		save_material = true;
-
+	if(ImGui::Checkbox("Use Textures", &m_UseTexture)) save_material = true;
 	ImGui::SameLine();
-
 	if (ImGui::Checkbox("Transparencies", &has_transparencies)) save_material = true;
-
 	ImGui::SameLine();
-
 	if (ImGui::Checkbox("Culling", &has_culling)) save_material = true;
 
 	// --- Color ---
 	ImGui::Separator();
+	ImGui::NewLine();
 	if(ImGui::ColorEdit4("##AmbientColor", (float*)&m_AmbientColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar))
 		save_material = true;
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 	ImGui::Text("MatAmbientColor");
+	if (ImGui::Checkbox("Scene Color Affected", &m_AffectedBySceneColor)) save_material = true;
 
 	//--- Shininess ---
 	ImGui::Text("Shininess");
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 	ImGui::SetNextItemWidth(300.0f);
-	if(ImGui::SliderFloat("", &m_Shininess, 1.0f, 500.00f)) 
+	if(ImGui::SliderFloat("", &m_Shininess, -0.5f, 500.00f))
 		save_material = true;
 
 	// --- Print Texture Width and Height (Diffuse) ---
-	uint textSizeX = 0, textSizeY = 0;
-	ImGui::NewLine();
-	if (m_DiffuseResTexture)
-	{
-		textSizeX = m_DiffuseResTexture->Texture_width;
-		textSizeY = m_DiffuseResTexture->Texture_height;
-	}
-
-	ImGui::Text(std::to_string(textSizeX).c_str());
-	ImGui::SameLine();
-	ImGui::Text(std::to_string(textSizeY).c_str());
-
-	// --- Texture Preview
-	if (m_DiffuseResTexture)
-		ImGui::ImageButton((void*)(uint)m_DiffuseResTexture->GetPreviewTexID(), ImVec2(20, 20));
-	else
-		ImGui::ImageButton(NULL, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 2);
-
-	// --- Handle drag & drop (Diffuse Texture) ---
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("resource"))
-		{
-			uint UID = *(const uint*)payload->Data;
-			Resource* resource = App->resources->GetResource(UID, false);
-
-			if (resource && resource->GetType() == Resource::ResourceType::TEXTURE)
-			{
-				if (m_DiffuseResTexture)
-					m_DiffuseResTexture->Release();
-
-				m_DiffuseResTexture = (ResourceTexture*)App->resources->GetResource(UID);
-				save_material = true;
-			}
-		}
-
-		ImGui::EndDragDropTarget();
-	}
-
-	ImGui::SameLine();
-	ImGui::Text("Albedo");
-
-	ImGui::SameLine();
-	if (ImGui::Button("UnuseDiff", { 77, 18 }) && m_DiffuseResTexture)
-	{
-		//m_DiffuseResTexture->RemoveUser(GetContainerGameObject());
-		m_DiffuseResTexture->Release();
-		m_DiffuseResTexture = nullptr;
-		save_material = true;
-	}
-
+	HandleTextureDisplay(m_DiffuseResTexture, save_material, "Diffuse", "UnuseDiff");
 
 	// --- Print Texture Width and Height (Specular)
-	textSizeX = textSizeY = 0;
-	ImGui::NewLine();
-	if (m_SpecularResTexture)
-	{
-		textSizeX = m_SpecularResTexture->Texture_width;
-		textSizeY = m_SpecularResTexture->Texture_height;
-	}
-
-	ImGui::Text(std::to_string(textSizeX).c_str());
-	ImGui::SameLine();
-	ImGui::Text(std::to_string(textSizeY).c_str());
-
-
-	if (m_SpecularResTexture)
-		ImGui::ImageButton((void*)(uint)m_SpecularResTexture->GetPreviewTexID(), ImVec2(20, 20));
-	else
-		ImGui::ImageButton(NULL, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 2);
-
-	// --- Handle drag & drop (Specular Texture)
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("resource"))
-		{
-			uint UID = *(const uint*)payload->Data;
-			Resource* resource = App->resources->GetResource(UID, false);
-
-			if (resource && resource->GetType() == Resource::ResourceType::TEXTURE)
-			{
-				if (m_SpecularResTexture)
-					m_SpecularResTexture->Release();
-
-				m_SpecularResTexture = (ResourceTexture*)App->resources->GetResource(UID);
-				save_material = true;
-			}
-		}
-
-		ImGui::EndDragDropTarget();
-	}
-
-	ImGui::SameLine();
-	ImGui::Text("Specular");
-
-	ImGui::SameLine();
-	if (ImGui::Button("UnuseSpec", { 77, 18 }) && m_SpecularResTexture)
-	{
-		//m_SpecularResTexture->RemoveUser(GetContainerGameObject());
-		m_SpecularResTexture->Release();
-		m_SpecularResTexture = nullptr;
-		save_material = true;
-	}
+	HandleTextureDisplay(m_SpecularResTexture, save_material, "Specular", "UnuseSpec");
 
 	// --- Print Texture Width and Height (Normal)
-	textSizeX = textSizeY = 0;
+	HandleTextureDisplay(m_NormalResTexture, save_material, "Normal", "UnuseNorm");
+
+	// --- Tree Node for Blending
 	ImGui::NewLine();
-	if (m_NormalResTexture)
+	ImGui::Separator();
+
+	if (ImGui::TreeNode("Material Blending"))
 	{
-		textSizeX = m_NormalResTexture->Texture_width;
-		textSizeY = m_NormalResTexture->Texture_height;
+		HandleBlendingSelector(save_material);
+		ImGui::TreePop();
 	}
 
-	ImGui::Text(std::to_string(textSizeX).c_str());
-	ImGui::SameLine();
-	ImGui::Text(std::to_string(textSizeY).c_str());
-
-
-	if (m_NormalResTexture)
-		ImGui::ImageButton((void*)(uint)m_NormalResTexture->GetPreviewTexID(), ImVec2(20, 20));
-	else
-		ImGui::ImageButton(NULL, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 2);
-
-	// --- Handle drag & drop (Normal Texture)
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("resource"))
-		{
-			uint UID = *(const uint*)payload->Data;
-			Resource* resource = App->resources->GetResource(UID, false);
-
-			if (resource && resource->GetType() == Resource::ResourceType::TEXTURE)
-			{
-				if (m_NormalResTexture)
-					m_NormalResTexture->Release();
-
-				m_NormalResTexture = (ResourceTexture*)App->resources->GetResource(UID);
-				save_material = true;
-			}
-		}
-
-		ImGui::EndDragDropTarget();
-	}
-
-	ImGui::SameLine();
-	ImGui::Text("Normal Map");
-
-	ImGui::SameLine();
-	if (ImGui::Button("UnuseNorm", { 77, 18 }) && m_NormalResTexture)
-	{
-		//m_NormalResTexture->RemoveUser(GetContainerGameObject());
-		m_NormalResTexture->Release();
-		m_NormalResTexture = nullptr;
-		save_material = true;
-	}
+	ImGui::NewLine();
+	ImGui::Separator();
 
 	if (save_material)
 		App->resources->DeferSave(this);
+}
+
+void ResourceMaterial::HandleTextureDisplay(ResourceTexture*& texture, bool& save_material, const char* texture_name, const char* unuse_label, GameObject* container)
+{
+	// Show Texture Size
+	uint textSizeX = 0, textSizeY = 0;
+	ImGui::NewLine();
+	if (texture)
+	{
+		textSizeX = texture->Texture_width;
+		textSizeY = texture->Texture_height;
+	}
+
+	ImGui::Text(std::to_string(textSizeX).c_str());
+	ImGui::SameLine();
+	ImGui::Text(std::to_string(textSizeY).c_str());
+
+	// Show Texture Image
+	if (texture)
+		ImGui::ImageButton((void*)(uint)texture->GetPreviewTexID(), ImVec2(20, 20));
+	else
+		ImGui::ImageButton(NULL, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 2);
+
+	// Handle drag & drop
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("resource"))
+		{
+			uint UID = *(const uint*)payload->Data;
+			Resource* resource = App->resources->GetResource(UID, false);
+
+			if (resource && resource->GetType() == Resource::ResourceType::TEXTURE)
+			{
+				if (texture)
+					texture->Release();
+
+				texture = (ResourceTexture*)App->resources->GetResource(UID);
+				save_material = true;
+			}
+		}
+
+		ImGui::EndDragDropTarget();
+	}
+
+	// Show Texture Name
+	ImGui::SameLine();
+	ImGui::Text(texture_name);
+
+	// Unuse Texture
+	ImGui::SameLine();
+	if (ImGui::Button(unuse_label, { 77, 18 }) && texture)
+	{
+		if(container)
+			texture->RemoveUser(container);
+		
+		texture->Release();
+		texture = nullptr;
+		save_material = true;
+	}
+}
+
+void ResourceMaterial::HandleBlendingSelector(bool& save_material)
+{
+	ImGui::NewLine();
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+	ImGui::Text("Material Blend Equation"); ImGui::SameLine();
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+	ImGui::SetNextItemWidth(200.0f);
+
+	// --- Blend Eq ---
+	std::vector<const char*> blendEq = App->renderer3D->m_BlendEquationFunctionsVec;
+	int index = (int)m_MatBlendEq;
+	if (App->gui->HandleDropdownSelector(index, "##MAlphaEq", blendEq.data(), blendEq.size()))
+	{
+		m_MatBlendEq = (BlendingEquations)index;
+		save_material = true;
+	}
+
+	// --- Blend Auto Func ---
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+	ImGui::Text("Material Blend Mode"); ImGui::SameLine();
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 38.0f);
+	ImGui::SetNextItemWidth(200.0f);
+
+	std::vector<const char*> blendAutoF_Vec = App->renderer3D->m_BlendAutoFunctionsVec;
+	int index1 = (int)m_MatAutoBlendFunc;
+	if (App->gui->HandleDropdownSelector(index1, "##MAlphaAutoFunction", blendAutoF_Vec.data(), blendAutoF_Vec.size()))
+	{
+		m_MatAutoBlendFunc = (BlendAutoFunction)index1;
+		save_material = true;
+	}
+
+	//Help Marker
+	std::string desc = "Stand. = SRC, 1-SRCALPH\nAdd. = ONE, ONE\nAddAlph. = SRC_ALPH, ONE\nMult. = DSTCOL, ZERO";
+	ImGui::SameLine();
+	App->gui->HelpMarker(desc.c_str());
+
+	// --- Blend Manual Function ---
+	ImGui::NewLine();
+	ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+	ImGui::Checkbox("Automatic Alpha Selection", &m_AutoBlending);
+	if (!m_AutoBlending)
+	{
+		//ImGui::Separator();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 20.0f);
+		if (ImGui::TreeNodeEx("Manual Alpha", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			//Source
+			//ImGui::NewLine();
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
+			ImGui::Text("Source Alpha"); ImGui::SameLine();
+			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 45.0f);
+			ImGui::SetNextItemWidth(200.0f);
+
+			std::vector<const char*> blendTypes_Vec = App->renderer3D->m_AlphaTypesVec;
+			int index2 = (int)m_MatManualBlend_Src;
+			if (App->gui->HandleDropdownSelector(index2, "##MManualAlphaSrc", blendTypes_Vec.data(), blendTypes_Vec.size()))
+			{
+				m_MatManualBlend_Src = (BlendingTypes)index2;
+				save_material = true;
+			}
+
+			//Destination
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
+			ImGui::Text("Destination Alpha"); ImGui::SameLine();
+			ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+			ImGui::SetNextItemWidth(200.0f);
+
+			int index3 = (int)m_MatManualBlend_Dst;
+			if (App->gui->HandleDropdownSelector(index3, "##MManualAlphaDst", blendTypes_Vec.data(), blendTypes_Vec.size()))
+			{
+				m_MatManualBlend_Dst = (BlendingTypes)index3;
+				save_material = true;
+			}
+
+			//ImGui::NewLine();
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
+			if (ImGui::Button("Reference (Test Blend)", { 180, 18 })) App->gui->RequestBrowser("https://www.andersriggelsen.dk/glblendfunc.php");
+			ImGui::TreePop();
+		}
+	}
 }
 
 

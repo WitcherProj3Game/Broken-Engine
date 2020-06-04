@@ -2,7 +2,7 @@
 #define __COMPONENTTEXT_H__
 #pragma once
 
-#include "Component.h"
+#include "UI_Element.h"
 #include "Color.h"
 #include <string>
 #include "Math.h"
@@ -15,7 +15,7 @@ BE_BEGIN_NAMESPACE
 class ResourceFont;
 class ComponentCanvas;
 
-class BROKEN_API ComponentText : public Component
+class BROKEN_API ComponentText : public UI_Element
 {
 public:
 	ComponentText(GameObject* gameObject);
@@ -26,11 +26,6 @@ public:
 
 	static inline Component::ComponentType GetType() { return Component::ComponentType::Text; }
 
-	// UI Functions
-	void Scale(float2 size) { size2D = size; }
-	void Move(float2 pos) { position2D = pos; }
-	void Rotate(float rot) { rotation2D = rot; }
-
 	void SetText(const char* new_text) { text = new_text; }
 
 	// --- Save & Load ---
@@ -40,22 +35,12 @@ public:
 	void CreateInspectorNode() override;
 
 public:
-
-	bool visible = true;
-
-	float2 position2D = { 0.0f, 0.0f };
-	float rotation2D = 0.0f;
-	float2 size2D = { 0.7f, 0.7f };	
-
 	Color color = White;
 
 public:
-
-	ComponentCanvas* canvas = nullptr;
 	ResourceFont* font = nullptr;
 
 private:
-
 	// Try to change to char*
 	std::string text = "SampleText";
 	// Or try to change to string

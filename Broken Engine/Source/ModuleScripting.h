@@ -15,6 +15,7 @@ struct ScriptFunc;
 enum _AppState;
 class BROKEN_API ModuleScripting : public Module {
 	friend class ScriptingElements;
+	friend class AutoCompleteFileGen;
 public:
 	ModuleScripting(bool start_enabled = true);
 	~ModuleScripting();
@@ -38,10 +39,10 @@ public:
 	void StopDebugging();
 	void CallbackScriptFunctionParam(ComponentScript* script_component, const ScriptFunc& function_to_call, uint id);
 	void DeployScriptingGlobals();
+
+	//The purpose of this function is to initialize the scripting vars of an instantiated gameObject on creation
+	void EmplaceEditorValues(ScriptInstance* script);
 	
-
-	std::string GetScriptingBasePath();
-
 	void CleanUpInstances();
 
 	bool Init(json& file) override;
@@ -63,7 +64,6 @@ public:
 	std::string debug_path = "null";
 
 	bool Debug_Build = false;
-
 private:
 	// L is our Lua Virtual Machine, it's called L because its the common name it receives, so all programers can understand what this var is
 	lua_State* L = nullptr;

@@ -41,17 +41,15 @@ public:
 	// --- Components ---
 
 	template<typename TComponent>
-	TComponent* GetComponent() {
-
+	TComponent* GetComponent() 
+	{
 		for (uint i = 0; i < components.size(); ++i)
 		{
-		if (components[i] && components[i]->GetType() == TComponent::GetType())
+			if (components[i] && components[i]->GetType() == TComponent::GetType())
 				return ((TComponent*)(components[i]));
 		}
-
 		return nullptr;
 	}
-
 
 	Component*		AddComponent(Component::ComponentType type, int index = -1);
 	void			RemoveComponent(Component* comp);

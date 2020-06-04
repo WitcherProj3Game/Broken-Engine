@@ -137,13 +137,15 @@ bool ModuleDetour::createNavMesh(dtNavMeshCreateParams* params) {
 }
 
 void ModuleDetour::loadNavMeshFile(uint UID) {
-	if (navMeshResource != nullptr)
+	if (navMeshResource != nullptr) {
+		if (navMeshResource->GetUID() == UID) return;
 		navMeshResource->Release();
+	}
 
 	navMeshResource = (ResourceNavMesh*)App->resources->GetResource(UID);
 
 	if (navMeshResource != nullptr) {
-		navMeshResource->LoadInMemory();
+		navMeshResource->LoadToMemory();
 		if (navMeshResource->navMesh != nullptr) {
 			dtStatus status = m_navQuery->init(navMeshResource->navMesh, 2048);
 			if (dtStatusFailed(status)) {
@@ -278,6 +280,16 @@ int ModuleDetour::calculatePath(float3 sourcePosition, float3 destination, int a
 	memcpy(path.data(), StraightPath, sizeof(float) * nVertCount * 3);
 
 	return nVertCount;
+}
+
+bool ModuleDetour::nearestPosInMesh(float3 sourcePosition, int areaMask, float3& nearestPoint) {
+	m_filterQuery->setIncludeFlags(areaMask);
+	dtPolyRef nearestPoly;
+	dtStatus status;
+
+	//Find the nearest point
+	status = m_navQuery->findNearestPoly(sourcePosition.ptr(), m_Extents, m_filterQuery, &nearestPoly, nearestPoint.ptr());
+	return !((status & DT_FAILURE) || (status & DT_STATUS_DETAIL_MASK)); //If we found an error we return false
 }
 
 void ModuleDetour::setDefaultValues() {

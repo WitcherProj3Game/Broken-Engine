@@ -234,7 +234,7 @@ ImGuiContext* ModuleGui::getImgUICtx() const {
 
 void ModuleGui::HandleInput(SDL_Event * event) const
 {
-	if(!App->isGame)
+	if(this->isEnabled() && !App->isGame)
 		ImGui_ImplSDL2_ProcessEvent(event);
 }
 
@@ -284,4 +284,44 @@ be_imguialloc ModuleGui::GetImGuiAlloc() const {
 
 be_imguifree ModuleGui::GetImGuiFree() const {
 	return &ImGuiCustomDeallocator;
+}
+
+void ModuleGui::HelpMarker(const char* desc) const
+{
+	ImGui::TextDisabled("(?)");
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::BeginTooltip();
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+		ImGui::TextUnformatted(desc);
+		ImGui::PopTextWrapPos();
+		ImGui::EndTooltip();
+	}
+}
+
+bool ModuleGui::HandleDropdownSelector(int& index, const char* combo_name, const char** options_strvec, int vecsize) const
+{
+	bool ret = false;
+
+	const char* item_current = options_strvec[index];
+	if (ImGui::BeginCombo(combo_name, item_current))
+	{
+		for (uint i = 0; i < vecsize; ++i)
+		{
+			bool is_selected = (item_current == options_strvec[i]);
+			if (ImGui::Selectable(options_strvec[i], is_selected))
+			{
+				item_current = options_strvec[i];
+				index = i;
+				ret = true;
+			}
+
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
+		}
+
+		ImGui::EndCombo();
+	}
+
+	return ret;
 }

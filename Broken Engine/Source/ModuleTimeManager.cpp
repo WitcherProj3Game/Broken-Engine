@@ -35,8 +35,9 @@ void ModuleTimeManager::PrepareUpdate() {
 	game_dt = realtime_dt = (float)Gametime_clock.Read() / 1000.0f;
 	Gametime_clock.Start();
 
-	time += realtime_dt*Time_scale;
+	//game_dt = last_frame_ms / 1000.0f * Time_scale;
 
+	time += realtime_dt*Time_scale;
 
 	switch (App->GetAppState())
 	{
@@ -47,7 +48,7 @@ void ModuleTimeManager::PrepareUpdate() {
 			App->GetAppState() = AppState::PLAY;
 
 			// --- Create temporal directory/scene ---
-			App->fs->CreateDirectoryA("Temp");
+			App->fs->CreateDirectory("Temp");
 			App->scene_manager->currentScene->CopyInto(App->scene_manager->temporalScene);
 			App->scene_manager->SaveScene(App->scene_manager->temporalScene);
 
@@ -56,6 +57,8 @@ void ModuleTimeManager::PrepareUpdate() {
 			break;
 
 		case AppState::PLAY:
+			game_dt *= Time_scale;
+
 			if (gamePaused)
 			{
 				time -= realtime_dt;
@@ -64,9 +67,10 @@ void ModuleTimeManager::PrepareUpdate() {
 			else
 			{
 				//App->scene_manager->SetSelectedGameObject(nullptr);
-				game_dt *= Time_scale;
+				//game_dt *= Time_scale;
 				gametime_passed += game_dt;
 			}
+
 
 			break;
 

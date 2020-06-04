@@ -2,7 +2,7 @@
 #define __COMPONENTBUTTON_H__
 #pragma once
 
-#include "Component.h"
+#include "UI_Element.h"
 #include "Color.h"
 #include "Math.h"
 #include "SDL/include/SDL_rect.h"
@@ -15,8 +15,9 @@ BE_BEGIN_NAMESPACE
 class ResourceTexture;
 class ComponentCanvas;
 class ComponentScript;
+class ComponentImage;
 
-class BROKEN_API ComponentButton : public Component
+class BROKEN_API ComponentButton : public UI_Element
 {
 public:
 	enum State
@@ -40,12 +41,9 @@ public:
 	void UpdateState();
 	void OnClick();
 	void ChangeStateTo(State new_state) { state = new_state; }
-	void ChangeColorTo(Color new_color) { color = new_color; }
+	void ChangeColorTo(Color new_color);
+	const Color GetButtonColor() const { return color; }
 
-	// UI Functions
-	void Scale(float2 size) { size2D = size; }
-	void Move(float2 pos) { position2D = pos; }
-	void Rotate(float rot) { rotation2D = rot; }
 	static inline Component::ComponentType GetType() { return Component::ComponentType::Button; }
 
 	// --- Save & Load ---
@@ -55,22 +53,13 @@ public:
 	void SetNullptr();
 
 public:
-	bool visible = true;
-	bool interactable = true;
-	bool draggable = false;
 	bool resize = true;
-
-	float2 size2D = { 50,50 };
-	float2 position2D = { 0,0 };
-	float rotation2D = 0.0f;
-
 	State state = NOTHING;
 
 public:
-	ComponentCanvas* canvas = nullptr;
-	ResourceTexture* texture = nullptr;
 	ComponentScript* script = nullptr;
 	GameObject* script_obj = nullptr;
+	ComponentImage* image = nullptr;
 
 private:
 	SDL_Rect collider;

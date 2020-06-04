@@ -34,6 +34,8 @@ public:
 	//GLuint sample_texture = 0;
 	int size = FONT_SIZE_DEFAULT;
 
+	void Init();
+
 private:
 	void OnOverwrite() override;
 	void OnDelete() override;

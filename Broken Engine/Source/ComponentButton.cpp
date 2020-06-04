@@ -89,7 +89,7 @@ void ComponentButton::Update()
 		this->GetContainerGameObject()->RemoveComponent(this);
 
 
-	if (func_list.size() > 0 && func_list[func_pos] != func_name)
+	if (func_list[func_pos] != func_name)
 	{
 		func_list.clear();
 		func_list.push_back("None");

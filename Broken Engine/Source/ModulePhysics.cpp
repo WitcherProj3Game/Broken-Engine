@@ -24,35 +24,47 @@
 #include "PhysX_3.4/Include/extensions/PxRaycastCCD.h"
 #include "PhysX_3.4/Include/cooking/PxCooking.h"
 
-#ifndef _DEBUG
-//#pragma comment(lib, "PhysX_3.4/lib/Checked/PhysX3CHECKED_x86.lib")
-//#pragma comment(lib, "PhysX_3.4/lib/Checked/PhysX3CommonCHECKED_x86.lib")
-//#pragma comment(lib, "PhysX_3.4/lib/Checked/PhysX3ExtensionsCHECKED.lib")
-//#pragma comment(lib, "PhysX_3.4/lib/Checked/PxFoundationCHECKED_x86.lib")
-//#pragma comment(lib, "PhysX_3.4/lib/Checked/PxPvdSDKCHECKED_x86.lib")
-//#pragma comment(lib, "PhysX_3.4/lib/Checked/PhysX3CharacterKinematicCHECKED_x86.lib")
-//#pragma comment(lib, "PhysX_3.4/lib/Checked/SceneQueryCHECKED.lib")
-//#pragma comment(lib, "PhysX_3.4/lib/Checked/PhysX3CookingCHECKED_x86.lib")
-
-#pragma comment(lib, "PhysX_3.4/lib/Release/PhysX3_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Release/PhysX3Common_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Release/PhysX3Extensions.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Release/PxFoundation_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Release/PxPvdSDK_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Release/PhysX3CharacterKinematic_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Release/SceneQuery.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Release/PhysX3Cooking_x86.lib")
-
+#ifndef _WIN64
+#	ifndef _DEBUG
+#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PhysX3CHECKED_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PhysX3CommonCHECKED_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PhysX3ExtensionsCHECKED.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PxFoundationCHECKED_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PxPvdSDKCHECKED_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PhysX3CharacterKinematicCHECKED_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Checked/SceneQueryCHECKED.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PhysX3CookingCHECKED_x86.lib")
+#	else
+#		pragma comment(lib, "PhysX_3.4/libx86/Debug/PhysX3CommonDEBUG_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Debug/PhysX3DEBUG_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Debug/PhysX3ExtensionsDEBUG.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Debug/PxFoundationDEBUG_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Debug/PxPvdSDKDEBUG_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Debug/PhysX3CharacterKinematicDEBUG_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Debug/SceneQueryDEBUG.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Debug/PhysX3CookingDEBUG_x86.lib")
+#	endif // _DEBUG
 #else
-#pragma comment(lib, "PhysX_3.4/lib/Debug/PhysX3CommonDEBUG_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Debug/PhysX3DEBUG_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Debug/PhysX3ExtensionsDEBUG.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Debug/PxFoundationDEBUG_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Debug/PxPvdSDKDEBUG_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Debug/PhysX3CharacterKinematicDEBUG_x86.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Debug/SceneQueryDEBUG.lib")
-#pragma comment(lib, "PhysX_3.4/lib/Debug/PhysX3CookingDEBUG_x86.lib")
-#endif // _DEBUG
+#	ifndef _DEBUG
+#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PhysX3CHECKED_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PhysX3CommonCHECKED_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PhysX3ExtensionsCHECKED.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PxFoundationCHECKED_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PxPvdSDKCHECKED_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PhysX3CharacterKinematicCHECKED_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Checked/SceneQueryCHECKED.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PhysX3CookingCHECKED_x64.lib")
+#	else
+#		pragma comment(lib, "PhysX_3.4/libx64/Debug/PhysX3CommonDEBUG_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Debug/PhysX3DEBUG_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Debug/PhysX3ExtensionsDEBUG.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Debug/PxFoundationDEBUG_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Debug/PxPvdSDKDEBUG_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Debug/PhysX3CharacterKinematicDEBUG_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Debug/SceneQueryDEBUG.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Debug/PhysX3CookingDEBUG_x64.lib")
+#	endif // _DEBUG
+#endif
 
 //#include "mmgr/mmgr.h"
 
@@ -164,7 +176,6 @@ bool ModulePhysics::Init(json& config)
 
 	bool recordMemoryAllocations = true;
 
-#ifdef _DEBUG
 	//Setup Connection-----------------------------------------------------------------------
 	physx::PxPvdTransport* mTransport = physx::PxDefaultPvdSocketTransportCreate("localhost", 5425, 10000);
 	if (mTransport == NULL)
@@ -174,12 +185,9 @@ bool ModulePhysics::Init(json& config)
 	mPvd = physx::PxCreatePvd(*mFoundation);
 	mPvd->connect(*mTransport, mPvdFlags);
 	//---------------------------------------------------------------------------------------
-	mPhysics = PxCreateBasePhysics(PX_PHYSICS_VERSION, *mFoundation,
-		physx::PxTolerancesScale(), recordMemoryAllocations, mPvd);
-#endif
 
 	mPhysics = PxCreateBasePhysics(PX_PHYSICS_VERSION, *mFoundation,
-		physx::PxTolerancesScale(), recordMemoryAllocations);
+		physx::PxTolerancesScale(), recordMemoryAllocations, mPvd);
 	if (!mPhysics) {
 		ENGINE_CONSOLE_LOG("PxCreateBasePhysics failed!");
 		return false;
@@ -194,18 +202,20 @@ bool ModulePhysics::Init(json& config)
 	sceneDesc.bounceThresholdVelocity = gravity * 0.2;
 	sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(4);
 	//sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
-	sceneDesc.flags |= physx::PxSceneFlag::eENABLE_KINEMATIC_PAIRS | physx::PxSceneFlag::eENABLE_KINEMATIC_STATIC_PAIRS | physx::PxSceneFlag::eENABLE_PCM;
+	sceneDesc.flags |= physx::PxSceneFlag::eENABLE_KINEMATIC_PAIRS | physx::PxSceneFlag::eENABLE_KINEMATIC_STATIC_PAIRS;
 	sceneDesc.filterShader = customFilterShader;
 	sceneDesc.simulationEventCallback = simulationEventsCallback;
 	mScene = mPhysics->createScene(sceneDesc);
 
-#ifdef _DEBUG
 	// This will enable basic visualization of PhysX objects like - actors collision shapes and their axes.
 		// The function PxScene::getRenderBuffer() is used to render any active visualization for scene.
 	mScene->setVisualizationParameter(physx::PxVisualizationParameter::eSCALE, 1.0);	//Global visualization scale which gets multiplied with the individual scales
 	mScene->setVisualizationParameter(physx::PxVisualizationParameter::eCOLLISION_SHAPES, 1.0f);	//Enable visualization of actor's shape
 	mScene->setVisualizationParameter(physx::PxVisualizationParameter::eACTOR_AXES, 1.0f);	//Enable visualization of actor's axis
 
+	mMaterial = mPhysics->createMaterial(materialDesc.x, materialDesc.y, materialDesc.z);
+
+	mControllerManager = PxCreateControllerManager(*mScene);
 
 	//Setup Configuration-----------------------------------------------------------------------
 	pvdClient = mScene->getScenePvdClient();
@@ -215,10 +225,6 @@ bool ModulePhysics::Init(json& config)
 		pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 	}
 	//-------------------------------------
-#endif
-	mMaterial = mPhysics->createMaterial(materialDesc.x, materialDesc.y, materialDesc.z);
-
-	mControllerManager = PxCreateControllerManager(*mScene);
 
 	cache = mScene->createVolumeCache(32, 8);
 	//PlaneCollider(0, 0, 0);
@@ -265,9 +271,7 @@ bool ModulePhysics::CleanUp()
 	mCooking->release();
 	mScene->release(); //172
 	mPhysics->release(); //153
-#ifdef _DEBUG
 	mPvd->release(); //149
-#endif
 	mFoundation->release(); //136
 	RELEASE(simulationEventsCallback);
 	RELEASE(raycastManager);

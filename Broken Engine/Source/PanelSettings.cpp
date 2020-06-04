@@ -18,7 +18,16 @@
 #include "OpenGL.h"
 #include "DevIL/include/il.h"
 #include "Assimp/include/version.h"
-#pragma comment (lib, "Assimp/libx86/assimp.lib")
+#include "PhysFS/include/physfs.h"
+
+#ifndef _WIN64
+#	pragma comment (lib, "Assimp/libx86/assimp.lib")
+#	pragma comment (lib, "PhysFS/libx86/physfs.lib")
+#else
+#	pragma comment (lib, "Assimp/libx64/assimp.lib")
+#	pragma comment (lib, "PhysFS/libx64/physfs.lib")
+#endif
+
 #include "mmgr/mmgr.h"
 
 
@@ -552,6 +561,9 @@ inline void PanelSettings::LibrariesNode() const
 
 	if (ImGui::Button("Assimp")) { EngineApp->gui->RequestBrowser("http://www.assimp.org/"); }
 	ImGui::SameLine(); ImGui::TextColored(ImVec4(255, 255, 0, 255), "%i.%i", aiGetVersionMajor(), aiGetVersionMinor());
+
+	if (ImGui::Button("PhysFS")) { EngineApp->gui->RequestBrowser("https://www.icculus.org/physfs/"); }
+	ImGui::SameLine(); ImGui::TextColored(ImVec4(255, 255, 0, 255), "%i.%i", PHYSFS_VER_MAJOR, PHYSFS_VER_MINOR);
 
 	if (ImGui::Button("OpenGL")) { EngineApp->gui->RequestBrowser("https://www.opengl.org/"); }
 	ImGui::SameLine(); ImGui::TextColored(ImVec4(255, 255, 0, 255), "%s", "4.4"/*glGetString(GL_VERSION)*/);

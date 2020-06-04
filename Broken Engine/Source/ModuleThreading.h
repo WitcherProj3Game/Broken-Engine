@@ -22,15 +22,12 @@ public:
 
 	bool Init(json& file) override;
 	bool Start() override;
-	update_status PreUpdate(float dt) override;
 	update_status Update(float dt) override;
 	update_status PostUpdate(float dt) override;
 	bool CleanUp() override;
 
 	void AddTask(std::function<void()> newTask);
 	void FinishProcessing();
-	void FinishInUpdate() {processInUpdate = true;}
-	void FinishInFrame() {processInFrame = true;}
 
 private:
 	void ShutdownPool();
@@ -52,8 +49,6 @@ private:
 	//Flags
 	std::atomic<bool> stopPool{ false };
 	bool poolTerminated = false;
-	bool processInUpdate = false;
-	bool processInFrame = false;
 };
 BE_END_NAMESPACE
 #endif

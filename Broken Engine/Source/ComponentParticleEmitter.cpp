@@ -913,7 +913,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	ImGui::NewLine();
 	ImGui::Text("Rotation type");
-	if (ImGui::Combo("##PERotationType", &rotationTypeInt, "LOCAL ROTATION\0GLOBAL ROTATION\0NONE\0\0"))
+	if (ImGui::Combo("##PERotationType", &rotationTypeInt, "GLOBAL ROTATION\0NONE\0\0"))
 	{
 		rotationType = ROTATION_PARENT(rotationTypeInt);
 	}

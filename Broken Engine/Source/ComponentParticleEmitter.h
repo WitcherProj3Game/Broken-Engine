@@ -14,9 +14,9 @@ class ResourceTexture;
 class CurveEditor;
 
 enum class ROTATION_PARENT {
-	GO_LOCAL =0,
-	GO_GLOBAL,
-	NONE
+	GO_GLOBAL=0,
+	NONE,
+	GO_LOCAL
 };
 
 class BROKEN_API ComponentParticleEmitter : public Component

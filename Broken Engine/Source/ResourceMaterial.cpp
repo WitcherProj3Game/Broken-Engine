@@ -28,7 +28,7 @@ ResourceMaterial::ResourceMaterial(uint UID, const char* source_file) : Resource
 
 	shader->GetAllUniforms(uniforms);
 
-	LoadToMemory();
+	//LoadToMemory();
 }
 
 ResourceMaterial::~ResourceMaterial() 
@@ -40,6 +40,22 @@ bool ResourceMaterial::LoadInMemory()
 {
 	//shader->GetAllUniforms(uniforms);
 
+	// --- Texture Stuff ---
+	Importer::ImportData IDataDiff(DiffuseResTexturePath.c_str());
+
+	if (DiffuseResTexturePath != "NaN.dds")
+		m_DiffuseResTexture = (ResourceTexture*)App->resources->ImportAssets(IDataDiff);
+
+	Importer::ImportData IDataSpec(SpecularResTexturePath.c_str());
+
+	if (SpecularResTexturePath != "NaN.dds")
+		m_SpecularResTexture = (ResourceTexture*)App->resources->ImportAssets(IDataSpec);
+
+	Importer::ImportData IDataNormTex(NormalResTexturePath.c_str());
+
+	if (NormalResTexturePath != "NaN.dds")
+		m_NormalResTexture = (ResourceTexture*)App->resources->ImportAssets(IDataNormTex);
+
 	return true;
 }
 
@@ -49,6 +65,13 @@ void ResourceMaterial::FreeMemory()
 	{
 		delete uniforms[i];
 	}
+
+	if (m_DiffuseResTexture)
+		m_DiffuseResTexture->Release();
+	if (m_SpecularResTexture)
+		m_SpecularResTexture->Release();
+	if (m_NormalResTexture)
+		m_NormalResTexture->Release();
 
 	uniforms.clear();
 }

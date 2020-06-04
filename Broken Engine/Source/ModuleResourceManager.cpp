@@ -80,6 +80,7 @@ bool ModuleResourceManager::Start()
 
 	// --- Create default material ---
 	DefaultMaterial = (ResourceMaterial*)CreateResource(Resource::ResourceType::MATERIAL, "DefaultMaterial");
+	DefaultMaterial->LoadToMemory();
 
 	// --- Create primitives ---
 	App->scene_manager->cube = (ResourceMesh*)App->resources->CreateResourceGivenUID(Resource::ResourceType::MESH, "DefaultCube", 2);

@@ -11,6 +11,21 @@ class ComponentCanvas;
 class BROKEN_API UI_Element : public Component
 {
 public:
+	enum class UI_Anchor {
+		TOP_LEFT,
+		TOP,
+		TOP_RIGHT,
+		LEFT,
+		CENTER,
+		RIGHT,
+		BOTTOM_LEFT,
+		BOTTOM,
+		BOTTOM_RIGHT,
+
+		NONE
+	};
+
+public:
 	UI_Element(GameObject* gameObject, Component::ComponentType Type) : Component(gameObject, Type) {}
 	virtual ~UI_Element() {};
 

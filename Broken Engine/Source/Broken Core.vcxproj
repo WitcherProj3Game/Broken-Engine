@@ -144,7 +144,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(ProjectName).dll" "$(SolutionDir)Game\$(ProjectName).dll"</Command>
+      <Command>copy /Y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)Game\$(ProjectName).dll"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy dll into game folder</Message>
@@ -196,7 +196,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(ProjectName).dll" "$(SolutionDir)Game\$(ProjectName).dll"</Command>
+      <Command>copy /Y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)Game\$(ProjectName).dll"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy dll into game folder</Message>
@@ -245,7 +245,7 @@
       <AssemblyDebug>true</AssemblyDebug>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(ProjectName).dll" "$(SolutionDir)Game\$(ProjectName)_DEBUG.dll"</Command>
+      <Command>copy /Y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)Game\$(ProjectName)_DEBUG.dll"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy dll into game folder</Message>

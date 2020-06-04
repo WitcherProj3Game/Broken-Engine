@@ -92,7 +92,6 @@ void ModuleParticles::DrawParticles(bool shadowsPass)
 					break;
 				}
 			}
-
 			if (draw)
 			{
 				if (!shadowsPass && (*it).second->emitter)

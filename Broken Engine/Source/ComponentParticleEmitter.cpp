@@ -297,7 +297,10 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 		indexPool->freeIndices(particlesToRelease, physx::PxStrideIterator<physx::PxU32>(indicesToErease.data()));
 	}
 
-	SortParticles();
+	CalculateAABBs();
+	if (App->renderer3D->culling_camera->frustum.Intersects(particlesAreaAABB))
+		SortParticles();
+
 }
 
 void ComponentParticleEmitter::SortParticles()
@@ -1860,58 +1863,8 @@ void ComponentParticleEmitter::UpdateAllGradients()
 }
 
 void ComponentParticleEmitter::DrawEmitterArea()
-{
-	//Quat totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
-	//Quat externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
-	//float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
-
-	//AABB aabb(float3(-size.x, -size.y, -size.z), float3(size.x, size.y, size.z));
-
-	//emisionAreaOBB.SetFrom(aabb, totalRotation);
-
-	//Quat positionFromEmitterPosQuat(emitterPosition.x, emitterPosition.y, emitterPosition.z, 0);
-	//positionFromEmitterPosQuat = externalRotation * positionFromEmitterPosQuat * externalRotation.Conjugated();
-
-	//emisionAreaOBB.pos = emisionAreaOBB.pos + float3(positionFromEmitterPosQuat.x + globalPosition.x, positionFromEmitterPosQuat.y + globalPosition.y, positionFromEmitterPosQuat.z + globalPosition.z);
-	//
-	////Quat velocityQuat = Quat(velocity.x, velocity.y, velocity.z, 0);
-	////velocityQuat = totalRotation * velocityQuat * totalRotation.Conjugated();
-	////velocityBuffer[i] = physx::PxVec3(velocityQuat.x, velocityQuat.y, velocityQuat.z);
-	//
-	//particlesAreaAABB.SetFrom(emisionAreaOBB);
-
-	//// -- Calculate MAX AABB point --
-	//Quat maxVel = Quat(particlesVelocity.x + velocityRandomFactor1.x, 
-	//	particlesVelocity.y + velocityRandomFactor1.y, 
-	//	particlesVelocity.z + velocityRandomFactor1.z,
-	//	0);
-
-	//maxVel = totalRotation * maxVel * totalRotation.Conjugated();
-
-	//float3 maxPoint = particlesAreaAABB.maxPoint;
-	//maxPoint.x += maxVel.x * (float(particlesLifeTime) / 1000);
-	//maxPoint.y += maxVel.y * (float(particlesLifeTime) / 1000);
-	//maxPoint.z += maxVel.z * (float(particlesLifeTime) / 1000);
-	//
-	//particlesAreaAABB.Enclose(maxPoint);
-	//		
-	//// -- Calculate MIN AABB point -- 
-
-	//Quat minVel = Quat(particlesVelocity.x + velocityRandomFactor2.x,
-	//	particlesVelocity.y + velocityRandomFactor2.y,
-	//	particlesVelocity.z + velocityRandomFactor2.z,
-	//	0);
-
-	//minVel = totalRotation * minVel * totalRotation.Conjugated();
-
-	//float3 minPoint = particlesAreaAABB.minPoint;
-	//minPoint.x += minVel.x * (float(particlesLifeTime) / 1000);
-	//minPoint.y += minVel.y * (float(particlesLifeTime) / 1000);
-	//minPoint.z += minVel.z * (float(particlesLifeTime) / 1000);
-
-	//particlesAreaAABB.Enclose(minPoint);
-
-	CalculateAABBs();
+{/*
+	CalculateAABBs();*/
 	App->renderer3D->DrawOBB(emisionAreaOBB, Blue);
 	App->renderer3D->DrawAABB(particlesAreaAABB, Green);
 }
@@ -1952,11 +1905,9 @@ void ComponentParticleEmitter::CalculateAABBs()
 
 	particlesAreaAABB.Enclose(newPoint);
 
-
-	//newPoint = particlesAreaAABB.maxPoint;
-	newPoint.x += /*(maxVel.x * (float(particlesLifeTime) / 1000)) +*/ 0.5 * externalAcceleration.x * (((float(particlesLifeTime) / 1000)) * (float(particlesLifeTime) / 1000));
-	newPoint.y += /*(maxVel.y * (float(particlesLifeTime) / 1000)) +*/ 0.5 * (externalAcceleration.y-10.0f) * (((float(particlesLifeTime) / 1000)) * (float(particlesLifeTime) / 1000));
-	newPoint.z +=/* (maxVel.z * (float(particlesLifeTime) / 1000)) +*/ 0.5 * externalAcceleration.z * (((float(particlesLifeTime) / 1000)) * (float(particlesLifeTime) / 1000));
+	newPoint.x +=  0.5 * externalAcceleration.x * (((float(particlesLifeTime) / 1000)) * (float(particlesLifeTime) / 1000));
+	newPoint.y +=  0.5 * (externalAcceleration.y-10.0f) * (((float(particlesLifeTime) / 1000)) * (float(particlesLifeTime) / 1000));
+	newPoint.z += 0.5 * externalAcceleration.z * (((float(particlesLifeTime) / 1000)) * (float(particlesLifeTime) / 1000));
 
 	particlesAreaAABB.Enclose(newPoint);
 
@@ -1975,10 +1926,9 @@ void ComponentParticleEmitter::CalculateAABBs()
 	newPoint.z += minVel.z * (float(particlesLifeTime) / 1000);
 
 	particlesAreaAABB.Enclose(newPoint);
-	//newPoint = particlesAreaAABB.maxPoint;
-	newPoint.x += /*(maxVel.x * (float(particlesLifeTime) / 1000)) +*/ 0.5 * externalAcceleration.x * (((float(particlesLifeTime) / 1000)) * (float(particlesLifeTime) / 1000));
-	newPoint.y += /*(maxVel.y * (float(particlesLifeTime) / 1000)) +*/ 0.5 * (externalAcceleration.y - 10.0f) * (((float(particlesLifeTime) / 1000)) * (float(particlesLifeTime) / 1000));
-	newPoint.z +=/* (maxVel.z * (float(particlesLifeTime) / 1000)) +*/ 0.5 * externalAcceleration.z * (((float(particlesLifeTime) / 1000)) * (float(particlesLifeTime) / 1000));
+	newPoint.x += 0.5 * externalAcceleration.x * (((float(particlesLifeTime) / 1000.0f)) * (float(particlesLifeTime) / 1000));
+	newPoint.y += 0.5 * (externalAcceleration.y - 10.0f) * (((float(particlesLifeTime) / 1000)) * (float(particlesLifeTime) / 1000));
+	newPoint.z += 0.5 * externalAcceleration.z * (((float(particlesLifeTime) / 1000)) * (float(particlesLifeTime) / 1000));
 
 	particlesAreaAABB.Enclose(newPoint);
 

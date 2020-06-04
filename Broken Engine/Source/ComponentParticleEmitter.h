@@ -46,6 +46,7 @@ public:
 	// -- Other functionalities
 	void CreateInspectorNode() override;
 	void DrawEmitterArea();
+	void CalculateAABBs();
 
 	//Scripting functions
 	//Emitter
@@ -200,6 +201,7 @@ private:
 
 	//Debug Drawing
 	OBB emisionAreaOBB;
+	AABB particlesAreaAABB;
 };
 BE_END_NAMESPACE
 

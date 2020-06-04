@@ -28,6 +28,10 @@ public:
 
 	void SetText(const char* new_text) { text = new_text; }
 
+	float2 GetParentPos();
+
+	float2 GetFinalPosition();
+
 	// --- Save & Load ---
 	json Save() const override;
 	void Load(json& node) override;

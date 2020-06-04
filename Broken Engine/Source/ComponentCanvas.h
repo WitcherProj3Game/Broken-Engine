@@ -25,18 +25,24 @@ public:
 	void AddElement(UI_Element* element) { elements.push_back(element); }
 	void RemoveElement(UI_Element* element);
 
+	float2 GetParentPos();
+	float2 GetFinalPosition();
+
 	static inline Component::ComponentType GetType() { return Component::ComponentType::Canvas; }
+
 
 	// --- Save & Load ---
 	json Save() const override;
 	void Load(json& node) override;
 	void CreateInspectorNode() override;
 
-	void UpdatePosition(float2& increment);
 	void OrderCanvas();
 
+	//void UpdatePosition(float2& increment);
 private:
 	std::vector<UI_Element*> elements;
+
+	float2 position2DLocal = float2::zero;
 };
 
 BE_END_NAMESPACE

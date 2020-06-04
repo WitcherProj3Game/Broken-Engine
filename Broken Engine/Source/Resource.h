@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <mutex>
 #include "BrokenCore.h"
 
 BE_BEGIN_NAMESPACE
@@ -81,7 +80,6 @@ protected:
 	uint previewTexID = 0;
 	uint UID = 0;
 	ResourceType type = ResourceType::UNKNOWN;
-	std::mutex memory_mutex; // This is so that we don't write memory while freeing it
 
 	std::vector<GameObject*> users; // Resource notifies all interested objects of overwrites/deletes
 	std::string resource_file = "";

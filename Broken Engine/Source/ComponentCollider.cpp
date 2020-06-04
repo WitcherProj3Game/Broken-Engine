@@ -38,8 +38,7 @@ ComponentCollider::ComponentCollider(GameObject* ContainerGO) : Component(Contai
 
 ComponentCollider::~ComponentCollider()
 {
-	if (mesh->IsInMemory())
-		mesh->Release();
+	mesh->Release();
 }
 
 void ComponentCollider::Update()

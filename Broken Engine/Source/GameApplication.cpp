@@ -21,6 +21,7 @@
 #include "ModuleDetour.h"
 #include "ModuleSelection.h"
 #include "BrokenEngineMain.h"
+#include "BrokenEngineMain.h"
 
 GameApplication* GameApp = NULL;
 

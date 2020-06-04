@@ -18,7 +18,11 @@
 
 #include "Assimp/include/cimport.h"
 
-#pragma comment (lib, "Assimp/libx86/assimp.lib")
+#ifndef _WIN64
+#	pragma comment (lib, "Assimp/libx86/assimp.lib")
+#else
+#	pragma comment (lib, "Assimp/libx64/assimp.lib")
+#endif
 
 #include "mmgr/mmgr.h"
 
@@ -106,7 +110,7 @@ bool ModuleResourceManager::Start()
 
 	// --- Create default font ---
 	DefaultFont = (ResourceFont*)CreateResourceGivenUID(Resource::ResourceType::FONT, "Assets/Fonts/arial.ttf",7);
-	DefaultFont->LoadToMemory();
+	DefaultFont->Init();
 
 	// --- Add file filters, so we only search for relevant files ---
 	filters.push_back("fbx");

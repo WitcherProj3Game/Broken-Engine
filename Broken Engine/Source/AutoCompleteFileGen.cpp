@@ -83,6 +83,9 @@ void AutoCompleteFileGen::EmplaceUserInterfaceFunctions()
 	SerializedFunction SetTextNumber("SetTextNumber", source.c_str());
 	SetTextNumber.variables.push_back("number"); SetTextNumber.variables.push_back("gameObject_UID");
 
+	SerializedFunction SetUIElementPosition("SetUIElementPosition", source.c_str());
+	SetUIElementPosition.variables.push_back("comp_type"); SetUIElementPosition.variables.push_back("gameObject_UID");
+	SetUIElementPosition.variables.push_back("x"); SetUIElementPosition.variables.push_back("y");
 
 	// Colors
 	SerializedFunction ChangeUIComponentColor("ChangeUIComponentColor", source.c_str());

@@ -1,7 +1,7 @@
 # Broken Engine by Broken Gem Studio
-Broken Engine is a 3D Game Engine developed with C++ and based on OpenGL and developed by students of the Degree in Videogames Design and Development of Universitat Politecnica de Catalunya for the Project III subject of 3rd course.
+Broken Engine is a 3D Game Engine developed with C++ and OpenGL. It is developed by students of the Degree in Videogames Design and Development of Universitat Politecnica de Catalunya for the Project III subject of 3rd course.
 
-We used as basis for the engine (fork), the Aitor Simona's [Central 3D Engine](https://github.com/AitorSimona/CENTRAL-3D).
+We used as basis for the engine (fork), Aitor Simona's [Central 3D Engine](https://github.com/AitorSimona/CENTRAL-3D).
 
 ## TOOLS & LIBRARIES USED
 

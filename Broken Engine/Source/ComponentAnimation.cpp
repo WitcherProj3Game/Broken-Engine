@@ -195,7 +195,7 @@ void ComponentAnimation::SetCurrentAnimationSpeed(float speed)
 {
 	if (playing_animation)
 	{
-		time += time * (playing_animation->speed / speed);
+		time = time * (playing_animation->speed / speed);
 		playing_animation->speed = speed;
 	}
 	else

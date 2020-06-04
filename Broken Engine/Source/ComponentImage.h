@@ -23,6 +23,8 @@ public:
 
 	static inline Component::ComponentType GetType() { return Component::ComponentType::Image; }
 
+	float2 GetFinalPosition();
+
 	// --- Save & Load ---
 	json Save() const override;
 	void Load(json& node) override;
@@ -32,6 +34,8 @@ public:
 	void PlayAnimation();
 	void NextAnimationFrame();
 	void CreateAnimation(uint w, uint h);
+
+	float2 GetParentPos();
 
 	// UI Functions
 	void Scale(float2 size) { size2D = size; }

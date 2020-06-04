@@ -161,6 +161,7 @@ bool ModuleGui::CleanUp()
 	glDeleteTextures(1, &materialTexID);
 	glDeleteTextures(1, &prefabTexID);
 	glDeleteTextures(1, &playbuttonTexID);
+	glDeleteTextures(1, &textureTexID);
 	glDeleteTextures(1, &sceneTexID);
 	glDeleteTextures(1, &animatorTexID);
 	glDeleteTextures(1, &shaderTexID);
@@ -269,6 +270,7 @@ void ModuleGui::CreateIcons()
 	meshTexID = App->textures->CreateTextureFromFile("Settings/EditorResources/MeshIcon.png", width, height, -1);
 	boneTexID = App->textures->CreateTextureFromFile("Settings/EditorResources/BoneIcon.png", width, height, -1);
 	animationTexID = App->textures->CreateTextureFromFile("Settings/EditorResources/AnimationIcon.png", width, height, -1);
+	textureTexID = App->textures->CreateTextureFromFile("Settings/EditorResources/TextureIcon.png", width, height, -1);
 
 	// -- Toolbar icons
 	translateTexID = App->textures->CreateTextureFromFile("Settings/EditorResources/TranslateIcon.png", width, height, -1);

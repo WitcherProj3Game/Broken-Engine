@@ -89,7 +89,7 @@ void ComponentButton::Update()
 		this->GetContainerGameObject()->RemoveComponent(this);
 
 
-	if (func_list[func_pos] != func_name)
+	if (func_list.size() > 0 && func_list[func_pos] != func_name)
 	{
 		func_list.clear();
 		func_list.push_back("None");
@@ -114,7 +114,7 @@ void ComponentButton::Draw()
 	size2D = image->size2D;
 
 	float nearp = App->renderer3D->active_camera->GetNearPlane();
-	float3 pos = { position2D.x / App->gui->sceneWidth, position2D.y / App->gui->sceneHeight, nearp + 0.026f };
+	float3 pos = { GetFinalPosition(), nearp + 0.026f };
 
 	//--- Update color depending on state ---
 	if (state == IDLE) ChangeColorTo(idle_color);
@@ -134,6 +134,63 @@ void ComponentButton::Draw()
 	}
 }
 
+float2 ComponentButton::GetParentPos()
+{
+	if (canvas)
+		return canvas->position2D;
+
+	return float2::zero;
+}
+
+float2 ComponentButton::GetFinalPosition()
+{
+	float2 parent_pos = GetParentPos();
+	// origin TOP LEFT is -xhalfwidth +yhalfheight
+	float scenex = App->gui->sceneWidth / 2 - size2D.x / 2;
+	float sceney = App->gui->sceneHeight / 2 - size2D.y / 2;
+
+	float2 pos = position2D + parent_pos;
+
+	switch (anchor_type)
+	{
+	case UI_Element::UI_Anchor::TOP_LEFT:
+		pos.x -= scenex;
+		pos.y += sceney;
+		break;
+	case UI_Element::UI_Anchor::TOP:
+		pos.y += sceney;
+		break;
+	case UI_Element::UI_Anchor::TOP_RIGHT:
+		pos.x += scenex;
+		pos.y += sceney;
+		break;
+	case UI_Element::UI_Anchor::LEFT:
+		pos.x -= scenex;
+		break;
+	case UI_Element::UI_Anchor::RIGHT:
+		pos.x += scenex;
+		break;
+	case UI_Element::UI_Anchor::BOTTOM_LEFT:
+		pos.x -= scenex;
+		pos.y -= sceney;
+		break;
+	case UI_Element::UI_Anchor::BOTTOM:
+		pos.y -= sceney;
+		break;
+	case UI_Element::UI_Anchor::BOTTOM_RIGHT:
+		pos.x += scenex;
+		pos.y -= sceney;
+		break;
+	default:
+		// NONE AND CENTER GOES HERE -> NOTHING TO DO
+		break;
+	}
+	float2 final_pos = { pos.x / App->gui->sceneWidth,
+					pos.y / App->gui->sceneHeight };
+
+	return final_pos;
+}
+
 json ComponentButton::Save() const
 {
 	json node;
@@ -148,6 +205,7 @@ json ComponentButton::Save() const
 	node["draggable"] = std::to_string(draggable);
 	node["interactable"] = std::to_string(interactable);
 	node["priority"] = std::to_string(priority);
+	node["anchor"] = (int)anchor_type;
 
 	node["position2Dx"] = std::to_string(position2D.x);
 	node["position2Dy"] = std::to_string(position2D.y);
@@ -194,6 +252,7 @@ void ComponentButton::Load(json& node)
 	std::string path = node["Resources"]["ResourceTexture"].is_null() ? "0" : node["Resources"]["ResourceTexture"];
 	App->fs->SplitFilePath(path.c_str(), nullptr, &path);
 	path = path.substr(0, path.find_last_of("."));
+	anchor_type = node["anchor"].is_null() ? UI_Anchor::NONE : (UI_Anchor)node["anchor"].get<int>();
 
 	ResourceTexture* texture = (ResourceTexture*)App->resources->GetResource(std::stoi(path));
 

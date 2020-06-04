@@ -356,7 +356,6 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		glBindFramebuffer(GL_FRAMEBUFFER, depthbufferFBO);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
-		glEnable(GL_BLEND);
 
 		glDisable(GL_CULL_FACE);
 		//glCullFace(GL_FRONT);
@@ -366,6 +365,14 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 
 		//for (int i = 0; i < particleEmitters.size(); ++i)
 		//	particleEmitters[i]->DrawParticles(true);
+
+		glEnable(GL_BLEND);
+
+		if (m_ChangedBlending)
+			SetRendererBlending(); //Set Blending to Renderer's Default
+
+		DrawTransparentRenderMeshes(true);
+
 		App->particles->DrawParticles(true);
 		
 		//glCullFace(GL_BACK);
@@ -407,7 +414,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		SetRendererBlending(); //Set Blending to Renderer's Default
 
 	OPTICK_PUSH("Transparent Meshes Rendering");
-	DrawTransparentRenderMeshes();
+	DrawTransparentRenderMeshes(false);
 	OPTICK_POP();
 
 	// -- Draw particles ---
@@ -857,7 +864,7 @@ void ModuleRenderer3D::DrawRenderMeshes(bool depthPass)
 
 }
 
-void ModuleRenderer3D::DrawTransparentRenderMeshes()
+void ModuleRenderer3D::DrawTransparentRenderMeshes(bool depthPass)
 {
 	// --- Activate wireframe mode ---
 	if (wireframe)
@@ -892,7 +899,7 @@ void ModuleRenderer3D::DrawTransparentRenderMeshes()
 	}
 
 	// --- Draw transparent meshes in the correct order ---
-	DrawRenderMesh(to_draw, false);
+	DrawRenderMesh(to_draw, depthPass);
 
 	// --- DeActivate wireframe mode ---
 	if (wireframe)
@@ -928,7 +935,7 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 					if (mesh->mat->m_DiffuseResTexture)
 					{
 						glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 1);
-						glUniform1i(glGetUniformLocation(shader, "u_AlbedoTexture"), 0);
+						glUniform1i(glGetUniformLocation(shader, "u_AlbedoTexture"), 1);
 						glActiveTexture(GL_TEXTURE0 + 1);
 						glBindTexture(GL_TEXTURE_2D, mesh->mat->m_DiffuseResTexture->GetTexID());
 					}

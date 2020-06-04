@@ -49,6 +49,8 @@ public:
 	float rotation2D = 0.0f;
 	ComponentCanvas* canvas = nullptr;
 
+	UI_Anchor anchor_type = UI_Anchor::NONE;
+
 	int priority = 0;
 };
 

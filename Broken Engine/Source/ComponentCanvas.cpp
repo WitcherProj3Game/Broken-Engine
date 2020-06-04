@@ -167,6 +167,10 @@ json ComponentCanvas::Save() const
 	node["visible"] = std::to_string(visible);
 	node["priority"] = std::to_string(priority);
 	node["anchor"] = (int)anchor_type;
+
+	node["position2DxLocal"] = std::to_string(position2DLocal.x);
+	node["position2DyLocal"] = std::to_string(position2DLocal.y);
+
 	return node;
 }
 
@@ -178,6 +182,11 @@ void ComponentCanvas::Load(json& node)
 	visible = bool(std::stoi(visible_str));
 	priority = int(std::stoi(priority_str));
 	anchor_type = node["anchor"].is_null() ? UI_Anchor::NONE : (UI_Anchor)node["anchor"].get<int>();
+
+	std::string position2Dx = node["position2DxLocal"].is_null() ? "0" : node["position2DxLocal"];
+	std::string position2Dy = node["position2DyLocal"].is_null() ? "0" : node["position2DyLocal"];
+
+	position2DLocal = float2(std::stof(position2Dx), std::stof(position2Dy));
 }
 
 void ComponentCanvas::CreateInspectorNode()

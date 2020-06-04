@@ -38,8 +38,6 @@ public:
 
 	void OrderCanvas();
 
-	UI_Anchor anchor_type = UI_Anchor::NONE;
-
 	//void UpdatePosition(float2& increment);
 private:
 	std::vector<UI_Element*> elements;

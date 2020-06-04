@@ -243,9 +243,49 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				}
 
 				particles[i]->position = float3(positionIt->x, positionIt->y, positionIt->z);
-				if (followEmitter)
-				{
+				if (followEmitter){
+
+					////Set positionFromEmitterPos
+					//physx::PxVec3 positionFromEmitterPos(emitterPosition.x, emitterPosition.y, emitterPosition.z);
+
+					//Quat positionFromEmitterPosQuat = Quat(positionFromEmitterPos.x, positionFromEmitterPos.y, positionFromEmitterPos.z, 0);
+					//positionFromEmitterPosQuat = externalRotation * positionFromEmitterPosQuat * externalRotation.Conjugated();
+
+					////Assign final position to the particle
+					//positionBuffer[i] = physx::PxVec3(positionFromSizeQuat.x + positionFromEmitterPosQuat.x + globalPosition.x,
+					//	positionFromSizeQuat.y + positionFromEmitterPosQuat.y + globalPosition.y,
+					//	positionFromSizeQuat.z + positionFromEmitterPosQuat.z + globalPosition.z);
+
+					Quat totalRotation = Quat::identity;
+					Quat externalRotation = Quat::identity;
+
+					Quat globalRotation;
+					float3 scale_, position_;
+
+					switch (rotationType)
+					{
+					case Broken::ROTATION_PARENT::GO_LOCAL:
+						totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
+						externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
+						break;
+					case Broken::ROTATION_PARENT::GO_GLOBAL:
+						GO->GetComponent<ComponentTransform>()->GetGlobalTransform().Decompose(position_, globalRotation, scale_);
+						totalRotation = globalRotation * emitterRotation;
+						externalRotation = globalRotation;
+						break;
+					case Broken::ROTATION_PARENT::NONE:
+						totalRotation = emitterRotation;
+						break;
+					}
+
+					float3 newPosition = particles[i]->position;
+					Quat newPositionQuat = Quat( newPosition.x - particles[i]->emitterSpawnPosition.x, newPosition.y - particles[i]->emitterSpawnPosition.y, newPosition.z - particles[i]->emitterSpawnPosition.z, 0 );
+					Quat rotationIncrease = externalRotation/particles[i]->intialRotation ;
+					newPositionQuat = rotationIncrease * newPositionQuat * rotationIncrease.Conjugated();
+
+					particles[i]->position += float3(newPositionQuat.x, newPositionQuat.y, newPositionQuat.z);
 					particles[i]->position += globalPosition - particles[i]->emitterSpawnPosition;
+
 				}
 
 				if (colorGradient && gradients.size() > 0)
@@ -1770,6 +1810,7 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 			particles[index[i]]->scene_colorAffected = m_AffectedBySceneColor;
 			particles[index[i]]->light_Affected = m_AffectedByLight;
 			particles[index[i]]->receive_shadows = m_ReceiveShadows;
+			particles[index[i]]->intialRotation = externalRotation;
 
 			//Set scale
 			if (scaleconstants == 1) {
@@ -1928,11 +1969,6 @@ void ComponentParticleEmitter::CalculateAABBs()
 		totalRotation = emitterRotation;
 		break;
 	}
-
-
-	//Quat totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
-	//Quat externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
-	//float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
 
 	AABB aabb(float3(-size.x, -size.y, -size.z), float3(size.x, size.y, size.z));
 

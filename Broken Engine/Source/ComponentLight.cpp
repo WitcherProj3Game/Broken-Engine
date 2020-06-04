@@ -50,15 +50,8 @@ ComponentLight::ComponentLight(GameObject* ContainerGO) : Component(ContainerGO,
 	m_LightFrustum.SetUp(float3::unitY);	
 
 	m_LightFrustum.SetViewPlaneDistances(frusutm_planes.x, frusutm_planes.y);
-
-	if(m_LightType == LightType::DIRECTIONAL)
-		m_LightFrustum.SetOrthographic(frustum_size.x, frustum_size.y);
-	else
-	{
-		m_LightFrustum.SetPerspective(1.0f, 1.0f);
-		m_LightFrustum.SetVerticalFovAndAspectRatio(90, 1.0);
-	}
-
+	m_LightFrustum.SetOrthographic(frustum_size.x, frustum_size.y);
+	//m_LightFrustum.SetPerspective(1.0f, 1.0f);
 	//m_LightFrustum.SetHorizontalFovAndAspectRatio(m_LightFrustum.HorizontalFov(), 1.0f);
 }
 

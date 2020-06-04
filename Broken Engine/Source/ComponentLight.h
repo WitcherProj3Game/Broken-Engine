@@ -90,6 +90,7 @@ private:
 	LightType m_LightType = LightType::NONE;
 
 	//ResourceMesh* rmeshLight = nullptr;
+	Frustum m_LightFrustum;
 
 	bool m_SetToZero = false;
 	bool m_DrawMesh = true;
@@ -101,7 +102,7 @@ private:
 	float2 frusutm_planes = float2(2.0f, 75.0f);
 
 public:
-	Frustum m_LightFrustum;
+
 	bool m_CurrentShadower = false;
 	float m_ShadowsIntensity = 1.067f;
 	float m_ShadowBias = 0.001f;

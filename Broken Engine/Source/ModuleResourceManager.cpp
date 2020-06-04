@@ -328,8 +328,10 @@ Resource* ModuleResourceManager::ImportFolder(Importer::ImportData& IData)
 	{
 		// --- Eliminate last / so we can build the meta file name ---
 		std::string new_path = IData.path;
+		if (new_path.size() == 0)
+			return folder; //Empty path, null folder
+			
 		new_path.pop_back();
-
 		// --- If the resource is already in library, load from there ---
 		if (IsFileImported(new_path.c_str()))
 			folder = IFolder->Load(IData.path);

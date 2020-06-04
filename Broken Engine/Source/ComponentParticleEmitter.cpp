@@ -245,17 +245,6 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				particles[i]->position = float3(positionIt->x, positionIt->y, positionIt->z);
 				if (followEmitter){
 
-					////Set positionFromEmitterPos
-					//physx::PxVec3 positionFromEmitterPos(emitterPosition.x, emitterPosition.y, emitterPosition.z);
-
-					//Quat positionFromEmitterPosQuat = Quat(positionFromEmitterPos.x, positionFromEmitterPos.y, positionFromEmitterPos.z, 0);
-					//positionFromEmitterPosQuat = externalRotation * positionFromEmitterPosQuat * externalRotation.Conjugated();
-
-					////Assign final position to the particle
-					//positionBuffer[i] = physx::PxVec3(positionFromSizeQuat.x + positionFromEmitterPosQuat.x + globalPosition.x,
-					//	positionFromSizeQuat.y + positionFromEmitterPosQuat.y + globalPosition.y,
-					//	positionFromSizeQuat.z + positionFromEmitterPosQuat.z + globalPosition.z);
-
 					Quat totalRotation = Quat::identity;
 					Quat externalRotation = Quat::identity;
 
@@ -279,10 +268,11 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 					}
 
 					float3 newPosition = particles[i]->position;
-					Quat newPositionQuat = Quat( newPosition.x - particles[i]->emitterSpawnPosition.x, newPosition.y - particles[i]->emitterSpawnPosition.y, newPosition.z - particles[i]->emitterSpawnPosition.z, 0 );
+					Quat newPositionQuat = Quat( newPosition.x - globalPosition.x, newPosition.y - globalPosition.y, newPosition.z - globalPosition.z, 0 );
 					Quat rotationIncrease = externalRotation/particles[i]->intialRotation ;
 					newPositionQuat = rotationIncrease * newPositionQuat * rotationIncrease.Conjugated();
 
+					particles[i]->position = globalPosition;
 					particles[i]->position += float3(newPositionQuat.x, newPositionQuat.y, newPositionQuat.z);
 					particles[i]->position += globalPosition - particles[i]->emitterSpawnPosition;
 

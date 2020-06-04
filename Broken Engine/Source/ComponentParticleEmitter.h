@@ -13,6 +13,12 @@ class Particle;
 class ResourceTexture;
 class CurveEditor;
 
+enum class ROTATION_PARENT {
+	GO_LOCAL =0,
+	GO_GLOBAL,
+	NONE
+};
+
 class BROKEN_API ComponentParticleEmitter : public Component
 {
 	friend class ModuleParticles;
@@ -118,6 +124,8 @@ private:
 	bool playOnAwake = false;
 	int duration = 1000;
 	uint emisionStart = 0;
+	int rotationTypeInt = 0;
+	ROTATION_PARENT rotationType = ROTATION_PARENT::GO_LOCAL;
 
 	//Sprite rotations
 	bool rotationActive = false;
@@ -153,6 +161,7 @@ private:
 	int velocityconstants = 0;
 	bool followEmitter = true;
 	bool collision_active = true;
+	bool followParentsRotations = false;
 
 	//Colors
 	bool colorGradient = false;

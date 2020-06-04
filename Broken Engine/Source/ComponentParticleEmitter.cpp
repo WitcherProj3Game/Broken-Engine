@@ -464,6 +464,8 @@ json ComponentParticleEmitter::Save() const
 	node["velocityRandomFactor2Z"] = std::to_string(velocityRandomFactor2.z);
 	node["velocityconstants"] = std::to_string(velocityconstants);
 
+	node["rotationType"] = std::to_string(rotationTypeInt);
+
 	node["followEmitter"] = followEmitter;
 
 	node["particlesLifeTime"] = std::to_string(particlesLifeTime);
@@ -669,6 +671,11 @@ void ComponentParticleEmitter::Load(json& node)
 
 	randomInitialRotation = node["randomInitialRotation"].is_null() ? false : node["randomInitialRotation"].get<bool>();
 
+	
+	std::string rotation_type = node["rotationType"].is_null() ? "0" : node["rotationType"];
+	rotationTypeInt = std::stoi(rotation_type);
+	rotationType = ROTATION_PARENT(rotationTypeInt);
+
 	colorDuration = std::atoi(_gradientDuration.c_str());
 	int num = std::stof(_num_colors);
 	if (num != 0) {
@@ -872,6 +879,7 @@ void ComponentParticleEmitter::Load(json& node)
 
 void ComponentParticleEmitter::CreateInspectorNode()
 {
+	
 	//Play on awake
 	ImGui::NewLine();
 	ImGui::Checkbox("##PlayOnAwake", &playOnAwake);
@@ -880,28 +888,38 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	ImGui::SameLine();
 	ImGui::Text("Play on awake");
 
-	// --- Loop ---
-	if (ImGui::Checkbox("##PELoop", &loop))
-	if (loop)
-	{
-		emisionActive = true;
-		firstEmision = true;
-	}
-
-	ImGui::SameLine(); ImGui::Text("Loop");
+	
 
 	//Follow emitter
 	ImGui::Checkbox("##SFollow emitter", &followEmitter);
 	ImGui::SameLine(); ImGui::Text("Follow emitter");	
-	
-	// Duration
 	ImGui::NewLine();
+
+	// --- Loop ---
+	if (ImGui::Checkbox("##PELoop", &loop))
+		if (loop)
+		{
+			emisionActive = true;
+			firstEmision = true;
+		}
+
+	ImGui::SameLine(); ImGui::Text("Loop");
+
+	// Duration
 	ImGui::Text("Duration");
 	ImGui::SameLine();
 	ImGui::DragInt("##PEDuration", &duration);
 	
 
+	ImGui::NewLine();
+	ImGui::Text("Rotation type");
+	if (ImGui::Combo("##PERotationType", &rotationTypeInt, "LOCAL ROTATION\0GLOBAL ROTATION\0NONE\0\0"))
+	{
+		rotationType = ROTATION_PARENT(rotationTypeInt);
+	}
+
 	//Emitter position
+	ImGui::NewLine();
 	ImGui::Text("Position");
 
 	ImGui::Text("X");
@@ -1651,12 +1669,33 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 
 	if (validParticles < maxParticles)
 	{
-		Quat totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
-		Quat externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
-		float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
-
 		if (particlesToCreate > maxParticles - validParticles)
 			particlesToCreate = maxParticles - validParticles;
+		
+		Quat totalRotation = Quat::identity;
+		Quat externalRotation = Quat::identity;
+		float3 globalPosition = float3::zero;
+
+		Quat globalRotation;
+		float3 scale_, position_;
+
+		switch (rotationType)
+		{
+		case Broken::ROTATION_PARENT::GO_LOCAL:
+			totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
+			externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
+			break;
+		case Broken::ROTATION_PARENT::GO_GLOBAL:
+			GO->GetComponent<ComponentTransform>()->GetGlobalTransform().Decompose(position_, globalRotation, scale_);
+			totalRotation = globalRotation * emitterRotation;
+			externalRotation = globalRotation;
+			break;
+		case Broken::ROTATION_PARENT::NONE:
+			totalRotation = emitterRotation;
+			break;
+		}
+		
+		globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
 
 		validParticles += particlesToCreate;
 		spawnClock = App->time->GetGameplayTimePassed() * 1000;

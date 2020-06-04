@@ -123,16 +123,22 @@ void ScriptingAudio::ResumeAudioEventGO(std::string event,uint UID)
 
 void ScriptingAudio::PlayAudioEvent(std::string event)
 {
-	ComponentAudioSource* sound = App->scripting->current_script->my_component->GetContainerGameObject()->GetComponent<ComponentAudioSource>();
-	if (sound)
+	if (App->scripting->current_script)
 	{
-		uint EventId = App->audio->EventMap[event];
-		sound->SetID(EventId);
-		sound->wwiseGO->PlayEvent(EventId);
-		sound->isPlaying = true;
+		ComponentAudioSource* sound = App->scripting->current_script->my_component->GetContainerGameObject()->GetComponent<ComponentAudioSource>();
+		if (sound)
+		{
+			uint EventId = App->audio->EventMap[event];
+			sound->SetID(EventId);
+			sound->wwiseGO->PlayEvent(EventId);
+			sound->isPlaying = true;
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (PlayAudioEvent) Sound Emmiter component is NULL");
+
 	}
 	else
-		ENGINE_CONSOLE_LOG("![Script]: (PlayAudioEvent) Sound Emmiter component is NULL");
+		ENGINE_CONSOLE_LOG("![Script]: (PlayAudioEvent) Current script is NULL");
 }
 
 void ScriptingAudio::StopAudioEvent(std::string event)

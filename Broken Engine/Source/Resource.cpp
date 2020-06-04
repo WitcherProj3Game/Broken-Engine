@@ -94,12 +94,13 @@ bool Resource::LoadToMemory()
 
 void Resource::Release()
 {
+	std::guard_lock<std::mutex> lk(memory_mutex);
 	if (instances != 0) 
 	{
 		if (--instances == 0)
 		{
 			App->threading->ADDTASK(this, Resource::FreeMemory);
-			//App->threading->FinishInFrame(); // We want to finish this task in this frame to avoid problems
+			App->threading->FinishInFrame(); // We want to finish this task in this frame to avoid problems
 		}
 	}
 	else

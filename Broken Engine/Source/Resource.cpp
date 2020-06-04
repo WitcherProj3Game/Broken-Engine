@@ -94,7 +94,7 @@ bool Resource::LoadToMemory()
 
 void Resource::Release()
 {
-	std::guard_lock<std::mutex> lk(memory_mutex);
+	std::lock_guard<std::mutex> lk(memory_mutex);
 	if (instances != 0) 
 	{
 		if (--instances == 0)

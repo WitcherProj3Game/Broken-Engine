@@ -106,7 +106,7 @@ bool ModuleResourceManager::Start()
 
 	// --- Create default font ---
 	DefaultFont = (ResourceFont*)CreateResourceGivenUID(Resource::ResourceType::FONT, "Assets/Fonts/arial.ttf",7);
-	DefaultFont->Init();
+	DefaultFont->LoadToMemory();
 
 	// --- Add file filters, so we only search for relevant files ---
 	filters.push_back("fbx");

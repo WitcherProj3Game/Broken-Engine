@@ -1,11 +1,12 @@
 #include "Resource.h"
-#include "Resource.h"
+#include "GameObject.h"
+
+//Modules
 #include "Application.h"
 #include "ModuleResourceManager.h"
 #include "ModuleEventManager.h"
 #include "ModuleFileSystem.h"
-#include "GameObject.h"
-
+#include "ModuleThreading.h"
 
 #include "mmgr/mmgr.h"
 
@@ -93,11 +94,13 @@ bool Resource::LoadToMemory()
 
 void Resource::Release()
 {
+	std::lock_guard<std::mutex> lk(memory_mutex);
 	if (instances != 0) 
 	{
 		if (--instances == 0)
 		{
-			FreeMemory();
+			App->threading->ADDTASK(this, Resource::FreeMemory);
+			App->threading->FinishInFrame(); // We want to finish this task in this frame to avoid problems
 		}
 	}
 	else

@@ -29,6 +29,9 @@ bool ResourceBone::LoadInMemory()
 
 	if (App->fs->Exists(resource_file.c_str()))
 	{
+		// We try to lock this so we do not proceed if we are freeing memory
+		std::lock_guard<std::mutex> lk(memory_mutex);
+
 		// --- Load mesh data ---
 		char* buffer = nullptr;
 		App->fs->Load(resource_file.c_str(), &buffer);
@@ -79,6 +82,9 @@ bool ResourceBone::LoadInMemory()
 
 void ResourceBone::FreeMemory()
 {
+	// We lock this while deleting memory so we do not create it while deleting it
+	std::lock_guard<std::mutex> lk(memory_mutex);
+
 	if (weight)
 	{
 		delete[] weight;

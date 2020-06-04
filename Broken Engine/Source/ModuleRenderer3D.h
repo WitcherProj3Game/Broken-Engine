@@ -30,7 +30,8 @@ enum BROKEN_API RenderMeshFlags_
 	texture		= 1 << 4,
 	color       = 1 << 5,
 	castShadows = 1 << 6,
-	receiveShadows = 1 << 7
+	receiveShadows = 1 << 7,
+	lightAffected = 1 << 8
 };
 
 struct BROKEN_API RenderMesh
@@ -305,6 +306,10 @@ private:
 	BlendAutoFunction m_RendererBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
 	BlendingTypes m_ManualBlend_Src = BlendingTypes::SRC_ALPHA, m_ManualBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
 	BlendingEquations m_BlendEquation = BlendingEquations::ADD;
+
+	BlendAutoFunction m_CurrentRendererBlendFunc = BlendAutoFunction::STANDARD_INTERPOLATIVE;
+	BlendingTypes m_CurrentManualBlend_Src = BlendingTypes::SRC_ALPHA, m_CurrentManualBlend_Dst = BlendingTypes::ONE_MINUS_SRC_ALPHA;
+	BlendingEquations m_CurrentBlendEquation = BlendingEquations::ADD;
 
 	//Other Generic Stuff
 	uint fbo = 0;

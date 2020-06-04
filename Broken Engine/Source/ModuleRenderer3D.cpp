@@ -359,17 +359,25 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	// --- Shadows Buffer (Render 1st Pass) ---
 	if (m_EnableShadows && current_directional)
 	{
+		OPTICK_PUSH("Shadows Render Pass");
 		glBindFramebuffer(GL_FRAMEBUFFER, depthbufferFBO);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
+		glEnable(GL_BLEND);
 
 		glDisable(GL_CULL_FACE);
 		//glCullFace(GL_FRONT);
+
 		SendShaderUniforms(shadowsShader->ID, true);
 		DrawRenderMeshes(true);
+
+		//for (int i = 0; i < particleEmitters.size(); ++i)
+		//	particleEmitters[i]->DrawParticles(true);
+		App->particles->DrawParticles(true);
+
 		//glCullFace(GL_BACK);
 		glEnable(GL_CULL_FACE);
-		
+
 		//// --- Point shadows ---
 		//glBindFramebuffer(GL_FRAMEBUFFER, depthbufferCubemapFBO);
 
@@ -383,7 +391,9 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		//	}
 		//}
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);		
+		glDisable(GL_BLEND);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		OPTICK_POP();
 	}
 
 	// --- Standard Buffer (Render 2nd Pass) ---
@@ -393,7 +403,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	// --- Draw Grid ---
 	if (display_grid)
 		DrawGrid();
-	
+
 	// --- Send Uniforms to all shaders which need them ---
 	for (std::map<uint, ResourceShader*>::const_iterator it = App->resources->shaders.begin(); it != App->resources->shaders.end(); ++it)
 		if ((*it).second && (*it).first != shadowsShader->GetUID() && (*it).first != ZDrawerShader->GetUID() && (*it).first != linepointShader->GetUID() && (*it).first != OutlineShader->GetUID() && (*it).first != screenShader->GetUID() && (*it).first != UI_Shader->GetUID())
@@ -423,10 +433,11 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 
 	// -- Draw particles ---
 	OPTICK_PUSH("Particles Rendering");
-	for (int i = 0; i < particleEmitters.size(); ++i)
-		particleEmitters[i]->DrawParticles();
+	/*for (int i = 0; i < particleEmitters.size(); ++i)
+		particleEmitters[i]->DrawParticles();*/
+	App->particles->DrawParticles(false);
 	OPTICK_POP();
-	
+
 	// --- Set Blending to Renderer's Default ---
 	if (m_ChangedBlending)
 		SetRendererBlending();
@@ -501,6 +512,7 @@ void ModuleRenderer3D::LoadStatus(const json& file)
 	// --- General Stuff ---
 	m_GammaCorrection = file["Renderer3D"].find("GammaCorrection") == file["Renderer3D"].end() ? 1.0f : file["Renderer3D"]["GammaCorrection"].get<float>();
 	m_SkyboxExposure = file["Renderer3D"].find("SkyboxExposure") == file["Renderer3D"].end() ? 1.0f : file["Renderer3D"]["SkyboxExposure"].get<float>();
+	m_EnableShadows = file["Renderer3D"].find("EnableShadows") == file["Renderer3D"].end() ? true : file["Renderer3D"]["EnableShadows"].get<bool>();
 
 	//Scene Color
 	if (file["Renderer3D"].find("SceneAmbientColor") != file["Renderer3D"].end())
@@ -547,7 +559,9 @@ void ModuleRenderer3D::LoadStatus(const json& file)
 	m_ManualBlend_Src = file["Renderer3D"].find("ManualAlphaFuncSrc") == file["Renderer3D"].end() ? BlendingTypes::SRC_ALPHA : (BlendingTypes)file["Renderer3D"]["ManualAlphaFuncSrc"].get<int>();
 	m_ManualBlend_Dst = file["Renderer3D"].find("ManualAlphaFuncDst") == file["Renderer3D"].end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)file["Renderer3D"]["ManualAlphaFuncDst"].get<int>();
 
-	m_EnableShadows = file["Renderer3D"].find("EnableShadows") == file["Renderer3D"].end() ? true : file["Renderer3D"]["EnableShadows"].get<bool>();
+	m_CurrentRendererBlendFunc = m_RendererBlendFunc;
+	m_CurrentManualBlend_Src = m_ManualBlend_Src; m_CurrentManualBlend_Dst = m_ManualBlend_Dst;
+	m_CurrentBlendEquation = m_BlendEquation;
 }
 
 const json& ModuleRenderer3D::SaveStatus() const
@@ -669,7 +683,7 @@ void ModuleRenderer3D::SetShadowerLight(ComponentLight* dirlight)
 	{
 		if(current_directional)
 			current_directional->m_CurrentShadower = false;
-		
+
 		if(dirlight)
 			dirlight->m_CurrentShadower = true;
 
@@ -922,8 +936,6 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 			if ((mesh->flags & RenderMeshFlags_::castShadows) != RenderMeshFlags_::castShadows)
 				continue;
 
-			//(mesh flags & castshadows) != cast shadows
-
 			// --- Set Model Matrix Uniform ---
 			glUniformMatrix4fv(glGetUniformLocation(shader, "u_Model"), 1, GL_FALSE, model.Transposed().ptr());
 
@@ -932,6 +944,24 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 				const ResourceMesh* rmesh = mesh->resource_mesh;
 				if (mesh->deformable_mesh)
 					rmesh = mesh->deformable_mesh;
+
+				if (mesh->mat)
+				{
+					glUniform4f(glGetUniformLocation(shader, "u_Color"), mesh->mat->m_AmbientColor.x, mesh->mat->m_AmbientColor.y, mesh->mat->m_AmbientColor.z, mesh->mat->m_AmbientColor.w);
+					if (mesh->mat->m_DiffuseResTexture)
+					{
+						glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 1);
+						glUniform1i(glGetUniformLocation(shader, "u_AlbedoTexture"), 0);
+						glActiveTexture(GL_TEXTURE0 + 1);
+						glBindTexture(GL_TEXTURE_2D, mesh->mat->m_DiffuseResTexture->GetTexID());
+					}
+					else
+					{
+						glUniform1i(glGetUniformLocation(shader, "u_AlbedoTexture"), 0);
+						glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 0);
+					}
+				}
+
 
 				// --- Render ---
 				glBindVertexArray(rmesh->VAO);
@@ -952,8 +982,11 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 		// --- Meshes ---
 		for (uint i = 0; i < meshInstances.size(); ++i)
 		{
-			uint shader = defaultShader->ID;
 			RenderMesh* mesh = &meshInstances[i];
+			if (mesh->only_shadow)
+				continue;
+
+			uint shader = defaultShader->ID;
 			float4x4 model = mesh->transform;
 			float3 colorToDraw = float3(1.0f);
 
@@ -988,13 +1021,7 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 			// ------------------------ Shader Stuff ------------------------
-			glUseProgram(shader);		
-
-
-			if (mesh->only_shadow)
-				continue;
-
-
+			glUseProgram(shader);
 
 			// --- Transparency Uniform ---
 			glUniform1i(glGetUniformLocation(shader, "u_HasTransparencies"), (int)mesh->mat->has_transparencies);
@@ -1024,6 +1051,11 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 				glUniform1i(glGetUniformLocation(shader, "u_ReceiveShadows"), true);
 			else
 				glUniform1i(glGetUniformLocation(shader, "u_ReceiveShadows"), false);
+
+			if (mesh->flags & RenderMeshFlags_::lightAffected)
+				glUniform1i(glGetUniformLocation(shader, "u_LightAffected"), true);
+			else
+				glUniform1i(glGetUniformLocation(shader, "u_LightAffected"), false);
 
 			// --- Set Normal Mapping Draw ---
 			glUniform1i(glGetUniformLocation(shader, "u_DrawNormalMapping_Lit"), (int)m_Draw_normalMapping_Lit);
@@ -1057,6 +1089,7 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 				{
 					glUniform1f(glGetUniformLocation(shader, "u_Shininess"), mesh->mat->m_Shininess);
 					glUniform4f(glGetUniformLocation(shader, "u_Color"), mesh->mat->m_AmbientColor.x, mesh->mat->m_AmbientColor.y, mesh->mat->m_AmbientColor.z, mesh->mat->m_AmbientColor.w);
+					glUniform1i(glGetUniformLocation(shader, "u_SceneColorAffected"), mesh->mat->m_AffectedBySceneColor);
 
 					//Textures
 					glUniform1i(glGetUniformLocation(shader, "u_UseTextures"), (int)mesh->mat->m_UseTexture);
@@ -1415,6 +1448,9 @@ void ModuleRenderer3D::PickBlendingEquation(BlendingEquations eq)
 
 void ModuleRenderer3D::PickBlendingAutoFunction(BlendAutoFunction blend_func, BlendingEquations eq)
 {
+	if (blend_func == m_CurrentRendererBlendFunc && eq == m_CurrentBlendEquation)
+		return;
+
 	switch (blend_func)
 	{
 		case (BlendAutoFunction::STANDARD_INTERPOLATIVE):
@@ -1435,12 +1471,21 @@ void ModuleRenderer3D::PickBlendingAutoFunction(BlendAutoFunction blend_func, Bl
 	}
 
 	PickBlendingEquation(eq);
+
+	m_CurrentRendererBlendFunc = blend_func;
+	m_CurrentBlendEquation = eq;
 }
 
 void  ModuleRenderer3D::PickBlendingManualFunction(BlendingTypes src, BlendingTypes dst, BlendingEquations eq)
 {
+	if (src == m_CurrentManualBlend_Src && dst == m_CurrentManualBlend_Dst && eq == m_CurrentBlendEquation)
+		return;
+
 	glBlendFunc(BlendingTypesToOGL(src), BlendingTypesToOGL(dst));
 	PickBlendingEquation(eq);
+
+	m_CurrentManualBlend_Src = src; m_CurrentManualBlend_Dst = dst;
+	m_CurrentBlendEquation = eq;
 }
 
 void ModuleRenderer3D::HandleObjectOutlining()
@@ -1597,16 +1642,16 @@ void ModuleRenderer3D::CreateDefaultShaders()
 		;
 
 	const char* geometryShaderT =
-		R"(#version 440 core 
-		#define GEOMETRY_SHADER 
-		#ifdef GEOMETRY_SHADER 
-		layout (points) in; 
-		layout (points, max_vertices = 1) out; 
-		void main(){ 
+		R"(#version 440 core
+		#define GEOMETRY_SHADER
+		#ifdef GEOMETRY_SHADER
+		layout (points) in;
+		layout (points, max_vertices = 1) out;
+		void main(){
 			gl_Position = gl_in[0].gl_Position;
 			EmitVertex();
 			EndPrimitive();
-		} 
+		}
 		#endif //GEOMETRY_SHADER)"
 		;
 
@@ -1950,23 +1995,23 @@ void ModuleRenderer3D::CreateDefaultShaders()
 		R"(#version 450 core
 			#define VERTEX_SHADER
 			#ifdef VERTEX_SHADER
-			
-			layout (location = 0) in vec3 a_Position;			
+
+			layout (location = 0) in vec3 a_Position;
 			uniform mat4 u_Proj;
 			uniform mat4 u_View;
-			uniform mat4 u_Model;			
+			uniform mat4 u_Model;
 			void main()
 			{
 				gl_Position = u_Proj * u_View * u_Model * vec4(a_Position, 1.0);
-			} 
+			}
 			#endif)";
 
 	const char* fragmentShadowShader =
 		R"(#version 450 core
 			#define FRAGMENT_SHADER
-			#ifdef FRAGMENT_SHADER			
+			#ifdef FRAGMENT_SHADER
 			void main()
-			{ 
+			{
 			}
 			#endif)";
 
@@ -2079,6 +2124,12 @@ void ModuleRenderer3D::DrawGrid()
 
 	GLint modelLoc = glGetUniformLocation(shaderID, "u_Model");
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, float4x4::identity.ptr());
+
+	if (current_directional)
+		glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_LightSpace"), 1, GL_FALSE, float4x4::identity.ptr());
+
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_View"), 1, GL_FALSE, active_camera->GetOpenGLViewMatrix().ptr());
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_Proj"), 1, GL_FALSE, active_camera->GetOpenGLProjectionMatrix().ptr());
 
 	float gridColor = 0.8f;
 	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");

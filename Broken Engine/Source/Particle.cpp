@@ -13,7 +13,7 @@
 #include "ResourceShader.h"
 #include "ResourceMesh.h"
 #include "ComponentCamera.h"
-
+#include "ComponentLight.h"
 
 
 #include "mmgr/mmgr.h"
@@ -31,66 +31,97 @@ Particle::Particle()
 Particle::~Particle()
 {}
 
-void Particle::SetAnimation(ResourceMesh* mesh) {
+void Particle::SetAnimation(ResourceMesh* mesh)
+{
 	plane = mesh;
 }
 
-void Particle::Draw()
+void Particle::Draw(bool shadowsPass)
 {
 	// --- Update transform and rotation to face camera ---
 	float3 center = float3(position.x, position.y, position.z);
 
-	// --- Frame image with camera ---
-	float4x4 rot = float4x4::FromEulerXYZ(rotation.x, rotation.y, rotation.z);
+	// --- Billboarding ---
+	float3 particle_rotation = rotation;
 	float3x3 camRot = App->renderer3D->active_camera->GetOpenGLViewMatrix().RotatePart();
-	float4x4 finalRot = float4x4::identity;
-	
-	if (v_billboard)
-	{
-		finalRot = camRot * rot;
-		finalRot.SetCol(1, { 0.0f, 1.0f, 0.0f, 0.0f });
-	}
-	else if (h_billboard)
-		finalRot.SetRotatePartX(-1.57f);
-	else
-		finalRot = camRot * rot;
 
-	// --- Set Uniforms ---
-	uint shaderID = App->renderer3D->defaultShader->ID;
+	float4x4 finalRot = float4x4::identity;
+	if (cam_billboard)
+	{
+		if (v_billboard)
+		{
+			camRot.SetCol(1, { 0.0f, 1.0f, 0.0f});			
+			finalRot = camRot * float4x4::FromEulerXYZ(0.0f, particle_rotation.y, particle_rotation.z);
+		}
+		else if (h_billboard)
+			finalRot = float4x4::FromEulerXYZ(-1.57f, 0.0f, particle_rotation.z);
+		else
+			finalRot = camRot * float4x4::FromEulerXYZ(particle_rotation.x, particle_rotation.y, particle_rotation.z);		
+	}
+	else
+		finalRot = float4x4::FromEulerXYZ(rotation.x, rotation.y, rotation.z);
+
+
+	// --- Shader Choice ---
+	uint shaderID = 0;
+	if (shadowsPass)
+		shaderID = App->renderer3D->shadowsShader->ID;
+	else
+		shaderID = App->renderer3D->defaultShader->ID;
+
+	// --- Bind ---
 	glUseProgram(shaderID);
 
+	// --- Shader Matrices ---
 	float4x4 transform = transform.FromTRS(float3(position.x, position.y, position.z), finalRot, float3(scale.x, scale.y, 1));
+	float4x4 projMat = float4x4::identity;
+	float4x4 viewMat = float4x4::identity;
+	const ComponentLight* light = App->renderer3D->GetShadowerLight();
+
+	if (shadowsPass)
+	{
+		if (light)
+		{
+			projMat = light->GetFrustProjectionMatrix();
+			viewMat = light->GetFrustViewMatrix();
+		}
+	}
+	else
+	{
+		projMat = App->renderer3D->active_camera->GetOpenGLProjectionMatrix();
+		viewMat = App->renderer3D->active_camera->GetOpenGLViewMatrix();
+	}
+
+	if (!shadowsPass && light)
+		glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_LightSpace"), 1, GL_FALSE, light->GetFrustViewProjMatrix().ptr());
+
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_View"), 1, GL_FALSE, viewMat.ptr());
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_Proj"), 1, GL_FALSE, projMat.ptr());
+
 	GLint modelLoc = glGetUniformLocation(shaderID, "u_Model");
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, transform.Transposed().ptr());
 
-	GLint viewLoc = glGetUniformLocation(shaderID, "u_View");
-	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLViewMatrix().ptr());
+	// --- Texturing & Color ---
+	// Texture
+	glUniform4f(glGetUniformLocation(shaderID, "u_Color"), color.x, color.y, color.z, color.w);	
+	if (texture)
+	{
+		glUniform1i(glGetUniformLocation(shaderID, "u_UseTextures"), (int)true);
+		glUniform1i(glGetUniformLocation(shaderID, "u_HasDiffuseTexture"), (int)true);
+		glUniform1i(glGetUniformLocation(shaderID, "u_AlbedoTexture"), 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture->GetTexID());
+	}
 
-	float nearp = App->renderer3D->active_camera->GetNearPlane();
+	if (!shadowsPass)
+	{
+		glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);
+		glUniform1i(glGetUniformLocation(shaderID, "u_SceneColorAffected"), scene_colorAffected);
+		glUniform1i(glGetUniformLocation(shaderID, "u_LightAffected"), light_Affected);
 
-	// right handed projection matrix
-	//float f = 1.0f / tan(App->renderer3D->active_camera->GetFOV() * DEGTORAD / 2.0f);
-	//float4x4 proj_RH(
-	//	f / App->renderer3D->active_camera->GetAspectRatio(), 0.0f, 0.0f, 0.0f,
-	//	0.0f, f, 0.0f, 0.0f,
-	//	0.0f, 0.0f, 0.0f, -1.0f,
-	//	0.0f, 0.0f, nearp, 0.0f);
-
-	GLint projectLoc = glGetUniformLocation(shaderID, "u_Proj");
-	glUniformMatrix4fv(projectLoc, 1, GL_FALSE, App->renderer3D->active_camera->GetOpenGLProjectionMatrix().ptr());
-
-	//Texturing & Color
-	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");
-	glUniform4f(vertexColorLocation, color.x, color.y, color.z, color.w);
-	glUniform1i(glGetUniformLocation(shaderID, "u_HasTransparencies"), 1);
-
-	int TextureLocation = glGetUniformLocation(shaderID, "u_UseTextures");
-	glUniform1i(TextureLocation, (int)true);
-
-	//ourTexture
-	glUniform1i(glGetUniformLocation(shaderID, "u_AlbedoTexture"), 0);
-	glActiveTexture(GL_TEXTURE0 + 0);
-	glBindTexture(GL_TEXTURE_2D, texture->GetTexID());
+		// --- Particle Receiving Shadows ---
+		glUniform1i(glGetUniformLocation(shaderID, "u_ReceiveShadows"), receive_shadows);
+	}
 
 	// --- Draw plane with given texture ---
 	glBindVertexArray(plane->VAO);
@@ -98,8 +129,9 @@ void Particle::Draw()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, plane->EBO);
 	glDrawElements(GL_TRIANGLES, plane->IndicesSize, GL_UNSIGNED_INT, NULL); // render primitives from array data
 
-	glUniform1i(TextureLocation, 0); //reset texture location
+	// --- Back to Defaults ---
 	glBindVertexArray(0);
+	glUniform1i(glGetUniformLocation(shaderID, "u_HasDiffuseTexture"), 0); //reset texture location
+	glUniform1i(glGetUniformLocation(shaderID, "u_UseTextures"), 0);
 	glBindTexture(GL_TEXTURE_2D, 0); // Stop using buffer (texture)
-
 }

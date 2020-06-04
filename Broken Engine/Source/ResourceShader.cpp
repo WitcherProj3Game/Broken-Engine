@@ -378,6 +378,8 @@ void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms)
 			|| strcmp(name, "u_GammaCorrection") == 0
 			|| strcmp(name, "u_AmbientColor") == 0
 			|| strcmp(name, "u_HasTransparencies") == 0
+			|| strcmp(name, "u_LightAffected") == 0
+			|| strcmp(name, "u_SceneColorAffected") == 0
 			|| strcmp(name, "u_IsText") == 0
 			|| strcmp(name, "u_Exposure") == 0
 			|| strcmp(name, "u_ReceiveShadows") == 0

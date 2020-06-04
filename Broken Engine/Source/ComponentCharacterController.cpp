@@ -43,7 +43,6 @@ ComponentCharacterController::ComponentCharacterController(GameObject* Container
 
 	controller = App->physics->mControllerManager->createController(*desc);
 
-	physx::PxShape* shape;
 	controller->getActor()->getShapes(&shape, 1);
 
 	physx::PxFilterData filterData;
@@ -55,6 +54,7 @@ ComponentCharacterController::ComponentCharacterController(GameObject* Container
 	//App->physics->addActor(controller->getActor(),GO);
 
 	initialPosition = capsuleDesc.position;
+	initialPosition2 = capsuleDesc.position;
 
 	name = "Character Controller";
 	mesh = (ResourceMesh*)App->resources->CreateResource(Resource::ResourceType::MESH, "DefaultCharacterController");
@@ -63,61 +63,58 @@ ComponentCharacterController::ComponentCharacterController(GameObject* Container
 ComponentCharacterController::~ComponentCharacterController()
 {
 	mesh->Release();
+	Delete();
 }
 
 void ComponentCharacterController::Enable()
 {
-	physx::PxShape* shape;
-	controller->getActor()->getShapes(&shape, 1);
-
-	if (shape->getActor() != nullptr)
+	if (controller == nullptr)
 	{
-		if (hasBeenDeactivated)
-		{
-			App->physics->mScene->addActor(*shape->getActor());
-			hasBeenDeactivated = false;
-		}
-		//GetActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, false);
+		controller = App->physics->mControllerManager->createController(*desc);
+
+		controller->getActor()->getShapes(&shape, 1);
+
+		physx::PxFilterData filterData;
+		filterData.word0 = (1 << GO->layer); // word0 = own ID
+		filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup;
+		shape->setSimulationFilterData(filterData);
+
+		App->physics->addActor(shape->getActor(), GO);
+		controller->setFootPosition(desc->position);
+		hasBeenDeactivated = false;
 	}
+	//GetActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, false);
 	active = true;
 }
 
 void ComponentCharacterController::Disable()
 {
-	physx::PxShape* shape;
-	controller->getActor()->getShapes(&shape, 1);
-	if (shape->getActor() != nullptr)
-	{
-		//GetActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, true);
-		if (!hasBeenDeactivated)
+	if (controller != nullptr) {
+		if (shape)
 		{
-			App->physics->mScene->removeActor(*shape->getActor());
-			hasBeenDeactivated = true;
+			if (shape->getActor() != nullptr)
+			{
+				//GetActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, true);
+				if (!hasBeenDeactivated )
+				{
+					desc->position = controller->getFootPosition();
+					if(App->physics->actors.size() > 0)
+					App->physics->actors.erase(shape->getActor());
+				}
+			}
 		}
+		shape = nullptr;
+		controller->release();
+		controller = nullptr;
+		hasBeenDeactivated = true;
 	}
 	active = false;
 }
 
 void ComponentCharacterController::Update()
 {
+
 	vel = physx::PxVec3(0);
-
-	/*if (App->input->GetKey(SDL_SCANCODE_UP))
-		vel.z = -10.0f;
-
-	else if (App->input->GetKey(SDL_SCANCODE_DOWN))
-		vel.z = 10.0f;
-	else
-		vel.z = 0.0f;
-
-	if (App->input->GetKey(SDL_SCANCODE_RIGHT))
-		vel.x = 10.0f;
-
-	else if (App->input->GetKey(SDL_SCANCODE_LEFT))
-		vel.x = -10.0f;
-	else
-		vel.x = 0.0f;*/
-
 
 	ComponentTransform* cTransform = GO->GetComponent<ComponentTransform>();
 
@@ -162,6 +159,14 @@ void ComponentCharacterController::Update()
 		{
 			Delete();
 			this->GetContainerGameObject()->RemoveComponent(this);
+		}
+		else if(App->physics->actors[shape->getActor()] == nullptr){
+			physx::PxFilterData filterData;
+			filterData.word0 = (1 << GO->layer); // word0 = own ID
+			filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup;
+			shape->setSimulationFilterData(filterData);
+
+			App->physics->addActor(shape->getActor(),GO);
 		}
 	}
 }
@@ -269,22 +274,19 @@ void ComponentCharacterController::Move(float minDist)
 
 	physx::PxControllerFilters controllerFilter;
 	controllerFilter.mFilterData = &filterData;
-
+	if(controller)
 	controller->move(vel, minDist, App->time->GetGameDt(), controllerFilter);
 }
 
 void ComponentCharacterController::Delete()
 {
-	physx::PxShape* shape = nullptr;
-
-	if (controller != nullptr)
+	if (controller)
 	{
-		controller->getActor()->getShapes(&shape, 1);
-		App->physics->DeleteActor(shape->getActor());
+		if(shape && App->physics->actors.size()>0)
+			App->physics->actors.erase(shape->getActor());
 		controller->release();
 		controller = nullptr;
 	}
-
 }
 
 json ComponentCharacterController::Save() const
@@ -298,13 +300,22 @@ json ComponentCharacterController::Save() const
 	node["slopeLimit"] = std::to_string(slopeLimit);
 	node["radius"] = std::to_string(radius);
 	node["height"] = std::to_string(height);
-	node["positionX"] = std::to_string(controller->getFootPosition().x);
-	node["positionY"] = std::to_string(controller->getFootPosition().y);
-	node["positionZ"] = std::to_string(controller->getFootPosition().z);
+	if (controller) {
+		node["positionX"] = std::to_string(controller->getFootPosition().x);
+		node["positionY"] = std::to_string(controller->getFootPosition().y);
+		node["positionZ"] = std::to_string(controller->getFootPosition().z);
+	}
+	else {
+		node["positionX"] = std::to_string(initialPosition2.x);
+		node["positionY"] = std::to_string(initialPosition2.y);
+		node["positionZ"] = std::to_string(initialPosition2.z);
+	}
 	node["draw"] = std::to_string(draw);
 
-	if (controller->getNonWalkableMode() == physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING)
-		node["nonWalkableMode"] = std::to_string(0);
+	if (controller) {
+		if (controller->getNonWalkableMode() == physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING)
+			node["nonWalkableMode"] = std::to_string(0);
+	}
 	else
 		node["nonWalkableMode"] = std::to_string(1);
 
@@ -347,20 +358,27 @@ void ComponentCharacterController::Load(json& node)
 	SetRadius(radius);
 	SetHeight(height);
 
-	if (std::stof(nonWalkableMode) == 0)
-	{
-		controller->setNonWalkableMode(physx::PxControllerNonWalkableMode::Enum::ePREVENT_CLIMBING);
-		sliding = false;
-	}
-	else
-	{
-		controller->setNonWalkableMode(physx::PxControllerNonWalkableMode::Enum::ePREVENT_CLIMBING_AND_FORCE_SLIDING);
-		sliding = true;
+	if (controller) {
+		if (std::stof(nonWalkableMode) == 0)
+		{
+			controller->setNonWalkableMode(physx::PxControllerNonWalkableMode::Enum::ePREVENT_CLIMBING);
+			sliding = false;
+		}
+		else
+		{
+			controller->setNonWalkableMode(physx::PxControllerNonWalkableMode::Enum::ePREVENT_CLIMBING_AND_FORCE_SLIDING);
+			sliding = true;
+		}
 	}
 
 	physx::PxExtendedVec3 pos = physx::PxExtendedVec3(position.x, position.y, position.z);
+	initialPosition = pos;
+	initialPosition2 = pos;
+
 	creation = true;
-	controller->setFootPosition(physx::PxExtendedVec3(pos.x, pos.y, pos.z));
+
+	if(controller)
+		controller->setFootPosition(physx::PxExtendedVec3(pos.x, pos.y, pos.z));
 }
 
 void ComponentCharacterController::CreateInspectorNode()
@@ -413,7 +431,7 @@ void ComponentCharacterController::CreateInspectorNode()
 
 	if (ImGui::Checkbox("No Slide", &sliding))
 	{
-		if (sliding)
+		if (sliding && controller)
 			controller->setNonWalkableMode(physx::PxControllerNonWalkableMode::Enum::ePREVENT_CLIMBING_AND_FORCE_SLIDING);
 
 		else
@@ -425,26 +443,31 @@ void ComponentCharacterController::CreateInspectorNode()
 
 void ComponentCharacterController::SetContactOffset(float offset)
 {
+	if(controller)
 	controller->setContactOffset(offset);
 }
 
 void ComponentCharacterController::SetStepOffset(float offset)
 {
+	if (controller)
 	controller->setStepOffset(offset);
 }
 
 void ComponentCharacterController::SetSlopeLimit(float limit)
 {
+	if (controller)
 	static_cast<physx::PxCapsuleController*>(controller)->setSlopeLimit(cosf(DEGTORAD * limit));
 }
 
 void ComponentCharacterController::SetRadius(float radius)
 {
+	if (controller)
 	static_cast<physx::PxCapsuleController*>(controller)->setRadius(radius);
 }
 
 void ComponentCharacterController::SetHeight(float height)
 {
+	if (controller)
 	static_cast<physx::PxCapsuleController*>(controller)->resize(height);
 	//static_cast<physx::PxCapsuleController*>(controller)->setHeight(height);
 }
@@ -464,10 +487,14 @@ physx::PxControllerBehaviorFlags ComponentCharacterController::getBehaviorFlags(
 			ScriptFunc function;
 			function.name = "OnTriggerEnter";
 
-			if (script)
+			if (script) {
 				App->scripting->CallbackScriptFunction(script, function);
-			if (script2)
+				ENGINE_CONSOLE_LOG("DETECTED ON TRIGGER: SCRIPT 1");
+			}
+			if (script2) {
 				App->scripting->CallbackScriptFunction(script2, function);
+				ENGINE_CONSOLE_LOG("DETECTED ON TRIGGER: SCRIPT 2");
+			}
 		}
 	}
 	else
@@ -484,10 +511,12 @@ physx::PxControllerBehaviorFlags ComponentCharacterController::getBehaviorFlags(
 			ScriptFunc function;
 			function.name = "OnCollisionEnter";
 
-			if (script)
+			if (script) {
 				App->scripting->CallbackScriptFunction(script, function);
-			if (script2)
+			}
+			if (script2) {
 				App->scripting->CallbackScriptFunction(script2, function);
+			}
 		}
 	}
 
@@ -496,12 +525,18 @@ physx::PxControllerBehaviorFlags ComponentCharacterController::getBehaviorFlags(
 
 physx::PxControllerBehaviorFlags ComponentCharacterController::getBehaviorFlags(const physx::PxController& controller)
 {
+
 	physx::PxShape* shape1;
 	this->controller->getActor()->getShapes(&shape1, 1);
-	physx::PxRigidActor* a = this->controller->getActor();
 
 	physx::PxShape* shape;
 	controller.getActor()->getShapes(&shape, 1);
+
+
+	if (shape1 == nullptr || shape == nullptr)
+		physx::PxControllerBehaviorFlag::eCCT_USER_DEFINED_RIDE;
+
+	physx::PxRigidActor* a = this->controller->getActor();
 	physx::PxRigidActor* b = controller.getActor();
 
 	if (shape->getFlags() & physx::PxShapeFlag::eTRIGGER_SHAPE || shape1->getFlags() & physx::PxShapeFlag::eTRIGGER_SHAPE)
@@ -517,10 +552,14 @@ physx::PxControllerBehaviorFlags ComponentCharacterController::getBehaviorFlags(
 			ScriptFunc function;
 			function.name = "OnTriggerEnter";
 
-			if (script)
+			if (script) {
 				App->scripting->CallbackScriptFunction(script, function);
-			if (script2)
+				ENGINE_CONSOLE_LOG("DETECTED ON TRIGGER: SCRIPT 1");
+			}
+			if (script2) {
 				App->scripting->CallbackScriptFunction(script2, function);
+				ENGINE_CONSOLE_LOG("DETECTED ON TRIGGER: SCRIPT 2");
+			}
 		}
 	}
 	else
@@ -536,11 +575,12 @@ physx::PxControllerBehaviorFlags ComponentCharacterController::getBehaviorFlags(
 
 			ScriptFunc function;
 			function.name = "OnCollisionEnter";
-
-			if (script)
+			if (script) {
 				App->scripting->CallbackScriptFunction(script, function);
-			if (script2)
+			}
+			if (script2) {
 				App->scripting->CallbackScriptFunction(script2, function);
+			}
 		}
 	}
 

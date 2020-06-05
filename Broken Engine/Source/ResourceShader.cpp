@@ -268,7 +268,7 @@ void ResourceShader::ReloadAndCompileShader()
 
 }
 
-void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms) 
+void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms)
 {
 	std::vector<Uniform*> new_uniforms;
 
@@ -313,77 +313,94 @@ void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms)
 			|| strcmp(name, "time") == 0)
 			continue;
 
-		Uniform* uniform = nullptr;
 
 		// --- This switch prevents retrieving unwanted/unsupported uniforms ---
 		// MYTODO: we may avoid the switch by defining some filters and testing against them
 
+		Uniform* uniform = nullptr;
 		switch (type) 
 		{
-		case GL_INT:
-			uniform = new Uniform();
-			FillUniform(uniform, name, type);
-			break;
+			case GL_INT:
+				uniform = new Uniform();
+				FillUniform(uniform, name, type);
+				break;
 
-		case GL_FLOAT:
-			uniform = new Uniform();
-			FillUniform(uniform, name, type);
-			break;
+			case GL_FLOAT:
+				uniform = new Uniform();
+				FillUniform(uniform, name, type);
+				break;
 
-		case GL_FLOAT_VEC2:
-			uniform = new Uniform();
-			FillUniform(uniform, name, type);
-			break;
+			case GL_FLOAT_VEC2:
+				uniform = new Uniform();
+				FillUniform(uniform, name, type);
+				break;
 
-		case GL_FLOAT_VEC3:
-			uniform = new Uniform();
-			FillUniform(uniform, name, type);
-			break;
+			case GL_FLOAT_VEC3:
+				uniform = new Uniform();
+				FillUniform(uniform, name, type);
+				break;
 
-		case GL_FLOAT_VEC4:
-			uniform = new Uniform();
-			FillUniform(uniform, name, type);
-			break;
+			case GL_FLOAT_VEC4:
+				uniform = new Uniform();
+				FillUniform(uniform, name, type);
+				break;
 
-		case GL_INT_VEC2:
-			uniform = new Uniform();
-			FillUniform(uniform, name, type);
-			break;
+			case GL_INT_VEC2:
+				uniform = new Uniform();
+				FillUniform(uniform, name, type);
+				break;
 
-		case GL_INT_VEC3:
-			uniform = new Uniform();
-			FillUniform(uniform, name, type);
-			break;
+			case GL_INT_VEC3:
+				uniform = new Uniform();
+				FillUniform(uniform, name, type);
+				break;
 
-		case GL_INT_VEC4:
-			uniform = new Uniform();
-			FillUniform(uniform, name, type);
-			break;
-
-		default:
-			continue;
-			break;
-
+			case GL_INT_VEC4:
+				uniform = new Uniform();
+				FillUniform(uniform, name, type);
+				break;
+			case GL_SAMPLER_2D:
+				uniform = new Uniform();
+				FillUniform(uniform, name, type);
+				break;
+			default:
+				continue;
+				break;
 		}
 
 		// --- Conserve previous uniform values if they still exist ---
 		for (uint i = 0; i < uniforms.size(); ++i) 
 		{
 			if (uniforms[i]->name == uniform->name && uniforms[i]->type == uniform->type)
+			{
 				uniform->value = uniforms[i]->value;
+				if(uniform->type == GL_SAMPLER_2D)
+					uniform->value.textureU.x = 0;
+
+				break;
+			}
 		}
 
 		new_uniforms.push_back(uniform);
 	}
 
-	// --- Delete previous uniforms and retrieve new ones ---
-	for (uint i = 0; i < uniforms.size(); ++i) 
+	uint unitTextureIndex = 5;
+	for (uint i = 0; i < new_uniforms.size(); ++i)
 	{
-		delete uniforms[i];
+		if (new_uniforms[i]->type == GL_SAMPLER_2D)
+		{
+			new_uniforms[i]->value.textureU.x = unitTextureIndex;
+
+			if(unitTextureIndex < 32)
+				unitTextureIndex++;
+		}
 	}
 
-	uniforms.clear();
+	// --- Delete previous uniforms and retrieve new ones ---
+	for (uint i = 0; i < uniforms.size(); ++i)
+		delete uniforms[i];
 
+	uniforms.clear();
 	uniforms = new_uniforms;
 }
 
@@ -565,6 +582,9 @@ void ResourceShader::setUniform(const char* name, data& unidata, UniformType Uni
 			break;
 		case Broken::UniformType::vec4U:
 			glUniform4f(glGetUniformLocation(ID, name), unidata.vec4U.x, unidata.vec4U.y, unidata.vec4U.z, unidata.vec4U.w);
+			break;
+		case Broken::UniformType::textureU:
+			glUniform1i(glGetUniformLocation(ID, name), (int)unidata.textureU.x);
 			break;
 		default:
 			break;

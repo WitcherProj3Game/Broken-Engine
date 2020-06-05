@@ -13,6 +13,7 @@ union BROKEN_API data
 		vec2U = { 0,0 };
 		vec3U = { 0,0,0 };
 		vec4U = { 0,0,0,0 };
+		textureU = { -1, 0 };
 	}
 
 	int intU;
@@ -20,6 +21,7 @@ union BROKEN_API data
 	float2 vec2U;
 	float3 vec3U;
 	float4 vec4U;
+	float2 textureU; //{ TextureUnit, ResourceTextureID}
 };
 
 struct BROKEN_API Uniform 
@@ -40,7 +42,8 @@ enum class UniformType
 	vec2U,
 	vec3U,
 	vec4U,
-	vec4x4U
+	vec4x4U,
+	textureU
 };
 
 class BROKEN_API ResourceShader : public Resource 

@@ -139,6 +139,9 @@ void ResourceMaterial::CreateInspectorNode()
 			ImGui::EndCombo();
 		}
 
+		if (std::string(shader->GetName()).compare("ShaderTexturesTest.glsl") == 0)
+			int asda = 1;
+
 		// --- Uniforms ---
 		shader->GetAllUniforms(uniforms);
 		DisplayAndUpdateUniforms();
@@ -343,7 +346,8 @@ void ResourceMaterial::UpdateUniforms()
 
 	for (uint i = 0; i < uniforms.size(); ++i) {
 
-		switch (uniforms[i]->type) {
+		switch (uniforms[i]->type)
+		{
 		case GL_INT:
 			glUniform1i(uniforms[i]->location, uniforms[i]->value.intU);
 			break;
@@ -374,6 +378,16 @@ void ResourceMaterial::UpdateUniforms()
 
 		case GL_INT_VEC4:
 			glUniform4i(uniforms[i]->location, uniforms[i]->value.vec4U.x, uniforms[i]->value.vec4U.y, uniforms[i]->value.vec4U.z, uniforms[i]->value.vec4U.w);
+			break;
+
+		case GL_SAMPLER_2D:
+			if ((int)uniforms[i]->value.textureU.y > 0 && (int)uniforms[i]->value.textureU.x != -1)
+			{
+				int loc = glGetUniformLocation(shader->ID, uniforms[i]->name.c_str());
+				glUniform1i(uniforms[i]->location, (int)uniforms[i]->value.textureU.x);
+				glActiveTexture((int)uniforms[i]->value.textureU.x);
+				glBindTexture(GL_TEXTURE_2D, (int)uniforms[i]->value.textureU.y);
+			}
 			break;
 		}
 	}
@@ -484,6 +498,60 @@ void ResourceMaterial::DisplayAndUpdateUniforms()
 			{
 				updated = true;
 				uniforms[i]->value.vec4U = tmp_vec4;
+			}
+
+			break;
+
+		case GL_SAMPLER_2D:
+
+			ResourceTexture* current_texture = nullptr;
+			if ((int)uniforms[i]->value.textureU.y > 0)
+				current_texture = (ResourceTexture*)App->resources->GetResource((int)uniforms[i]->value.textureU.y, false);
+
+			// Show Texture Size
+			uint textSizeX = 0, textSizeY = 0;
+			ImGui::NewLine();
+			if (current_texture)
+			{
+				textSizeX = current_texture->Texture_width;
+				textSizeY = current_texture->Texture_height;
+			}
+
+			ImGui::Text(std::to_string(textSizeX).c_str());
+			ImGui::SameLine();
+			ImGui::Text(std::to_string(textSizeY).c_str());
+
+			// Show Texture Image
+			if (current_texture)
+				ImGui::ImageButton((void*)(uint)current_texture->GetPreviewTexID(), ImVec2(20, 20));
+			else
+				ImGui::ImageButton(NULL, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 2);
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("resource"))
+				{
+					uint UID = *(const uint*)payload->Data;
+					Resource* resource = App->resources->GetResource(UID, false);
+					if (resource && resource->GetType() == Resource::ResourceType::TEXTURE)
+					{
+						updated = true;
+						uniforms[i]->value.textureU.y = (float)UID;
+					}
+				}
+
+				ImGui::EndDragDropTarget();
+			}
+
+			// Show Texture Name
+			//ImGui::SameLine();
+			//ImGui::Text(uniforms[i]->name.c_str());
+			// Unuse Texture
+			ImGui::SameLine();
+			if (ImGui::Button("Unuse Texture", { 77, 18 }) && current_texture)
+			{
+				updated = true;
+				uniforms[i]->value.textureU.y = 0;
 			}
 
 			break;

@@ -1073,6 +1073,21 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 					glUniform4f(glGetUniformLocation(shader, "u_Color"), mesh->mat->m_AmbientColor.x, mesh->mat->m_AmbientColor.y, mesh->mat->m_AmbientColor.z, mesh->mat->m_AmbientColor.w);
 					glUniform1i(glGetUniformLocation(shader, "u_SceneColorAffected"), mesh->mat->m_AffectedBySceneColor);
 
+
+					for (uint i = 0; i < mesh->mat->uniforms.size(); ++i)
+					{
+						if (mesh->mat->uniforms[i]->type == GL_SAMPLER_2D)
+						{
+							if ((int)mesh->mat->uniforms[i]->value.textureU.y > 0 && (int)mesh->mat->uniforms[i]->value.textureU.x != -1)
+							{
+								int loc = glGetUniformLocation(shader, mesh->mat->uniforms[i]->name.c_str());
+								glUniform1i(mesh->mat->uniforms[i]->location, (int)mesh->mat->uniforms[i]->value.textureU.x);
+								glActiveTexture((int)mesh->mat->uniforms[i]->value.textureU.x);
+								glBindTexture(GL_TEXTURE_2D, (int)mesh->mat->uniforms[i]->value.textureU.y);
+							}
+						}
+					}
+
 					//Textures
 					glUniform1i(glGetUniformLocation(shader, "u_UseTextures"), (int)mesh->mat->m_UseTexture);
 

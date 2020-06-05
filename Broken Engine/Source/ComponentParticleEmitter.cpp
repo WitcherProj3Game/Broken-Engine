@@ -89,8 +89,17 @@ ComponentParticleEmitter::~ComponentParticleEmitter()
 		particles.clear();
 	}
 
-	texture->Release();
+	if (texture)
+	{
+		texture->RemoveUser(GO);
+		texture->Release();
+	}
 
+	if (particles_mesh)
+	{
+		particles_mesh->RemoveUser(GO);
+		particles_mesh->Release();
+	}
 
 	for (std::vector<ComponentParticleEmitter*>::iterator it = App->renderer3D->particleEmitters.begin(); it != App->renderer3D->particleEmitters.end(); it++) {
 		if ((*it) == this) {
@@ -759,9 +768,14 @@ void ComponentParticleEmitter::Load(json& node)
 		ResourceMesh* auxMesh = (ResourceMesh*)App->resources->GetResource(std::stoi(MeshPath));
 		if (auxMesh)
 			particles_mesh = auxMesh;
+		else
+			particles_mesh = App->scene_manager->plane;
 	}
 	else
 		particles_mesh = App->scene_manager->plane;
+
+	if(particles_mesh)
+		particles_mesh->AddUser(GO);
 
 	// Load Texture
 	std::string path = node["Resources"]["ResourceTexture"].is_null() ? "0" : node["Resources"]["ResourceTexture"];
@@ -1534,9 +1548,13 @@ void ComponentParticleEmitter::CreateInspectorNode()
 					{
 						ResourceMesh* mesh = meshComp->resource_mesh;
 						if (particles_mesh && particles_mesh->GetUID() != App->scene_manager->plane->GetUID())
+						{
+							particles_mesh->RemoveUser(GO);
 							particles_mesh->Release();
+						}
 
 						particles_mesh = (ResourceMesh*)App->resources->GetResource(mesh->GetUID());
+						particles_mesh->AddUser(GO);
 						animation = createdAnim = false;
 						custom_mesh = true;
 					}
@@ -1556,11 +1574,15 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		if (ImGui::Button("Default", { 77, 18 }))
 		{
 			if (particles_mesh)
-				if(particles_mesh->GetUID() != App->scene_manager->plane->GetUID())
+				if (particles_mesh->GetUID() != App->scene_manager->plane->GetUID())
+				{
+					particles_mesh->RemoveUser(GO);
 					particles_mesh->Release();
+				}
 
 			particlesScale.z = 1.0f;
 			particles_mesh = App->scene_manager->plane;
+			particles_mesh->AddUser(GO);
 			custom_mesh = false;
 		}
 
@@ -1586,12 +1608,29 @@ void ComponentParticleEmitter::CreateInspectorNode()
 				if (resource && resource->GetType() == Resource::ResourceType::TEXTURE)
 				{
 					if (texture)
+					{
+						texture->RemoveUser(GO);
 						texture->Release();
+					}
 
 					texture = (ResourceTexture*)App->resources->GetResource(UID);
+
+					if (texture)
+						texture->AddUser(GO);
 				}
 			}
 			ImGui::EndDragDropTarget();
+		}
+
+		//Unuse Texture
+		ImGui::SameLine();
+		if (ImGui::Button("Unuse", { 77, 18 }) && texture)
+		{
+			if (GO)
+				texture->RemoveUser(GO);
+
+			texture->Release();
+			texture = nullptr;
 		}
 
 		// --- Color ---

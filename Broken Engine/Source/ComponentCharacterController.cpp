@@ -284,7 +284,10 @@ void ComponentCharacterController::Delete()
 	{
 		if(shape && App->physics->actors.size()>0)
 			App->physics->actors.erase(shape->getActor());
-		controller->release();
+
+		if (App->physics->mControllerManager)
+			controller->release();
+			
 		controller = nullptr;
 	}
 }

@@ -36,36 +36,17 @@ bool ModuleThreading::Start() {
 	return true;
 }
 
-update_status ModuleThreading::PreUpdate(float dt)
-{
-	OPTICK_CATEGORY("Threading PreUpdate", Optick::Category::Debug);
-	if (processInUpdate)
-	{
-		processInUpdate = false;
-		FinishProcessing();
-	}
-	return UPDATE_CONTINUE;
-}
-
 update_status ModuleThreading::Update(float dt)
 {
 	OPTICK_CATEGORY("Threading Update", Optick::Category::Debug);
-	if (processInUpdate)
-	{
-		processInUpdate = false;
-		FinishProcessing();
-	}
+	FinishProcessing();
 	return UPDATE_CONTINUE;
 }
 
 update_status ModuleThreading::PostUpdate(float dt)
 {
 	OPTICK_CATEGORY("Threading PostUpdate", Optick::Category::Debug);
-	if (processInUpdate || processInFrame)
-	{
-		processInUpdate = processInFrame = false;
-		FinishProcessing();
-	}
+	FinishProcessing();
 	return UPDATE_CONTINUE;
 }
 

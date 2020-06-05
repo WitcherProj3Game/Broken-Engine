@@ -13,16 +13,13 @@
 #include "SDL/include/SDL.h"
 #include "Optick/include/optick.h"
 
-#pragma comment( lib, "SDL/libx86/SDL2.lib" )
-#pragma comment( lib, "SDL/libx86/SDL2main.lib" )
-
-
-//#ifdef _DEBUG
-//#pragma comment(lib, "Optick/libx86/debugx86/OptickCore.lib")
-//#else
-//#pragma comment(lib, "Optick/libx86/releasex86/OptickCore.lib")
-//#endif
-//#include "mmgr/mmgr.h"
+#ifndef _WIN64
+#	pragma comment( lib, "SDL/libx86/SDL2.lib" )
+#	pragma comment( lib, "SDL/libx86/SDL2main.lib" )
+#else
+#	pragma comment( lib, "SDL/libx64/SDL2.lib" )
+#	pragma comment( lib, "SDL/libx64/SDL2main.lib" )
+#endif
 
 ////Trick to tell AMD and NVIDIA drivers to use the most powerful GPU instead of a lower-performance (such as integrated) GPU
 #ifdef _WIN32

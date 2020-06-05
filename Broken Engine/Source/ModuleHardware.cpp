@@ -4,7 +4,12 @@
 #include "gpudetect/DeviceId.h"
 
 #include "SDL/include/SDL.h"
-#pragma comment( lib, "SDL/libx86/SDL2.lib" )
+#ifndef _WIN64
+#	pragma comment( lib, "SDL/libx86/SDL2.lib" )
+#else
+#	pragma comment( lib, "SDL/libx64/SDL2.lib" )
+#endif
+
 #include "OpenGL.h"
 #include "psapi.h"
 

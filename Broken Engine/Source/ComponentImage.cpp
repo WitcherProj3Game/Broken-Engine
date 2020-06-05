@@ -137,7 +137,7 @@ void ComponentImage::Draw()
 {
 	// --- Frame image with camera ---
 	float nearp = App->renderer3D->active_camera->GetNearPlane();
-	float3 pos = { position2D.x / App->gui->sceneWidth, position2D.y / App->gui->sceneHeight, nearp + 0.026f };
+	float3 pos = { GetFinalPosition() , nearp + 0.026f };
 	float3 size = { size2D.x / App->gui->sceneWidth, size2D.y / App->gui->sceneHeight, 1.0f };
 	float4x4 transform = transform.FromTRS(pos, Quat::identity, size);
 
@@ -221,7 +221,62 @@ void ComponentImage::CreateAnimation(uint w, uint h) {
 	animation_created = true;
 	PlayAnimation();
 }
+float2 ComponentImage::GetParentPos()
+{
+	if (canvas)
+		return canvas->position2D;
 
+	return float2::zero;
+}
+
+float2 ComponentImage::GetFinalPosition()
+{
+	float2 parent_pos = GetParentPos();
+	// origin TOP LEFT is -xhalfwidth +yhalfheight
+	float scenex = App->gui->sceneWidth / 2 - size2D.x / 2;
+	float sceney = App->gui->sceneHeight / 2 - size2D.y / 2;
+
+	float2 pos = position2D + parent_pos;
+
+	switch (anchor_type)
+	{
+	case UI_Element::UI_Anchor::TOP_LEFT:
+		pos.x -= scenex;
+		pos.y += sceney;
+		break;
+	case UI_Element::UI_Anchor::TOP:
+		pos.y += sceney;
+		break;
+	case UI_Element::UI_Anchor::TOP_RIGHT:
+		pos.x += scenex;
+		pos.y += sceney;
+		break;
+	case UI_Element::UI_Anchor::LEFT:
+		pos.x -= scenex;
+		break;
+	case UI_Element::UI_Anchor::RIGHT:
+		pos.x += scenex;
+		break;
+	case UI_Element::UI_Anchor::BOTTOM_LEFT:
+		pos.x -= scenex;
+		pos.y -= sceney;
+		break;
+	case UI_Element::UI_Anchor::BOTTOM:
+		pos.y -= sceney;
+		break;
+	case UI_Element::UI_Anchor::BOTTOM_RIGHT:
+		pos.x += scenex;
+		pos.y -= sceney;
+		break;
+	default:
+		// NONE AND CENTER GOES HERE -> NOTHING TO DO
+		break;
+	}
+	float2 final_pos = { pos.x / App->gui->sceneWidth,
+					pos.y / App->gui->sceneHeight };
+
+	return final_pos;
+}
 json ComponentImage::Save() const
 {
 	json node;
@@ -229,6 +284,7 @@ json ComponentImage::Save() const
 	node["visible"] = std::to_string(visible);
 	node["priority"] = std::to_string(priority);
 	node["fullscreen"] = fullscreen;
+	node["anchor"] = (int)anchor_type;
 
 	node["Resources"]["ResourceTexture"];
 
@@ -276,6 +332,8 @@ void ComponentImage::Load(json& node)
 	std::string priority_str = node["priority"].is_null() ? "0" : node["priority"];
 	visible = bool(std::stoi(visible_str));
 	priority = int(std::stoi(priority_str));
+
+	anchor_type = node["anchor"].is_null() ? UI_Anchor::NONE : (UI_Anchor)node["anchor"].get<int>();
 
 	fullscreen = node.find("fullscreen") == node.end() ? false : node["fullscreen"].get<bool>();
 
@@ -357,6 +415,12 @@ void ComponentImage::CreateInspectorNode()
 	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
 	ImGui::Checkbox("Visible", &visible);
 	ImGui::Separator();
+
+	int anchor = (int)anchor_type;
+	if (ImGui::Combo("Anchor", &anchor, "TOP LEFT\0TOP\0TOP RIGHT\0LEFT\0CENTER\0RIGHT\0BOTTOM LEFT\0BOTTOM\0BOTTOM RIGHT\0NONE\0\0"))
+	{
+		anchor_type = (UI_Anchor)anchor;
+	}
 
 	ImGui::SetNextItemWidth(100);
 	ImGui::InputInt("Priority", &priority);

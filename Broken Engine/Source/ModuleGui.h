@@ -61,6 +61,7 @@ public:
 	uint materialTexID = 0;
 	uint prefabTexID = 0;
 	uint playbuttonTexID = 0;
+	uint textureTexID = 0;
 	uint sceneTexID = 0;
 	uint animatorTexID = 0;
 	uint navmeshTexID = 0;

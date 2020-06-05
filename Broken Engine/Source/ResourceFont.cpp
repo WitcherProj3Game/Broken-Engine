@@ -27,20 +27,33 @@ ResourceFont::~ResourceFont()
 
 bool ResourceFont::LoadInMemory()
 {
-	FT_Library ft;
-	if (FT_Init_FreeType(&ft)) {
-		std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
-		return false;
+	return false;
+}
+
+void ResourceFont::FreeMemory()
+{
+	// delete vbo vao texture
+	if (VAO != 0) glDeleteVertexArrays(1,&VAO);
+	if (VBO != 0) glDeleteBuffers(1,&VBO);
+	
+	for (GLchar i=0;i<characters.size();i++)
+	{
+		glDeleteTextures(1, &characters[i].TextureID);
 	}
+	characters.clear();
+}
+
+void ResourceFont::Init()
+{
+	FT_Library ft;
+	this;
+	if (FT_Init_FreeType(&ft))
+		std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
 
 	FT_Face face;
-	if (FT_New_Face(ft, GetOriginalFile(), 0, &face)) {
-		std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
-		return false;
-	}
 
-	// We try to lock this so we do not proceed if we are freeing memory
-	std::lock_guard<std::mutex> lk(memory_mutex);
+	if (FT_New_Face(ft, GetOriginalFile(), 0, &face))
+		std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
 
 	FT_Set_Pixel_Sizes(face, 0, size);
 	//FT_Set_Char_Size(face, size << 6, size << 6, 96, 96);
@@ -48,6 +61,7 @@ bool ResourceFont::LoadInMemory()
 	// Init of all chars of the font to the map of character textures
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Disable byte-alignment restriction
 	
+	FreeMemory();
 	// Load first 128 characters of ASCII set
 	for (GLubyte c = 0; c < 128; c++)
 	{
@@ -110,24 +124,6 @@ bool ResourceFont::LoadInMemory()
 	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-
-	return true;
-}
-
-void ResourceFont::FreeMemory()
-{
-	// We lock this while deleting memory so we do not create it while deleting it
-	std::lock_guard<std::mutex> lk(memory_mutex);
-
-	// delete vbo vao texture
-	if (VAO != 0) glDeleteVertexArrays(1,&VAO);
-	if (VBO != 0) glDeleteBuffers(1,&VBO);
-	
-	for (GLchar i=0;i<characters.size();i++)
-	{
-		glDeleteTextures(1, &characters[i].TextureID);
-	}
-	characters.clear();
 }
 
 void ResourceFont::OnOverwrite()

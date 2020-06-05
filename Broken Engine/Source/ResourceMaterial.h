@@ -47,6 +47,9 @@ public:
 	ResourceTexture* m_SpecularResTexture = nullptr;
 	ResourceTexture* m_NormalResTexture = nullptr;
 
+	std::string DiffuseResTexturePath;
+	std::string SpecularResTexturePath;
+	std::string NormalResTexturePath;
 
 	ResourceShader* shader = nullptr;
 	std::vector<Uniform*> uniforms;

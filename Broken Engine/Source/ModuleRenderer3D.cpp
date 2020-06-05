@@ -283,7 +283,6 @@ bool ModuleRenderer3D::Init(json& file)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	cubemapTexID = App->textures->CreateCubemap(cubemaptexIDs);
-	depthTextureCubemap = App->textures->CreateDepthCubemap();
 
 	return ret;
 }
@@ -317,12 +316,6 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	//glBindFramebuffer(GL_FRAMEBUFFER, depthbufferCubemapFBO);
-	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	//glClearDepth(1.0f);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	return UPDATE_CONTINUE;
 }
@@ -363,34 +356,27 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		glBindFramebuffer(GL_FRAMEBUFFER, depthbufferFBO);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
-		glEnable(GL_BLEND);
 
 		glDisable(GL_CULL_FACE);
 		//glCullFace(GL_FRONT);
-
+		
 		SendShaderUniforms(shadowsShader->ID, true);
 		DrawRenderMeshes(true);
 
 		//for (int i = 0; i < particleEmitters.size(); ++i)
 		//	particleEmitters[i]->DrawParticles(true);
-		App->particles->DrawParticles(true);
 
+		glEnable(GL_BLEND);
+
+		if (m_ChangedBlending)
+			SetRendererBlending(); //Set Blending to Renderer's Default
+
+		DrawTransparentRenderMeshes(true);
+
+		App->particles->DrawParticles(true);
+		
 		//glCullFace(GL_BACK);
 		glEnable(GL_CULL_FACE);
-
-		//// --- Point shadows ---
-		//glBindFramebuffer(GL_FRAMEBUFFER, depthbufferCubemapFBO);
-
-		//std::vector<ComponentLight*>::iterator LightIteratori = m_LightsVec.begin();
-		//for (; LightIteratori != m_LightsVec.end(); ++LightIteratori)
-		//{
-		//	if ((*LightIteratori)->GetLightType() == LightType::POINTLIGHT)
-		//	{
-		//		DrawRenderMeshes(true);
-		//		break; // just 1 for now
-		//	}
-		//}
-
 		glDisable(GL_BLEND);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		OPTICK_POP();
@@ -403,7 +389,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	// --- Draw Grid ---
 	if (display_grid)
 		DrawGrid();
-
+	
 	// --- Send Uniforms to all shaders which need them ---
 	for (std::map<uint, ResourceShader*>::const_iterator it = App->resources->shaders.begin(); it != App->resources->shaders.end(); ++it)
 		if ((*it).second && (*it).first != shadowsShader->GetUID() && (*it).first != ZDrawerShader->GetUID() && (*it).first != linepointShader->GetUID() && (*it).first != OutlineShader->GetUID() && (*it).first != screenShader->GetUID() && (*it).first != UI_Shader->GetUID())
@@ -428,7 +414,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		SetRendererBlending(); //Set Blending to Renderer's Default
 
 	OPTICK_PUSH("Transparent Meshes Rendering");
-	DrawTransparentRenderMeshes();
+	DrawTransparentRenderMeshes(false);
 	OPTICK_POP();
 
 	// -- Draw particles ---
@@ -437,7 +423,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		particleEmitters[i]->DrawParticles();*/
 	App->particles->DrawParticles(false);
 	OPTICK_POP();
-
+	
 	// --- Set Blending to Renderer's Default ---
 	if (m_ChangedBlending)
 		SetRendererBlending();
@@ -500,8 +486,6 @@ bool ModuleRenderer3D::CleanUp()
 
 	glDeleteFramebuffers(1, &fbo);
 	glDeleteFramebuffers(1, &depthbufferFBO);
-	glDeleteFramebuffers(1, &depthbufferCubemapFBO);
-
 	SDL_GL_DeleteContext(context);
 
 	return true;
@@ -683,7 +667,7 @@ void ModuleRenderer3D::SetShadowerLight(ComponentLight* dirlight)
 	{
 		if(current_directional)
 			current_directional->m_CurrentShadower = false;
-
+		
 		if(dirlight)
 			dirlight->m_CurrentShadower = true;
 
@@ -880,7 +864,7 @@ void ModuleRenderer3D::DrawRenderMeshes(bool depthPass)
 
 }
 
-void ModuleRenderer3D::DrawTransparentRenderMeshes()
+void ModuleRenderer3D::DrawTransparentRenderMeshes(bool depthPass)
 {
 	// --- Activate wireframe mode ---
 	if (wireframe)
@@ -915,7 +899,7 @@ void ModuleRenderer3D::DrawTransparentRenderMeshes()
 	}
 
 	// --- Draw transparent meshes in the correct order ---
-	DrawRenderMesh(to_draw, false);
+	DrawRenderMesh(to_draw, depthPass);
 
 	// --- DeActivate wireframe mode ---
 	if (wireframe)
@@ -951,7 +935,7 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 					if (mesh->mat->m_DiffuseResTexture)
 					{
 						glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 1);
-						glUniform1i(glGetUniformLocation(shader, "u_AlbedoTexture"), 0);
+						glUniform1i(glGetUniformLocation(shader, "u_AlbedoTexture"), 1);
 						glActiveTexture(GL_TEXTURE0 + 1);
 						glBindTexture(GL_TEXTURE_2D, mesh->mat->m_DiffuseResTexture->GetTexID());
 					}
@@ -985,7 +969,7 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 			RenderMesh* mesh = &meshInstances[i];
 			if (mesh->only_shadow)
 				continue;
-
+			
 			uint shader = defaultShader->ID;
 			float4x4 model = mesh->transform;
 			float3 colorToDraw = float3(1.0f);
@@ -1033,8 +1017,6 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 				glActiveTexture(GL_TEXTURE0 + 0);
 				glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexID);
 			}
-			//else
-			//	glBindTexture(GL_TEXTURE_CUBE_MAP, depthTextureCubemap);
 
 			if (mesh->mat->has_transparencies)
 				mesh->mat->SetBlending();
@@ -1375,12 +1357,6 @@ void ModuleRenderer3D::CreateFramebuffer()
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 
-	glGenFramebuffers(1, &depthbufferCubemapFBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthbufferCubemapFBO);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTextureCubemap, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -1480,10 +1456,10 @@ void  ModuleRenderer3D::PickBlendingManualFunction(BlendingTypes src, BlendingTy
 {
 	if (src == m_CurrentManualBlend_Src && dst == m_CurrentManualBlend_Dst && eq == m_CurrentBlendEquation)
 		return;
-
+	
 	glBlendFunc(BlendingTypesToOGL(src), BlendingTypesToOGL(dst));
 	PickBlendingEquation(eq);
-
+	
 	m_CurrentManualBlend_Src = src; m_CurrentManualBlend_Dst = dst;
 	m_CurrentBlendEquation = eq;
 }
@@ -1641,23 +1617,9 @@ void ModuleRenderer3D::CreateDefaultShaders()
 		"#endif //FRAGMENT_SHADER\n"
 		;
 
-	const char* geometryShaderT =
-		R"(#version 440 core
-		#define GEOMETRY_SHADER
-		#ifdef GEOMETRY_SHADER
-		layout (points) in;
-		layout (points, max_vertices = 1) out;
-		void main(){
-			gl_Position = gl_in[0].gl_Position;
-			EmitVertex();
-			EndPrimitive();
-		}
-		#endif //GEOMETRY_SHADER)"
-		;
-
 	VertexShaderTemplate = vertexShaderT;
 	FragmentShaderTemplate = fragmentShaderT;
-	GeometryShaderTemplate = geometryShaderT;
+
 
 	// --- Creating outline drawing shaders ---
 	const char* OutlineVertShaderSrc =
@@ -1995,23 +1957,23 @@ void ModuleRenderer3D::CreateDefaultShaders()
 		R"(#version 450 core
 			#define VERTEX_SHADER
 			#ifdef VERTEX_SHADER
-
-			layout (location = 0) in vec3 a_Position;
+			
+			layout (location = 0) in vec3 a_Position;			
 			uniform mat4 u_Proj;
 			uniform mat4 u_View;
-			uniform mat4 u_Model;
+			uniform mat4 u_Model;			
 			void main()
 			{
 				gl_Position = u_Proj * u_View * u_Model * vec4(a_Position, 1.0);
-			}
+			} 
 			#endif)";
 
 	const char* fragmentShadowShader =
 		R"(#version 450 core
 			#define FRAGMENT_SHADER
-			#ifdef FRAGMENT_SHADER
+			#ifdef FRAGMENT_SHADER			
 			void main()
-			{
+			{ 
 			}
 			#endif)";
 
@@ -2119,7 +2081,7 @@ void ModuleRenderer3D::DrawRenderBoxes()
 void ModuleRenderer3D::DrawGrid()
 {
 	//App->renderer3D->defaultShader->use();
-	uint shaderID = App->renderer3D->linepointShader->ID;
+	uint shaderID = App->renderer3D->defaultShader->ID;
 	glUseProgram(shaderID);
 
 	GLint modelLoc = glGetUniformLocation(shaderID, "u_Model");

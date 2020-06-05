@@ -18,7 +18,11 @@
 
 #include "Assimp/include/cimport.h"
 
-#pragma comment (lib, "Assimp/libx86/assimp.lib")
+#ifndef _WIN64
+#	pragma comment (lib, "Assimp/libx86/assimp.lib")
+#else
+#	pragma comment (lib, "Assimp/libx64/assimp.lib")
+#endif
 
 #include "mmgr/mmgr.h"
 
@@ -76,6 +80,7 @@ bool ModuleResourceManager::Start()
 
 	// --- Create default material ---
 	DefaultMaterial = (ResourceMaterial*)CreateResource(Resource::ResourceType::MATERIAL, "DefaultMaterial");
+	DefaultMaterial->LoadToMemory();
 
 	// --- Create primitives ---
 	App->scene_manager->cube = (ResourceMesh*)App->resources->CreateResourceGivenUID(Resource::ResourceType::MESH, "DefaultCube", 2);
@@ -106,7 +111,7 @@ bool ModuleResourceManager::Start()
 
 	// --- Create default font ---
 	DefaultFont = (ResourceFont*)CreateResourceGivenUID(Resource::ResourceType::FONT, "Assets/Fonts/arial.ttf",7);
-	DefaultFont->LoadToMemory();
+	DefaultFont->Init();
 
 	// --- Add file filters, so we only search for relevant files ---
 	filters.push_back("fbx");
@@ -323,8 +328,10 @@ Resource* ModuleResourceManager::ImportFolder(Importer::ImportData& IData)
 	{
 		// --- Eliminate last / so we can build the meta file name ---
 		std::string new_path = IData.path;
+		if (new_path.size() == 0)
+			return folder; //Empty path, null folder
+			
 		new_path.pop_back();
-
 		// --- If the resource is already in library, load from there ---
 		if (IsFileImported(new_path.c_str()))
 			folder = IFolder->Load(IData.path);

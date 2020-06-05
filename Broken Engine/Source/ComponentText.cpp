@@ -68,10 +68,8 @@ void ComponentText::Draw()
 		ENGINE_AND_SYSTEM_CONSOLE_LOG("!No font available in text component");
 		return;
 	}
-
-	float nearp = App->renderer3D->active_camera->GetNearPlane();
-	
-	float3 pos = { position2D.x / App->gui->sceneWidth, position2D.y / App->gui->sceneHeight, nearp + 0.026f };
+		
+	float3 pos = { GetFinalPosition(), App->renderer3D->active_camera->GetNearPlane() + 0.026f };
 	float3 size = { size2D.x / App->gui->sceneWidth, size2D.y / App->gui->sceneHeight, 1.0f };
 	float4x4 transform = transform.FromTRS(pos, Quat::identity, size);
 
@@ -152,6 +150,63 @@ void ComponentText::Draw()
 }
 
 
+float2 ComponentText::GetParentPos()
+{
+	if (canvas)
+		return canvas->position2D;
+
+	return float2::zero;
+}
+
+float2 ComponentText::GetFinalPosition()
+{
+	float2 parent_pos = GetParentPos();
+	// origin TOP LEFT is -xhalfwidth +yhalfheight
+	float scenex = App->gui->sceneWidth / 2 - size2D.x / 2;
+	float sceney = App->gui->sceneHeight / 2 - size2D.y / 2;
+
+	float2 pos = position2D + parent_pos;
+
+	switch (anchor_type)
+	{
+	case UI_Element::UI_Anchor::TOP_LEFT:
+		pos.x -= scenex;
+		pos.y += sceney;
+		break;
+	case UI_Element::UI_Anchor::TOP:
+		pos.y += sceney;
+		break;
+	case UI_Element::UI_Anchor::TOP_RIGHT:
+		pos.x += scenex;
+		pos.y += sceney;
+		break;
+	case UI_Element::UI_Anchor::LEFT:
+		pos.x -= scenex;
+		break;
+	case UI_Element::UI_Anchor::RIGHT:
+		pos.x += scenex;
+		break;
+	case UI_Element::UI_Anchor::BOTTOM_LEFT:
+		pos.x -= scenex;
+		pos.y -= sceney;
+		break;
+	case UI_Element::UI_Anchor::BOTTOM:
+		pos.y -= sceney;
+		break;
+	case UI_Element::UI_Anchor::BOTTOM_RIGHT:
+		pos.x += scenex;
+		pos.y -= sceney;
+		break;
+	default:
+		// NONE AND CENTER GOES HERE -> NOTHING TO DO
+		break;
+	}
+	float2 final_pos = { pos.x / App->gui->sceneWidth,
+					pos.y / App->gui->sceneHeight };
+
+	return final_pos;
+}
+
 json ComponentText::Save() const
 {
 	json node;
@@ -177,6 +232,7 @@ json ComponentText::Save() const
 	if (font) 
 		node["font"] = std::to_string(font->GetUID());
 	
+	node["anchor"] = (int)anchor_type;
 
 	return node;
 }
@@ -190,6 +246,7 @@ void ComponentText::Load(json& node)
 	std::string priority_str = node["priority"].is_null() ? "0" : node["priority"];
 	visible = bool(std::stoi(visible_str));
 	priority = int(std::stoi(priority_str));
+	anchor_type = node["anchor"].is_null() ? UI_Anchor::NONE : (UI_Anchor)node["anchor"].get<int>();
 
 	std::string posx = node["position2Dx"].is_null() ? "0" : node["position2Dx"];
 	std::string posy = node["position2Dy"].is_null() ? "0" : node["position2Dy"];

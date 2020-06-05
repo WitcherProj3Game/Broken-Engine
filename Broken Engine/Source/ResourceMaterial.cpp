@@ -28,7 +28,7 @@ ResourceMaterial::ResourceMaterial(uint UID, const char* source_file) : Resource
 
 	shader->GetAllUniforms(uniforms);
 
-	LoadToMemory();
+	//LoadToMemory();
 }
 
 ResourceMaterial::~ResourceMaterial() 
@@ -38,22 +38,40 @@ ResourceMaterial::~ResourceMaterial()
 
 bool ResourceMaterial::LoadInMemory() 
 {
-	// We try to lock this so we do not proceed if we are freeing memory
-	std::lock_guard<std::mutex> lk(memory_mutex);
 	//shader->GetAllUniforms(uniforms);
+
+	// --- Texture Stuff ---
+	Importer::ImportData IDataDiff(DiffuseResTexturePath.c_str());
+
+	if (DiffuseResTexturePath != "NaN.dds")
+		m_DiffuseResTexture = (ResourceTexture*)App->resources->ImportAssets(IDataDiff);
+
+	Importer::ImportData IDataSpec(SpecularResTexturePath.c_str());
+
+	if (SpecularResTexturePath != "NaN.dds")
+		m_SpecularResTexture = (ResourceTexture*)App->resources->ImportAssets(IDataSpec);
+
+	Importer::ImportData IDataNormTex(NormalResTexturePath.c_str());
+
+	if (NormalResTexturePath != "NaN.dds")
+		m_NormalResTexture = (ResourceTexture*)App->resources->ImportAssets(IDataNormTex);
 
 	return true;
 }
 
 void ResourceMaterial::FreeMemory() 
 {
-	// We lock this while deleting memory so we do not create it while deleting it
-	std::lock_guard<std::mutex> lk(memory_mutex);
-
 	for (uint i = 0; i < uniforms.size(); ++i) 
 	{
 		delete uniforms[i];
 	}
+
+	if (m_DiffuseResTexture)
+		m_DiffuseResTexture->Release();
+	if (m_SpecularResTexture)
+		m_SpecularResTexture->Release();
+	if (m_NormalResTexture)
+		m_NormalResTexture->Release();
 
 	uniforms.clear();
 }

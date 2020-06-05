@@ -10,24 +10,41 @@
 #include "Wwise/AK/Tools/Common/AkPlatformFuncs.h"
 
 // Input libraries
-#ifndef _DEBUG  
-#define AK_OPTIMIZED
-#pragma comment( lib, "Wwise/Release(StaticCRT)/lib/AkSoundEngine.lib")
-#pragma comment( lib, "Wwise/Release(StaticCRT)/lib/AkMusicEngine.lib")
-#pragma comment( lib, "Wwise/Release(StaticCRT)/lib/AkMemoryMgr.lib")
-#pragma comment( lib, "Wwise/Release(StaticCRT)/lib/AkStreamMgr.lib")
+#ifndef _WIN64
+#	pragma comment( lib, "Wwise/libx86/dxguid.lib") // Microsoft DirectX
+#	ifndef _DEBUG  
+#		define AK_OPTIMIZED
+#		pragma comment( lib, "Wwise/Release(StaticCRT)/libx86/AkSoundEngine.lib")
+#		pragma comment( lib, "Wwise/Release(StaticCRT)/libx86/AkMusicEngine.lib")
+#		pragma comment( lib, "Wwise/Release(StaticCRT)/libx86/AkMemoryMgr.lib")
+#		pragma comment( lib, "Wwise/Release(StaticCRT)/libx86/AkStreamMgr.lib")
+#	else
+#		include "Wwise/AK/Comm/AkCommunication.h"
+#		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx86/CommunicationCentral.lib")
+#		pragma comment( lib, "Wwise/libx86/ws2_32.lib")
+#		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx86/AkSoundEngine.lib")
+#		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx86/AkMusicEngine.lib")
+#		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx86/AkMemoryMgr.lib")
+#		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx86/AkStreamMgr.lib")
+#	endif
 #else
-#include "Wwise/AK/Comm/AkCommunication.h"
-#pragma comment( lib, "Wwise/Debug(StaticCRT)/lib/CommunicationCentral.lib")
-#pragma comment( lib, "Wwise/ws2_32.lib")
-#pragma comment( lib, "Wwise/Debug(StaticCRT)/lib/AkSoundEngine.lib")
-#pragma comment( lib, "Wwise/Debug(StaticCRT)/lib/AkMusicEngine.lib")
-#pragma comment( lib, "Wwise/Debug(StaticCRT)/lib/AkMemoryMgr.lib")
-#pragma comment( lib, "Wwise/Debug(StaticCRT)/lib/AkStreamMgr.lib")
+#	pragma comment( lib, "Wwise/libx64/dxguid.lib") // Microsoft DirectX
+#	ifndef _DEBUG  
+#		define AK_OPTIMIZED
+#		pragma comment( lib, "Wwise/Release(StaticCRT)/libx64/AkSoundEngine.lib")
+#		pragma comment( lib, "Wwise/Release(StaticCRT)/libx64/AkMusicEngine.lib")
+#		pragma comment( lib, "Wwise/Release(StaticCRT)/libx64/AkMemoryMgr.lib")
+#		pragma comment( lib, "Wwise/Release(StaticCRT)/libx64/AkStreamMgr.lib")
+#	else
+#		include "Wwise/AK/Comm/AkCommunication.h"
+#		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx64/CommunicationCentral.lib")
+#		pragma comment( lib, "Wwise/libx64/ws2_32.lib")
+#		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx64/AkSoundEngine.lib")
+#		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx64/AkMusicEngine.lib")
+#		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx64/AkMemoryMgr.lib")
+#		pragma comment( lib, "Wwise/Debug(StaticCRT)/libx64/AkStreamMgr.lib")
+#	endif
 #endif
-
-// Microsoft DirectX
-#pragma comment( lib, "Wwise/dxguid.lib")
 
 
 // Custom alloc/free functions. These are declared as "extern" in AkMemoryMgr.h

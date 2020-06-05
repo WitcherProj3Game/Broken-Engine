@@ -98,35 +98,21 @@ void ImporterShader::Save(ResourceShader* shader) const
 			else
 			{
 				// --- Build shader code and save to file---
+				//file << std::setw(5) << "#if VERTEX_SHADER" << std::endl;
+				file << std::setw(5) << shader->vShaderCode << std::endl;
 
 				//file << std::setw(5) << "#elseif FRAGMENT_SHADER" << std::endl;
-				std::string shaderCode = shader->vShaderCode;
-				std::string fragmentCode = shader->fShaderCode;
-				std::string geometryCode = shader->gShaderCode;
+				std::string tmp = shader->fShaderCode;
+				uint loc = tmp.find("#define FRAGMENT_SHADER");
 
-				file << std::setw(5) << shaderCode << std::endl;
-
-				uint floc = fragmentCode.find("#define FRAGMENT_SHADER");
-
-				if (floc != std::string::npos)
+				if (loc != std::string::npos)
 				{
-					fragmentCode = fragmentCode.substr(floc, fragmentCode.size());
+					tmp = tmp.substr(loc, tmp.size());
 				}
 
-				if (geometryCode != "none")
-				{
-					uint gloc = geometryCode.find("#define GEOMETRY_SHADER");
+				file << std::setw(5) << tmp ;
 
-					if (gloc != std::string::npos)
-					{
-						geometryCode = geometryCode.substr(gloc, geometryCode.size());
-						fragmentCode.append("\n").append(geometryCode);
-						//file << std::setw(5) << fragmentCode << std::endl;
-					}
-				}
-
-				file << std::setw(5) << fragmentCode;
-
+				//file << std::setw(5) << "#endif" << std::endl;
 
 				file.close();
 

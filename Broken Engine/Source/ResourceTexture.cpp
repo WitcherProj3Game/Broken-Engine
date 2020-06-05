@@ -13,10 +13,10 @@ ResourceTexture::ResourceTexture(uint UID, const char* source_file) : Resource(R
 	extension = ".dds";
 	resource_file = TEXTURES_FOLDER + std::to_string(UID) + extension;
 	buffer_id = App->textures->GetDefaultTextureID();
-	previewTexID = App->gui->defaultfileTexID;
+	previewTexID = App->gui->textureTexID;
 
 	// --- Force Texture memory load so we can display a preview ---
-	LoadToMemory();
+	//LoadToMemory();
 }
 
 ResourceTexture::~ResourceTexture()
@@ -26,9 +26,6 @@ ResourceTexture::~ResourceTexture()
 
 bool ResourceTexture::LoadInMemory()
 {
-	// We try to lock this so we do not proceed if we are freeing memory
-	std::lock_guard<std::mutex> lk(memory_mutex);
-
 	if (App->resources->IsFileImported(original_file.c_str()) && App->fs->Exists(resource_file.c_str()))
 	{
 		SetTextureID(App->textures->CreateTextureFromFile(resource_file.c_str(), Texture_width, Texture_height, -1));
@@ -43,10 +40,10 @@ bool ResourceTexture::LoadInMemory()
 
 void ResourceTexture::FreeMemory()
 {
-	// We lock this while deleting memory so we do not create it while deleting it
-	std::lock_guard<std::mutex> lk(memory_mutex);
+	if(buffer_id != App->gui->textureTexID)
+		glDeleteTextures(1, (GLuint*)&buffer_id);
 
-	glDeleteTextures(1, (GLuint*)&buffer_id);
+	previewTexID = buffer_id = App->gui->textureTexID;
 }
 
 void ResourceTexture::OnOverwrite()

@@ -225,7 +225,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 			bool toDelete = false;
 			if (*flagsIt & physx::PxParticleFlag::eVALID)
 			{
-				//-- CHECK DELETE -- 
+				//-- CHECK DELETE --
 				if (currentPlayTime - particles[i]->spawnTime > particles[i]->lifeTime) {
 					indicesToErease.push_back(i);
 					particlesToRelease++;
@@ -235,7 +235,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 
 				float diff_time = (App->time->GetGameplayTimePassed() * 1000 - particles[i]->spawnTime);
 
-				// -- SCALE -- 
+				// -- SCALE --
 				if (scaleconstants == 2) {
 					scaleOverTime = scaleCurve->GetCurrentValue(diff_time, particles[i]->lifeTime);
 					particles[i]->scale.x = scaleOverTime;
@@ -327,10 +327,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 		indexPool->freeIndices(particlesToRelease, physx::PxStrideIterator<physx::PxU32>(indicesToErease.data()));
 	}
 
-	CalculateAABBs();
-	if (App->renderer3D->culling_camera->frustum.Intersects(particlesAreaAABB))
-		SortParticles();
-
+	SortParticles();
 }
 
 void ComponentParticleEmitter::SortParticles()
@@ -408,7 +405,7 @@ void ComponentParticleEmitter::DrawParticles(bool shadowsPass)
 		else
 			glDisable(GL_CULL_FACE);
 	}
-	
+
 	// -- Frustum culling --
 	Plane cameraPlanes[6];
 	App->renderer3D->culling_camera->frustum.GetPlanes(cameraPlanes);
@@ -704,7 +701,7 @@ void ComponentParticleEmitter::Load(json& node)
 
 	randomInitialRotation = node["randomInitialRotation"].is_null() ? false : node["randomInitialRotation"].get<bool>();
 
-	
+
 	std::string rotation_type = node["rotationType"].is_null() ? "0" : node["rotationType"];
 	rotationTypeInt = std::stoi(rotation_type);
 	rotationType = ROTATION_PARENT(rotationTypeInt);
@@ -884,7 +881,7 @@ void ComponentParticleEmitter::Load(json& node)
 	m_ReceiveShadows = node.find("PartReceiveShadows") == node.end() ? true : node["PartReceiveShadows"].get<bool>();
 	m_OnlyShadows = node.find("PartOnlyShadows") == node.end() ? false : node["PartOnlyShadows"].get<bool>();
 
-	// --- Collisions --- 
+	// --- Collisions ---
 	collision_active = node.find("CollisionsActivated") == node.end() ? true : node["CollisionsActivated"].get<bool>();
 	SetActiveCollisions(collision_active);
 
@@ -912,7 +909,7 @@ void ComponentParticleEmitter::Load(json& node)
 
 void ComponentParticleEmitter::CreateInspectorNode()
 {
-	
+
 	//Play on awake
 	ImGui::NewLine();
 	ImGui::Checkbox("##PlayOnAwake", &playOnAwake);
@@ -921,11 +918,11 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	ImGui::SameLine();
 	ImGui::Text("Play on awake");
 
-	
+
 
 	//Follow emitter
 	ImGui::Checkbox("##SFollow emitter", &followEmitter);
-	ImGui::SameLine(); ImGui::Text("Follow emitter");	
+	ImGui::SameLine(); ImGui::Text("Follow emitter");
 	ImGui::NewLine();
 
 	// --- Loop ---
@@ -942,7 +939,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	ImGui::Text("Duration");
 	ImGui::SameLine();
 	ImGui::DragInt("##PEDuration", &duration);
-	
+
 
 	ImGui::NewLine();
 	ImGui::Text("Rotation type");
@@ -1136,7 +1133,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	{
 		if (ImGui::Checkbox("##PE_EnableColl", &collision_active))
 			SetActiveCollisions(collision_active);
-		
+
 		ImGui::SameLine(); ImGui::Text("Enable Collisions");
 		ImGui::TreePop();
 	}
@@ -1552,7 +1549,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		ImGui::ColorEdit4("##PEParticle Color", (float*)&colors[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
-		ImGui::Text("Start Color");		
+		ImGui::Text("Start Color");
 
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		ImGui::Checkbox("##PE_PartsCullF", &particlesFaceCulling);
@@ -1704,7 +1701,7 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 	{
 		if (particlesToCreate > maxParticles - validParticles)
 			particlesToCreate = maxParticles - validParticles;
-		
+
 		Quat totalRotation = Quat::identity;
 		Quat externalRotation = Quat::identity;
 		float3 globalPosition = float3::zero;
@@ -1727,7 +1724,7 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 			totalRotation = emitterRotation;
 			break;
 		}
-		
+
 		globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
 
 		validParticles += particlesToCreate;
@@ -1813,7 +1810,7 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 				particles[index[i]]->scale.y = particlesScale.y;
 			}
 
-			// -- Rotation -- 
+			// -- Rotation --
 			//Initial rotation
 			if (randomInitialRotation){
 				if (separateAxis){
@@ -1933,13 +1930,6 @@ void ComponentParticleEmitter::UpdateAllGradients()
 }
 
 void ComponentParticleEmitter::DrawEmitterArea()
-{/*
-	CalculateAABBs();*/
-	App->renderer3D->DrawOBB(emisionAreaOBB, Blue);
-	App->renderer3D->DrawAABB(particlesAreaAABB, Green);
-}
-
-void ComponentParticleEmitter::CalculateAABBs()
 {
 	Quat totalRotation = Quat::identity;
 	Quat externalRotation = Quat::identity;
@@ -1992,7 +1982,7 @@ void ComponentParticleEmitter::CalculateAABBs()
 
 	particlesAreaAABB.Enclose(newPoint);
 
-	// -- Calculate MIN AABB point -- 
+	// -- Calculate MIN AABB point --
 
 	Quat minVel = Quat(particlesVelocity.x + velocityRandomFactor2.x,
 		particlesVelocity.y + velocityRandomFactor2.y,

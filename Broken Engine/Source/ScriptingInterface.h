@@ -20,6 +20,8 @@ public:
 
 	void MakeUIComponentVisible(const char* comp_type, uint go_UUID);
 	void MakeUIComponentInvisible(const char* comp_type, uint go_UUID);
+	void SetUIElementPosition(const char* comp_type, float x, float y, uint go_UUID);
+
 
 	void SetBarPercentage(float percentage, uint go_UUID);
 	void SetCircularBarPercentage(float percentage, uint go_UUID);

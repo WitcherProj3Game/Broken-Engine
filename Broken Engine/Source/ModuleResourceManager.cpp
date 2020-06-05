@@ -1550,17 +1550,22 @@ update_status ModuleResourceManager::Update(float dt)
 
 	// --- We check defer saves and if they are not still being used (bool is false) we save them ---
 	if (save_timer.ReadMs() >= RESOURCE_SAVE_TIME) {
+		bool process = false;
 		for (std::map<Resource*, bool>::iterator it = resources_to_save.begin(); it != resources_to_save.end();) {
 			if ((*it).second) {
 				(*it).second = false;
 				it++;
 			}
 			else {
+				process = true;
 				App->threading->ADDTASK(this, ModuleResourceManager::SaveResource, (*it).first);
 				it = resources_to_save.erase(it);
 			}
 		}
-		App->threading->FinishProcessing();
+
+		if (process)
+			App->threading->FinishProcessing();
+
 		save_timer.Start();
 	}
 

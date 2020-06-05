@@ -9,9 +9,77 @@
 #include "ComponentText.h"
 #include "ComponentImage.h"
 #include "ComponentButton.h"
+#include "ComponentCanvas.h"
 #include "GameObject.h"
 
 using namespace Broken;
+
+luabridge::LuaRef ScriptingInterface::GetUIElementPosition(const char* comp_type, uint go_UUID, lua_State* L) const
+{
+	float2 pos = float2::zero;
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(go_UUID);
+	if (go)
+	{
+		std::string name = comp_type;
+		if (name == "Bar")
+		{
+			ComponentProgressBar* comp_bar = go->GetComponent<ComponentProgressBar>();
+			if (comp_bar)
+				pos = comp_bar->position2D;
+			else
+				ENGINE_CONSOLE_LOG("![Script]: (GetUIElementPosition) Alert! Couldn't find Bar Component");
+		}
+		else if (name == "CircularBar")
+		{
+			ComponentCircularBar* comp_bar = go->GetComponent<ComponentCircularBar>();
+			if (comp_bar)
+				pos = comp_bar->position2D;
+			else
+				ENGINE_CONSOLE_LOG("![Script]: (GetUIElementPosition) Alert! Couldn't find Circular Bar Component");
+		}
+		else if (name == "Text")
+		{
+			ComponentText* comp_text = go->GetComponent<ComponentText>();
+			if (comp_text)
+				pos = comp_text->position2D;
+			else
+				ENGINE_CONSOLE_LOG("![Script]: (GetUIElementPosition) Alert! Couldn't find Text Component");
+		}
+		else if (name == "Image")
+		{
+			ComponentImage* comp_image = go->GetComponent<ComponentImage>();
+			if (comp_image)
+				pos = comp_image->position2D;
+			else
+				ENGINE_CONSOLE_LOG("![Script]: (GetUIElementPosition) Alert! Couldn't find Image Component");
+		}
+		else if (name == "Button")
+		{
+			ComponentButton* comp_button = go->GetComponent<ComponentButton>();
+			if (comp_button)
+				pos = comp_button->position2D;
+			else
+				ENGINE_CONSOLE_LOG("![Script]: (GetUIElementPosition) Alert! Couldn't find Button Component");
+		}
+		else if (name == "Canvas")
+		{
+			ComponentCanvas* comp_canvas = go->GetComponent<ComponentCanvas>();
+			if (comp_canvas)
+				pos = comp_canvas->position2D;
+			else
+				ENGINE_CONSOLE_LOG("![Script]: (GetUIElementPosition) Alert! Couldn't find Canvas Component");
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (GetUIElementPosition) Alert! GameObject with UUID %d has not a %s component", go_UUID, comp_type);
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (GetUIElementPosition) Alert! Could not find GameObject with UUID %d", go_UUID);
+
+	luabridge::LuaRef table = luabridge::newTable(L);
+	table.append(pos.x);
+	table.append(pos.y);
+	return table;
+}
 
 void ScriptingInterface::SetUIElementPosition(const char* comp_type, float x, float y, uint go_UUID)
 {
@@ -58,6 +126,14 @@ void ScriptingInterface::SetUIElementPosition(const char* comp_type, float x, fl
 				comp_button->position2D = { x, y };
 			else
 				ENGINE_CONSOLE_LOG("![Script]: (SetUIElementPosition) Alert! Couldn't find Button Component");
+		}
+		else if (name == "Canvas")
+		{
+			ComponentCanvas* comp_canvas = go->GetComponent<ComponentCanvas>();
+			if (comp_canvas)
+				comp_canvas->position2D = { x, y };
+			else
+				ENGINE_CONSOLE_LOG("![Script]: (SetUIElementPosition) Alert! Couldn't find Canvas Component");
 		}
 		else
 			ENGINE_CONSOLE_LOG("![Script]: (SetUIElementPosition) Alert! GameObject with UUID %d has not a %s component", go_UUID, comp_type);

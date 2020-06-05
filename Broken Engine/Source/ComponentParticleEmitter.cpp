@@ -269,7 +269,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 
 					float3 newPosition = particles[i]->position;
 					Quat newPositionQuat = Quat( newPosition.x - globalPosition.x, newPosition.y - globalPosition.y, newPosition.z - globalPosition.z, 0 );
-					Quat rotationIncrease = externalRotation/particles[i]->intialRotation ;
+					Quat rotationIncrease = particles[i]->intialRotation.Conjugated()*externalRotation;
 					newPositionQuat = rotationIncrease * newPositionQuat * rotationIncrease.Conjugated();
 
 					particles[i]->position = globalPosition;
@@ -2003,6 +2003,8 @@ void ComponentParticleEmitter::DrawEmitterArea()
 
 	particlesAreaAABB.Enclose(newPoint);
 
+	App->renderer3D->DrawOBB(emisionAreaOBB, Blue);
+	App->renderer3D->DrawAABB(particlesAreaAABB, Green);
 
 }
 

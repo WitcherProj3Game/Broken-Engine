@@ -26,14 +26,14 @@
 
 #ifndef _WIN64
 #	ifndef _DEBUG
-#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PhysX3CHECKED_x86.lib")
-#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PhysX3CommonCHECKED_x86.lib")
-#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PhysX3ExtensionsCHECKED.lib")
-#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PxFoundationCHECKED_x86.lib")
-#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PxPvdSDKCHECKED_x86.lib")
-#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PhysX3CharacterKinematicCHECKED_x86.lib")
-#		pragma comment(lib, "PhysX_3.4/libx86/Checked/SceneQueryCHECKED.lib")
-#		pragma comment(lib, "PhysX_3.4/libx86/Checked/PhysX3CookingCHECKED_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Release/PhysX3_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Release/PhysX3Common_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Release/PhysX3Extensions.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Release/PxFoundation_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Release/PxPvdSDK_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Release/PhysX3CharacterKinematic_x86.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Release/SceneQuery.lib")
+#		pragma comment(lib, "PhysX_3.4/libx86/Release/PhysX3Cooking_x86.lib")
 #	else
 #		pragma comment(lib, "PhysX_3.4/libx86/Debug/PhysX3CommonDEBUG_x86.lib")
 #		pragma comment(lib, "PhysX_3.4/libx86/Debug/PhysX3DEBUG_x86.lib")
@@ -46,14 +46,14 @@
 #	endif // _DEBUG
 #else
 #	ifndef _DEBUG
-#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PhysX3CHECKED_x64.lib")
-#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PhysX3CommonCHECKED_x64.lib")
-#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PhysX3ExtensionsCHECKED.lib")
-#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PxFoundationCHECKED_x64.lib")
-#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PxPvdSDKCHECKED_x64.lib")
-#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PhysX3CharacterKinematicCHECKED_x64.lib")
-#		pragma comment(lib, "PhysX_3.4/libx64/Checked/SceneQueryCHECKED.lib")
-#		pragma comment(lib, "PhysX_3.4/libx64/Checked/PhysX3CookingCHECKED_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Release/PhysX3_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Release/PhysX3Common_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Release/PhysX3Extensions.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Release/PxFoundation_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Release/PxPvdSDK_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Release/PhysX3CharacterKinematic_x64.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Release/SceneQuery.lib")
+#		pragma comment(lib, "PhysX_3.4/libx64/Release/PhysX3Cooking_x64.lib")
 #	else
 #		pragma comment(lib, "PhysX_3.4/libx64/Debug/PhysX3CommonDEBUG_x64.lib")
 #		pragma comment(lib, "PhysX_3.4/libx64/Debug/PhysX3DEBUG_x64.lib")

@@ -200,6 +200,7 @@ private:
 
 	//Debug Drawing
 	OBB emisionAreaOBB;
+	AABB particlesAreaAABB;
 };
 BE_END_NAMESPACE
 

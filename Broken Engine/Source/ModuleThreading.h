@@ -28,6 +28,8 @@ public:
 
 	void AddTask(std::function<void()> newTask);
 	void FinishProcessing();
+	void FinishProcessingInUpdate()  { processInUpdate = true; }
+	void FinishProcessingInFrame()  { processInFrame = true; }
 
 private:
 	void ShutdownPool();
@@ -49,6 +51,9 @@ private:
 	//Flags
 	std::atomic<bool> stopPool{ false };
 	bool poolTerminated = false;
+	bool processInUpdate = false;
+	bool processInFrame = false;
+
 };
 BE_END_NAMESPACE
 #endif

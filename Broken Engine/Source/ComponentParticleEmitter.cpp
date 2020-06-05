@@ -1536,7 +1536,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 						if (particles_mesh && particles_mesh->GetUID() != App->scene_manager->plane->GetUID())
 							particles_mesh->Release();
 
-						particles_mesh = mesh;
+						particles_mesh = (ResourceMesh*)App->resources->GetResource(mesh->GetUID());
 						animation = createdAnim = false;
 						custom_mesh = true;
 					}

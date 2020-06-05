@@ -43,17 +43,17 @@ bool ResourceMaterial::LoadInMemory()
 	// --- Texture Stuff ---
 	Importer::ImportData IDataDiff(DiffuseResTexturePath.c_str());
 
-	if (DiffuseResTexturePath != "NaN.dds")
+	if (DiffuseResTexturePath != "NaN.dds" && DiffuseResTexturePath != "")
 		m_DiffuseResTexture = (ResourceTexture*)App->resources->ImportAssets(IDataDiff);
 
 	Importer::ImportData IDataSpec(SpecularResTexturePath.c_str());
 
-	if (SpecularResTexturePath != "NaN.dds")
+	if (SpecularResTexturePath != "NaN.dds" && SpecularResTexturePath != "")
 		m_SpecularResTexture = (ResourceTexture*)App->resources->ImportAssets(IDataSpec);
 
 	Importer::ImportData IDataNormTex(NormalResTexturePath.c_str());
 
-	if (NormalResTexturePath != "NaN.dds")
+	if (NormalResTexturePath != "NaN.dds" && NormalResTexturePath != "")
 		m_NormalResTexture = (ResourceTexture*)App->resources->ImportAssets(IDataNormTex);
 
 	return true;

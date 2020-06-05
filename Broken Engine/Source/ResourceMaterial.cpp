@@ -153,6 +153,32 @@ void ResourceMaterial::CreateInspectorNode()
 	ImGui::SameLine();
 	if (ImGui::Checkbox("Culling", &has_culling)) save_material = true;
 
+	// --- Rim Light ---
+	ImGui::Separator();
+	ImGui::NewLine();
+	ImGui::NewLine(); ImGui::SameLine();
+	if (ImGui::Checkbox("Apply Rim Light", &m_ApplyRimLight)) save_material = true;
+
+	if (m_ApplyRimLight)
+	{
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		ImGui::Text("Rim Power");
+		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f); ImGui::SetNextItemWidth(200.0f);
+		if (ImGui::DragFloat("##MatRimPowerEd", &m_RimPower, 0.005f, -10.0f, 10.0f)) save_material = true;
+
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+		ImGui::Text("Rim Smooth");
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
+
+		ImGui::Text("Low"); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f); ImGui::SetNextItemWidth(75.0f);
+		if (ImGui::DragFloat("##MatEdLowRimSm", &m_RimSmooth.x, 0.005f, -10.0f, 10.0f, "%.4f")) save_material = true;
+
+		ImGui::SameLine(); ImGui::Text("High"); ImGui::SameLine(); ImGui::SetNextItemWidth(75.0f);
+		if (ImGui::DragFloat("##MatEdHighRimSm", &m_RimSmooth.y, 0.005f, -10.0f, 10.0f, "%.4f")) save_material = true;
+	}
+
+	ImGui::NewLine();
+
 	// --- Color ---
 	ImGui::Separator();
 	ImGui::NewLine();
@@ -166,7 +192,7 @@ void ResourceMaterial::CreateInspectorNode()
 	ImGui::Text("Shininess");
 	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 	ImGui::SetNextItemWidth(300.0f);
-	if(ImGui::SliderFloat("", &m_Shininess, -0.5f, 500.00f))
+	if(ImGui::SliderFloat("##MatShininessEd", &m_Shininess, -0.5f, 500.00f))
 		save_material = true;
 
 	// --- Print Texture Width and Height (Diffuse) ---

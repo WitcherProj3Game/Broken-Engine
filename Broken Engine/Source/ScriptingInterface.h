@@ -20,6 +20,9 @@ public:
 
 	void MakeUIComponentVisible(const char* comp_type, uint go_UUID);
 	void MakeUIComponentInvisible(const char* comp_type, uint go_UUID);
+	void SetUIElementPosition(const char* comp_type, float x, float y, uint go_UUID);
+	luabridge::LuaRef GetUIElementPosition(const char* comp_type, uint go_UUID, lua_State* L) const;
+
 
 	void SetBarPercentage(float percentage, uint go_UUID);
 	void SetCircularBarPercentage(float percentage, uint go_UUID);

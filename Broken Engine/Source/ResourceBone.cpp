@@ -73,8 +73,9 @@ bool ResourceBone::LoadInMemory()
 		
 		cursor = nullptr;
 
-		return ret;
 	}
+
+	return ret;
 }
 
 void ResourceBone::FreeMemory()

@@ -72,6 +72,9 @@ void AutoCompleteFileGen::EmplaceUserInterfaceFunctions()
 	SetUIElementPosition.variables.push_back("x"); SetUIElementPosition.variables.push_back("y");
 	SetUIElementPosition.variables.push_back("go_UUID");
 
+	SerializedFunction GetUIElementPosition("GetUIElementPosition", source.c_str());
+	GetUIElementPosition.variables.push_back("comp_type"); GetUIElementPosition.variables.push_back("go_UUID");
+
 	SerializedFunction SetUIElementInteractable("SetUIElementInteractable", source.c_str());
 	SetUIElementInteractable.variables.push_back("comp_type"); SetUIElementInteractable.variables.push_back("gameObject_UID"); SetUIElementInteractable.variables.push_back("value");
 
@@ -136,6 +139,7 @@ void AutoCompleteFileGen::EmplaceUserInterfaceFunctions()
 	engine_functions.push_back(MakeElementInvisible);
 	engine_functions.push_back(SetUIElementInteractable);
 	engine_functions.push_back(SetUIElementPosition);
+	engine_functions.push_back(GetUIElementPosition);
 
 	engine_functions.push_back(SetUIBarPercentage);
 	engine_functions.push_back(SetUICircularBarPercentage);

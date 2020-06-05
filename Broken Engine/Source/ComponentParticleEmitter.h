@@ -46,6 +46,7 @@ public:
 	// -- Other functionalities
 	void CreateInspectorNode() override;
 	void DrawEmitterArea();
+	void CreateAABBs();
 
 	//Scripting functions
 	//Emitter

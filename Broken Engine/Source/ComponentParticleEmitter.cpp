@@ -327,7 +327,9 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 		indexPool->freeIndices(particlesToRelease, physx::PxStrideIterator<physx::PxU32>(indicesToErease.data()));
 	}
 
-	SortParticles();
+	CreateAABBs();
+	if (App->renderer3D->culling_camera->frustum.Intersects(particlesAreaAABB))
+		SortParticles();
 }
 
 void ComponentParticleEmitter::SortParticles()
@@ -1929,7 +1931,7 @@ void ComponentParticleEmitter::UpdateAllGradients()
 	}
 }
 
-void ComponentParticleEmitter::DrawEmitterArea()
+void ComponentParticleEmitter::CreateAABBs()
 {
 	Quat totalRotation = Quat::identity;
 	Quat externalRotation = Quat::identity;
@@ -2003,9 +2005,14 @@ void ComponentParticleEmitter::DrawEmitterArea()
 
 	particlesAreaAABB.Enclose(newPoint);
 
-	App->renderer3D->DrawOBB(emisionAreaOBB, Blue);
-	App->renderer3D->DrawAABB(particlesAreaAABB, Green);
+}
 
+void ComponentParticleEmitter::DrawEmitterArea()
+{
+	CreateAABBs();
+
+	App->renderer3D->DrawOBB(emisionAreaOBB, Blue);
+	App->renderer3D->DrawAABB(particlesAreaAABB,Green);
 }
 
 void ComponentParticleEmitter::Play()

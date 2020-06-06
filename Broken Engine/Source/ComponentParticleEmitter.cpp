@@ -95,7 +95,7 @@ ComponentParticleEmitter::~ComponentParticleEmitter()
 		texture->Release();
 	}
 
-	if (particles_mesh)
+	if (particles_mesh 	&& particles_mesh->GetUID() != App->scene_manager->plane->GetUID())
 	{
 		particles_mesh->RemoveUser(GO);
 		particles_mesh->Release();
@@ -1574,15 +1574,17 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		if (ImGui::Button("Default", { 77, 18 }))
 		{
 			if (particles_mesh)
+			{
 				if (particles_mesh->GetUID() != App->scene_manager->plane->GetUID())
 				{
 					particles_mesh->RemoveUser(GO);
 					particles_mesh->Release();
 				}
+			}
 
 			particlesScale.z = 1.0f;
 			particles_mesh = App->scene_manager->plane;
-			particles_mesh->AddUser(GO);
+			//particles_mesh->AddUser(GO);
 			custom_mesh = false;
 		}
 

@@ -75,7 +75,11 @@ void ComponentMeshRenderer::DrawComponent()
 	if (cmesh && cmesh->resource_mesh && material)
 	{
 		App->renderer3D->DrawMesh(GO->GetComponent<ComponentTransform>()->GetGlobalTransform(), cmesh->resource_mesh, material, cmesh->deformable_mesh, flags, Broken::White, only_shadows);
-		DrawNormals(*cmesh->resource_mesh, *GO->GetComponent<ComponentTransform>());
+		
+		if(cmesh->deformable_mesh == nullptr)
+			DrawNormals(*cmesh->resource_mesh, *GO->GetComponent<ComponentTransform>());
+		else
+			DrawNormals(*cmesh->deformable_mesh, *GO->GetComponent<ComponentTransform>());
 	}
 }
 

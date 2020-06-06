@@ -110,7 +110,9 @@ Resource* ImporterMaterial::Load(const char* path) const
 	ResourceTexture* specular = nullptr;
 	ResourceTexture* normalMap = nullptr;
 	float4 matColor = float4::one;
-	float matShine = 32.0f;
+	float matShine = 32.0f, matRimPower = 1.0f;
+	bool matUseRimLight = false;
+	float2 matRimSmooth = float2(0.0f, 1.0f);
 
 	json file = App->GetJLoader()->Load(path);
 
@@ -169,6 +171,12 @@ Resource* ImporterMaterial::Load(const char* path) const
 		mat->has_transparencies = file.find("Transparencies") == file.end() ? false : file["Transparencies"].get<bool>();
 		mat->has_culling = file.find("Culling") == file.end() ? true : file["Culling"].get<bool>();
 		mat->m_AffectedBySceneColor = file.find("SceneColorAffected") == file.end() ? true : file["SceneColorAffected"].get<bool>();
+
+		//Rim Light
+		matUseRimLight = file.find("UseRimLight") == file.end() ? false : file["UseRimLight"].get<bool>();
+		matRimPower = file.find("MaterialRimLightPower") == file.end() ? 1.0f : file["MaterialRimLightPower"].get<float>();
+		matRimSmooth.x = file.find("MaterialRimLightSmoothX") == file.end() ? 0.0f : file["MaterialRimLightSmoothX"].get<float>();
+		matRimSmooth.y = file.find("MaterialRimLightSmoothY") == file.end() ? 1.0f : file["MaterialRimLightSmoothY"].get<float>();
 
 		// --- Blending Stuff ---
 		mat->m_MatAutoBlendFunc = file.find("MatAlphaFunc") == file.end() ? BlendAutoFunction::STANDARD_INTERPOLATIVE : (BlendAutoFunction)file["MatAlphaFunc"].get<int>();
@@ -309,6 +317,10 @@ Resource* ImporterMaterial::Load(const char* path) const
 	mat->m_AmbientColor = matColor;
 	mat->m_Shininess = matShine;
 
+	mat->m_ApplyRimLight = matUseRimLight;
+	mat->m_RimPower = matRimPower;
+	mat->m_RimSmooth = matRimSmooth;
+
 	if (diffuse)
 		mat->m_DiffuseResTexture = diffuse;	//mat->resource_diffuse->SetParent(mat);
 
@@ -355,7 +367,6 @@ void ImporterMaterial::Save(ResourceMaterial* mat) const
 	file["ResourceSpecular"];
 	file["ResourceNormalTexture"];
 	file["AmbientColor"];
-
 
 	// --- Save Shader and Uniforms ---
 	file["shader"];
@@ -446,6 +457,12 @@ void ImporterMaterial::Save(ResourceMaterial* mat) const
 	file["Transparencies"] = mat->has_transparencies;
 	file["Culling"] = mat->has_culling;
 	file["SceneColorAffected"] = mat->m_AffectedBySceneColor;
+
+	//Rim Light
+	file["UseRimLight"] = mat->m_ApplyRimLight;
+	file["MaterialRimLightPower"] = mat->m_RimPower;
+	file["MaterialRimLightSmoothX"] = mat->m_RimSmooth.x;
+	file["MaterialRimLightSmoothY"] = mat->m_RimSmooth.y;
 
 	file["MatAlphaFunc"] = (int)mat->m_MatAutoBlendFunc;
 	file["MatBlendEquation"] = (int)mat->m_MatBlendEq;

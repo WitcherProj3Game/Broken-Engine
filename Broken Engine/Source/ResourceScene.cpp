@@ -54,7 +54,7 @@ bool ResourceScene::LoadInMemory()
 			//enclose all their AABBs to the octree, and them insert them into it
 			std::vector<int> staticObjectsIndices;
 
-			if (file["octreeBox"].is_null())
+			if (file.find("octreeBox") == file.end())
 				octreeBox = AABB(float3(-100, -100, -100), float3(100, 100, 100));
 			else
 			{
@@ -86,29 +86,30 @@ bool ResourceScene::LoadInMemory()
 				std::string name = file[it.key()]["Name"];
 				go->SetName(name.c_str());
 
-				if (!file[it.key()]["Active"].is_null())
+				if (file[it.key()].contains("Active"))
 					go->GetActive() = file[it.key()]["Active"];
 
-				if (!file[it.key()]["Static"].is_null())
+				if (file[it.key()].contains("Static"))
 					go->Static = file[it.key()]["Static"];
 
-				if (!file[it.key()]["Index"].is_null())
+				if (file[it.key()].contains("Index"))
 					go->index = file[it.key()]["Index"];
 
-				if (!file[it.key()]["Navigation Static"].is_null())
+				if (file[it.key()].contains("Navigation Static"))
 					go->navigationStatic = file[it.key()]["Navigation Static"];
 
-				if (!file[it.key()]["Navigation Area"].is_null())
+				if (file[it.key()].contains("Navigation Area"))
 					go->navigationArea = file[it.key()]["Navigation Area"];
-				if (!file[it.key()]["PrefabChild"].is_null())
+
+				if (file[it.key()].contains("PrefabChild"))
 					go->is_prefab_child = file[it.key()]["PrefabChild"];
 
-				if (!file[it.key()]["PrefabInstance"].is_null())
+				if (file[it.key()].contains("PrefabInstance"))
 					go->is_prefab_instance = file[it.key()]["PrefabInstance"];
 
 
 
-				if (!file[it.key()]["Model"].is_null())
+				if (file[it.key()].contains("Model"))
 				{
 					Importer::ImportData IData(file[it.key()]["Model"].get<std::string>().c_str());
 					go->model = (ResourceModel*)App->resources->ImportAssets(IData);
@@ -124,10 +125,9 @@ bool ResourceScene::LoadInMemory()
 
 					// --- and index ---
 					int c_index = -1;
-					json index = components[it2.key()]["index"];
 
-					if (!index.is_null())
-						c_index = index.get<uint>();
+					if (components[it2.key()].contains("index"))
+						c_index = components[it2.key()]["index"].get<uint>();
 
 					Component* component = nullptr;
 
@@ -141,10 +141,8 @@ bool ResourceScene::LoadInMemory()
 						//component->Load(components[type_string]);
 
 						// --- UID ---
-						json c_UID = components[it2.key()]["UID"];
-
-						if (!c_UID.is_null())
-							component->SetUID(c_UID.get<uint>());
+						if (components[it2.key()].contains("UID"))
+							component->SetUID(components[it2.key()]["UID"].get<uint>());
 					}
 				}
 
@@ -166,8 +164,8 @@ bool ResourceScene::LoadInMemory()
 			for (json::iterator it = file.begin(); it != file.end(); ++it)
 			{
 				// --- Iterate components ---
-				json components = file[it.key()]["Components"];
-				if (!components.is_null()) {
+				if (file[it.key()].contains("Components")) {
+					json components = file[it.key()]["Components"];
 					std::vector<Component*>* go_components = &objects[ite]->GetComponents();
 
 					for (json::iterator it2 = components.begin(); it2 != components.end(); ++it2)
@@ -175,11 +173,10 @@ bool ResourceScene::LoadInMemory()
 						// --- UID ---
 						json c_UID = components[it2.key()]["UID"];
 						int c_index = -1;
-						json index = components[it2.key()]["index"];
 						std::string type_string = it2.key();
 
-						if (!index.is_null())
-							c_index = index.get<uint>();
+						if (components[it2.key()].contains("index"))
+							c_index = components[it2.key()]["index"].get<uint>();
 
 						go_components->at(c_index)->Load((components[type_string]));
 					}
@@ -236,8 +233,11 @@ bool ResourceScene::LoadInMemory()
 
 
 		// Load navigation data
-		json navigationdata = file["Navigation Data"];
-		if (!navigationdata.is_null()) {
+		if (file.contains("Navigation Data")) 
+		{
+			json navigationdata = file["Navigation Data"];
+
+
 			App->detour->agentHeight = navigationdata["agentHeight"];
 			App->detour->agentRadius = navigationdata["agentRadius"];
 			App->detour->maxSlope = navigationdata["maxSlope"];
@@ -255,7 +255,7 @@ bool ResourceScene::LoadInMemory()
 			App->detour->buildTiledMesh = navigationdata["buildTiledMesh"];
 
 
-			if (!navigationdata["navMeshUID"].is_null())
+			if (navigationdata.contains("navMeshUID"))
 				App->detour->loadNavMeshFile(navigationdata["navMeshUID"]);
 			else
 				App->detour->clearNavMesh();
@@ -275,11 +275,11 @@ bool ResourceScene::LoadInMemory()
 		// --- Load Scene Color ---
 		float3 sceneColor = float3::one;
 
-		if (file.find("SceneAmbientColor") != file.end())
+		if (file.contains("SceneAmbientColor"))
 		{
 			json fileCol = file["SceneAmbientColor"];
 
-			if (fileCol.find("R") != fileCol.end() && fileCol.find("G") != fileCol.end() && fileCol.find("B") != fileCol.end())
+			if (fileCol.find("R") != fileCol.end() && fileCol.find("G") != fileCol.end() && fileCol.contains("B"))
 				sceneColor = float3(fileCol["R"].get<float>(), fileCol["G"].get<float>(), fileCol["B"].get<float>());
 			else
 				sceneColor = float3::one;

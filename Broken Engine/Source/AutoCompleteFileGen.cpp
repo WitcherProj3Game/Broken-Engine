@@ -510,7 +510,11 @@ void AutoCompleteFileGen::EmplacePhysicsFunctions()
 	SerializedFunction SetMass("SetMass", source.c_str());
 	SetMass.variables.push_back("mass"); SetMass.variables.push_back("gameObject_UID");
 
+	SerializedFunction FixedSimulationRate("FixedSimulationRate", source.c_str());
+	FixedSimulationRate.variables.push_back("rate");
 
+	SerializedFunction FixedSimulation("FixedSimulation", source.c_str());
+	FixedSimulation.variables.push_back("fixed");
 
 	SerializedFunction GetAngularVelocity("GetAngularVelocity", source.c_str());
 	GetAngularVelocity.variables.push_back("gameObject_UID");
@@ -585,6 +589,9 @@ void AutoCompleteFileGen::EmplacePhysicsFunctions()
 	//PushBack all functions
 	engine_functions.push_back(GetMass);
 	engine_functions.push_back(SetMass);
+
+	engine_functions.push_back(SetMass);
+	engine_functions.push_back(FixedSimulationRate);
 
 	engine_functions.push_back(GetAngularVelocity);
 	engine_functions.push_back(SetAngularVelocity);

@@ -16,6 +16,10 @@ In Addition:
 - PhysX 3.4.2 
 - Recast Navigation
 - Optick 1.3.0
+- Freetype
+- [Lua](https://www.lua.org/)
+- PhysFS
+- Wwise
 
 
 ## HOW TO USE

@@ -108,7 +108,7 @@ bool ResourceScene::LoadInMemory()
 
 
 
-				if (!file[it.key()]["Model"].is_null())
+				if (file[it.key()].find("Model") != file[it.key()].end())
 				{
 					Importer::ImportData IData(file[it.key()]["Model"].get<std::string>().c_str());
 					go->model = (ResourceModel*)App->resources->ImportAssets(IData);

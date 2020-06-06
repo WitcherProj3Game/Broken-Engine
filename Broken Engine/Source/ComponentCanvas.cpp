@@ -149,13 +149,15 @@ float2 ComponentCanvas::GetFinalPosition()
 		pos.x += scenex;
 		pos.y -= sceney;
 		break;
+	case UI_Element::UI_Anchor::PERCENTAGE:
+		pos.x += position2DPercentage.x * App->gui->sceneWidth;
+		pos.y += position2DPercentage.y * App->gui->sceneHeight;
+		break;
+
 	default:
 		// NONE AND CENTER GOES HERE -> NOTHING TO DO
 		break;
 	}
-	float2 final_pos = { pos.x / App->gui->sceneWidth,
-					pos.y / App->gui->sceneHeight };
-	//App->renderer3D->active_camera->GetNearPlane() + 0.026f };
 
 	return pos;
 }
@@ -170,6 +172,9 @@ json ComponentCanvas::Save() const
 
 	node["position2DxLocal"] = std::to_string(position2DLocal.x);
 	node["position2DyLocal"] = std::to_string(position2DLocal.y);
+
+	node["position2DxPercentage"] = std::to_string(position2DPercentage.x);
+	node["position2DyPercentage"] = std::to_string(position2DPercentage.y);
 
 	return node;
 }
@@ -187,6 +192,12 @@ void ComponentCanvas::Load(json& node)
 	std::string position2Dy = node["position2DyLocal"].is_null() ? "0" : node["position2DyLocal"];
 
 	position2DLocal = float2(std::stof(position2Dx), std::stof(position2Dy));
+
+	std::string perceX = node["position2DxPercentage"].is_null() ? "0" : node["position2DxPercentage"];
+	std::string perceY = node["position2DyPercentage"].is_null() ? "0" : node["position2DyPercentage"];
+
+	position2DPercentage = float2(std::stof(perceX), std::stof(perceY));
+
 }
 
 void ComponentCanvas::CreateInspectorNode()
@@ -200,27 +211,39 @@ void ComponentCanvas::CreateInspectorNode()
 	ImGui::Separator();
 
 	int anchor = (int)anchor_type;
-	if (ImGui::Combo("Anchor", &anchor, "TOP LEFT\0TOP\0TOP RIGHT\0LEFT\0CENTER\0RIGHT\0BOTTOM LEFT\0BOTTOM\0BOTTOM RIGHT\0NONE\0\0"))
+	if (ImGui::Combo("Anchor", &anchor, "TOP LEFT\0TOP\0TOP RIGHT\0LEFT\0CENTER\0RIGHT\0BOTTOM LEFT\0BOTTOM\0BOTTOM RIGHT\0PERCENTAGE\0NONE\0\0"))
 	{
 		anchor_type = (UI_Anchor)anchor;
 	}
-
-	//float2 increment = position2D;
-	//float2 tmp = increment;
 
 	// Position
 	ImGui::Text("Position:");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("x##canvasposition", &position2DLocal.x);
+	if (ImGui::DragFloat("x##canvasposition", &position2DLocal.x))
+	{
+		position2DPercentage = { position2DLocal.x / App->gui->sceneWidth, position2DLocal.y / App->gui->sceneHeight };
+
+	}
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(60);
-	ImGui::DragFloat("y##canvasposition", &position2DLocal.y);
+	if(ImGui::DragFloat("y##canvasposition", &position2DLocal.y))
+	{
+		position2DPercentage = { position2DLocal.x / App->gui->sceneWidth, position2DLocal.y / App->gui->sceneHeight };
 
-	/*tmp = increment;
-	increment -= position2D;
-	UpdatePosition(increment);
-	position2D = tmp;*/
+	}
+
+	float xp = position2DPercentage.x;
+	float yp = position2DPercentage.y;
+
+
+	ImGui::Text("Percentage:");
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(60);
+	ImGui::DragFloat("x##canvaspercentage", &xp);
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(60);
+	ImGui::DragFloat("y##canvaspercentage", &yp);
 }
 
 
@@ -247,71 +270,3 @@ bool ComponentCanvas::PrioritySort::operator()(UI_Element* const& node1, UI_Elem
 	else
 		return false;
 }
-
-//void ComponentCanvas::UpdatePosition(float2& increment)
-//{
-//	if (this->active)
-//	{
-//		// --- Draw elements inside canvas ---
-//		for (int i = 0; i < elements.size(); i++)
-//		{
-//			if (elements[i]->GetType() == Component::ComponentType::Canvas)
-//			{
-//				ComponentCanvas* canvas = (ComponentCanvas*)elements[i];
-//				if (canvas->visible && canvas->GetActive())
-//					canvas->UpdatePosition(increment);
-//				continue;
-//			}
-//			else if (elements[i]->GetType() == Component::ComponentType::Text)
-//			{
-//				ComponentText* text = (ComponentText*)elements[i];
-//				if (text->visible && text->GetActive())
-//					text->position2D += increment / 2;
-//				continue;
-//			}
-//			else if (elements[i]->GetType() == Component::ComponentType::Image)
-//			{
-//				ComponentImage* image = (ComponentImage*)elements[i];
-//				if (image->visible && image->GetActive())
-//					image->position2D += increment;
-//				continue;
-//			}
-//			else if (elements[i]->GetType() == Component::ComponentType::Button)
-//			{
-//				ComponentButton* button = (ComponentButton*)elements[i];
-//				if (button->visible && button->GetActive())
-//					button->position2D += increment;
-//			}
-//			//else if (elements[i]->GetType() == Component::ComponentType::CheckBox)
-//			//{
-//			//	CheckBox* elem = (CheckBox*)elements[i];
-//			//	if (elem->visible) 
-//			//		elem->Draw();
-//			//	continue;
-//			//}
-//			//else if (elements[i]->GetType() == Component::ComponentType::InputText)
-//			//{
-//			//	InputText* elem = (InputText*)elements[i];
-//			//	if (elem->visible) 
-//			//		elem->Draw();
-//			//	continue;
-//			//}
-//			else if (elements[i]->GetType() == Component::ComponentType::ProgressBar)
-//			{
-//				ComponentProgressBar* bar = (ComponentProgressBar*)elements[i];
-//				if (bar->visible && bar->GetActive())
-//					bar->position2D += increment;
-//				continue;
-//			}
-//			else if (elements[i]->GetType() == Component::ComponentType::CircularBar)
-//			{
-//				ComponentCircularBar* cbar = (ComponentCircularBar*)elements[i];
-//				if (cbar->visible && cbar->GetActive())
-//					cbar->position2D += increment;
-//				continue;
-//			}
-//			else
-//				continue;
-//		}
-//	}
-//}

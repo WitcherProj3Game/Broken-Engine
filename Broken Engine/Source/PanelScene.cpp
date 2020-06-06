@@ -9,6 +9,7 @@
 #include "ModuleSelection.h"
 #include "ModuleCamera3D.h"
 #include "ModuleInput.h"
+#include "ModuleWindow.h"
 
 // -- Panels --
 #include "PanelProject.h"
@@ -72,7 +73,7 @@ bool PanelScene::Draw()
 			//	size.x += diff;
 			//	//width = size.x;
 			//}
-			//size = float2(width, height);
+			size = float2(EngineApp->window->GetWindowWidth(), EngineApp->window->GetWindowHeight());
 
 			if (size.x > width)
 			{

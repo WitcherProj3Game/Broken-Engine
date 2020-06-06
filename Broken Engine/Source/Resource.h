@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <shared_mutex>
 #include "BrokenCore.h"
 
 BE_BEGIN_NAMESPACE
@@ -67,13 +68,15 @@ public:
 
 	// to encapsulate model childs in panelproject
 	bool has_parent = false;
+
+public:
+	std::shared_mutex memory_mutex;
+
 protected:
 	// --- Utilities ---
 	virtual bool LoadInMemory() = 0;
 	virtual void FreeMemory() = 0;
 	virtual void Repath() {};
-
-
 
 protected:
 	uint instances = 0;

@@ -160,7 +160,7 @@ private:
 	ResourceTexture* texture = nullptr;
 	int lifetimeconstants = 0;
 	int velocityconstants = 0;
-	bool followEmitter = true;
+	bool followEmitterPosition = false;
 	bool collision_active = true;
 	bool followParentsRotations = false;
 

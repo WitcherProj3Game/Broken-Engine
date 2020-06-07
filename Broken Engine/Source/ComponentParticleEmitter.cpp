@@ -243,7 +243,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				}
 
 				particles[i]->position = float3(positionIt->x, positionIt->y, positionIt->z);
-				if (followEmitter){
+				if (followEmitterPosition){
 
 					Quat totalRotation = Quat::identity;
 					Quat externalRotation = Quat::identity;
@@ -498,7 +498,7 @@ json ComponentParticleEmitter::Save() const
 
 	node["rotationType"] = std::to_string(rotationTypeInt);
 
-	node["followEmitter"] = followEmitter;
+	node["followEmitterPosition"] = followEmitterPosition;
 
 	node["particlesLifeTime"] = std::to_string(particlesLifeTime);
 
@@ -653,7 +653,7 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string LparticlesLifeTime2 = node["particlesLifeTime2"].is_null() ? "0" : node["particlesLifeTime2"];
 	std::string _lifetimeconstants = node["lifetimeconstants"].is_null() ? "0" : node["lifetimeconstants"];
 
-	followEmitter = node["followEmitter"].is_null() ? true : node["followEmitter"].get<bool>();
+	followEmitterPosition = node["followEmitterPosition"].is_null() ? true : node["followEmitterPosition"].get<bool>();
 
 	playOnAwake = node["PlayOnAwake"].is_null() ? false : node["PlayOnAwake"].get<bool>();
 	emisionActive = playOnAwake;
@@ -923,7 +923,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 
 	//Follow emitter
-	ImGui::Checkbox("##SFollow emitter", &followEmitter);
+	ImGui::Checkbox("##SFollow emitter", &followEmitterPosition);
 	ImGui::SameLine(); ImGui::Text("Follow emitter");
 	ImGui::NewLine();
 

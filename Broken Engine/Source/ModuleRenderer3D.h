@@ -317,6 +317,8 @@ private:
 	uint skyboxVAO = 0;
 	uint skyboxVBO = 0;
 	uint depthbufferFBO = 0;
+	uint depthbufferCubemapFBO = 0;
+	uint depthTextureCubemap = 0;
 	uint depthbuffer = 0;
 	uint PointLineVAO = 0;
 	uint Grid_VAO = 0;

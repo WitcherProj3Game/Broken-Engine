@@ -23,6 +23,7 @@ public:
 	void CreateTextureFromImage(uint& TextureID, uint& width, uint& height, std::string& path) const;
 
 	uint CreateCubemap(std::vector<uint>& cubemap_textures);
+	uint CreateDepthCubemap();
 	// @Warning: You need to deallocate this data yourself!
 	//void* GetTextureDataFromFile(const char* path) const;
 

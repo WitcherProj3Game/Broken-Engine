@@ -249,7 +249,7 @@ json ComponentButton::Save() const
 
 void ComponentButton::Load(json& node)
 {
-	std::string path = node["Resources"].contains("ResourceTexture") ? node["Resources"]["ResourceTexture"] : "0";
+	std::string path = node["Resources"]["ResourceTexture"].is_null() ? "0" : node["Resources"]["ResourceTexture"];
 	App->fs->SplitFilePath(path.c_str(), nullptr, &path);
 	path = path.substr(0, path.find_last_of("."));
 	anchor_type = node.contains("anchor") ? (UI_Anchor)node["anchor"].get<int>() : UI_Anchor::NONE;

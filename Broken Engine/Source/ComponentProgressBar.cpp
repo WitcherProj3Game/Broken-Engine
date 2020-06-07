@@ -244,7 +244,7 @@ void ComponentProgressBar::Load(json& node)
 	visible = bool(std::stoi(visible_str));
 	priority = int(std::stoi(priority_str));
 
-	//std::string path = node["Resources"].contains("ResourceTexture") ? node["Resources"]["ResourceTexture"] : "0";
+	//std::string path = node["Resources"]["ResourceTexture"].is_null() ? "0" : node["Resources"]["ResourceTexture"];
 	//App->fs->SplitFilePath(path.c_str(), nullptr, &path);
 	//path = path.substr(0, path.find_last_of("."));
 

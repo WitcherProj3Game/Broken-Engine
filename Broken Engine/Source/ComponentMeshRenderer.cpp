@@ -159,7 +159,7 @@ void ComponentMeshRenderer::Load(json& node)
 	only_shadows = node.find("OnlyShadows") == node.end() ? false : node["OnlyShadows"].get<bool>();
 	light_affected = node.find("LightAffected") == node.end() ? true : node["LightAffected"].get<bool>();
 
-	std::string mat_path = node["Resources"]["ResourceMaterial"].contains("path") ? node["Resources"]["ResourceMaterial"]["path"] : "0";
+	std::string mat_path = node["Resources"]["ResourceMaterial"]["path"].is_null() ? "0" : node["Resources"]["ResourceMaterial"]["path"];
 	ImporterMeta* IMeta = App->resources->GetImporter<ImporterMeta>();
 
 	if (IMeta) 

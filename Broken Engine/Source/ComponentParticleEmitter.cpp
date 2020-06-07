@@ -761,7 +761,7 @@ void ComponentParticleEmitter::Load(json& node)
 	custom_mesh = node.find("ParticlesCustomMesh") == node.end() ? false : node["ParticlesCustomMesh"].get<bool>();
 	if (custom_mesh)
 	{
-		std::string MeshPath = node["Resources"].contains("ResourceMesh") ? node["Resources"]["ResourceMesh"] : "0";
+		std::string MeshPath = node["Resources"]["ResourceMesh"].is_null() ? "0" : node["Resources"]["ResourceMesh"];
 		App->fs->SplitFilePath(MeshPath.c_str(), nullptr, &MeshPath);
 		MeshPath = MeshPath.substr(0, MeshPath.find_last_of("."));
 
@@ -778,7 +778,7 @@ void ComponentParticleEmitter::Load(json& node)
 		particles_mesh->AddUser(GO);
 
 	// Load Texture
-	std::string path = node["Resources"].contains("ResourceTexture") ? node["Resources"]["ResourceTexture"] : "0";
+	std::string path = node["Resources"]["ResourceTexture"].is_null() ? "0" : node["Resources"]["ResourceTexture"];
 	App->fs->SplitFilePath(path.c_str(), nullptr, &path);
 	path = path.substr(0, path.find_last_of("."));
 

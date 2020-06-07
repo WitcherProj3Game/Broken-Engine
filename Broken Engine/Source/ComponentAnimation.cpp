@@ -273,7 +273,7 @@ void ComponentAnimation::Load(json& node)
 	this->active = node.contains("Active") ? (bool)node["Active"] : true;
 
 	// Load Animation resource ------------------------------------------------------------------------------------------
-	std::string path = node["Resources"].contains("ResourceAnimation") ? node["Resources"]["ResourceAnimation"] : "0";
+	std::string path = node["Resources"]["ResourceAnimation"].is_null() ?  "0" : node["Resources"]["ResourceAnimation"];
 	App->fs->SplitFilePath(path.c_str(), nullptr, &path);
 	path = path.substr(0, path.find_last_of("."));
 

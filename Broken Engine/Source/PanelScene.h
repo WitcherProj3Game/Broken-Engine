@@ -28,6 +28,8 @@ public:
 
 	float CurrentSpeedScrollLabel = 1.0f;
 
+	bool fixed_ar = false;
+
 private:
 	//Internal stuff for overlay
 	char* overlay;

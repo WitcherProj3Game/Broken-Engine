@@ -9,6 +9,7 @@
 #include "ModuleSelection.h"
 #include "ModuleCamera3D.h"
 #include "ModuleInput.h"
+#include "ModuleWindow.h"
 
 // -- Panels --
 #include "PanelProject.h"
@@ -48,29 +49,47 @@ bool PanelScene::Draw()
 	ImGuiWindowFlags settingsFlags = 0;
 	settingsFlags = ImGuiWindowFlags_::ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_::ImGuiWindowFlags_NoScrollWithMouse;
 
+
 	if (ImGui::Begin(name, &enabled, settingsFlags))
 	{
 		// --- Set image size
 		width = ImGui::GetWindowWidth()*0.98;
 		height = ImGui::GetWindowHeight()*0.90;
-		ImVec2 size = ImVec2(EngineApp->gui->sceneWidth, EngineApp->gui->sceneHeight);
+		float2 size = float2(EngineApp->gui->sceneWidth, EngineApp->gui->sceneHeight);
 
-		// --- Force Window Size ---
-		if (ImGui::GetWindowWidth() < ImGui::GetWindowHeight())
+		if (fixed_ar)
 		{
-			size.x = size.y;
-			EngineApp->gui->sceneWidth = EngineApp->gui->sceneHeight;
-			ImGui::SetWindowSize(name, size);
+			size = float2(EngineApp->window->GetWindowWidth(), EngineApp->window->GetWindowHeight());
+
+			if (size.x > width)
+			{
+				size /= (size.x / width);
+			}
+			if (size.y > height)
+			{
+				size /= (size.y / height);
+			}
+			
+			EngineApp->renderer3D->active_camera->SetAspectRatio(16 / 9);
 		}
-		// MYTODO: limit win size
-		// DOCKING HAS NO SUPPORT FOR WINDOW SIZE CONSTRAINTS :(
-
-		if(EngineApp->gui->sceneWidth > EngineApp->gui->sceneHeight)
-			EngineApp->renderer3D->active_camera->SetAspectRatio(EngineApp->gui->sceneWidth / EngineApp->gui->sceneHeight);
 		else
-			EngineApp->renderer3D->active_camera->SetAspectRatio(EngineApp->gui->sceneHeight / EngineApp->gui->sceneWidth);
+		{
+			// --- Force Window Size ---
+			if (ImGui::GetWindowWidth() < ImGui::GetWindowHeight())
+			{
+				size.x = size.y;
+				EngineApp->gui->sceneWidth = EngineApp->gui->sceneHeight;
+				ImGui::SetWindowSize(name, ImVec2(size.x, size.y));
+			}
 
-		ImGui::Image((ImTextureID)EngineApp->renderer3D->rendertexture, size, ImVec2(0, 1), ImVec2(1, 0));
+			if (EngineApp->gui->sceneWidth > EngineApp->gui->sceneHeight)
+				EngineApp->renderer3D->active_camera->SetAspectRatio(EngineApp->gui->sceneWidth / EngineApp->gui->sceneHeight);
+			else
+				EngineApp->renderer3D->active_camera->SetAspectRatio(EngineApp->gui->sceneHeight / EngineApp->gui->sceneWidth);
+
+		}
+
+		ImGui::Image((ImTextureID)EngineApp->renderer3D->rendertexture, ImVec2(size.x, size.y), ImVec2(0, 1), ImVec2(1, 0));
 
 		// --- Save Image's current position (screen space)
 		posX = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMin().x;
@@ -135,11 +154,21 @@ bool PanelScene::Draw()
 				ImGui::PopItemFlag();
 				ImGui::EndMenu();
 			}
+			if (ImGui::BeginMenu("AspectRatio"))
+			{
+				ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
+				ImGui::MenuItem("16:9", NULL, &fixed_ar);
+				ImGui::PopItemFlag();
+				ImGui::EndMenu();
+			}
 			ImGui::EndMenuBar();
 		}
 
-		EngineApp->gui->sceneHeight = height;
-		EngineApp->gui->sceneWidth = width;
+		if (!fixed_ar)
+		{
+			EngineApp->gui->sceneHeight = height;
+			EngineApp->gui->sceneWidth = width;
+		}
 		EngineApp->gui->sceneX = posX;
 		EngineApp->gui->sceneY = posY;
 		EngineApp->gui->isSceneHovered = ImGui::IsWindowHovered();

@@ -283,6 +283,7 @@ bool ModuleRenderer3D::Init(json& file)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	cubemapTexID = App->textures->CreateCubemap(cubemaptexIDs);
+	depthTextureCubemap = App->textures->CreateDepthCubemap();
 
 	return ret;
 }
@@ -312,6 +313,12 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, depthbufferFBO);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearDepth(1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, depthbufferCubemapFBO);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -378,7 +385,62 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		//glCullFace(GL_BACK);
 		glEnable(GL_CULL_FACE);
 		glDisable(GL_BLEND);
+
+		// --- Point shadows ---
+		glBindFramebuffer(GL_FRAMEBUFFER, depthbufferCubemapFBO);
+
+		std::vector<ComponentLight*>::iterator LightIteratori = m_LightsVec.begin();
+		for (; LightIteratori != m_LightsVec.end(); ++LightIteratori)
+		{
+			if ((*LightIteratori)->GetLightType() == LightType::POINTLIGHT)
+			{
+				float aspect = (float)App->window->GetWindowWidth() / (float)App->window->GetWindowHeight();
+
+				(*LightIteratori)->m_LightFrustum.SetVerticalFovAndAspectRatio(90, aspect);
+
+				float4x4 shadowProj = (*LightIteratori)->GetFrustProjectionMatrix();
+				(*LightIteratori)->m_LightFrustum.SetFront(float3(1.0, 0.0, 0.0));
+				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
+
+				std::vector<float4x4> shadowTransforms;
+				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+				(*LightIteratori)->m_LightFrustum.SetFront(float3(-1.0, 0.0, 0.0));
+				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
+
+				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+				(*LightIteratori)->m_LightFrustum.SetFront(float3(0.0, 1.0, 0.0));
+				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, 0.0, 1.0));
+
+				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+				(*LightIteratori)->m_LightFrustum.SetFront(float3(0.0, -1.0, 0.0));
+				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, 0.0, -1.0));
+
+				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+				(*LightIteratori)->m_LightFrustum.SetFront(float3(0.0, 0.0, 1.0));
+				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
+
+				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+				(*LightIteratori)->m_LightFrustum.SetFront(float3(0.0, 0.0, -1.0));
+				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
+
+				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+
+				for (unsigned int i = 0; i < 6; ++i)
+					glUniformMatrix4fv(glGetUniformLocation(shadowsShader->ID, std::string("shadowMatrices[" + std::to_string(i) + "]").c_str()), 1, GL_FALSE, shadowTransforms[i].ptr());
+
+				//simpleDepthShader.setMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
+
+
+				//glUniformMatrix4fv(glGetUniformLocation(shadowsShader->ID, "u_View"), 1, GL_FALSE, viewMat.ptr());
+				glUniformMatrix4fv(glGetUniformLocation(shadowsShader->ID, "u_Proj"), 1, GL_FALSE, shadowProj.ptr());
+
+				DrawRenderMeshes(true);
+				break; // just 1 for now
+			}
+		}
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 		OPTICK_POP();
 	}
 
@@ -486,6 +548,8 @@ bool ModuleRenderer3D::CleanUp()
 
 	glDeleteFramebuffers(1, &fbo);
 	glDeleteFramebuffers(1, &depthbufferFBO);
+	glDeleteFramebuffers(1, &depthbufferCubemapFBO);
+
 	SDL_GL_DeleteContext(context);
 
 	return true;
@@ -1017,6 +1081,11 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 				glActiveTexture(GL_TEXTURE0 + 0);
 				glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexID);
 			}
+			else
+			{
+				glActiveTexture(GL_TEXTURE0 + 0);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, depthTextureCubemap);
+			}
 
 			if (mesh->mat->has_transparencies)
 				mesh->mat->SetBlending();
@@ -1361,6 +1430,12 @@ void ModuleRenderer3D::CreateFramebuffer()
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 
+	glGenFramebuffers(1, &depthbufferCubemapFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthbufferCubemapFBO);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTextureCubemap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -1621,9 +1696,23 @@ void ModuleRenderer3D::CreateDefaultShaders()
 		"#endif //FRAGMENT_SHADER\n"
 		;
 
+	const char* geometryShaderT =
+		R"(#version 440 core 
+		#define GEOMETRY_SHADER 
+		#ifdef GEOMETRY_SHADER 
+		layout (points) in; 
+		layout (points, max_vertices = 1) out; 
+		void main(){ 
+			gl_Position = gl_in[0].gl_Position;
+			EmitVertex();
+			EndPrimitive();
+		} 
+		#endif //GEOMETRY_SHADER)"
+		;
+
 	VertexShaderTemplate = vertexShaderT;
 	FragmentShaderTemplate = fragmentShaderT;
-
+	GeometryShaderTemplate = geometryShaderT;
 
 	// --- Creating outline drawing shaders ---
 	const char* OutlineVertShaderSrc =
@@ -2085,7 +2174,7 @@ void ModuleRenderer3D::DrawRenderBoxes()
 void ModuleRenderer3D::DrawGrid()
 {
 	//App->renderer3D->defaultShader->use();
-	uint shaderID = App->renderer3D->defaultShader->ID;
+	uint shaderID = App->renderer3D->linepointShader->ID;
 	glUseProgram(shaderID);
 
 	GLint modelLoc = glGetUniformLocation(shaderID, "u_Model");

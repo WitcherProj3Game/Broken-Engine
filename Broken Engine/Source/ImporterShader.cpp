@@ -77,9 +77,9 @@ void ImporterShader::Save(ResourceShader* shader) const
 		char* buffer = new char[buffer_size];
 		GLint bytes_written = 0;
 		GLenum format = 0;
-	
+
 		glGetProgramBinary(shader->ID, buffer_size, &bytes_written, &format, buffer);
-	
+
 		if (bytes_written > 0)
 		{
 			// --- Save shader to binary ---
@@ -87,10 +87,10 @@ void ImporterShader::Save(ResourceShader* shader) const
 
 			// --- Save shader code, update meta ---
 			json jsonfile;
-	
+
 			std::ofstream file;
 			file.open(shader->GetOriginalFile(), std::ofstream::out | std::ofstream::trunc);
-	
+
 			if (!file.is_open())
 			{
 				ENGINE_CONSOLE_LOG("|[error]: JSONLoader::Save could not open File: %s", shader->GetOriginalFile());
@@ -98,21 +98,35 @@ void ImporterShader::Save(ResourceShader* shader) const
 			else
 			{
 				// --- Build shader code and save to file---
-				//file << std::setw(5) << "#if VERTEX_SHADER" << std::endl;
-				file << std::setw(5) << shader->vShaderCode << std::endl;
 
 				//file << std::setw(5) << "#elseif FRAGMENT_SHADER" << std::endl;
-				std::string tmp = shader->fShaderCode;
-				uint loc = tmp.find("#define FRAGMENT_SHADER");
+				std::string shaderCode = shader->vShaderCode;
+				std::string fragmentCode = shader->fShaderCode;
+				std::string geometryCode = shader->gShaderCode;
 
-				if (loc != std::string::npos)
+				file << std::setw(5) << shaderCode << std::endl;
+
+				uint floc = fragmentCode.find("#define FRAGMENT_SHADER");
+
+				if (floc != std::string::npos)
 				{
-					tmp = tmp.substr(loc, tmp.size());
+					fragmentCode = fragmentCode.substr(floc, fragmentCode.size());
 				}
 
-				file << std::setw(5) << tmp ;
+				if (geometryCode != "none")
+				{
+					uint gloc = geometryCode.find("#define GEOMETRY_SHADER");
 
-				//file << std::setw(5) << "#endif" << std::endl;
+					if (gloc != std::string::npos)
+					{
+						geometryCode = geometryCode.substr(gloc, geometryCode.size());
+						fragmentCode.append("\n").append(geometryCode);
+						//file << std::setw(5) << fragmentCode << std::endl;
+					}
+				}
+
+				file << std::setw(5) << fragmentCode;
+
 
 				file.close();
 
@@ -133,7 +147,7 @@ void ImporterShader::Save(ResourceShader* shader) const
 				}
 			}
 		}
-	
+
 		delete[] buffer;
 	}
 	else

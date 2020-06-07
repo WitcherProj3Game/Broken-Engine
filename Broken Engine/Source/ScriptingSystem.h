@@ -23,6 +23,7 @@ public:
 	float GameTime();
 	void PauseGame();
 	void ResumeGame();
+	int IsGamePaused();
 	const char* GetDebuggingPath();
 
 	// Maths

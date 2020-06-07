@@ -21,33 +21,36 @@ uniform vec4 u_Color = vec4(1.0); //Color
 uniform vec3 u_CameraPosition;
 
 //Varyings
-out vec2 v_TexCoord;
-out vec4 v_Color;
-out vec3 v_Normal;
-out vec3 v_FragPos;
-out vec3 v_CamPos;
-out mat3 v_TBN;
-out vec4 v_FragPos_InLightSpace;
+out vData
+{
+	vec2 v_TexCoord;
+	vec4 v_Color;
+	vec3 v_Normal;
+	vec3 v_FragPos;
+	vec3 v_CamPos;
+	mat3 v_TBN;
+	vec4 v_FragPos_InLightSpace;
+}vertex;
 
 void main()
 {
-	v_Color = u_Color;
-	v_TexCoord = a_TexCoord;
-	v_CamPos = u_CameraPosition;
+	vertex.v_Color = u_Color;
+	vertex.v_TexCoord = a_TexCoord;
+	vertex.v_CamPos = u_CameraPosition;
 
-	v_FragPos = vec3(u_Model * vec4(a_Position, 1.0));
-	v_FragPos_InLightSpace = u_LightSpace * vec4(v_FragPos, 1.0);
+	vertex.v_FragPos = vec3(u_Model * vec4(a_Position, 1.0));
+	vertex.v_FragPos_InLightSpace = u_LightSpace * vec4(vertex.v_FragPos, 1.0);
 
-	v_Normal = transpose(inverse(mat3(u_Model))) * a_Normal;
+	vertex.v_Normal = transpose(inverse(mat3(u_Model))) * a_Normal;
 
 	vec3 T = normalize(vec3(u_Model * vec4(a_Tangent, 0.0)));
 	vec3 N = normalize(vec3(u_Model * vec4(a_Normal, 0.0)));
 	T = normalize(T - dot(T, N) * N);
 	vec3 B = cross(N, T);
-	v_TBN = (mat3(T, B, N));
+	vertex.v_TBN = (mat3(T, B, N));
 
 	//gl_Position = u_Proj * u_View * u_Model * vec4(a_Position, 1.0);
-	gl_Position = u_Proj * u_View * vec4(v_FragPos, 1.0);
+	gl_Position = u_Proj * u_View * vec4(vertex.v_FragPos, 1.0);
 }
 
 #endif //VERTEX_SHADER
@@ -61,13 +64,16 @@ void main()
 out vec4 out_color;
 
 //Input Variables (Varying)
-in vec2 v_TexCoord;
-in vec4 v_Color;
-in vec3 v_Normal;
-in vec3 v_FragPos;
-in vec3 v_CamPos;
-in mat3 v_TBN;
-in vec4 v_FragPos_InLightSpace;
+in fData
+{
+	vec2 v_TexCoord;
+	vec4 v_Color;
+	vec3 v_Normal;
+	vec3 v_FragPos;
+	vec3 v_CamPos;
+	mat3 v_TBN;
+	vec4 v_FragPos_InLightSpace;
+}frag;
 
 //Uniforms
 uniform float u_GammaCorrection = 1.0;
@@ -139,7 +145,7 @@ uniform BrokenLight u_BkLights[MAX_SHADER_LIGHTS];
 //Shadows Calculation
 float ShadowCalculation(vec3 dir, vec3 normal)
 {
-	vec3 projCoords = v_FragPos_InLightSpace.xyz / v_FragPos_InLightSpace.w;
+	vec3 projCoords = frag.v_FragPos_InLightSpace.xyz / frag.v_FragPos_InLightSpace.w;
 	projCoords = projCoords * 0.5 + 0.5;
 
 	float currDept = projCoords.z;
@@ -209,9 +215,9 @@ vec3 CalculateLightResult(vec3 LColor, vec3 LDir, vec3 normal, vec3 viewDir, boo
 
 	//If we have textures, apply them
 	if(u_HasDiffuseTexture == 1)
-		diffuse *= texture(u_AlbedoTexture, v_TexCoord).rgb;
+		diffuse *= texture(u_AlbedoTexture, frag.v_TexCoord).rgb;
 	if(u_HasSpecularTexture == 1)
-		specular *= texture(u_SpecularTexture, v_TexCoord).rgb;
+		specular *= texture(u_SpecularTexture, frag.v_TexCoord).rgb;
 
 	vec3 ret = vec3(0.0);
 	if(u_LightAffected)
@@ -240,13 +246,13 @@ vec3 CalculateDirectionalLight(BrokenLight light, vec3 normal, vec3 viewDir)
 vec3 CalculatePointlight(BrokenLight light, vec3 normal, vec3 viewDir)
 {
 	//Calculate light direction
-	vec3 direction = light.pos - v_FragPos;
+	vec3 direction = light.pos - frag.v_FragPos;
 	//if(u_HasNormalMap == 1)
 	//	direction = v_TBN * normalize(direction);
 
 	//Attenuation Calculation
 	float dMult = 1/light.distanceMultiplier;
-	float d = length(light.pos - v_FragPos) * dMult;
+	float d = length(light.pos - frag.v_FragPos) * dMult;
 	float lightAttenuation = 1.0/(light.attenuationKLQ.x + light.attenuationKLQ.y * d + light.attenuationKLQ.z *(d * d));
 
 	//Result
@@ -257,16 +263,16 @@ vec3 CalculatePointlight(BrokenLight light, vec3 normal, vec3 viewDir)
 vec3 CalculateSpotlight(BrokenLight light, vec3 normal, vec3 viewDir)
 {
 	//Calculate light direction
-	vec3 direction = light.pos - v_FragPos;
+	vec3 direction = light.pos - frag.v_FragPos;
 	//if(u_HasNormalMap == 1)
 	//	direction = v_TBN * normalize(direction);
 
 	//Attenuation Calculation
-	float d = length(light.pos - v_FragPos);
+	float d = length(light.pos - frag.v_FragPos);
 	float lightAttenuation = 1.0/ (light.attenuationKLQ.x + light.attenuationKLQ.y * d + light.attenuationKLQ.z *(d * d));
 
 	//Spotlight Calcs for Soft Edges
-	float theta = dot(normalize(light.pos - v_FragPos), normalize(-light.dir)); //Light direction and light orientation
+	float theta = dot(normalize(light.pos - frag.v_FragPos), normalize(-light.dir)); //Light direction and light orientation
 	float epsilon = light.InOutCutoff.x - light.InOutCutoff.y;
 
 	float lightIntensity = clamp((theta - light.InOutCutoff.y) / epsilon, 0.0, 1.0) * light.intensity;
@@ -285,28 +291,28 @@ void main()
 	if(u_HasTransparencies == 1)
 	{
 		if(u_UseTextures == 0)
-			alpha = v_Color.a;
+			alpha = frag.v_Color.a;
 		else
-			alpha = texture(u_AlbedoTexture, v_TexCoord).a * v_Color.a;
+			alpha = texture(u_AlbedoTexture, frag.v_TexCoord).a * frag.v_Color.a;
 	}
 
 	if(alpha < 0.004)
 		discard;
 
 	//Normal Mapping Calculations
-	vec3 normalVec = normalize(v_Normal);	
+	vec3 normalVec = normalize(frag.v_Normal);	
 	if(u_DrawNormalMapping == 1)
 	{
 		out_color = vec4(normalVec, 1.0);
 		return;
 	}
 	
-	vec3 viewDirection = normalize(v_CamPos - v_FragPos);
+	vec3 viewDirection = normalize(frag.v_CamPos - frag.v_FragPos);
 	if(u_HasNormalMap == 1)
 	{
-		normalVec = texture(u_NormalTexture, v_TexCoord).rgb;
+		normalVec = texture(u_NormalTexture, frag.v_TexCoord).rgb;
 		normalVec = normalize(normalVec * 2.0 - 1.0);
-		normalVec = normalize(v_TBN * normalVec);
+		normalVec = normalize(frag.v_TBN * normalVec);
 		//viewDirection = v_TBN * normalize(v_CamPos - v_FragPos);
 	}
 
@@ -330,24 +336,24 @@ void main()
 		else
 		{
 			if(u_BkLights[i].LightType == 0)
-				colorResult += v_TBN * normalize(u_BkLights[i].dir);
+				colorResult += frag.v_TBN * normalize(u_BkLights[i].dir);
 			else
-				colorResult += v_TBN * normalize(u_BkLights[i].pos);
+				colorResult += frag.v_TBN * normalize(u_BkLights[i].pos);
 		}
 	}
 	
 
 	if(u_DrawNormalMapping_Lit == 0 && u_DrawNormalMapping_Lit_Adv == 0)
 	{
-		vec3 finalColor = v_Color.rgb;
+		vec3 finalColor = frag.v_Color.rgb;
 		if(u_SceneColorAffected)
 			finalColor *= u_AmbientColor.rgb;
 
 		//Resulting Color
-		if(u_UseTextures == 0 || (u_HasTransparencies == 0 && u_UseTextures == 1 && texture(u_AlbedoTexture, v_TexCoord).a < 0.1))
+		if(u_UseTextures == 0 || (u_HasTransparencies == 0 && u_UseTextures == 1 && texture(u_AlbedoTexture, frag.v_TexCoord).a < 0.1))
 			out_color = vec4(colorResult + finalColor, alpha);
 		else if(u_UseTextures == 1)
-			out_color = vec4(colorResult + finalColor * texture(u_AlbedoTexture, v_TexCoord).rgb, alpha);
+			out_color = vec4(colorResult + finalColor * texture(u_AlbedoTexture, frag.v_TexCoord).rgb, alpha);
 
 		out_color = pow(out_color, vec4(vec3(1.0/u_GammaCorrection), 1.0));
 	}
@@ -362,3 +368,52 @@ void main()
 }
 
 #endif //FRAGMENT_SHADER
+
+#define GEOMETRY_SHADER
+#ifdef GEOMETRY_SHADER
+
+layout (triangles) in; 
+layout (triangle_strip, max_vertices = 3) out; 
+
+in vData
+{
+	vec2 v_TexCoord;
+	vec4 v_Color;
+	vec3 v_Normal;
+	vec3 v_FragPos;
+	vec3 v_CamPos;
+	mat3 v_TBN;
+	vec4 v_FragPos_InLightSpace;
+}vertex[];
+
+out fData
+{
+	vec2 v_TexCoord;
+	vec4 v_Color;
+	vec3 v_Normal;
+	vec3 v_FragPos;
+	vec3 v_CamPos;
+	mat3 v_TBN;
+	vec4 v_FragPos_InLightSpace;
+}frag;
+
+void main()
+{ 
+	for (int i = 0; i < gl_in.length(); i++) 
+	{
+		gl_Position = gl_in[i].gl_Position;
+		frag.v_TexCoord = vertex[i].v_TexCoord;
+		frag.v_Color = vertex[i].v_Color;
+		frag.v_Normal = vertex[i].v_Normal;
+		frag.v_FragPos = vertex[i].v_FragPos;
+		frag.v_CamPos = vertex[i].v_CamPos;
+		frag.v_TBN = vertex[i].v_TBN;
+		frag.v_FragPos_InLightSpace = vertex[i].v_FragPos_InLightSpace;
+
+		EmitVertex();
+	}
+
+	EndPrimitive();
+} 
+	
+#endif //GEOMETRY_SHADER

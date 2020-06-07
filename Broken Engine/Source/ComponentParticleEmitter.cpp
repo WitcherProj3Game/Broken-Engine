@@ -140,14 +140,6 @@ void ComponentParticleEmitter::Enable()
 	particleSystem = App->physics->mPhysics->createParticleSystem(maxParticles, perParticleRestOffset);
 	particleSystem->setMaxMotionDistance(100);
 
-	//if (collision_active)
-	//{
-	//	physx::PxFilterData filterData;
-	//	filterData.word0 = (1 << GO->layer);
-	//	filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup;
-	//	particleSystem->setSimulationFilterData(filterData);
-	//}
-
 	if (particleSystem)
 		App->physics->AddParticleActor(particleSystem, GO);
 
@@ -651,8 +643,8 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string LparticlesLifeTime2 = node["particlesLifeTime2"].is_null() ? "0" : node["particlesLifeTime2"];
 	std::string _lifetimeconstants = node["lifetimeconstants"].is_null() ? "0" : node["lifetimeconstants"];
 
-	followEmitterPosition = node["followEmitterPosition"].is_null() ? true : node["followEmitterPosition"].get<bool>();
-	followEmitterRotation = node["followEmitterRotation"].is_null() ? true : node["followEmitterRotation"].get<bool>();
+	followEmitterPosition = node["followEmitterPosition"].is_null() ? false : node["followEmitterPosition"].get<bool>();
+	followEmitterRotation = node["followEmitterRotation"].is_null() ? false : node["followEmitterRotation"].get<bool>();
 
 	playOnAwake = node["PlayOnAwake"].is_null() ? false : node["PlayOnAwake"].get<bool>();
 	emisionActive = playOnAwake;
@@ -883,7 +875,7 @@ void ComponentParticleEmitter::Load(json& node)
 	m_OnlyShadows = node.find("PartOnlyShadows") == node.end() ? false : node["PartOnlyShadows"].get<bool>();
 
 	// --- Collisions ---
-	collision_active = node.find("CollisionsActivated") == node.end() ? true : node["CollisionsActivated"].get<bool>();
+	collision_active = node.find("CollisionsActivated") == node.end() ? false : node["CollisionsActivated"].get<bool>();
 	SetActiveCollisions(collision_active);
 
 	// --- Face Culling ---

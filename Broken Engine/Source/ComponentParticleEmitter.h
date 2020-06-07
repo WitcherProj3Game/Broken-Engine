@@ -162,7 +162,7 @@ private:
 	int velocityconstants = 0;
 	bool followEmitterPosition = false;
 	bool followEmitterRotation= false;
-	bool collision_active = true;
+	bool collision_active = false;
 
 	//Colors
 	bool colorGradient = false;

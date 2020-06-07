@@ -40,6 +40,11 @@ void ScriptingSystem::ResumeGame()
 	App->time->gamePaused = false;
 }
 
+int ScriptingSystem::IsGamePaused()
+{
+	return (int)App->time->gamePaused;
+}
+
 const char* ScriptingSystem::GetDebuggingPath()
 {
 	return App->scripting->debug_path.c_str();

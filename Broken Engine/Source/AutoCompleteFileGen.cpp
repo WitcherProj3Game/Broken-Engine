@@ -325,6 +325,7 @@ void AutoCompleteFileGen::EmplaceSystemFunctions()
 	SerializedFunction GameTime("GameTime", source.c_str());
 	SerializedFunction PauseGame("PauseGame", source.c_str());
 	SerializedFunction ResumeGame("ResumeGame", source.c_str());
+	SerializedFunction IsGamePaused("IsGamePaused", source.c_str());
 	SerializedFunction GetDebuggingPath("GetDebuggingPath", source.c_str());
 
 		// Maths
@@ -360,6 +361,7 @@ void AutoCompleteFileGen::EmplaceSystemFunctions()
 	engine_functions.push_back(GameTime);
 	engine_functions.push_back(PauseGame);
 	engine_functions.push_back(ResumeGame);
+	engine_functions.push_back(IsGamePaused);
 	engine_functions.push_back(GetDebuggingPath);
 	engine_functions.push_back(CompareFloats);
 	engine_functions.push_back(CompareDoubles);
@@ -392,6 +394,8 @@ void AutoCompleteFileGen::EmplaceTransformFunctions()
 	SerializedFunction SetScale("SetScale", source.c_str());
 	SetScale.variables.push_back("x"); SetScale.variables.push_back("y"); SetScale.variables.push_back("z"); SetScale.variables.push_back("gameObject_UID");
 
+	SerializedFunction GetScale("GetScale", source.c_str());
+	GetScale.variables.push_back("gameobject_UUID");
 
 	// Rotation
 	SerializedFunction GetRotation("GetRotation", source.c_str());
@@ -408,6 +412,7 @@ void AutoCompleteFileGen::EmplaceTransformFunctions()
 	engine_functions.push_back(SetPosition);
 	engine_functions.push_back(SetLocalPosition);
 	engine_functions.push_back(SetScale);
+	engine_functions.push_back(GetScale);
 	engine_functions.push_back(GetRotation);
 	engine_functions.push_back(RotateObject);
 	engine_functions.push_back(SetObjectRotation);

@@ -242,6 +242,7 @@ public:
 
 	std::string VertexShaderTemplate;
 	std::string FragmentShaderTemplate;
+	std::string GeometryShaderTemplate;
 
 	std::vector<ComponentParticleEmitter*> particleEmitters;
 

@@ -1,4 +1,4 @@
-#version 450 core
+#version 440 core
 #define VERTEX_SHADER
 #ifdef VERTEX_SHADER
 
@@ -9,11 +9,14 @@ uniform mat4 u_Proj;
 uniform mat4 u_View;
 uniform mat4 u_Model;
 
-out vec2 vg_texCoords;
+out vData
+{
+	vec2 v_texCoords;
+}vertex;
 
 void main()
 {
-	vg_texCoords = a_TexCoord;
+	vertex.v_texCoords = a_TexCoord;
 	gl_Position = u_Proj * u_View * u_Model * vec4(a_Position, 1.0);
 }
 
@@ -33,13 +36,16 @@ in vec4 FragPos;
 //uniform vec3 lightPos;
 //uniform float far_plane;
 
-in vec2 v_texCoords;
+in fData
+{
+	vec2 v_texCoords;
+}frag;
 
 void main()
 {
 	vec4 color = vec4(1.0);
 	if(u_HasDiffuseTexture == 1)
-		color = texture(u_AlbedoTexture, v_texCoords) * u_Color;
+		color = texture(u_AlbedoTexture, frag.v_texCoords) * u_Color;
 	else
 		color = u_Color;
 
@@ -69,8 +75,15 @@ layout (triangle_strip, max_vertices = 18) out;
 
 uniform mat4 shadowMatrices[6];
 
-in vec2 vg_texCoords[];
-out vec2 v_texCoords;
+in vData
+{
+	vec2 v_texCoords;
+}vertex[];
+
+out fData
+{
+	vec2 v_texCoords;
+}frag;
 
 out vec4 FragPos; // FragPos from GS (output per emitvertex)
 
@@ -78,12 +91,13 @@ void main()
 { 
 	for (int face = 0; face < 6; face++) 
 	{
-		gl_Layer = face; // built-in variable that specifies to which face we render.
+		//gl_Layer = face; // built-in variable that specifies to which face we render.
         for(int i = 0; i < 3; ++i) // for each triangle vertex
         {
-			v_texCoords = vg_texCoords[face*3 + i];
+			frag.v_texCoords = vertex[face*3 + i].v_texCoords;
             FragPos = gl_in[i].gl_Position;
-            gl_Position = shadowMatrices[face] * FragPos;
+			gl_Position = gl_in[i].gl_Position;
+            //gl_Position = shadowMatrices[face] * FragPos;
             EmitVertex();
         }    
         EndPrimitive();

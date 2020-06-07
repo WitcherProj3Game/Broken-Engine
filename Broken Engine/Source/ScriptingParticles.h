@@ -30,7 +30,7 @@ public:
 	void SetParticleLifeTime(int ms, uint gameobject_UUID);
 
 	//Scale
-	void SetParticleScaleFromScript(float x, float y, uint gameobject_UUID);
+	void SetParticleScaleFromScript(float x, float y, float z, uint gameobject_UUID);
 	void SetRandomParticleScale(float randomFactor1, float randomFactor2, uint gameobject_UUID);
 	void SetParticleColor(float r, float g, float b, float a, uint gameobject_UUID);
 	void SetScaleOverTime(float scale, uint gameobject_UUID);

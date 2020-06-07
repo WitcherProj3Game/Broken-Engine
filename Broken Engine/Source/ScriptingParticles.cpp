@@ -244,14 +244,14 @@ void ScriptingParticles::SetParticleLifeTime(int ms, uint gameobject_UUID)
 		ENGINE_CONSOLE_LOG("[Script]: (SetParticlesLifeTime) GameObject with UUID %d could not be found!", gameobject_UUID);
 }
 
-void ScriptingParticles::SetParticleScaleFromScript(float x, float y, uint gameobject_UUID)
+void ScriptingParticles::SetParticleScaleFromScript(float x, float y, float z, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 	if (go)
 	{
 		ComponentParticleEmitter* emitter = go->GetComponent<ComponentParticleEmitter>();
 		if (emitter)
-			emitter->SetParticlesScale(x, y);
+			emitter->SetParticlesScale(x, y, z);
 		else
 			ENGINE_CONSOLE_LOG("[Script]: (SetParticlesScale) Particle Emmiter component is NULL");
 	}

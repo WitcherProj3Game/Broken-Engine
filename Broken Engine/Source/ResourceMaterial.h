@@ -56,6 +56,9 @@ public:
 
 	std::string previewTexPath;
 	bool m_UseTexture = true;
+	bool m_ApplyRimLight = false;
+	float m_RimPower = 1.0f;
+	float2 m_RimSmooth = float2(0.0f, 1.0f);
 
 private:
 

@@ -10,6 +10,7 @@
 #include "ComponentTransform.h"
 #include "ComponentText.h"
 #include "ComponentCamera.h"
+#include "ComponentMesh.h"
 
 #include "ModuleTimeManager.h"
 #include "ModulePhysics.h"
@@ -19,6 +20,7 @@
 #include "ModuleFileSystem.h"
 #include "ModuleSceneManager.h"
 #include "ModuleSelection.h"
+#include "ResourceScene.h"
 #include "ModuleGui.h"
 
 #include "Particle.h"
@@ -40,13 +42,15 @@ ComponentParticleEmitter::ComponentParticleEmitter(GameObject* ContainerGO) :Com
 	Enable();
 
 	App->particles->AddEmitter(this);
-
 	particles.resize(maxParticles);
 
-	for (int i = 0; i < maxParticles; ++i) {
+	for (int i = 0; i < maxParticles; ++i)
+	{
 		particles[i] = new Particle();
 		particles[i]->emitter = this;
 	}
+
+	particles_mesh = App->scene_manager->plane;
 	texture = (ResourceTexture*)App->resources->CreateResource(Resource::ResourceType::TEXTURE, "DefaultTexture");
 	App->renderer3D->particleEmitters.push_back(this);
 
@@ -85,8 +89,17 @@ ComponentParticleEmitter::~ComponentParticleEmitter()
 		particles.clear();
 	}
 
-	texture->Release();
+	if (texture)
+	{
+		texture->RemoveUser(GO);
+		texture->Release();
+	}
 
+	if (particles_mesh 	&& particles_mesh->GetUID() != App->scene_manager->plane->GetUID())
+	{
+		particles_mesh->RemoveUser(GO);
+		particles_mesh->Release();
+	}
 
 	for (std::vector<ComponentParticleEmitter*>::iterator it = App->renderer3D->particleEmitters.begin(); it != App->renderer3D->particleEmitters.end(); it++) {
 		if ((*it) == this) {
@@ -225,7 +238,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 			bool toDelete = false;
 			if (*flagsIt & physx::PxParticleFlag::eVALID)
 			{
-				//-- CHECK DELETE -- 
+				//-- CHECK DELETE --
 				if (currentPlayTime - particles[i]->spawnTime > particles[i]->lifeTime) {
 					indicesToErease.push_back(i);
 					particlesToRelease++;
@@ -235,7 +248,7 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 
 				float diff_time = (App->time->GetGameplayTimePassed() * 1000 - particles[i]->spawnTime);
 
-				// -- SCALE -- 
+				// -- SCALE --
 				if (scaleconstants == 2) {
 					scaleOverTime = scaleCurve->GetCurrentValue(diff_time, particles[i]->lifeTime);
 					particles[i]->scale.x = scaleOverTime;
@@ -269,17 +282,17 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 					particles[i]->scale.y = 0;
 
 				//Choose Frame Animation
-				if (animation && particleMeshes.size() > 0) {
+				if (animation && particleMeshes.size() > 0)
+				{
 					int time = currentPlayTime - particles[i]->spawnTime;
 					int index = (particleMeshes.size() * time) / (particles[i]->lifeTime / cycles);
-					particles[i]->plane = particleMeshes[(index + particles[i]->startFrame) % particleMeshes.size()];
+					particles[i]->particle_mesh = particleMeshes[(index + particles[i]->startFrame) % particleMeshes.size()];
 				}
 				else
-					particles[i]->plane = App->scene_manager->plane;
+					particles[i]->particle_mesh = particles_mesh;
 
-				if (rotationconstants == 2) {
+				if (rotationconstants == 2)
 					particles[i]->rotationSpeed.z = rotateCurve->GetCurrentValue(diff_time, particles[i]->lifeTime);
-				}
 
 				if (rotationOvertime1 != 0)
 					particles[i]->rotation += particles[i]->rotationSpeed * DEGTORAD * dt;
@@ -297,7 +310,10 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 		indexPool->freeIndices(particlesToRelease, physx::PxStrideIterator<physx::PxU32>(indicesToErease.data()));
 	}
 
-	SortParticles();
+	CalculateAABBs();
+	if (App->renderer3D->culling_camera->frustum.Intersects(particlesAreaAABB))
+		SortParticles();
+
 }
 
 void ComponentParticleEmitter::SortParticles()
@@ -375,7 +391,7 @@ void ComponentParticleEmitter::DrawParticles(bool shadowsPass)
 		else
 			glDisable(GL_CULL_FACE);
 	}
-	
+
 	// -- Frustum culling --
 	Plane cameraPlanes[6];
 	App->renderer3D->culling_camera->frustum.GetPlanes(cameraPlanes);
@@ -506,6 +522,7 @@ json ComponentParticleEmitter::Save() const
 
 	node["particlesScaleX"] = std::to_string(particlesScale.x);
 	node["particlesScaleY"] = std::to_string(particlesScale.y);
+	node["particlesScaleZ"] = std::to_string(particlesScale.z);
 
 	node["particleScaleRandomFactor1"] = std::to_string(particlesScaleRandomFactor1);
 	node["particleScaleRandomFactor2"] = std::to_string(particlesScaleRandomFactor2);
@@ -513,10 +530,17 @@ json ComponentParticleEmitter::Save() const
 
 	node["particleScaleOverTime"] = std::to_string(scaleOverTime);
 
+	node["ParticlesCustomMesh"] = custom_mesh;
 	node["Resources"]["ResourceTexture"];
+	node["Resources"]["ResourceMesh"];
 
 	if (texture)
 		node["Resources"]["ResourceTexture"] = std::string(texture->GetResourceFile());
+
+	if (custom_mesh)
+		if (particles_mesh->GetUID() != App->scene_manager->plane->GetUID())
+			node["Resources"]["ResourceMesh"] = std::string(particles_mesh->GetResourceFile());
+
 
 	node["separateAxis"] = std::to_string(separateAxis);
 	node["rotationOvertime1"][0] = std::to_string(rotationOvertime1[0]);
@@ -638,6 +662,7 @@ void ComponentParticleEmitter::Load(json& node)
 
 	std::string LParticlesScaleX = node["particlesScaleX"].is_null() ? "1" : node["particlesScaleX"];
 	std::string LParticlesScaleY = node["particlesScaleY"].is_null() ? "1" : node["particlesScaleY"];
+	std::string LParticlesScaleZ = node["particlesScaleZ"].is_null() ? "1" : node["particlesScaleZ"];
 
 	std::string LParticleScaleRandomFactor1 = node["particleScaleRandomFactor1"].is_null() ? "1" : node["particleScaleRandomFactor1"];
 	std::string LParticleScaleRandomFactor2 = node["particleScaleRandomFactor2"].is_null() ? "1" : node["particleScaleRandomFactor2"];
@@ -731,6 +756,28 @@ void ComponentParticleEmitter::Load(json& node)
 	else
 		loop = true;
 
+
+	// Load Custom Mesh
+	custom_mesh = node.find("ParticlesCustomMesh") == node.end() ? false : node["ParticlesCustomMesh"].get<bool>();
+	if (custom_mesh)
+	{
+		std::string MeshPath = node["Resources"]["ResourceMesh"].is_null() ? "0" : node["Resources"]["ResourceMesh"];
+		App->fs->SplitFilePath(MeshPath.c_str(), nullptr, &MeshPath);
+		MeshPath = MeshPath.substr(0, MeshPath.find_last_of("."));
+
+		ResourceMesh* auxMesh = (ResourceMesh*)App->resources->GetResource(std::stoi(MeshPath));
+		if (auxMesh)
+			particles_mesh = auxMesh;
+		else
+			particles_mesh = App->scene_manager->plane;
+	}
+	else
+		particles_mesh = App->scene_manager->plane;
+
+	if(particles_mesh)
+		particles_mesh->AddUser(GO);
+
+	// Load Texture
 	std::string path = node["Resources"]["ResourceTexture"].is_null() ? "0" : node["Resources"]["ResourceTexture"];
 	App->fs->SplitFilePath(path.c_str(), nullptr, &path);
 	path = path.substr(0, path.find_last_of("."));
@@ -789,6 +836,7 @@ void ComponentParticleEmitter::Load(json& node)
 
 	particlesScale.x = std::stof(LParticlesScaleX);
 	particlesScale.y = std::stof(LParticlesScaleY);
+	particlesScale.z = std::stof(LParticlesScaleZ);
 
 	particlesScaleRandomFactor1 = std::stof(LParticleScaleRandomFactor1);
 	particlesScaleRandomFactor2 = std::stof(LParticleScaleRandomFactor2);
@@ -844,7 +892,7 @@ void ComponentParticleEmitter::Load(json& node)
 	m_ReceiveShadows = node.find("PartReceiveShadows") == node.end() ? true : node["PartReceiveShadows"].get<bool>();
 	m_OnlyShadows = node.find("PartOnlyShadows") == node.end() ? false : node["PartOnlyShadows"].get<bool>();
 
-	// --- Collisions --- 
+	// --- Collisions ---
 	collision_active = node.find("CollisionsActivated") == node.end() ? true : node["CollisionsActivated"].get<bool>();
 	SetActiveCollisions(collision_active);
 
@@ -892,14 +940,14 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	//Follow emitter
 	ImGui::Checkbox("##SFollow emitter", &followEmitter);
-	ImGui::SameLine(); ImGui::Text("Follow emitter");	
-	
+	ImGui::SameLine(); ImGui::Text("Follow emitter");
+
 	// Duration
 	ImGui::NewLine();
 	ImGui::Text("Duration");
 	ImGui::SameLine();
 	ImGui::DragInt("##PEDuration", &duration);
-	
+
 
 	//Emitter position
 	ImGui::Text("Position");
@@ -1085,7 +1133,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	{
 		if (ImGui::Checkbox("##PE_EnableColl", &collision_active))
 			SetActiveCollisions(collision_active);
-		
+
 		ImGui::SameLine(); ImGui::Text("Enable Collisions");
 		ImGui::TreePop();
 	}
@@ -1349,33 +1397,41 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	ImGui::Separator();
 
-	if (ImGui::TreeNode("Scale over Lifetime"))
+	if (ImGui::TreeNode("Particles Scale"))
 	{
-		if (scaleconstants == 0) {
+		if (scaleconstants == 0)
+		{
 			ImGui::Text("Scale");
 			ImGui::SameLine();
 			ImGui::Text("X");
-			ImGui::SameLine();
-			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-			ImGui::DragFloat("##SParticlesScaleX", &particlesScale.x, 0.05f, 0.1f, 50.0f);
+			ImGui::SameLine(); ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragFloat("##SParticlesScaleX", &particlesScale.x, 0.005f, 0.01f, INFINITY);
+
 			ImGui::SameLine();
 			ImGui::Text("Y");
-			ImGui::SameLine();
-			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-			ImGui::DragFloat("##SParticlesScaleY", &particlesScale.y, 0.05f, 0.1f, 50.0f);
+			ImGui::SameLine(); ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragFloat("##SParticlesScaleY", &particlesScale.y, 0.005f, 0.01f, INFINITY);
+
+			if (custom_mesh)
+			{
+				ImGui::SameLine();
+				ImGui::Text("Z");
+				ImGui::SameLine(); ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+				ImGui::DragFloat("##SParticlesScaleZ", &particlesScale.z, 0.005f, 0.01f, INFINITY);
+			}
 		}
-		else if (scaleconstants == 1) {
+		else if (scaleconstants == 1)
+		{
 			ImGui::Text("Random Between:");
 			ImGui::SameLine();
 			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-			ImGui::DragFloat("##SParticlesRandomScaleX", &particlesScaleRandomFactor1, 0.05f, 0.0f, 50.0f);
+			ImGui::DragFloat("##SParticlesRandomScaleX", &particlesScaleRandomFactor1, 0.005f, 0.0f, INFINITY);
 			ImGui::SameLine();
 			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-			ImGui::DragFloat("##SParticlesRandomScaleY", &particlesScaleRandomFactor2, 0.05f, 0.0f, 50.0f);
+			ImGui::DragFloat("##SParticlesRandomScaleY", &particlesScaleRandomFactor2, 0.005f, 0.0f, INFINITY);
 		}
-		else if (scaleconstants == 2) {
+		else if (scaleconstants == 2)
 			scaleCurve->DrawCurveEditor();
-		}
 
 		ImGui::SameLine();
 		if (ImGui::SmallButton("v"))
@@ -1384,17 +1440,14 @@ void ComponentParticleEmitter::CreateInspectorNode()
 		if (ImGui::BeginPopup("Component options"))
 		{
 			if (ImGui::MenuItem("Constant", "", scaleconstants == 0 ? true : false))
-			{
 				scaleconstants = 0;
-			}
+
 			if (ImGui::MenuItem("Random Between two Constants", "", scaleconstants == 1 ? true : false))
-			{
 				scaleconstants = 1;
-			}
-			if (ImGui::MenuItem("Curve Editor", "", scaleconstants == 2 ? true : false))
-			{
+
+			if (ImGui::MenuItem("Curve Editor (over lifetime)", "", scaleconstants == 2 ? true : false))
 				scaleconstants = 2;
-			}
+
 			ImGui::EndPopup();
 		}
 
@@ -1405,34 +1458,42 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	if (ImGui::TreeNode("Animation"))
 	{
-		int tmpX = tileSize_X;
-		int tmpY = tileSize_Y;
-		ImGui::Checkbox("Animation", &animation);
-		ImGui::Text("Tiles:");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragInt("X", &tileSize_X, 1, 1, texture->Texture_width);
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragInt("Y", &tileSize_Y, 1, 1, texture->Texture_height);
-		ImGui::Text("Start Frame:");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragInt("##sframe", &startFrame, 1, 0, (tileSize_X * tileSize_Y) - 1);
-		ImGui::SameLine();
-		ImGui::Checkbox("##srandomfirstframe", &randomStartFrame);
-		ImGui::SameLine();
-		ImGui::Text("Random");
-		ImGui::Text("Cycles:");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
-		ImGui::DragFloat("##cycle", &cycles, 0.01, 0.01, 100);
-		if (cycles <= 0) {
-			cycles = 1;
-		}
+		if (!custom_mesh)
+		{
+			int tmpX = tileSize_X;
+			int tmpY = tileSize_Y;
+			ImGui::Checkbox("Animation", &animation);
+			ImGui::Text("Tiles:");
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragInt("X", &tileSize_X, 1, 1, texture->Texture_width);
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragInt("Y", &tileSize_Y, 1, 1, texture->Texture_height);
+			ImGui::Text("Start Frame:");
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragInt("##sframe", &startFrame, 1, 0, (tileSize_X * tileSize_Y) - 1);
+			ImGui::SameLine();
+			ImGui::Checkbox("##srandomfirstframe", &randomStartFrame);
+			ImGui::SameLine();
+			ImGui::Text("Random");
+			ImGui::Text("Cycles:");
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+			ImGui::DragFloat("##cycle", &cycles, 0.01, 0.01, 100);
 
-		if (tmpX != tileSize_X || tmpY != tileSize_Y && animation) {
-			createdAnim = false;
+			if (cycles <= 0)
+				cycles = 1;
+			if (tmpX != tileSize_X || tmpY != tileSize_Y && animation)
+				createdAnim = false;
+		}
+		else
+		{
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+			ImGui::Text("Cannot put an Animation if Particles have a Custom Mesh!");
+			ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+			ImGui::Text("You have to use Default Mesh");
 		}
 
 		ImGui::TreePop();
@@ -1444,13 +1505,12 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	{
 		// Shadows & Lighting
 		ImGui::NewLine();
-		ImGui::NewLine(); ImGui::SameLine();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		ImGui::Checkbox("Light Affected ", &m_AffectedByLight);
 		ImGui::SameLine();
 		ImGui::Checkbox("Scene Color Affected", &m_AffectedBySceneColor);
 
-		ImGui::NewLine();
-		ImGui::SameLine();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		if (ImGui::Checkbox("Cast Shadows", &m_CastShadows))
 			if (m_OnlyShadows) m_CastShadows = false;
 
@@ -1466,11 +1526,72 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			m_CastShadows = true;
 		}
 
+		// --- Particles Mesh ---
+		ImGui::NewLine();
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+
+		if (particles_mesh)
+			ImGui::ImageButton((void*)(uint)particles_mesh->GetPreviewTexID(), ImVec2(20, 20));
+		else
+			ImGui::ImageButton(NULL, ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), 2);
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GO"))
+			{
+				uint UID = *(const uint*)payload->Data;
+				GameObject* gobj = App->scene_manager->currentScene->GetGOWithUID(UID);
+				if (gobj)
+				{
+					ComponentMesh* meshComp = gobj->GetComponent<ComponentMesh>();
+					if (meshComp)
+					{
+						ResourceMesh* mesh = meshComp->resource_mesh;
+						if (particles_mesh && particles_mesh->GetUID() != App->scene_manager->plane->GetUID())
+						{
+							particles_mesh->RemoveUser(GO);
+							particles_mesh->Release();
+						}
+
+						particles_mesh = (ResourceMesh*)App->resources->GetResource(mesh->GetUID());
+						particles_mesh->AddUser(GO);
+						animation = createdAnim = false;
+						custom_mesh = true;
+					}
+					else
+						ENGINE_CONSOLE_LOG("GameObject dropped has no Mesh component!");
+				}
+				else
+					ENGINE_CONSOLE_LOG("The element dropped was not a GameObject!");
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+
+		ImGui::SameLine(); ImGui::Text("Particles Mesh");
+		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+
+		if (ImGui::Button("Default", { 77, 18 }))
+		{
+			if (particles_mesh)
+			{
+				if (particles_mesh->GetUID() != App->scene_manager->plane->GetUID())
+				{
+					particles_mesh->RemoveUser(GO);
+					particles_mesh->Release();
+				}
+			}
+
+			particlesScale.z = 1.0f;
+			particles_mesh = App->scene_manager->plane;
+			//particles_mesh->AddUser(GO);
+			custom_mesh = false;
+		}
+
 		// --- Image/Texture ---
 		ImGui::NewLine();
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		ImGui::Text("Texture");
-		//ImGui::SameLine();
 
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		if (texture == nullptr)
@@ -1489,28 +1610,44 @@ void ComponentParticleEmitter::CreateInspectorNode()
 				if (resource && resource->GetType() == Resource::ResourceType::TEXTURE)
 				{
 					if (texture)
+					{
+						texture->RemoveUser(GO);
 						texture->Release();
+					}
 
 					texture = (ResourceTexture*)App->resources->GetResource(UID);
+
+					if (texture)
+						texture->AddUser(GO);
 				}
 			}
 			ImGui::EndDragDropTarget();
+		}
+
+		//Unuse Texture
+		ImGui::SameLine();
+		if (ImGui::Button("Unuse", { 77, 18 }) && texture)
+		{
+			if (GO)
+				texture->RemoveUser(GO);
+
+			texture->Release();
+			texture = nullptr;
 		}
 
 		// --- Color ---
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		ImGui::ColorEdit4("##PEParticle Color", (float*)&colors[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
 		ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
-		ImGui::Text("Start Color");		
+		ImGui::Text("Start Color");
 
+		// --- Face Culling ---
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		ImGui::Checkbox("##PE_PartsCullF", &particlesFaceCulling);
 		ImGui::SameLine();
 		ImGui::Text("Particles Face Culling");
 
 		// --- Billboarding Type ---
-		ImGui::NewLine();
-
 		ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 		if (ImGui::Checkbox("##PEBill", &particlesBillboarding))
 			if(!particlesBillboarding)
@@ -1730,66 +1867,65 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 			particles[index[i]]->receive_shadows = m_ReceiveShadows;
 
 			//Set scale
-			if (scaleconstants == 1) {
-				float randomScaleValue = GetRandomValue(particlesScaleRandomFactor1, particlesScaleRandomFactor2);
-				particles[index[i]]->scale.x = particlesScale.x * randomScaleValue;
-				particles[index[i]]->scale.y = particlesScale.y * randomScaleValue;
-			}
-			else if (scaleconstants == 0) {
-				particles[index[i]]->scale.x = particlesScale.x;
-				particles[index[i]]->scale.y = particlesScale.y;
-			}
+			if (scaleconstants == 1)
+				particles[index[i]]->scale = particlesScale * GetRandomValue(particlesScaleRandomFactor1, particlesScaleRandomFactor2);
+			else if (scaleconstants == 0)
+				particles[index[i]]->scale = particlesScale;
 
-			// -- Rotation -- 
+			if (!custom_mesh)
+				particles[index[i]]->scale.z = particlesScale.z = 1.0f;
+
+			// -- Rotation --
 			//Initial rotation
-			if (randomInitialRotation){
-				if (separateAxis){
+			if (randomInitialRotation)
+			{
+				if (separateAxis)
+				{
 					particles[index[i]]->rotation = float3(	GetRandomValue(minInitialRotation[0], maxInitialRotation[0]) * DEGTORAD,
 															GetRandomValue(minInitialRotation[1], maxInitialRotation[1]) * DEGTORAD,
 															GetRandomValue(minInitialRotation[2], maxInitialRotation[2]) * DEGTORAD);
 				}
-				else{
-					particles[index[i]]->rotation = float3(0,0,GetRandomValue(minInitialRotation[2], maxInitialRotation[2]) * DEGTORAD);
-
-				}
+				else
+					particles[index[i]]->rotation = float3(0.0f, 0.0f, GetRandomValue(minInitialRotation[2], maxInitialRotation[2]) * DEGTORAD);
 			}
-			else{
-				if (separateAxis){
-						particles[index[i]]->rotation = float3(	minInitialRotation[0] * DEGTORAD,
-																minInitialRotation[1] * DEGTORAD,
-																minInitialRotation[2] * DEGTORAD);
-				}
-				else {
-					particles[index[i]]->rotation = float3(	0,
-															0,
-															minInitialRotation[2] * DEGTORAD);
-				}
+			else
+			{
+				if (separateAxis)
+					particles[index[i]]->rotation = float3(minInitialRotation[0] * DEGTORAD, minInitialRotation[1] * DEGTORAD, minInitialRotation[2] * DEGTORAD);
+				else
+					particles[index[i]]->rotation = float3(	0.0f, 0.0f, minInitialRotation[2] * DEGTORAD);
 			}
 
 			//Rotation velocity
 			float3 rot1 = float3::zero;
 			float3 rot2 = float3::zero;
-			if (separateAxis) {
+
+			if (separateAxis)
+			{
 				rot1 = float3((float)rotationOvertime1[0], (float)rotationOvertime1[1], (float)rotationOvertime1[2]);
 				rot2 = float3((float)rotationOvertime2[0], (float)rotationOvertime2[1], (float)rotationOvertime2[2]);
 			}
-			else {
+			else
+			{
 				rot1 = float3(0, 0, (float)rotationOvertime1[2]);
 				rot2 = float3(0, 0, (float)rotationOvertime2[2]);
 			}
 
-			if (rotationconstants == 0) {
+			if (rotationconstants == 0)
 				particles[index[i]]->rotationSpeed = rot1;
-			}
-			if (rotationconstants == 1) {
+
+			if (rotationconstants == 1)
+			{
 				if (rot1.x <= rot2.x)
 					particles[index[i]]->rotationSpeed.x = GetRandomValue(rot1.x, rot2.x);
 				else
 					particles[index[i]]->rotationSpeed.x = GetRandomValue(rot2.x, rot1.x);
+
 				if (rot1.y <= rot2.y)
 					particles[index[i]]->rotationSpeed.y = GetRandomValue(rot1.y, rot2.y);
 				else
 					particles[index[i]]->rotationSpeed.y = GetRandomValue(rot2.y, rot1.y);
+
 				if (rot1.z <= rot2.z)
 					particles[index[i]]->rotationSpeed.z = GetRandomValue(rot1.z, rot2.z);
 				else
@@ -1810,7 +1946,8 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 	}
 }
 
-void ComponentParticleEmitter::CreateAnimation(uint w, uint h) {
+void ComponentParticleEmitter::CreateAnimation(uint w, uint h)
+{
 	int width = texture->Texture_width / w;
 	int height = texture->Texture_height / h;
 
@@ -1860,6 +1997,13 @@ void ComponentParticleEmitter::UpdateAllGradients()
 }
 
 void ComponentParticleEmitter::DrawEmitterArea()
+{/*
+	CalculateAABBs();*/
+	App->renderer3D->DrawOBB(emisionAreaOBB, Blue);
+	App->renderer3D->DrawAABB(particlesAreaAABB, Green);
+}
+
+void ComponentParticleEmitter::CalculateAABBs()
 {
 	Quat totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
 	Quat externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
@@ -1873,7 +2017,54 @@ void ComponentParticleEmitter::DrawEmitterArea()
 	positionFromEmitterPosQuat = externalRotation * positionFromEmitterPosQuat * externalRotation.Conjugated();
 
 	emisionAreaOBB.pos = emisionAreaOBB.pos + float3(positionFromEmitterPosQuat.x + globalPosition.x, positionFromEmitterPosQuat.y + globalPosition.y, positionFromEmitterPosQuat.z + globalPosition.z);
-	App->renderer3D->DrawOBB(emisionAreaOBB, Blue);
+
+	//Quat velocityQuat = Quat(velocity.x, velocity.y, velocity.z, 0);
+	//velocityQuat = totalRotation * velocityQuat * totalRotation.Conjugated();
+	//velocityBuffer[i] = physx::PxVec3(velocityQuat.x, velocityQuat.y, velocityQuat.z);
+
+	particlesAreaAABB.SetFrom(emisionAreaOBB);
+
+	// -- Calculate MAX AABB point --
+	Quat maxVel = Quat(particlesVelocity.x + velocityRandomFactor1.x,
+		particlesVelocity.y + velocityRandomFactor1.y,
+		particlesVelocity.z + velocityRandomFactor1.z,
+		0);
+
+	maxVel = totalRotation * maxVel * totalRotation.Conjugated();
+
+	float3 newPoint = particlesAreaAABB.maxPoint;
+	newPoint.x += maxVel.x * (float(particlesLifeTime) / 1000);
+	newPoint.y += maxVel.y * (float(particlesLifeTime) / 1000);
+	newPoint.z += maxVel.z * (float(particlesLifeTime) / 1000);
+
+	particlesAreaAABB.Enclose(newPoint);
+
+	newPoint.x +=  0.5 * externalAcceleration.x * (((float(particlesLifeTime) / 1000)) * (float(particlesLifeTime) / 1000));
+	newPoint.y +=  0.5 * (externalAcceleration.y-10.0f) * (((float(particlesLifeTime) / 1000)) * (float(particlesLifeTime) / 1000));
+	newPoint.z += 0.5 * externalAcceleration.z * (((float(particlesLifeTime) / 1000)) * (float(particlesLifeTime) / 1000));
+
+	particlesAreaAABB.Enclose(newPoint);
+
+	// -- Calculate MIN AABB point --
+
+	Quat minVel = Quat(particlesVelocity.x + velocityRandomFactor2.x,
+		particlesVelocity.y + velocityRandomFactor2.y,
+		particlesVelocity.z + velocityRandomFactor2.z,
+		0);
+
+	minVel = totalRotation * minVel * totalRotation.Conjugated();
+
+	newPoint = particlesAreaAABB.minPoint;
+	newPoint.x += minVel.x * (float(particlesLifeTime) / 1000);
+	newPoint.y += minVel.y * (float(particlesLifeTime) / 1000);
+	newPoint.z += minVel.z * (float(particlesLifeTime) / 1000);
+
+	particlesAreaAABB.Enclose(newPoint);
+	newPoint.x += 0.5 * externalAcceleration.x * (((float(particlesLifeTime) / 1000.0f)) * (float(particlesLifeTime) / 1000));
+	newPoint.y += 0.5 * (externalAcceleration.y - 10.0f) * (((float(particlesLifeTime) / 1000)) * (float(particlesLifeTime) / 1000));
+	newPoint.z += 0.5 * externalAcceleration.z * (((float(particlesLifeTime) / 1000)) * (float(particlesLifeTime) / 1000));
+
+	particlesAreaAABB.Enclose(newPoint);
 
 
 }
@@ -1942,10 +2133,12 @@ void ComponentParticleEmitter::SetLifeTime(int ms)
 	}
 }
 
-void ComponentParticleEmitter::SetParticlesScale(float x, float y)
+void ComponentParticleEmitter::SetParticlesScale(float x, float y, float z)
 {
-	particlesScale.x = x;
-	particlesScale.y = y;
+	if (custom_mesh)
+		particlesScale = { x, y, z };
+	else
+		particlesScale = { x, y, 1.0f };
 }
 
 void ComponentParticleEmitter::SetParticlesScaleRF(float randomFactor1, float randomFactor2)
@@ -1972,11 +2165,6 @@ void ComponentParticleEmitter::SetOffsetRotation(float x, float y, float z)
 
 	emitterRotation = Quat::FromEulerXYZ(rotation.x * DEGTORAD, rotation.y * DEGTORAD, rotation.z * DEGTORAD);
 	eulerRotation = rotation;
-}
-
-void ComponentParticleEmitter::SetScale(float x, float y)
-{
-	particlesScale = { x,y };
 }
 
 void ComponentParticleEmitter::SetScaleOverTime(float scale)

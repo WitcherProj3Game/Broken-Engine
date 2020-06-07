@@ -99,7 +99,7 @@ void ComponentMesh::Load(json& node)
 {
 	this->active = node.contains("Active") ? (bool)node["Active"] : true;
 
-	std::string path = node["Resources"]["ResourceMesh"].contains("path") ? node["Resources"]["ResourceMesh"]["path"] : "-1";
+	std::string path = node["Resources"]["ResourceMesh"]["path"].is_null() ?  "-1" : node["Resources"]["ResourceMesh"]["path"];
 	App->fs->SplitFilePath(path.c_str(), nullptr, &path);
 	path = path.substr(0, path.find_last_of("."));
 

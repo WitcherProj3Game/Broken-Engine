@@ -1073,6 +1073,10 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 					glUniform4f(glGetUniformLocation(shader, "u_Color"), mesh->mat->m_AmbientColor.x, mesh->mat->m_AmbientColor.y, mesh->mat->m_AmbientColor.z, mesh->mat->m_AmbientColor.w);
 					glUniform1i(glGetUniformLocation(shader, "u_SceneColorAffected"), mesh->mat->m_AffectedBySceneColor);
 
+					glUniform1i(glGetUniformLocation(shader, "u_ApplyRimLight"), mesh->mat->m_ApplyRimLight);
+					glUniform1f(glGetUniformLocation(shader, "u_RimPower"), mesh->mat->m_RimPower);
+					glUniform2f(glGetUniformLocation(shader, "u_RimSmooth"), mesh->mat->m_RimSmooth.x, mesh->mat->m_RimSmooth.y);
+
 					//Textures
 					glUniform1i(glGetUniformLocation(shader, "u_UseTextures"), (int)mesh->mat->m_UseTexture);
 

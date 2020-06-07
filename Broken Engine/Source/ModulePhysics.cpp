@@ -176,6 +176,7 @@ bool ModulePhysics::Init(json& config)
 
 	bool recordMemoryAllocations = true;
 
+#ifdef _DEBUG
 	//Setup Connection-----------------------------------------------------------------------
 	physx::PxPvdTransport* mTransport = physx::PxDefaultPvdSocketTransportCreate("localhost", 5425, 10000);
 	if (mTransport == NULL)
@@ -186,8 +187,11 @@ bool ModulePhysics::Init(json& config)
 	mPvd->connect(*mTransport, mPvdFlags);
 	//---------------------------------------------------------------------------------------
 
-	mPhysics = PxCreateBasePhysics(PX_PHYSICS_VERSION, *mFoundation,
-		physx::PxTolerancesScale(), recordMemoryAllocations, mPvd);
+	mPhysics = PxCreateBasePhysics(PX_PHYSICS_VERSION, *mFoundation, physx::PxTolerancesScale(), recordMemoryAllocations, mPvd);
+#else
+	mPhysics = PxCreateBasePhysics(PX_PHYSICS_VERSION, *mFoundation, physx::PxTolerancesScale(), recordMemoryAllocations);
+#endif
+
 	if (!mPhysics) {
 		ENGINE_CONSOLE_LOG("PxCreateBasePhysics failed!");
 		return false;
@@ -207,15 +211,12 @@ bool ModulePhysics::Init(json& config)
 	sceneDesc.simulationEventCallback = simulationEventsCallback;
 	mScene = mPhysics->createScene(sceneDesc);
 
+#ifdef _DEBUG
 	// This will enable basic visualization of PhysX objects like - actors collision shapes and their axes.
 		// The function PxScene::getRenderBuffer() is used to render any active visualization for scene.
 	mScene->setVisualizationParameter(physx::PxVisualizationParameter::eSCALE, 1.0);	//Global visualization scale which gets multiplied with the individual scales
 	mScene->setVisualizationParameter(physx::PxVisualizationParameter::eCOLLISION_SHAPES, 1.0f);	//Enable visualization of actor's shape
 	mScene->setVisualizationParameter(physx::PxVisualizationParameter::eACTOR_AXES, 1.0f);	//Enable visualization of actor's axis
-
-	mMaterial = mPhysics->createMaterial(materialDesc.x, materialDesc.y, materialDesc.z);
-
-	mControllerManager = PxCreateControllerManager(*mScene);
 
 	//Setup Configuration-----------------------------------------------------------------------
 	pvdClient = mScene->getScenePvdClient();
@@ -225,9 +226,13 @@ bool ModulePhysics::Init(json& config)
 		pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 	}
 	//-------------------------------------
+#endif
+
+	mMaterial = mPhysics->createMaterial(materialDesc.x, materialDesc.y, materialDesc.z);
+
+	mControllerManager = PxCreateControllerManager(*mScene);
 
 	cache = mScene->createVolumeCache(32, 8);
-	//PlaneCollider(0, 0, 0);
 
 	return true;
 }
@@ -237,21 +242,25 @@ update_status ModulePhysics::Update(float dt)
 	OPTICK_CATEGORY("Physics Update", Optick::Category::Physics);
 	//if (App->GetAppState() == AppState::PLAY)
 	//	SimulatePhysics(dt);
-
+	
 	if (App->GetAppState() == AppState::PLAY && !App->time->gamePaused)
 	{
-		// --- Step physics simulation ---
-		physAccumulatedTime += App->time->GetGameDt();
-
-		// --- If enough time has elapsed, update ---
-		if (physAccumulatedTime >= physx::fixed_dt)
-		{
-			physAccumulatedTime -= physx::fixed_dt;
-
-			//FixedUpdate();
-
-			mScene->simulate(physx::fixed_dt);
+		if (fixed) {
+			mScene->simulate(fixed_dt);
 			mScene->fetchResults(true);
+		}
+		else {
+			// --- Step physics simulation ---
+			physAccumulatedTime += App->time->GetGameDt();
+
+			// --- If enough time has elapsed, update ---
+			if (physAccumulatedTime >= fixed_dt)
+			{
+				physAccumulatedTime -= fixed_dt;
+
+				mScene->simulate(fixed_dt);
+				mScene->fetchResults(true);
+			}
 		}
 	}
 
@@ -271,7 +280,9 @@ bool ModulePhysics::CleanUp()
 	mCooking->release();
 	mScene->release(); //172
 	mPhysics->release(); //153
+#ifdef _DEBUG
 	mPvd->release(); //149
+#endif
 	mFoundation->release(); //136
 	RELEASE(simulationEventsCallback);
 	RELEASE(raycastManager);
@@ -580,6 +591,8 @@ const Broken::json& ModulePhysics::SaveStatus() const {
 	config["restitution"] = mMaterial->getRestitution();
 
 	config["count"] = layer_list.size();
+	config["fixed"] = fixed;
+	config["fixed_dt"] = fixed_dt;
 
 	for (uint i = 0; i < layer_list.size(); ++i) {
 		Layer layer = layer_list.at(i);
@@ -605,6 +618,8 @@ void ModulePhysics::LoadStatus(const Broken::json& file) {
 	materialDesc.z = file[name]["restitution"].is_null() ? materialDesc.z : (float)file[name]["restitution"];;
 
 	int count = file[name]["count"].is_null() ? 0 : (int)file[name]["count"];
+	fixed = file[name]["fixed"].is_null() ? false : (bool)file[name]["fixed"];
+	fixed_dt = file[name]["fixed_dt"].is_null() ? (1.0f / 60.0f) : (float)file[name]["fixed_dt"];
 
 	if (count != 0) {
 		for (uint i = 0; i < count; ++i) {

@@ -21,6 +21,10 @@ public:
 	void SetMass(float mass, uint gameobject_UUID);
 	float GetMass(uint gameobject_UUID);
 
+	void FixedSimulationRate(int rate);
+
+	void FixedSimulation(bool fixed);
+
 	luabridge::LuaRef GetLinearVelocity(uint gameobject_UUID, lua_State* L);
 	luabridge::LuaRef GetAngularVelocity(uint gameobject_UUID, lua_State* L);
 	void SetLinearVelocity(float x, float y, float z, uint gameobject_UUID);

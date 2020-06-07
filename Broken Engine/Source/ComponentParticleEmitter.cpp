@@ -197,14 +197,6 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 		}
 	}
 
-	//if (collision_active)
-	//{
-	//	physx::PxFilterData filterData;
-	//	filterData.word0 = (1 << GO->layer); // word0 = own ID
-	//	filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup; // word1 = ID mask to filter pairs that trigger a contact callback;
-	//	particleSystem->setSimulationFilterData(filterData);
-	//}
-
 	//Update particles
 	//lock SDK buffers of *PxParticleSystem* ps for reading
 	physx::PxParticleReadData* rd = particleSystem->lockParticleReadData();
@@ -243,11 +235,13 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				}
 
 				particles[i]->position = float3(positionIt->x, positionIt->y, positionIt->z);
-				if (followEmitterPosition){
+				
+				// -- Follow emitter rotation --
+				if (followEmitterRotation){
 
 					Quat totalRotation = Quat::identity;
 					Quat externalRotation = Quat::identity;
-
+					
 					Quat globalRotation;
 					float3 scale_, position_;
 
@@ -266,16 +260,19 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 						totalRotation = emitterRotation;
 						break;
 					}
-
+					
 					float3 newPosition = particles[i]->position;
-					Quat newPositionQuat = Quat( newPosition.x - globalPosition.x, newPosition.y - globalPosition.y, newPosition.z - globalPosition.z, 0 );
-					Quat rotationIncrease = particles[i]->intialRotation.Conjugated()*externalRotation;
+					Quat newPositionQuat = Quat( newPosition.x - particles[i]->emitterSpawnPosition.x, newPosition.y - particles[i]->emitterSpawnPosition.y, newPosition.z - particles[i]->emitterSpawnPosition.z, 0 );
+					Quat rotationIncrease =particles[i]->intialRotation.Inverted() /**externalRotation*/;
 					newPositionQuat = rotationIncrease * newPositionQuat * rotationIncrease.Conjugated();
+					newPositionQuat = externalRotation * newPositionQuat * externalRotation.Conjugated();
 
 					particles[i]->position = globalPosition;
 					particles[i]->position += float3(newPositionQuat.x, newPositionQuat.y, newPositionQuat.z);
-					particles[i]->position += globalPosition - particles[i]->emitterSpawnPosition;
 
+				}
+				else if (followEmitterPosition) {
+					particles[i]->position += globalPosition - particles[i]->emitterSpawnPosition;
 				}
 
 				if (colorGradient && gradients.size() > 0)
@@ -499,6 +496,7 @@ json ComponentParticleEmitter::Save() const
 	node["rotationType"] = std::to_string(rotationTypeInt);
 
 	node["followEmitterPosition"] = followEmitterPosition;
+	node["followEmitterRotation"] = followEmitterRotation;
 
 	node["particlesLifeTime"] = std::to_string(particlesLifeTime);
 
@@ -654,6 +652,7 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string _lifetimeconstants = node["lifetimeconstants"].is_null() ? "0" : node["lifetimeconstants"];
 
 	followEmitterPosition = node["followEmitterPosition"].is_null() ? true : node["followEmitterPosition"].get<bool>();
+	followEmitterRotation = node["followEmitterRotation"].is_null() ? true : node["followEmitterRotation"].get<bool>();
 
 	playOnAwake = node["PlayOnAwake"].is_null() ? false : node["PlayOnAwake"].get<bool>();
 	emisionActive = playOnAwake;
@@ -922,10 +921,16 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 
 
-	//Follow emitter
-	ImGui::Checkbox("##SFollow emitter", &followEmitterPosition);
-	ImGui::SameLine(); ImGui::Text("Follow emitter");
+	//Follow emitter position
+	ImGui::Checkbox("##SFollow emitter position", &followEmitterPosition);
+	ImGui::SameLine(); ImGui::Text("Follow emitter position");
 	ImGui::NewLine();
+
+	//Follow emitter position
+	ImGui::Checkbox("##SFollow emitter rotation", &followEmitterRotation);
+	ImGui::SameLine(); ImGui::Text("Follow emitter rotation & position");
+	ImGui::NewLine();
+
 
 	// --- Loop ---
 	if (ImGui::Checkbox("##PELoop", &loop))

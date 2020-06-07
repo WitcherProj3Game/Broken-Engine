@@ -161,8 +161,8 @@ private:
 	int lifetimeconstants = 0;
 	int velocityconstants = 0;
 	bool followEmitterPosition = false;
+	bool followEmitterRotation= false;
 	bool collision_active = true;
-	bool followParentsRotations = false;
 
 	//Colors
 	bool colorGradient = false;

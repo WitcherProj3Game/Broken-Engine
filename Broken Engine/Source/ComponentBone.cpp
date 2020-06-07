@@ -98,9 +98,9 @@ json ComponentBone::Save() const
 
 void ComponentBone::Load(json& node)
 {
-	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
+	this->active = node.contains("Active") ? (bool)node["Active"] : true;
 
-	std::string path = node["Resources"]["ResourceBone"].is_null() ? "0" : node["Resources"]["ResourceBone"];
+	std::string path = node["Resources"].contains("ResourceBone") ? node["Resources"]["ResourceBone"] : "0";
 	App->fs->SplitFilePath(path.c_str(), nullptr, &path);
 	path = path.substr(0, path.find_last_of("."));
 

@@ -176,15 +176,15 @@ json ComponentCanvas::Save() const
 
 void ComponentCanvas::Load(json& node)
 {
-	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
-	std::string visible_str = node["visible"].is_null() ? "0" : node["visible"];
-	std::string priority_str = node["priority"].is_null() ? "0" : node["priority"];
+	this->active = node.contains("Active") ? (bool)node["Active"] : true;
+	std::string visible_str = node.contains("visible") ? node["visible"] : "0";
+	std::string priority_str = node.contains("priority") ? node["priority"] : "0";
 	visible = bool(std::stoi(visible_str));
 	priority = int(std::stoi(priority_str));
-	anchor_type = node["anchor"].is_null() ? UI_Anchor::NONE : (UI_Anchor)node["anchor"].get<int>();
+	anchor_type = node.contains("anchor") ? (UI_Anchor)node["anchor"].get<int>() : UI_Anchor::NONE;
 
-	std::string position2Dx = node["position2DxLocal"].is_null() ? "0" : node["position2DxLocal"];
-	std::string position2Dy = node["position2DyLocal"].is_null() ? "0" : node["position2DyLocal"];
+	std::string position2Dx = node.contains("position2DxLocal") ? node["position2DxLocal"] : "0";
+	std::string position2Dy = node.contains("position2DyLocal") ? node["position2DyLocal"] : "0";
 
 	position2DLocal = float2(std::stof(position2Dx), std::stof(position2Dy));
 }

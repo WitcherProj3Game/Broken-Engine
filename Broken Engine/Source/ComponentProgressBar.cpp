@@ -233,18 +233,18 @@ json ComponentProgressBar::Save() const
 
 void ComponentProgressBar::Load(json& node)
 {
-	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
-	std::string visible_str = node["visible"].is_null() ? "0" : node["visible"];
-	std::string create = node["created"].is_null() ? "0" : node["created"];
+	this->active = node.contains("Active") ? (bool)node["Active"] : true;
+	std::string visible_str = node.contains("visible") ? node["visible"] : "0";
+	std::string create = node.contains("created") ? node["created"] : "0";
 	created = bool(std::stoi(create));
 
-	std::string constrai = node["constraint"].is_null() ? "1" : node["constraint"];
+	std::string constrai = node.contains("constraint") ? node["constraint"] : "1";
 	constraint_with_background = bool(std::stoi(constrai));
-	std::string priority_str = node["priority"].is_null() ? "0" : node["priority"];
+	std::string priority_str = node.contains("priority") ? node["priority"] : "0";
 	visible = bool(std::stoi(visible_str));
 	priority = int(std::stoi(priority_str));
 
-	//std::string path = node["Resources"]["ResourceTexture"].is_null() ? "0" : node["Resources"]["ResourceTexture"];
+	//std::string path = node["Resources"].contains("ResourceTexture") ? node["Resources"]["ResourceTexture"] : "0";
 	//App->fs->SplitFilePath(path.c_str(), nullptr, &path);
 	//path = path.substr(0, path.find_last_of("."));
 
@@ -253,29 +253,29 @@ void ComponentProgressBar::Load(json& node)
 	//if (texture)
 	//	texture->AddUser(GO);
 		
-	std::string position2Dx = node["position2Dx"].is_null() ? "0" : node["position2Dx"];
-	std::string position2Dy = node["position2Dy"].is_null() ? "0" : node["position2Dy"];
+	std::string position2Dx = node.contains("position2Dx") ? node["position2Dx"] : "0";
+	std::string position2Dy = node.contains("position2Dy") ? node["position2Dy"] : "0";
 
-	std::string size2Dx = node["size2Dx"].is_null() ? "0" : node["size2Dx"];
-	std::string size2Dy = node["size2Dy"].is_null() ? "0" : node["size2Dy"];
+	std::string size2Dx = node.contains("size2Dx") ? node["size2Dx"] : "0";
+	std::string size2Dy = node.contains("size2Dy") ? node["size2Dy"] : "0";
 
 	position2D = float2(std::stof(position2Dx), std::stof(position2Dy));
 	size2D = float2(std::stof(size2Dx), std::stof(size2Dy));
 
-	std::string Color1_R = node["Color1_R"].is_null() ? "0" : node["Color1_R"];
-	std::string Color1_G = node["Color1_G"].is_null() ? "0" : node["Color1_G"];
-	std::string Color1_B = node["Color1_B"].is_null() ? "0" : node["Color1_B"];
-	std::string Color1_A = node["Color1_A"].is_null() ? "0" : node["Color1_A"];
+	std::string Color1_R = node.contains("Color1_R") ? node["Color1_R"] : "0";
+	std::string Color1_G = node.contains("Color1_G") ? node["Color1_G"] : "0";
+	std::string Color1_B = node.contains("Color1_B") ? node["Color1_B"] : "0";
+	std::string Color1_A = node.contains("Color1_A") ? node["Color1_A"] : "0";
 
-	std::string Color2_R = node["Color2_R"].is_null() ? "0" : node["Color2_R"];
-	std::string Color2_G = node["Color2_G"].is_null() ? "0" : node["Color2_G"];
-	std::string Color2_B = node["Color2_B"].is_null() ? "0" : node["Color2_B"];
-	std::string Color2_A = node["Color2_A"].is_null() ? "0" : node["Color2_A"];
+	std::string Color2_R = node.contains("Color2_R") ? node["Color2_R"] : "0";
+	std::string Color2_G = node.contains("Color2_G") ? node["Color2_G"] : "0";
+	std::string Color2_B = node.contains("Color2_B") ? node["Color2_B"] : "0";
+	std::string Color2_A = node.contains("Color2_A") ? node["Color2_A"] : "0";
 
 	colorP1 = {std::stof(Color1_R),std::stof(Color1_G), std::stof(Color1_B), std::stof(Color1_A) };
 	colorP2 = { std::stof(Color2_R),std::stof(Color2_G), std::stof(Color2_B), std::stof(Color2_A) };
 
-	percentage = node["Percentage"].is_null() ? 100 : (float)node["Percentage"];
+	percentage = node.contains("Percentage") ? (float)node["Percentage"] : 100;
 }
 
 void ComponentProgressBar::CreateInspectorNode()

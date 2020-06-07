@@ -270,10 +270,10 @@ json ComponentAnimation::Save() const
 
 void ComponentAnimation::Load(json& node)
 {
-	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
+	this->active = node.contains("Active") ? (bool)node["Active"] : true;
 
 	// Load Animation resource ------------------------------------------------------------------------------------------
-	std::string path = node["Resources"]["ResourceAnimation"].is_null() ? "0" : node["Resources"]["ResourceAnimation"];
+	std::string path = node["Resources"].contains("ResourceAnimation") ? node["Resources"]["ResourceAnimation"] : "0";
 	App->fs->SplitFilePath(path.c_str(), nullptr, &path);
 	path = path.substr(0, path.find_last_of("."));
 
@@ -289,31 +289,31 @@ void ComponentAnimation::Load(json& node)
 
 
 	// Load Animator resource -------------------------------------------------------------------------------------------
-	std::string res_uid = node["Resources"]["ResourceAnimator"].is_null() ? "0" : node["Resources"]["ResourceAnimator"];
+	std::string res_uid = node["Resources"].contains("ResourceAnimator") ? node["Resources"]["ResourceAnimator"] : "0";
 	int uid = std::stoi(res_uid);
 
 	LoadAnimator(true, uid);
 
 	//--------------------------------------------------------------------------------------------------------------------
-	std::string blend_time = node["Animations"]["BlendTime"].is_null() ? "0" : node["Animations"]["BlendTime"];
+	std::string blend_time = node["Animations"].contains("BlendTime") ? node["Animations"]["BlendTime"] : "0";
 	blend_time_value = std::stof(blend_time);
 
-	use_default_animation = node["Animations"]["UseDefault"].is_null() ? false : (bool)node["Animations"]["UseDefault"];
+	use_default_animation = node["Animations"].contains("UseDefault") ? (bool)node["Animations"]["UseDefault"] : false;
 
 	if (!res_animator)
 	{
 		//--- Loading animations ---
 
-		std::string size = node["Animations"]["Size"].is_null() ? "0" : node["Animations"]["Size"];
+		std::string size = node["Animations"].contains("Size") ? node["Animations"]["Size"] : "0";
 		int anim_size = std::stoi(size);
 		for (int i = 0; i < anim_size; ++i)
 		{
 			std::string iterator = std::to_string(i);
-			std::string name = node["Animations"][iterator]["Name"].is_null() ? "" : node["Animations"][iterator]["Name"];
-			std::string start = node["Animations"][iterator]["Start"].is_null() ? "" : node["Animations"][iterator]["Start"];
-			std::string end = node["Animations"][iterator]["End"].is_null() ? "" : node["Animations"][iterator]["End"];
-			bool loop = node["Animations"][iterator]["Loop"].is_null() ? false : (bool)node["Animations"][iterator]["Loop"];
-			bool Default = node["Animations"][iterator]["Default"].is_null() ? false : (bool)node["Animations"][iterator]["Default"];
+			std::string name = node["Animations"][iterator].contains("Name") ? node["Animations"][iterator]["Name"] : "";
+			std::string start = node["Animations"][iterator].contains("Start") ? node["Animations"][iterator]["Start"] : "";
+			std::string end = node["Animations"][iterator].contains("End") ? node["Animations"][iterator]["End"] : "";
+			bool loop = node["Animations"][iterator].contains("Loop") ? (bool)node["Animations"][iterator]["Loop"] : false;
+			bool Default = node["Animations"][iterator].contains("Default") ? (bool)node["Animations"][iterator]["Default"] : false;
 
 			CreateAnimation(name, std::stoi(start), std::stoi(end), loop, Default);
 

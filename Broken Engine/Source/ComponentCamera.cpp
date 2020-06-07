@@ -180,14 +180,14 @@ json ComponentCamera::Save() const {
 
 void ComponentCamera::Load(json& node)
 {
-	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
+	this->active = node.contains("Active") ? (bool)node["Active"] : true;
 
-	SetAspectRatio(node["ASPECTRATIO"].is_null() ? 1.0f : node["ASPECTRATIO"].get<float>());
-	SetFOV(node["FOV"].is_null() ? 60.0f : node["FOV"].get<float>());
-	SetNearPlane(node["NEARPLANE"].is_null() ? 0.1f : node["NEARPLANE"].get<float>());
-	SetFarPlane(node["FARPLANE"].is_null() ? 100.0f : node["FARPLANE"].get<float>());
-	active_camera = node["ACTIVECAM"].is_null() ? false : node["ACTIVECAM"].get<bool>();
-	culling = node["CULLINGCAM"].is_null() ? false : node["CULLINGCAM"].get<bool>();
+	SetAspectRatio(node.contains("ASPECTRATIO") ? node["ASPECTRATIO"].get<float>() : 1.0f);
+	SetFOV(node.contains("FOV") ? node["FOV"].get<float>() : 60.0f);
+	SetNearPlane(node.contains("NEARPLANE") ? node["NEARPLANE"].get<float>() : 0.1f);
+	SetFarPlane(node.contains("FARPLANE") ? node["FARPLANE"].get<float>() : 100.0f);
+	active_camera = node.contains("ACTIVECAM") ? node["ACTIVECAM"].get<bool>() : false;
+	culling = node.contains("CULLINGCAM") ? node["CULLINGCAM"].get<bool>() : false;
 
 	if (active_camera)
 		App->renderer3D->SetActiveCamera(this);

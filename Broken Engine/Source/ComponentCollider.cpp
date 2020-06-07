@@ -312,59 +312,59 @@ json ComponentCollider::Save() const
 
 void ComponentCollider::Load(json& node)
 {
-	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
+	this->active = node.contains("Active") ? (bool)node["Active"] : true;
 
 	//ENGINE_CONSOLE_LOG("Load");
 	//CreateCollider(COLLIDER_TYPE::NONE, true);
 
-	std::string localPositionx = node["localPositionx"].is_null() ? "0" : node["localPositionx"];
-	std::string localPositiony = node["localPositiony"].is_null() ? "0" : node["localPositiony"];
-	std::string localPositionz = node["localPositionz"].is_null() ? "0" : node["localPositionz"];
+	std::string localPositionx = node.contains("localPositionx") ? node["localPositionx"] : "0";
+	std::string localPositiony = node.contains("localPositiony") ? node["localPositiony"] : "0";
+	std::string localPositionz = node.contains("localPositionz") ? node["localPositionz"] : "0";
 
-	std::string originalScalex = node["originalScalex"].is_null() ? "0" : node["originalScalex"];
-	std::string originalScaley = node["originalScaley"].is_null() ? "0" : node["originalScaley"];
-	std::string originalScalez = node["originalScalez"].is_null() ? "0" : node["originalScalez"];
+	std::string originalScalex = node.contains("originalScalex") ? node["originalScalex"] : "0";
+	std::string originalScaley = node.contains("originalScaley") ? node["originalScaley"] : "0";
+	std::string originalScalez = node.contains("originalScalez") ? node["originalScalez"] : "0";
 
-	std::string offsetx = node["offsetx"].is_null() ? "0" : node["offsetx"];
-	std::string offsety = node["offsety"].is_null() ? "0" : node["offsety"];
-	std::string offsetz = node["offsetz"].is_null() ? "0" : node["offsetz"];
+	std::string offsetx = node.contains("offsetx") ? node["offsetx"] : "0";
+	std::string offsety = node.contains("offsety") ? node["offsety"] : "0";
+	std::string offsetz = node.contains("offsetz") ? node["offsetz"] : "0";
 
-	std::string localMatrixx = node["localMatrixx"].is_null() ? "0" : node["localMatrixx"];
-	std::string localMatrixy = node["localMatrixy"].is_null() ? "0" : node["localMatrixy"];
-	std::string localMatrixz = node["localMatrixz"].is_null() ? "0" : node["localMatrixz"];
-	std::string localMatrixw = node["localMatrixw"].is_null() ? "0" : node["localMatrixw"];
+	std::string localMatrixx = node.contains("localMatrixx") ? node["localMatrixx"] : "0";
+	std::string localMatrixy = node.contains("localMatrixy") ? node["localMatrixy"] : "0";
+	std::string localMatrixz = node.contains("localMatrixz") ? node["localMatrixz"] : "0";
+	std::string localMatrixw = node.contains("localMatrixw") ? node["localMatrixw"] : "0";
 
-	std::string globalMatrixx = node["globalMatrixx"].is_null() ? "0" : node["globalMatrixx"];
-	std::string globalMatrixy = node["globalMatrixy"].is_null() ? "0" : node["globalMatrixy"];
-	std::string globalMatrixz = node["globalMatrixz"].is_null() ? "0" : node["globalMatrixz"];
-	std::string globalMatrixw = node["globalMatrixw"].is_null() ? "0" : node["globalMatrixw"];
+	std::string globalMatrixx = node.contains("globalMatrixx") ? node["globalMatrixx"] : "0";
+	std::string globalMatrixy = node.contains("globalMatrixy") ? node["globalMatrixy"] : "0";
+	std::string globalMatrixz = node.contains("globalMatrixz") ? node["globalMatrixz"] : "0";
+	std::string globalMatrixw = node.contains("globalMatrixw") ? node["globalMatrixw"] : "0";
 
-	std::string scalex = node["scalex"].is_null() ? "0" : node["scalex"];
-	std::string scaley = node["scaley"].is_null() ? "0" : node["scaley"];
-	std::string scalez = node["scalez"].is_null() ? "0" : node["scalez"];
+	std::string scalex = node.contains("scalex") ? node["scalex"] : "0";
+	std::string scaley = node.contains("scaley") ? node["scaley"] : "0";
+	std::string scalez = node.contains("scalez") ? node["scalez"] : "0";
 
-	std::string radius_ = node["radius"].is_null() ? "0" : node["radius"];
+	std::string radius_ = node.contains("radius") ? node["radius"] : "0";
 
-	std::string height_ = node["height"].is_null() ? "0" : node["height"];
+	std::string height_ = node.contains("height") ? node["height"] : "0";
 
-	std::string lastIndex_ = node["lastIndex"].is_null() ? "0" : node["lastIndex"];
+	std::string lastIndex_ = node.contains("lastIndex") ? node["lastIndex"] : "0";
 
-	std::string colliderType_ = node["colliderType"].is_null() ? "0" : node["colliderType"];
+	std::string colliderType_ = node.contains("colliderType") ? node["colliderType"] : "0";
 
-	std::string isTrigger_ = node["isTrigger"].is_null() ? "0" : node["isTrigger"];
-	std::string isConvex_ = node["isConvex"].is_null() ? "0" : node["isConvex"];
+	std::string isTrigger_ = node.contains("isTrigger") ? node["isTrigger"] : "0";
+	std::string isConvex_ = node.contains("isConvex") ? node["isConvex"] : "0";
 
-	std::string tmpScalex = node["tmpScalex"].is_null() ? "0" : node["tmpScalex"];
-	std::string tmpScaley = node["tmpScaley"].is_null() ? "0" : node["tmpScaley"];
-	std::string tmpScalez = node["tmpScalez"].is_null() ? "0" : node["tmpScalez"];
+	std::string tmpScalex = node.contains("tmpScalex") ? node["tmpScalex"] : "0";
+	std::string tmpScaley = node.contains("tmpScaley") ? node["tmpScaley"] : "0";
+	std::string tmpScalez = node.contains("tmpScalez") ? node["tmpScalez"] : "0";
 
-	std::string firstCreation_ = node["firstCreation"].is_null() ? "0" : node["firstCreation"];
+	std::string firstCreation_ = node.contains("firstCreation") ? node["firstCreation"] : "0";
 
-	std::string hasBeenDeactivated_ = node["hasBeenDeactivated"].is_null() ? "0" : node["hasBeenDeactivated"];
+	std::string hasBeenDeactivated_ = node.contains("hasBeenDeactivated") ? node["hasBeenDeactivated"] : "0";
 
-	std::string draggedUID_ = node["draggedUID"].is_null() ? "0" : node["draggedUID"];
+	std::string draggedUID_ = node.contains("draggedUID") ? node["draggedUID"] : "0";
 
-	std::string draw_ = node["draw"].is_null() ? "0" : node["draw"];
+	std::string draw_ = node.contains("draw") ? node["draw"] : "0";
 
 
 	centerPosition = float3(std::stof(localPositionx), std::stof(localPositiony), std::stof(localPositionz));

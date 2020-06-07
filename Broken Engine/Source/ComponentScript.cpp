@@ -279,9 +279,9 @@ json ComponentScript::Save() const
 
 void ComponentScript::Load(json& node)
 {
-	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
+	this->active = node.contains("Active") ? (bool)node["Active"] : true;
 
-	std::string path = node["Resources"]["ResourceScript"].is_null() ? "0" : node["Resources"]["ResourceScript"];
+	std::string path = node["Resources"].contains("ResourceScript") ? node["Resources"]["ResourceScript"] : "0";
 
 	ImporterMeta* IMeta = App->resources->GetImporter<ImporterMeta>();
 

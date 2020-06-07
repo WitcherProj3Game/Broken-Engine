@@ -241,28 +241,28 @@ void ComponentText::Load(json& node)
 {
 	//When loading scene, load the saved font if exists else use default font
 
-	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
-	std::string visible_str = node["visible"].is_null() ? "0" : node["visible"];
-	std::string priority_str = node["priority"].is_null() ? "0" : node["priority"];
+	this->active = node.contains("Active") ? (bool)node["Active"] : true;
+	std::string visible_str = node.contains("visible") ? node["visible"] : "0";
+	std::string priority_str = node.contains("priority") ? node["priority"] : "0";
 	visible = bool(std::stoi(visible_str));
 	priority = int(std::stoi(priority_str));
-	anchor_type = node["anchor"].is_null() ? UI_Anchor::NONE : (UI_Anchor)node["anchor"].get<int>();
+	anchor_type = node.contains("anchor") ? (UI_Anchor)node["anchor"].get<int>() : UI_Anchor::NONE;
 
-	std::string posx = node["position2Dx"].is_null() ? "0" : node["position2Dx"];
-	std::string posy = node["position2Dy"].is_null() ? "0" : node["position2Dy"];
+	std::string posx = node.contains("position2Dx") ? node["position2Dx"] : "0";
+	std::string posy = node.contains("position2Dy") ? node["position2Dy"] : "0";
 
-	std::string rot = node["rotation2D"].is_null() ? "0" : node["rotation2D"];
+	std::string rot = node.contains("rotation2D") ? node["rotation2D"] : "0";
 
-	std::string scalex = node["scale2Dx"].is_null() ? "0" : node["scale2Dx"];
-	std::string scaley = node["scale2Dy"].is_null() ? "0" : node["scale2Dy"];
+	std::string scalex = node.contains("scale2Dx") ? node["scale2Dx"] : "0";
+	std::string scaley = node.contains("scale2Dy") ? node["scale2Dy"] : "0";
 
-	std::string colorr = node["colorR"].is_null() ? "1" : node["colorR"];
-	std::string colorg = node["colorG"].is_null() ? "1" : node["colorG"];
-	std::string colorb = node["colorB"].is_null() ? "1" : node["colorB"];
-	std::string colora = node["colorA"].is_null() ? "1" : node["colorA"];
+	std::string colorr = node.contains("colorR") ? node["colorR"] : "1";
+	std::string colorg = node.contains("colorG") ? node["colorG"] : "1";
+	std::string colorb = node.contains("colorB") ? node["colorB"] : "1";
+	std::string colora = node.contains("colorA") ? node["colorA"] : "1";
 
-	std::string Text = node["text"].is_null() ? "ErrorLoading" : node["text"];
-	std::string Font = node["font"].is_null() ? std::to_string(App->resources->DefaultFont->GetUID()).c_str() : node["font"];
+	std::string Text = node.contains("text") ? node["text"] : "ErrorLoading";
+	std::string Font = node.contains("font") ? node["font"] : std::to_string(App->resources->DefaultFont->GetUID()).c_str();
 	
 	Move({ std::stof(posx),std::stof(posy) });
 	Rotate(std::stof(rot));

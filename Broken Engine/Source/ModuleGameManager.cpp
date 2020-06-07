@@ -36,7 +36,9 @@ update_status ModuleGameManager::PreUpdate(float dt) {
 	GameApp->gui->sceneHeight = GameApp->window->GetWindowHeight();
 	GameApp->gui->sceneWidth = GameApp->window->GetWindowWidth();
 	GameApp->gui->isSceneHovered = GameApp->window->isMouseFocused();
-	GameApp->renderer3D->active_camera->SetAspectRatio(16 / 9);
+
+	if(GameApp->renderer3D->active_camera)
+		GameApp->renderer3D->active_camera->SetAspectRatio(16 / 9);
 
 	return UPDATE_CONTINUE;
 }

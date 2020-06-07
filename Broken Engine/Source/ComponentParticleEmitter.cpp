@@ -1501,7 +1501,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	ImGui::Separator();
 
-	if (ImGui::TreeNodeEx("Renderer", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::TreeNode("Renderer"))
 	{
 		// Shadows & Lighting
 		ImGui::NewLine();

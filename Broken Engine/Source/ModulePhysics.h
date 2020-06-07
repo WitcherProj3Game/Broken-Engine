@@ -25,7 +25,6 @@ namespace physx
 	class PxBase;
 
 	typedef uint32_t PxU32;
-	const float fixed_dt = (1.0f / 60.0f);
 };
 
 #define MAX_HITS 256
@@ -170,6 +169,8 @@ public:
 
 	float physAccumulatedTime = 0.0f;
 	FilterCallback filterCallback;
+	float fixed_dt = (1.0f / 60.0f);
+	bool fixed = false;
 
 private:
 	PhysxSimulationEvents* simulationEventsCallback = nullptr;

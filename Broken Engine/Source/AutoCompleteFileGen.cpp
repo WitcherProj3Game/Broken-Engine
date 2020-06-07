@@ -53,6 +53,8 @@ void AutoCompleteFileGen::EmplaceAnimationFunctions()
 	engine_functions.push_back(SetBlendTime);
 	engine_functions.push_back(CurrentAnimationEnded);
 	engine_functions.push_back(GetCurrentFrame);
+	engine_functions.push_back(SetAnimationPause);
+	engine_functions.push_back(StopAnimation);
 }
 
 void AutoCompleteFileGen::EmplaceUserInterfaceFunctions()
@@ -64,6 +66,14 @@ void AutoCompleteFileGen::EmplaceUserInterfaceFunctions()
 	
 	SerializedFunction MakeElementInvisible("MakeElementInvisible", source.c_str());
 	MakeElementInvisible.variables.push_back("comp_type"); MakeElementInvisible.variables.push_back("gameObject_UID");
+
+	SerializedFunction SetUIElementPosition("SetUIElementPosition", source.c_str());
+	SetUIElementPosition.variables.push_back("comp_type");
+	SetUIElementPosition.variables.push_back("x"); SetUIElementPosition.variables.push_back("y");
+	SetUIElementPosition.variables.push_back("go_UUID");
+
+	SerializedFunction GetUIElementPosition("GetUIElementPosition", source.c_str());
+	GetUIElementPosition.variables.push_back("comp_type"); GetUIElementPosition.variables.push_back("go_UUID");
 
 	SerializedFunction SetUIElementInteractable("SetUIElementInteractable", source.c_str());
 	SetUIElementInteractable.variables.push_back("comp_type"); SetUIElementInteractable.variables.push_back("gameObject_UID"); SetUIElementInteractable.variables.push_back("value");
@@ -128,6 +138,8 @@ void AutoCompleteFileGen::EmplaceUserInterfaceFunctions()
 	engine_functions.push_back(MakeElementVisible);
 	engine_functions.push_back(MakeElementInvisible);
 	engine_functions.push_back(SetUIElementInteractable);
+	engine_functions.push_back(SetUIElementPosition);
+	engine_functions.push_back(GetUIElementPosition);
 
 	engine_functions.push_back(SetUIBarPercentage);
 	engine_functions.push_back(SetUICircularBarPercentage);
@@ -498,7 +510,11 @@ void AutoCompleteFileGen::EmplacePhysicsFunctions()
 	SerializedFunction SetMass("SetMass", source.c_str());
 	SetMass.variables.push_back("mass"); SetMass.variables.push_back("gameObject_UID");
 
+	SerializedFunction FixedSimulationRate("FixedSimulationRate", source.c_str());
+	FixedSimulationRate.variables.push_back("rate");
 
+	SerializedFunction FixedSimulation("FixedSimulation", source.c_str());
+	FixedSimulation.variables.push_back("fixed");
 
 	SerializedFunction GetAngularVelocity("GetAngularVelocity", source.c_str());
 	GetAngularVelocity.variables.push_back("gameObject_UID");
@@ -573,6 +589,9 @@ void AutoCompleteFileGen::EmplacePhysicsFunctions()
 	//PushBack all functions
 	engine_functions.push_back(GetMass);
 	engine_functions.push_back(SetMass);
+
+	engine_functions.push_back(SetMass);
+	engine_functions.push_back(FixedSimulationRate);
 
 	engine_functions.push_back(GetAngularVelocity);
 	engine_functions.push_back(SetAngularVelocity);
@@ -655,7 +674,8 @@ void AutoCompleteFileGen::EmplaceParticlesFunctions()
 
 	
 	SerializedFunction SetParticlesScale("SetParticlesScale", source.c_str());
-	SetParticlesScale.variables.push_back("x"); SetParticlesScale.variables.push_back("y"); SetParticlesScale.variables.push_back("gameObject_UID");
+	SetParticlesScale.variables.push_back("x"); SetParticlesScale.variables.push_back("y"); SetParticlesScale.variables.push_back("z");
+	SetParticlesScale.variables.push_back("gameObject_UID");
 	
 	SerializedFunction SetRandomParticlesScale("SetRandomParticlesScale", source.c_str());
 	SetRandomParticlesScale.variables.push_back("randomFactor"); SetRandomParticlesScale.variables.push_back("gameObject_UID");
@@ -854,6 +874,11 @@ void AutoCompleteFileGen::EmplaceAudioFunctions()
 	engine_functions.push_back(StopAudioEventGO);
 	engine_functions.push_back(PauseAudioEventGO);
 	engine_functions.push_back(ResumeAudioEventGO);
+
+	engine_functions.push_back(SetAudioSwitch);
+	engine_functions.push_back(SetAudioTrigger);
+	engine_functions.push_back(SetAudioState);
+	engine_functions.push_back(SetAudioRTPCValue);
 }
 
 void AutoCompleteFileGen::EmplaceMaterialFunctions() {

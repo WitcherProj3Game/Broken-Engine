@@ -30,6 +30,7 @@ bool PanelPhysics::Draw()
 	float staticFriction = EngineApp->physics->mMaterial->getStaticFriction();
 	float dynamicFriction = EngineApp->physics->mMaterial->getDynamicFriction();
 	float restitution = EngineApp->physics->mMaterial->getRestitution();
+	int tmpdt = (1 / EngineApp->physics->fixed_dt) + 0.001;
 
 	physx::PxVec3 tmpGravity = gravity;
 	float tmpStaticFriction = staticFriction;
@@ -80,6 +81,17 @@ bool PanelPhysics::Draw()
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 		ImGui::DragFloat("##restitution", &tmpRestitution, 0.005f, 0.f, 1.f);
+
+		ImGui::Text("Fixed Update Rate:");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
+		if (ImGui::DragInt("##fixedRate", &tmpdt, 1, 15, 120)) {
+			EngineApp->physics->fixed_dt = 1 / (float)tmpdt;
+		}
+
+		ImGui::Text("Fixed Update:");
+		ImGui::SameLine();
+		ImGui::Checkbox("##activefixed", &EngineApp->physics->fixed);
 
 		CreateLayerFilterGrid();
 

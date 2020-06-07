@@ -73,6 +73,21 @@ void ScriptingPhysics::SetMass(float mass, uint gameobject_UUID)
 		ENGINE_CONSOLE_LOG("![Script]: (SetMass) Gameobject with UID %d was not found!", gameobject_UUID);
 }
 
+void ScriptingPhysics::FixedSimulationRate(int rate)
+{
+	if (rate < 15)
+		rate = 15;
+	if (rate > 120)
+		rate = 120;
+
+	App->physics->fixed_dt = (1 / rate);
+}
+
+void ScriptingPhysics::FixedSimulation(bool fixed)
+{
+	App->physics->fixed = fixed;
+}
+
 float ScriptingPhysics::GetMass(uint gameobject_UUID)
 {
 	float ret = 0.0;

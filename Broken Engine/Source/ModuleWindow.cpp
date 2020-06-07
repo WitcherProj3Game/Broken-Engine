@@ -71,7 +71,7 @@ bool ModuleWindow::Init(json& file) {
 			flags |= SDL_WINDOW_BORDERLESS;
 		}
 
-		if (fullscreen_desktop == true) {
+		if (fullscreen_desktop == true || App->isGame) {
 			flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 		}
 

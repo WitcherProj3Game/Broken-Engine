@@ -64,10 +64,9 @@ public:
 
 	//Particles
 	void SetLifeTime(int ms);
-	void SetParticlesScale(float x, float y);
+	void SetParticlesScale(float x, float y, float z);
 	void SetParticlesScaleRF(float randomFactor1, float randomFactor2);
 	void UpdateActorLayer(const int* layerMask);
-	void SetScale(float x, float y);
 	void SetScaleOverTime(float scale);
 	void SetTexture(uint UID);
 
@@ -96,6 +95,8 @@ private:
 private:
 	physx::PxParticleSystem* particleSystem = nullptr;
 
+	bool custom_mesh = false;
+	ResourceMesh* particles_mesh = nullptr;
 	std::vector<ResourceMesh*> particleMeshes;
 	std::vector<Particle*> particles;
 	std::map<float, int> drawingIndices;
@@ -153,7 +154,7 @@ private:
 	int particlesLifeTime = 1000;
 	int particlesLifeTime1 = 1000;
 	int particlesLifeTime2 = 1000;
-	float2 particlesScale = { 1,1 };
+	float3 particlesScale = float3::one;
 	float scaleOverTime = 0.0f;
 	float particlesScaleRandomFactor1 = 1;
 	float particlesScaleRandomFactor2 = 1;

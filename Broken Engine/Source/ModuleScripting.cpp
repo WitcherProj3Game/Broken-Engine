@@ -287,6 +287,9 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.beginClass <ScriptingPhysics>("Physics")
 		.addConstructor<void(*) (void)>()
 
+		.addFunction("FixedSimulation", &ScriptingPhysics::FixedSimulation)
+		.addFunction("FixedSimulationRate", &ScriptingPhysics::FixedSimulationRate)
+
 		.addFunction("GetMass", &ScriptingPhysics::GetMass)
 		.addFunction("SetMass", &ScriptingPhysics::SetMass)
 
@@ -505,6 +508,8 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 
 		.addFunction("MakeElementVisible", &ScriptingInterface::MakeUIComponentVisible)
 		.addFunction("MakeElementInvisible", &ScriptingInterface::MakeUIComponentInvisible)
+		.addFunction("SetUIElementPosition", &ScriptingInterface::SetUIElementPosition)
+		.addFunction("GetUIElementPosition", &ScriptingInterface::GetUIElementPosition)
 
 		.addFunction("SetUIBarPercentage", &ScriptingInterface::SetBarPercentage)
 		.addFunction("SetUICircularBarPercentage", &ScriptingInterface::SetCircularBarPercentage)

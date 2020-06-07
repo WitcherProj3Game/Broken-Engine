@@ -187,6 +187,10 @@ void ComponentMesh::UpdateDefMesh()
 		deformable_mesh->vertices[i].position[0] = 0.0f;
 		deformable_mesh->vertices[i].position[1] = 0.0f;
 		deformable_mesh->vertices[i].position[2] = 0.0f;
+
+		deformable_mesh->vertices[i].normal[0] = 0.0f;
+		deformable_mesh->vertices[i].normal[1] = 0.0f;
+		deformable_mesh->vertices[i].normal[2] = 0.0f;
 	}
 
 	for (std::vector<ComponentBone*>::iterator it = bones.begin(); it != bones.end(); ++it)
@@ -215,16 +219,22 @@ void ComponentMesh::UpdateDefMesh()
 			deformable_mesh->vertices[index].position[1] += _vertex.y * r_bone->weight[i];
 			deformable_mesh->vertices[index].position[2] += _vertex.z * r_bone->weight[i];
 
-			/*if ((resource_mesh->VerticesSize / 3) > 0);
-			{
-				float3 aux_ = { resource_mesh->vertices[index].position[0],
-								resource_mesh->vertices[index].position[1],
-								resource_mesh->vertices[index].position[2] };
-				_vertex = mat.TransformPos(aux_);
-				resource_def_mesh->vertices[index].normal[0] += _vertex.x * r_bone->weight[i];
-				resource_def_mesh->vertices[index].normal[1] += _vertex.y * r_bone->weight[i];
-				resource_def_mesh->vertices[index].normal[2] += _vertex.z * r_bone->weight[i];
-			}*/
+
+			_vertex = mat.TransformPos(deformable_mesh->vertices[index].normal[0],
+										deformable_mesh->vertices[index].normal[1], 
+										deformable_mesh->vertices[index].normal[2]);
+
+			deformable_mesh->vertices[index].normal[0] += _vertex.x * r_bone->weight[i];
+			deformable_mesh->vertices[index].normal[1] += _vertex.y * r_bone->weight[i];
+			deformable_mesh->vertices[index].normal[2] += _vertex.z * r_bone->weight[i];
+
+			float3 normal = float3(deformable_mesh->vertices[index].normal[0], deformable_mesh->vertices[index].normal[1], deformable_mesh->vertices[index].normal[2]);
+			normal.Normalize();
+
+			deformable_mesh->vertices[index].normal[0] = normal.x;
+			deformable_mesh->vertices[index].normal[1] = normal.y;
+			deformable_mesh->vertices[index].normal[2] = normal.z;
+
 		}
 	}
 	// --- Bind it ---

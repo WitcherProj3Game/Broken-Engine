@@ -198,6 +198,8 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 
 	float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
 
+	bool aabbInCamera = App->renderer3D->culling_camera->frustum.Intersects(particlesAreaAABB);
+
 	// access particle data from physx::PxParticleReadData
 	if (rd)
 	{
@@ -226,47 +228,48 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 					particles[i]->scale.y = scaleOverTime;
 				}
 
-				particles[i]->position = float3(positionIt->x, positionIt->y, positionIt->z);
-				
-				// -- Follow emitter rotation --
-				if (followEmitterRotation){
+				if (aabbInCamera) {
+					particles[i]->position = float3(positionIt->x, positionIt->y, positionIt->z);
 
-					Quat totalRotation = Quat::identity;
-					Quat externalRotation = Quat::identity;
-					
-					Quat globalRotation;
-					float3 scale_, position_;
+					// -- Follow emitter rotation --
+					if (followEmitterRotation) {
 
-					switch (rotationType)
-					{
-					case Broken::ROTATION_PARENT::GO_LOCAL:
-						totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
-						externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
-						break;
-					case Broken::ROTATION_PARENT::GO_GLOBAL:
-						GO->GetComponent<ComponentTransform>()->GetGlobalTransform().Decompose(position_, globalRotation, scale_);
-						totalRotation = globalRotation * emitterRotation;
-						externalRotation = globalRotation;
-						break;
-					case Broken::ROTATION_PARENT::NONE:
-						totalRotation = emitterRotation;
-						break;
+						Quat totalRotation = Quat::identity;
+						Quat externalRotation = Quat::identity;
+
+						Quat globalRotation;
+						float3 scale_, position_;
+
+						switch (rotationType)
+						{
+						case Broken::ROTATION_PARENT::GO_LOCAL:
+							totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
+							externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
+							break;
+						case Broken::ROTATION_PARENT::GO_GLOBAL:
+							GO->GetComponent<ComponentTransform>()->GetGlobalTransform().Decompose(position_, globalRotation, scale_);
+							totalRotation = globalRotation * emitterRotation;
+							externalRotation = globalRotation;
+							break;
+						case Broken::ROTATION_PARENT::NONE:
+							totalRotation = emitterRotation;
+							break;
+						}
+
+						float3 newPosition = particles[i]->position;
+						Quat newPositionQuat = Quat(newPosition.x - particles[i]->emitterSpawnPosition.x, newPosition.y - particles[i]->emitterSpawnPosition.y, newPosition.z - particles[i]->emitterSpawnPosition.z, 0);
+						Quat rotationIncrease = particles[i]->intialRotation.Inverted() /**externalRotation*/;
+						newPositionQuat = rotationIncrease * newPositionQuat * rotationIncrease.Conjugated();
+						newPositionQuat = externalRotation * newPositionQuat * externalRotation.Conjugated();
+
+						particles[i]->position = globalPosition;
+						particles[i]->position += float3(newPositionQuat.x, newPositionQuat.y, newPositionQuat.z);
+
 					}
-					
-					float3 newPosition = particles[i]->position;
-					Quat newPositionQuat = Quat( newPosition.x - particles[i]->emitterSpawnPosition.x, newPosition.y - particles[i]->emitterSpawnPosition.y, newPosition.z - particles[i]->emitterSpawnPosition.z, 0 );
-					Quat rotationIncrease =particles[i]->intialRotation.Inverted() /**externalRotation*/;
-					newPositionQuat = rotationIncrease * newPositionQuat * rotationIncrease.Conjugated();
-					newPositionQuat = externalRotation * newPositionQuat * externalRotation.Conjugated();
-
-					particles[i]->position = globalPosition;
-					particles[i]->position += float3(newPositionQuat.x, newPositionQuat.y, newPositionQuat.z);
-
+					else if (followEmitterPosition) {
+						particles[i]->position += globalPosition - particles[i]->emitterSpawnPosition;
+					}
 				}
-				else if (followEmitterPosition) {
-					particles[i]->position += globalPosition - particles[i]->emitterSpawnPosition;
-				}
-
 				if (colorGradient && gradients.size() > 0)
 				{
 					if (particles[i]->currentGradient >= gradients.size())//Comment this and next line in case gradient widget is applyed
@@ -316,8 +319,8 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 		indexPool->freeIndices(particlesToRelease, physx::PxStrideIterator<physx::PxU32>(indicesToErease.data()));
 	}
 
-	CreateAABBs();
-	if (App->renderer3D->culling_camera->frustum.Intersects(particlesAreaAABB))
+	UpdateAABBs();
+	if (aabbInCamera)
 		SortParticles();
 }
 
@@ -1928,7 +1931,7 @@ void ComponentParticleEmitter::UpdateAllGradients()
 	}
 }
 
-void ComponentParticleEmitter::CreateAABBs()
+void ComponentParticleEmitter::UpdateAABBs()
 {
 	Quat totalRotation = Quat::identity;
 	Quat externalRotation = Quat::identity;
@@ -2006,7 +2009,7 @@ void ComponentParticleEmitter::CreateAABBs()
 
 void ComponentParticleEmitter::DrawEmitterArea()
 {
-	CreateAABBs();
+	UpdateAABBs();
 
 	App->renderer3D->DrawOBB(emisionAreaOBB, Blue);
 	App->renderer3D->DrawAABB(particlesAreaAABB,Green);

@@ -667,8 +667,8 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string LparticlesLifeTime2 = node["particlesLifeTime2"].is_null() ? "0" : node["particlesLifeTime2"];
 	std::string _lifetimeconstants = node["lifetimeconstants"].is_null() ? "0" : node["lifetimeconstants"];
 
-	followEmitterPosition = node["followEmitterPosition"].is_null() ? false : node["followEmitterPosition"].get<bool>();
-	followEmitterRotation = node["followEmitterRotation"].is_null() ? false : node["followEmitterRotation"].get<bool>();
+	followEmitterPosition = node.contains("followEmitterPosition") ? node["followEmitterPosition"].get<bool>() : false;
+	followEmitterRotation = node.contains("followEmitterRotation") ? node["followEmitterRotation"].get<bool>() : false;
 
 	playOnAwake = node["PlayOnAwake"].is_null() ? false : node["PlayOnAwake"].get<bool>();
 	emisionActive = playOnAwake;
@@ -720,7 +720,7 @@ void ComponentParticleEmitter::Load(json& node)
 	randomInitialRotation = node["randomInitialRotation"].is_null() ? false : node["randomInitialRotation"].get<bool>();
 
 
-	std::string rotation_type = node["rotationType"].is_null() ? "0" : node["rotationType"];
+	std::string rotation_type = node.contains("rotationType") ? node["rotationType"] : "0";
 	rotationTypeInt = std::stoi(rotation_type);
 	rotationType = ROTATION_PARENT(rotationTypeInt);
 

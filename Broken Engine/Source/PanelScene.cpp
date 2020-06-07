@@ -59,20 +59,6 @@ bool PanelScene::Draw()
 
 		if (fixed_ar)
 		{
-			//float diff = 0;
-
-			//if (size.x * 9 > size.y * 16)
-			//{
-			//	diff = size.x * 9 - size.y * 16;
-			//	size.y += diff;
-			//	//height = size.y;
-			//}
-			//else if (size.x * 9 < size.y * 16)
-			//{
-			//	diff = size.y * 16 - size.x * 9;
-			//	size.x += diff;
-			//	//width = size.x;
-			//}
 			size = float2(EngineApp->window->GetWindowWidth(), EngineApp->window->GetWindowHeight());
 
 			if (size.x > width)

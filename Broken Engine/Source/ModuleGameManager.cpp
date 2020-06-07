@@ -5,6 +5,7 @@
 #include "ModuleGui.h"
 #include "ModuleWindow.h"
 #include "ModuleSceneManager.h"
+#include "ComponentCamera.h"
 
 ModuleGameManager::ModuleGameManager(bool start_enabled) {
 	name = "Game Manager";
@@ -25,6 +26,7 @@ bool ModuleGameManager::Start() {
 	GameApp->gui->sceneHeight = GameApp->window->GetWindowHeight();
 	GameApp->gui->sceneWidth = GameApp->window->GetWindowWidth();
 	GameApp->scene_manager->LoadGame(GameApp->GetConfigFile());
+
 	return true;
 }
 
@@ -34,6 +36,7 @@ update_status ModuleGameManager::PreUpdate(float dt) {
 	GameApp->gui->sceneHeight = GameApp->window->GetWindowHeight();
 	GameApp->gui->sceneWidth = GameApp->window->GetWindowWidth();
 	GameApp->gui->isSceneHovered = GameApp->window->isMouseFocused();
+	GameApp->renderer3D->active_camera->SetAspectRatio(16 / 9);
 
 	return UPDATE_CONTINUE;
 }

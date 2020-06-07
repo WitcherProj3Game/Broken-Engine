@@ -42,7 +42,7 @@ void ScriptingSystem::ResumeGame()
 
 int ScriptingSystem::IsGamePaused()
 {
-	return App->time->gamePaused;
+	return (int)App->time->gamePaused;
 }
 
 const char* ScriptingSystem::GetDebuggingPath()

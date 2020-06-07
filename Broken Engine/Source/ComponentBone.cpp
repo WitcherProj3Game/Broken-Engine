@@ -100,7 +100,7 @@ void ComponentBone::Load(json& node)
 {
 	this->active = node.contains("Active") ? (bool)node["Active"] : true;
 
-	std::string path = node["Resources"].contains("ResourceBone") ? node["Resources"]["ResourceBone"] : "0";
+	std::string path = node["Resources"]["ResourceBone"].is_null() ? "0" : node["Resources"]["ResourceBone"];
 	App->fs->SplitFilePath(path.c_str(), nullptr, &path);
 	path = path.substr(0, path.find_last_of("."));
 

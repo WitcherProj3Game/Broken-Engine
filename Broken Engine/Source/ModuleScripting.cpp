@@ -209,6 +209,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("GameTime", &ScriptingSystem::GameTime)
 		.addFunction("PauseGame", &ScriptingSystem::PauseGame)
 		.addFunction("ResumeGame", &ScriptingSystem::ResumeGame)
+		.addFunction("IsGamePaused", &ScriptingSystem::IsGamePaused)
 		.addFunction("GetDebuggingPath", &ScriptingSystem::GetDebuggingPath)
 
 		// Maths
@@ -238,13 +239,16 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 		.addFunction("Translate", &ScriptingTransform::Translate)
 		.addFunction("SetPosition", &ScriptingTransform::SetPosition)
 		.addFunction("SetLocalPosition", &ScriptingTransform::SetLocalPosition)
-		.addFunction("SetScale", &ScriptingTransform::SetScale)
 
 		// Rotation
 		.addFunction("GetRotation", &ScriptingTransform::GetRotation)
 		.addFunction("RotateObject", &ScriptingTransform::RotateObject)
 		.addFunction("SetObjectRotation", &ScriptingTransform::SetObjectRotation)
 		.addFunction("LookAt", &ScriptingTransform::LookAt)
+
+		//Scale
+		.addFunction("GetScale", &ScriptingTransform::GetScale)
+		.addFunction("SetScale", &ScriptingTransform::SetScale)
 		.endClass()
 
 		// ----------------------------------------------------------------------------------

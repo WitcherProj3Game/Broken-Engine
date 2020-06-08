@@ -13,6 +13,12 @@ class Particle;
 class ResourceTexture;
 class CurveEditor;
 
+enum class ROTATION_PARENT {
+	GO_GLOBAL=0,
+	NONE,
+	GO_LOCAL
+};
+
 class BROKEN_API ComponentParticleEmitter : public Component
 {
 	friend class ModuleParticles;
@@ -40,7 +46,7 @@ public:
 	// -- Other functionalities
 	void CreateInspectorNode() override;
 	void DrawEmitterArea();
-	void CalculateAABBs();
+	void UpdateAABBs();
 
 	//Scripting functions
 	//Emitter
@@ -120,12 +126,15 @@ private:
 	bool playOnAwake = false;
 	int duration = 1000;
 	uint emisionStart = 0;
+	int rotationTypeInt = 0;
+	ROTATION_PARENT rotationType = ROTATION_PARENT::GO_LOCAL;
 
 	//Sprite rotations
 	bool rotationActive = false;
 	int rotationOvertime1[3] = { 0,0,0 };
 	int rotationOvertime2[3] = { 0,0,0 };
 	bool separateAxis = false;
+	bool separateAxisScale = false;
 	bool randomInitialRotation = false;
 	int minInitialRotation[3] = { 0,0,0 };
 	int maxInitialRotation[3] = { 0,0,0 };
@@ -153,8 +162,9 @@ private:
 	ResourceTexture* texture = nullptr;
 	int lifetimeconstants = 0;
 	int velocityconstants = 0;
-	bool followEmitter = true;
-	bool collision_active = true;
+	bool followEmitterPosition = false;
+	bool followEmitterRotation= false;
+	bool collision_active = false;
 
 	//Colors
 	bool colorGradient = false;
@@ -168,6 +178,8 @@ private:
 	//Curves
 	std::vector<CurveEditor*> curves;
 	CurveEditor* scaleCurve = nullptr;
+	CurveEditor* scaleCurveY = nullptr;
+	CurveEditor* scaleCurveZ = nullptr;
 	CurveEditor* rotateCurve = nullptr;
 	int rotationconstants = 0;
 	int scaleconstants = 0;

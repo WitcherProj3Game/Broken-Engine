@@ -428,10 +428,10 @@ void ComponentImage::Load(json& node)
 	resize = std::stoi(aspect) == 1;
 
 	std::string bar = node.contains("IsProgressBar") ? node["IsProgressBar"] : "0";
-	is_progress_bar = std::stoi(bar) == 1;
+	is_progress_bar = std::stoi(bar);
 
-	std::string three = node["is3d"].is_null() ? "0" : node["is3d"];
-	is3D = std::stoi(three) == 1;
+	std::string isUI3D = node.contains("is3d") ? node["is3d"] : "0";
+	is3D = std::stoi(isUI3D);
 
 	if (is3D)
 		App->ui_system->AddElement3D(this);

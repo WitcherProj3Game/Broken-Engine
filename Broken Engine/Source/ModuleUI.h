@@ -32,8 +32,12 @@ public:
 	bool CleanUp() override;
 
 	void Draw() const;
+
 	void AddElement(UI_Element* c) { elements.push_back(c); }
 	void RemoveElement(UI_Element* c);
+
+	void AddElement3D(UI_Element* c) { elements3D.push_back(c); }
+	void RemoveElement3D(UI_Element* c);
 	
 	void Clear();
 
@@ -47,6 +51,7 @@ public:
 	ComponentCamera* ui_camera = nullptr;
 
 	std::vector<UI_Element*> elements;
+	std::vector<UI_Element*> elements3D;
 
 	float2 drag_start = float2::zero;
 	float2 mouse_pos = float2::zero;

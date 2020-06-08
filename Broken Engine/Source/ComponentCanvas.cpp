@@ -149,13 +149,11 @@ float2 ComponentCanvas::GetFinalPosition()
 		pos.x += scenex;
 		pos.y -= sceney;
 		break;
+
 	default:
 		// NONE AND CENTER GOES HERE -> NOTHING TO DO
 		break;
 	}
-	float2 final_pos = { pos.x / App->gui->sceneWidth,
-					pos.y / App->gui->sceneHeight };
-	//App->renderer3D->active_camera->GetNearPlane() + 0.026f };
 
 	return pos;
 }
@@ -187,6 +185,7 @@ void ComponentCanvas::Load(json& node)
 	std::string position2Dy = node.contains("position2DyLocal") ? node["position2DyLocal"] : "0";
 
 	position2DLocal = float2(std::stof(position2Dx), std::stof(position2Dy));
+
 }
 
 void ComponentCanvas::CreateInspectorNode()
@@ -205,9 +204,6 @@ void ComponentCanvas::CreateInspectorNode()
 		anchor_type = (UI_Anchor)anchor;
 	}
 
-	//float2 increment = position2D;
-	//float2 tmp = increment;
-
 	// Position
 	ImGui::Text("Position:");
 	ImGui::SameLine();
@@ -217,10 +213,7 @@ void ComponentCanvas::CreateInspectorNode()
 	ImGui::SetNextItemWidth(60);
 	ImGui::DragFloat("y##canvasposition", &position2DLocal.y);
 
-	/*tmp = increment;
-	increment -= position2D;
-	UpdatePosition(increment);
-	position2D = tmp;*/
+
 }
 
 
@@ -247,71 +240,3 @@ bool ComponentCanvas::PrioritySort::operator()(UI_Element* const& node1, UI_Elem
 	else
 		return false;
 }
-
-//void ComponentCanvas::UpdatePosition(float2& increment)
-//{
-//	if (this->active)
-//	{
-//		// --- Draw elements inside canvas ---
-//		for (int i = 0; i < elements.size(); i++)
-//		{
-//			if (elements[i]->GetType() == Component::ComponentType::Canvas)
-//			{
-//				ComponentCanvas* canvas = (ComponentCanvas*)elements[i];
-//				if (canvas->visible && canvas->GetActive())
-//					canvas->UpdatePosition(increment);
-//				continue;
-//			}
-//			else if (elements[i]->GetType() == Component::ComponentType::Text)
-//			{
-//				ComponentText* text = (ComponentText*)elements[i];
-//				if (text->visible && text->GetActive())
-//					text->position2D += increment / 2;
-//				continue;
-//			}
-//			else if (elements[i]->GetType() == Component::ComponentType::Image)
-//			{
-//				ComponentImage* image = (ComponentImage*)elements[i];
-//				if (image->visible && image->GetActive())
-//					image->position2D += increment;
-//				continue;
-//			}
-//			else if (elements[i]->GetType() == Component::ComponentType::Button)
-//			{
-//				ComponentButton* button = (ComponentButton*)elements[i];
-//				if (button->visible && button->GetActive())
-//					button->position2D += increment;
-//			}
-//			//else if (elements[i]->GetType() == Component::ComponentType::CheckBox)
-//			//{
-//			//	CheckBox* elem = (CheckBox*)elements[i];
-//			//	if (elem->visible) 
-//			//		elem->Draw();
-//			//	continue;
-//			//}
-//			//else if (elements[i]->GetType() == Component::ComponentType::InputText)
-//			//{
-//			//	InputText* elem = (InputText*)elements[i];
-//			//	if (elem->visible) 
-//			//		elem->Draw();
-//			//	continue;
-//			//}
-//			else if (elements[i]->GetType() == Component::ComponentType::ProgressBar)
-//			{
-//				ComponentProgressBar* bar = (ComponentProgressBar*)elements[i];
-//				if (bar->visible && bar->GetActive())
-//					bar->position2D += increment;
-//				continue;
-//			}
-//			else if (elements[i]->GetType() == Component::ComponentType::CircularBar)
-//			{
-//				ComponentCircularBar* cbar = (ComponentCircularBar*)elements[i];
-//				if (cbar->visible && cbar->GetActive())
-//					cbar->position2D += increment;
-//				continue;
-//			}
-//			else
-//				continue;
-//		}
-//	}
-//}

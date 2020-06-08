@@ -153,14 +153,6 @@ void ComponentParticleEmitter::Enable()
 	particleSystem = App->physics->mPhysics->createParticleSystem(maxParticles, perParticleRestOffset);
 	particleSystem->setMaxMotionDistance(100);
 
-	//if (collision_active)
-	//{
-	//	physx::PxFilterData filterData;
-	//	filterData.word0 = (1 << GO->layer);
-	//	filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup;
-	//	particleSystem->setSimulationFilterData(filterData);
-	//}
-
 	if (particleSystem)
 		App->physics->AddParticleActor(particleSystem, GO);
 
@@ -210,14 +202,6 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 		}
 	}
 
-	//if (collision_active)
-	//{
-	//	physx::PxFilterData filterData;
-	//	filterData.word0 = (1 << GO->layer); // word0 = own ID
-	//	filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup; // word1 = ID mask to filter pairs that trigger a contact callback;
-	//	particleSystem->setSimulationFilterData(filterData);
-	//}
-
 	//Update particles
 	//lock SDK buffers of *PxParticleSystem* ps for reading
 	physx::PxParticleReadData* rd = particleSystem->lockParticleReadData();
@@ -226,6 +210,8 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 	uint particlesToRelease = 0;
 
 	float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
+
+	bool aabbInCamera = App->renderer3D->culling_camera->frustum.Intersects(particlesAreaAABB);
 
 	// access particle data from physx::PxParticleReadData
 	if (rd)
@@ -255,12 +241,48 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 					particles[i]->scale.y = scaleOverTime;
 				}
 
-				particles[i]->position = float3(positionIt->x, positionIt->y, positionIt->z);
-				if (followEmitter)
-				{
-					particles[i]->position += globalPosition - particles[i]->emitterSpawnPosition;
-				}
+				if (aabbInCamera) {
+					particles[i]->position = float3(positionIt->x, positionIt->y, positionIt->z);
 
+					// -- Follow emitter rotation --
+					if (followEmitterRotation) {
+
+						Quat totalRotation = Quat::identity;
+						Quat externalRotation = Quat::identity;
+
+						Quat globalRotation;
+						float3 scale_, position_;
+
+						switch (rotationType)
+						{
+						case Broken::ROTATION_PARENT::GO_LOCAL:
+							totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
+							externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
+							break;
+						case Broken::ROTATION_PARENT::GO_GLOBAL:
+							GO->GetComponent<ComponentTransform>()->GetGlobalTransform().Decompose(position_, globalRotation, scale_);
+							totalRotation = globalRotation * emitterRotation;
+							externalRotation = globalRotation;
+							break;
+						case Broken::ROTATION_PARENT::NONE:
+							totalRotation = emitterRotation;
+							break;
+						}
+
+						float3 newPosition = particles[i]->position;
+						Quat newPositionQuat = Quat(newPosition.x - particles[i]->emitterSpawnPosition.x, newPosition.y - particles[i]->emitterSpawnPosition.y, newPosition.z - particles[i]->emitterSpawnPosition.z, 0);
+						Quat rotationIncrease = particles[i]->intialRotation.Inverted() /**externalRotation*/;
+						newPositionQuat = rotationIncrease * newPositionQuat * rotationIncrease.Conjugated();
+						newPositionQuat = externalRotation * newPositionQuat * externalRotation.Conjugated();
+
+						particles[i]->position = globalPosition;
+						particles[i]->position += float3(newPositionQuat.x, newPositionQuat.y, newPositionQuat.z);
+
+					}
+					else if (followEmitterPosition) {
+						particles[i]->position += globalPosition - particles[i]->emitterSpawnPosition;
+					}
+				}
 				if (colorGradient && gradients.size() > 0)
 				{
 					if (particles[i]->currentGradient >= gradients.size())//Comment this and next line in case gradient widget is applyed
@@ -310,10 +332,9 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 		indexPool->freeIndices(particlesToRelease, physx::PxStrideIterator<physx::PxU32>(indicesToErease.data()));
 	}
 
-	CalculateAABBs();
-	if (App->renderer3D->culling_camera->frustum.Intersects(particlesAreaAABB))
+	UpdateAABBs();
+	if (aabbInCamera)
 		SortParticles();
-
 }
 
 void ComponentParticleEmitter::SortParticles()
@@ -480,7 +501,10 @@ json ComponentParticleEmitter::Save() const
 	node["velocityRandomFactor2Z"] = std::to_string(velocityRandomFactor2.z);
 	node["velocityconstants"] = std::to_string(velocityconstants);
 
-	node["followEmitter"] = followEmitter;
+	node["rotationType"] = std::to_string(rotationTypeInt);
+
+	node["followEmitterPosition"] = followEmitterPosition;
+	node["followEmitterRotation"] = followEmitterRotation;
 
 	node["particlesLifeTime"] = std::to_string(particlesLifeTime);
 
@@ -643,7 +667,8 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string LparticlesLifeTime2 = node["particlesLifeTime2"].is_null() ? "0" : node["particlesLifeTime2"];
 	std::string _lifetimeconstants = node["lifetimeconstants"].is_null() ? "0" : node["lifetimeconstants"];
 
-	followEmitter = node["followEmitter"].is_null() ? true : node["followEmitter"].get<bool>();
+	followEmitterPosition = node.contains("followEmitterPosition") ? node["followEmitterPosition"].get<bool>() : false;
+	followEmitterRotation = node.contains("followEmitterRotation") ? node["followEmitterRotation"].get<bool>() : false;
 
 	playOnAwake = node["PlayOnAwake"].is_null() ? false : node["PlayOnAwake"].get<bool>();
 	emisionActive = playOnAwake;
@@ -693,6 +718,11 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string maxInitialRotation_Z = node["maxInitialRotation"][2].is_null() ? "0" : node["maxInitialRotation"][2];
 
 	randomInitialRotation = node["randomInitialRotation"].is_null() ? false : node["randomInitialRotation"].get<bool>();
+
+
+	std::string rotation_type = node.contains("rotationType") ? node["rotationType"] : "0";
+	rotationTypeInt = std::stoi(rotation_type);
+	rotationType = ROTATION_PARENT(rotationTypeInt);
 
 	colorDuration = std::atoi(_gradientDuration.c_str());
 	int num = std::stof(_num_colors);
@@ -893,7 +923,7 @@ void ComponentParticleEmitter::Load(json& node)
 	m_OnlyShadows = node.find("PartOnlyShadows") == node.end() ? false : node["PartOnlyShadows"].get<bool>();
 
 	// --- Collisions ---
-	collision_active = node.find("CollisionsActivated") == node.end() ? true : node["CollisionsActivated"].get<bool>();
+	collision_active = node.find("CollisionsActivated") == node.end() ? false : node["CollisionsActivated"].get<bool>();
 	SetActiveCollisions(collision_active);
 
 	// --- Face Culling ---
@@ -920,6 +950,7 @@ void ComponentParticleEmitter::Load(json& node)
 
 void ComponentParticleEmitter::CreateInspectorNode()
 {
+
 	//Play on awake
 	ImGui::NewLine();
 	ImGui::Checkbox("##PlayOnAwake", &playOnAwake);
@@ -928,28 +959,43 @@ void ComponentParticleEmitter::CreateInspectorNode()
 	ImGui::SameLine();
 	ImGui::Text("Play on awake");
 
+	ImGui::NewLine();
+
+	//Follow emitter position
+	ImGui::Checkbox("##SFollow emitter position", &followEmitterPosition);
+	ImGui::SameLine(); ImGui::Text("Follow emitter position");
+
+	//Follow emitter position
+	ImGui::Checkbox("##SFollow emitter rotation", &followEmitterRotation);
+	ImGui::SameLine(); ImGui::Text("Follow emitter rotation & position");
+	ImGui::NewLine();
+
+
 	// --- Loop ---
 	if (ImGui::Checkbox("##PELoop", &loop))
-	if (loop)
-	{
-		emisionActive = true;
-		firstEmision = true;
-	}
+		if (loop)
+		{
+			emisionActive = true;
+			firstEmision = true;
+		}
 
 	ImGui::SameLine(); ImGui::Text("Loop");
 
-	//Follow emitter
-	ImGui::Checkbox("##SFollow emitter", &followEmitter);
-	ImGui::SameLine(); ImGui::Text("Follow emitter");
-
 	// Duration
-	ImGui::NewLine();
 	ImGui::Text("Duration");
 	ImGui::SameLine();
 	ImGui::DragInt("##PEDuration", &duration);
 
 
+	ImGui::NewLine();
+	ImGui::Text("Rotation type");
+	if (ImGui::Combo("##PERotationType", &rotationTypeInt, "GLOBAL ROTATION\0NONE\0\0"))
+	{
+		rotationType = ROTATION_PARENT(rotationTypeInt);
+	}
+
 	//Emitter position
+	ImGui::NewLine();
 	ImGui::Text("Position");
 
 	ImGui::Text("X");
@@ -1788,12 +1834,33 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 
 	if (validParticles < maxParticles)
 	{
-		Quat totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
-		Quat externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
-		float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
-
 		if (particlesToCreate > maxParticles - validParticles)
 			particlesToCreate = maxParticles - validParticles;
+
+		Quat totalRotation = Quat::identity;
+		Quat externalRotation = Quat::identity;
+		float3 globalPosition = float3::zero;
+
+		Quat globalRotation;
+		float3 scale_, position_;
+
+		switch (rotationType)
+		{
+		case Broken::ROTATION_PARENT::GO_LOCAL:
+			totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
+			externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
+			break;
+		case Broken::ROTATION_PARENT::GO_GLOBAL:
+			GO->GetComponent<ComponentTransform>()->GetGlobalTransform().Decompose(position_, globalRotation, scale_);
+			totalRotation = globalRotation * emitterRotation;
+			externalRotation = globalRotation;
+			break;
+		case Broken::ROTATION_PARENT::NONE:
+			totalRotation = emitterRotation;
+			break;
+		}
+
+		globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
 
 		validParticles += particlesToCreate;
 		spawnClock = App->time->GetGameplayTimePassed() * 1000;
@@ -1865,6 +1932,7 @@ void ComponentParticleEmitter::CreateParticles(uint particlesAmount)
 			particles[index[i]]->scene_colorAffected = m_AffectedBySceneColor;
 			particles[index[i]]->light_Affected = m_AffectedByLight;
 			particles[index[i]]->receive_shadows = m_ReceiveShadows;
+			particles[index[i]]->intialRotation = externalRotation;
 
 			//Set scale
 			if (scaleconstants == 1)
@@ -1996,18 +2064,26 @@ void ComponentParticleEmitter::UpdateAllGradients()
 	}
 }
 
-void ComponentParticleEmitter::DrawEmitterArea()
-{/*
-	CalculateAABBs();*/
-	App->renderer3D->DrawOBB(emisionAreaOBB, Blue);
-	App->renderer3D->DrawAABB(particlesAreaAABB, Green);
-}
-
-void ComponentParticleEmitter::CalculateAABBs()
+void ComponentParticleEmitter::UpdateAABBs()
 {
-	Quat totalRotation = GO->GetComponent<ComponentTransform>()->rotation * emitterRotation;
-	Quat externalRotation = GO->GetComponent<ComponentTransform>()->rotation;
+	Quat totalRotation = Quat::identity;
+	Quat externalRotation = Quat::identity;
 	float3 globalPosition = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
+
+	Quat globalRotation;
+	float3 scale_, position_;
+
+	switch (rotationType)
+	{
+	case Broken::ROTATION_PARENT::GO_GLOBAL:
+		GO->GetComponent<ComponentTransform>()->GetGlobalTransform().Decompose(position_, globalRotation, scale_);
+		totalRotation = globalRotation * emitterRotation;
+		externalRotation = globalRotation;
+		break;
+	case Broken::ROTATION_PARENT::NONE:
+		totalRotation = emitterRotation;
+		break;
+	}
 
 	AABB aabb(float3(-size.x, -size.y, -size.z), float3(size.x, size.y, size.z));
 
@@ -2017,10 +2093,6 @@ void ComponentParticleEmitter::CalculateAABBs()
 	positionFromEmitterPosQuat = externalRotation * positionFromEmitterPosQuat * externalRotation.Conjugated();
 
 	emisionAreaOBB.pos = emisionAreaOBB.pos + float3(positionFromEmitterPosQuat.x + globalPosition.x, positionFromEmitterPosQuat.y + globalPosition.y, positionFromEmitterPosQuat.z + globalPosition.z);
-
-	//Quat velocityQuat = Quat(velocity.x, velocity.y, velocity.z, 0);
-	//velocityQuat = totalRotation * velocityQuat * totalRotation.Conjugated();
-	//velocityBuffer[i] = physx::PxVec3(velocityQuat.x, velocityQuat.y, velocityQuat.z);
 
 	particlesAreaAABB.SetFrom(emisionAreaOBB);
 
@@ -2033,9 +2105,9 @@ void ComponentParticleEmitter::CalculateAABBs()
 	maxVel = totalRotation * maxVel * totalRotation.Conjugated();
 
 	float3 newPoint = particlesAreaAABB.maxPoint;
-	newPoint.x += maxVel.x * (float(particlesLifeTime) / 1000);
-	newPoint.y += maxVel.y * (float(particlesLifeTime) / 1000);
-	newPoint.z += maxVel.z * (float(particlesLifeTime) / 1000);
+	newPoint.x += maxVel.x * (float(particlesLifeTime) / 1000) * 2.0f;
+	newPoint.y += maxVel.y * (float(particlesLifeTime) / 1000) * 2.0f;
+	newPoint.z += maxVel.z * (float(particlesLifeTime) / 1000) * 2.0f;
 
 	particlesAreaAABB.Enclose(newPoint);
 
@@ -2055,9 +2127,9 @@ void ComponentParticleEmitter::CalculateAABBs()
 	minVel = totalRotation * minVel * totalRotation.Conjugated();
 
 	newPoint = particlesAreaAABB.minPoint;
-	newPoint.x += minVel.x * (float(particlesLifeTime) / 1000);
-	newPoint.y += minVel.y * (float(particlesLifeTime) / 1000);
-	newPoint.z += minVel.z * (float(particlesLifeTime) / 1000);
+	newPoint.x += minVel.x * (float(particlesLifeTime) / 1000) * 2.0f;
+	newPoint.y += minVel.y * (float(particlesLifeTime) / 1000) * 2.0f;
+	newPoint.z += minVel.z * (float(particlesLifeTime) / 1000) * 2.0f;
 
 	particlesAreaAABB.Enclose(newPoint);
 	newPoint.x += 0.5 * externalAcceleration.x * (((float(particlesLifeTime) / 1000.0f)) * (float(particlesLifeTime) / 1000));
@@ -2066,7 +2138,14 @@ void ComponentParticleEmitter::CalculateAABBs()
 
 	particlesAreaAABB.Enclose(newPoint);
 
+}
 
+void ComponentParticleEmitter::DrawEmitterArea()
+{
+	UpdateAABBs();
+
+	App->renderer3D->DrawOBB(emisionAreaOBB, Blue);
+	App->renderer3D->DrawAABB(particlesAreaAABB,Green);
 }
 
 void ComponentParticleEmitter::Play()

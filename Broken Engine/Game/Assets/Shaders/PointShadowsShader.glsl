@@ -5,8 +5,8 @@
 layout (location = 0) in vec3 a_Position;	
 layout (location = 3) in vec2 a_TexCoord;
 
-uniform mat4 u_Proj;
-uniform mat4 u_View;
+//uniform mat4 u_Proj;
+//uniform mat4 u_View;
 uniform mat4 u_Model;
 
 out vData
@@ -17,7 +17,7 @@ out vData
 void main()
 {
 	vertex.v_texCoords = a_TexCoord;
-	gl_Position = u_Proj * u_View * u_Model * vec4(a_Position, 1.0);
+	gl_Position = u_Model * vec4(a_Position, 1.0);
 }
 
 #endif
@@ -33,7 +33,7 @@ in vec4 FragPos;
 
 // FOR point shadows
 
-//uniform vec3 lightPos;
+uniform vec3 lightPos;
 //uniform float far_plane;
 
 in fData
@@ -56,13 +56,13 @@ void main()
 	// FOR point shadows
 
     // get distance between fragment and light source
-    //float lightDistance = length(FragPos.xyz - vec3(0,1,0));
+    float lightDistance = length(FragPos.xyz - lightPos);
     
     // map to [0;1] range by dividing by far_plane
-    //lightDistance = lightDistance / 20; // far_plane
+    lightDistance = lightDistance / 1000.0; // far_plane
     
     // write this as modified depth
-    //gl_FragDepth = lightDistance;
+    gl_FragDepth = lightDistance;
 }
 
 #endif
@@ -91,13 +91,13 @@ void main()
 { 
 	for (int face = 0; face < 6; ++face) 
 	{
-		//gl_Layer = face; // built-in variable that specifies to which face we render.
+		gl_Layer = face; // built-in variable that specifies to which face we render.
         for(int i = 0; i < 3; ++i) // for each triangle vertex
         {
-			frag.v_texCoords = vertex[face*3 + i].v_texCoords;
+			//frag.v_texCoords = vertex[face*3 + i].v_texCoords;
             FragPos = gl_in[i].gl_Position;
-			gl_Position = gl_in[i].gl_Position;
-            //gl_Position = shadowMatrices[face] * FragPos;
+			//gl_Position = gl_in[i].gl_Position;
+            gl_Position = shadowMatrices[face] * FragPos;
             EmitVertex();
         }    
         EndPrimitive();

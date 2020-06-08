@@ -385,64 +385,70 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		//glCullFace(GL_BACK);
 		glEnable(GL_CULL_FACE);
 		glDisable(GL_BLEND);
-
-		// --- Point shadows ---
-		glBindFramebuffer(GL_FRAMEBUFFER, depthbufferCubemapFBO);
-
-		std::vector<ComponentLight*>::iterator LightIteratori = m_LightsVec.begin();
-		for (; LightIteratori != m_LightsVec.end(); ++LightIteratori)
-		{
-			if ((*LightIteratori)->GetLightType() == LightType::POINTLIGHT)
-			{
-				float aspect = (float)App->window->GetWindowWidth() / (float)App->window->GetWindowHeight();
-
-				(*LightIteratori)->m_LightFrustum.SetVerticalFovAndAspectRatio(90, aspect);
-
-				float4x4 shadowProj = (*LightIteratori)->GetFrustProjectionMatrix();
-				(*LightIteratori)->m_LightFrustum.SetFront(float3(1.0, 0.0, 0.0));
-				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
-
-				std::vector<float4x4> shadowTransforms;
-				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
-				(*LightIteratori)->m_LightFrustum.SetFront(float3(-1.0, 0.0, 0.0));
-				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
-
-				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
-				(*LightIteratori)->m_LightFrustum.SetFront(float3(0.0, 1.0, 0.0));
-				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, 0.0, 1.0));
-
-				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
-				(*LightIteratori)->m_LightFrustum.SetFront(float3(0.0, -1.0, 0.0));
-				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, 0.0, -1.0));
-
-				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
-				(*LightIteratori)->m_LightFrustum.SetFront(float3(0.0, 0.0, 1.0));
-				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
-
-				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
-				(*LightIteratori)->m_LightFrustum.SetFront(float3(0.0, 0.0, -1.0));
-				(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
-
-				shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
-
-				for (unsigned int i = 0; i < 6; ++i)
-					glUniformMatrix4fv(glGetUniformLocation(shadowsShader->ID, std::string("shadowMatrices[" + std::to_string(i) + "]").c_str()), 1, GL_FALSE, shadowTransforms[i].ptr());
-
-				//simpleDepthShader.setMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
-
-
-				//glUniformMatrix4fv(glGetUniformLocation(shadowsShader->ID, "u_View"), 1, GL_FALSE, viewMat.ptr());
-				glUniformMatrix4fv(glGetUniformLocation(shadowsShader->ID, "u_Proj"), 1, GL_FALSE, shadowProj.ptr());
-
-				DrawRenderMeshes(true);
-				break; // just 1 for now
-			}
-		}
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 		OPTICK_POP();
 	}
+
+	// --- Point shadows ---
+	glBindFramebuffer(GL_FRAMEBUFFER, depthbufferCubemapFBO);
+	glUseProgram(points_shadowsShader->ID);
+
+	std::vector<ComponentLight*>::iterator LightIteratori = m_LightsVec.begin();
+	for (; LightIteratori != m_LightsVec.end(); ++LightIteratori)
+	{
+		if ((*LightIteratori)->GetLightType() == LightType::POINTLIGHT)
+		{
+			float aspect = (float)App->window->GetWindowWidth() / (float)App->window->GetWindowHeight();
+			(*LightIteratori)->m_LightFrustum.SetVerticalFovAndAspectRatio(90, aspect);
+			float4x4 shadowProj = (*LightIteratori)->GetFrustProjectionMatrix();
+			std::vector<float4x4> shadowTransforms;
+
+
+			(*LightIteratori)->m_LightFrustum.SetFront(float3(1.0, 0.0, 0.0));
+			(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
+			shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+
+			(*LightIteratori)->m_LightFrustum.SetFront(float3(-1.0, 0.0, 0.0));
+			(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
+			shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+
+			(*LightIteratori)->m_LightFrustum.SetFront(float3(0.0, 1.0, 0.0));
+			(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, 0.0, 1.0));
+			shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+
+			(*LightIteratori)->m_LightFrustum.SetFront(float3(0.0, -1.0, 0.0));
+			(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, 0.0, -1.0));
+			shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+
+			(*LightIteratori)->m_LightFrustum.SetFront(float3(0.0, 0.0, 1.0));
+			(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
+			shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+
+			(*LightIteratori)->m_LightFrustum.SetFront(float3(0.0, 0.0, -1.0));
+			(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
+			shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
+
+
+			for (unsigned int i = 0; i < 6; ++i)
+			{
+				int loc = glGetUniformLocation(points_shadowsShader->ID, std::string("shadowMatrices[" + std::to_string(i) + "]").c_str());
+				glUniformMatrix4fv(glGetUniformLocation(points_shadowsShader->ID, std::string("shadowMatrices[" + std::to_string(i) + "]").c_str()), 1, GL_FALSE, shadowTransforms[i].ptr());
+			}
+			//simpleDepthShader.setMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
+
+
+			//glUniformMatrix4fv(glGetUniformLocation(shadowsShader->ID, "u_View"), 1, GL_FALSE, viewMat.ptr());
+			//glUniformMatrix4fv(glGetUniformLocation(points_shadowsShader->ID, "u_Proj"), 1, GL_FALSE, shadowProj.ptr());
+			float3 pos = (*LightIteratori)->GetContainerGameObject()->GetComponent<ComponentTransform>()->GetPosition();
+			int loc2 = glGetUniformLocation(points_shadowsShader->ID, "lightPos");
+			glUniform3f(glGetUniformLocation(points_shadowsShader->ID, "lightPos"), pos.x, pos.y, pos.z);
+
+
+			SendPointShadowsUniforms();
+			break; // just 1 for now
+		}
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// --- Standard Buffer (Render 2nd Pass) ---
 	if (renderfbo)
@@ -1083,6 +1089,7 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 			}
 			else
 			{
+				glUniform1i(glGetUniformLocation(shader, "depthTextureCubemap"), 0);
 				glActiveTexture(GL_TEXTURE0 + 0);
 				glBindTexture(GL_TEXTURE_CUBE_MAP, depthTextureCubemap);
 			}
@@ -1241,6 +1248,64 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 
 			// --- Set color back to default ---
 			glUniform4f(glGetUniformLocation(shader, "u_Color"), 1.0f, 1.0f, 1.0f, 1.0f);
+		}
+	}
+
+	glUseProgram(0);
+}
+
+
+void ModuleRenderer3D::SendPointShadowsUniforms()
+{
+	for (std::map<uint, std::vector<RenderMesh>>::const_iterator it = render_meshes.begin(); it != render_meshes.end(); ++it)
+	{
+		uint shader = points_shadowsShader->ID;
+		glUseProgram(shader);
+		for (uint i = 0; i < (*it).second.size(); ++i)
+		{
+			const RenderMesh* mesh = &(*it).second[i];
+			float4x4 model = mesh->transform;
+
+			if ((mesh->flags & RenderMeshFlags_::castShadows) != RenderMeshFlags_::castShadows)
+				continue;
+
+			// --- Set Model Matrix Uniform ---
+			glUniformMatrix4fv(glGetUniformLocation(shader, "u_Model"), 1, GL_FALSE, model.Transposed().ptr());
+
+			if (mesh->resource_mesh->vertices && mesh->resource_mesh->Indices) // if mesh to draw
+			{
+				const ResourceMesh* rmesh = mesh->resource_mesh;
+				if (mesh->deformable_mesh)
+					rmesh = mesh->deformable_mesh;
+
+				if (mesh->mat)
+				{
+					glUniform4f(glGetUniformLocation(shader, "u_Color"), mesh->mat->m_AmbientColor.x, mesh->mat->m_AmbientColor.y, mesh->mat->m_AmbientColor.z, mesh->mat->m_AmbientColor.w);
+					if (mesh->mat->m_DiffuseResTexture)
+					{
+						glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 1);
+						glUniform1i(glGetUniformLocation(shader, "u_AlbedoTexture"), 1);
+						glActiveTexture(GL_TEXTURE0 + 1);
+						glBindTexture(GL_TEXTURE_2D, mesh->mat->m_DiffuseResTexture->GetTexID());
+					}
+					else
+					{
+						glUniform1i(glGetUniformLocation(shader, "u_AlbedoTexture"), 0);
+						glUniform1i(glGetUniformLocation(shader, "u_HasDiffuseTexture"), 0);
+					}
+				}
+
+
+				// --- Render ---
+				glBindVertexArray(rmesh->VAO);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rmesh->EBO);
+				glDrawElements(GL_TRIANGLES, rmesh->IndicesSize, GL_UNSIGNED_INT, NULL); //render from array data
+
+				// --- Unbind Buffers ---
+				glBindVertexArray(0);
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glActiveTexture(GL_TEXTURE0);
+			}
 		}
 	}
 
@@ -2077,6 +2142,94 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	shadowsShader->SetName("Shadows Shader");
 	shadowsShader->LoadToMemory();
 	IShader->Save(shadowsShader);
+
+
+	const char* pointshadowsVertexShader =
+		R"(#version 440 core
+			#define VERTEX_SHADER
+			#ifdef VERTEX_SHADER			
+			layout (location = 0) in vec3 a_Position;	
+			layout (location = 3) in vec2 a_TexCoord;			
+			uniform mat4 u_Proj;
+			uniform mat4 u_View;
+			uniform mat4 u_Model;			
+			out vData
+			{
+				vec2 v_texCoords;
+			}vertex;			
+			void main()
+			{
+				vertex.v_texCoords = a_TexCoord;
+				gl_Position = u_Proj * u_View * u_Model * vec4(a_Position, 1.0);
+			}			
+			#endif)";
+
+	const char* pointshadowsFragmentShader =
+		R"(#version 440 core
+			#define FRAGMENT_SHADER
+			#ifdef FRAGMENT_SHADER
+			uniform sampler2D u_AlbedoTexture;
+			uniform int u_HasDiffuseTexture = 0;
+			uniform vec4 u_Color = vec4(1.0);
+			in vec4 FragPos;
+			in fData
+			{
+				vec2 v_texCoords;
+			}frag;
+			void main()
+			{
+				vec4 color = vec4(1.0);
+				if(u_HasDiffuseTexture == 1)
+					color = texture(u_AlbedoTexture, frag.v_texCoords) * u_Color;
+				else
+					color = u_Color;
+			
+				if(color.a < 0.01)
+					discard;
+			}
+			#endif)";
+
+	const char* pointshadowsGeoShader =
+		R"(#define GEOMETRY_SHADER
+			#ifdef GEOMETRY_SHADER			
+			layout (triangles) in; 
+			layout (triangle_strip, max_vertices = 18) out; 			
+			uniform mat4 shadowMatrices[6];			
+			in vData
+			{
+				vec2 v_texCoords;
+			}vertex[];			
+			out fData
+			{
+				vec2 v_texCoords;
+			}frag;			
+			out vec4 FragPos; // FragPos from GS (output per emitvertex)			
+			void main()
+			{ 
+				for (int face = 0; face < 6; ++face) 
+				{
+					//gl_Layer = face; // built-in variable that specifies to which face we render.
+			        for(int i = 0; i < 3; ++i) // for each triangle vertex
+			        {
+						frag.v_texCoords = vertex[face*3 + i].v_texCoords;
+			            FragPos = gl_in[i].gl_Position;
+						gl_Position = gl_in[i].gl_Position;
+			            //gl_Position = shadowMatrices[face] * FragPos;
+			            EmitVertex();
+			        }    
+			        EndPrimitive();
+				}
+			}				
+			#endif //GEOMETRY_SHADER)";
+
+	points_shadowsShader = (ResourceShader*)App->resources->CreateResourceGivenUID(Resource::ResourceType::SHADER, "Assets/Shaders/PointShadowsShader.glsl", 19);
+	points_shadowsShader->vShaderCode = pointshadowsVertexShader;
+	points_shadowsShader->fShaderCode = pointshadowsGeoShader;
+	points_shadowsShader->gShaderCode = pointshadowsGeoShader;
+	points_shadowsShader->ReloadAndCompileShader();
+	points_shadowsShader->SetName("Point Shadows Shader");
+	points_shadowsShader->LoadToMemory();
+	IShader->Save(points_shadowsShader);
 
 	defaultShader->use();
 }

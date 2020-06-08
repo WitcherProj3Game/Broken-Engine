@@ -205,6 +205,7 @@ private:
 
 	// --- Draw Commands ---
 	void SendShaderUniforms(uint shader, bool depthPass);
+	void SendPointShadowsUniforms();
 	void DrawRenderMeshes(bool depthPass);
 	void DrawTransparentRenderMeshes(bool depthPass);
 	void DrawRenderMesh(std::vector<RenderMesh> meshInstances, bool depthPass);
@@ -237,6 +238,7 @@ public:
 	ResourceShader* screenShader = nullptr;
 	ResourceShader* UI_Shader = nullptr;
 	ResourceShader* shadowsShader = nullptr;
+	ResourceShader* points_shadowsShader = nullptr;
 
 	ResourceShader* SkyboxShader = nullptr;
 

@@ -651,88 +651,88 @@ void ComponentParticleEmitter::Load(json& node)
 	scaleCurveZ = nullptr;
 	rotateCurve = nullptr;
 
-	this->active = node["Active"].is_null() ? false : (bool)node["Active"];
+	this->active = node.contains("Active") ? (bool)node["Active"] : false;
 
 	//load the strings
-	std::string LpositionX = node["positionX"].is_null() ? "0" : node["positionX"];
-	std::string LpositionY = node["positionY"].is_null() ? "0" : node["positionY"];
-	std::string LpositionZ = node["positionZ"].is_null() ? "0" : node["positionZ"];
+	std::string LpositionX = node.contains("positionX") ? node["positionX"] : "0";
+	std::string LpositionY = node.contains("positionY") ? node["positionY"] : "0";
+	std::string LpositionZ = node.contains("positionZ") ? node["positionZ"] : "0";
 
-	std::string LrotationX = node["rotationX"].is_null() ? "0" : node["rotationX"];
-	std::string LrotationY = node["rotationY"].is_null() ? "0" : node["rotationY"];
-	std::string LrotationZ = node["rotationZ"].is_null() ? "0" : node["rotationZ"];
+	std::string LrotationX = node.contains("rotationX") ? node["rotationX"] : "0";
+	std::string LrotationY = node.contains("rotationY") ? node["rotationY"] : "0";
+	std::string LrotationZ = node.contains("rotationZ") ? node["rotationZ"] : "0";
 
-	std::string Lsizex = node["sizeX"].is_null() ? "0" : node["sizeX"];
-	std::string Lsizey = node["sizeY"].is_null() ? "0" : node["sizeY"];
-	std::string Lsizez = node["sizeZ"].is_null() ? "0" : node["sizeZ"];
+	std::string Lsizex = node.contains("sizeX") ? node["sizeX"] : "0";
+	std::string Lsizey = node.contains("sizeY") ? node["sizeY"] : "0";
+	std::string Lsizez = node.contains("sizeZ") ? node["sizeZ"] : "0";
 
-	std::string LemisionRate = node["emisionRate"].is_null() ? "0" : node["emisionRate"]; // typo: emission
+	std::string LemisionRate = node.contains("emisionRate") ? node["emisionRate"] : "0"; // typo: emission
 
-	std::string LparticlesPerCreation = node["particlesPerCreation"].is_null() ? "1" : node["particlesPerCreation"];
+	std::string LparticlesPerCreation = node.contains("particlesPerCreation") ? node["particlesPerCreation"] : "1";
 
-	std::string LexternalAccelerationx = node["externalAccelerationX"].is_null() ? "0" : node["externalAccelerationX"];
-	std::string LexternalAccelerationy = node["externalAccelerationY"].is_null() ? "0" : node["externalAccelerationY"];
-	std::string LexternalAccelerationz = node["externalAccelerationZ"].is_null() ? "0" : node["externalAccelerationZ"];
+	std::string LexternalAccelerationx = node.contains("externalAccelerationX") ? node["externalAccelerationX"] : "0";
+	std::string LexternalAccelerationy = node.contains("externalAccelerationY") ? node["externalAccelerationY"] : "0";
+	std::string LexternalAccelerationz = node.contains("externalAccelerationZ") ? node["externalAccelerationZ"] : "0";
 
-	std::string LparticlesVelocityx = node["particlesVelocityX"].is_null() ? "0" : node["particlesVelocityX"];
-	std::string LparticlesVelocityy = node["particlesVelocityY"].is_null() ? "0" : node["particlesVelocityY"];
-	std::string LparticlesVelocityz = node["particlesVelocityZ"].is_null() ? "0" : node["particlesVelocityZ"];
+	std::string LparticlesVelocityx = node.contains("particlesVelocityX") ? node["particlesVelocityX"] : "0";
+	std::string LparticlesVelocityy = node.contains("particlesVelocityY") ? node["particlesVelocityY"] : "0";
+	std::string LparticlesVelocityz = node.contains("particlesVelocityZ") ? node["particlesVelocityZ"] : "0";
 
-	std::string LvelocityRandomFactor1x = node["velocityRandomFactor1X"].is_null() ? "0" : node["velocityRandomFactor1X"];
-	std::string LvelocityRandomFactor1y = node["velocityRandomFactor1Y"].is_null() ? "0" : node["velocityRandomFactor1Y"];
-	std::string LvelocityRandomFactor1z = node["velocityRandomFactor1Z"].is_null() ? "0" : node["velocityRandomFactor1Z"];
-	std::string LvelocityRandomFactor2x = node["velocityRandomFactor2X"].is_null() ? "0" : node["velocityRandomFactor2X"];
-	std::string LvelocityRandomFactor2y = node["velocityRandomFactor2Y"].is_null() ? "0" : node["velocityRandomFactor2Y"];
-	std::string LvelocityRandomFactor2z = node["velocityRandomFactor2Z"].is_null() ? "0" : node["velocityRandomFactor2Z"];
-	std::string _velocityconstants = node["velocityconstants"].is_null() ? "0" : node["velocityconstants"];
+	std::string LvelocityRandomFactor1x = node.contains("velocityRandomFactor1X") ? node["velocityRandomFactor1X"] : "0";
+	std::string LvelocityRandomFactor1y = node.contains("velocityRandomFactor1Y") ? node["velocityRandomFactor1Y"] : "0";
+	std::string LvelocityRandomFactor1z = node.contains("velocityRandomFactor1Z") ? node["velocityRandomFactor1Z"] : "0";
+	std::string LvelocityRandomFactor2x = node.contains("velocityRandomFactor2X") ? node["velocityRandomFactor2X"] : "0";
+	std::string LvelocityRandomFactor2y = node.contains("velocityRandomFactor2Y") ? node["velocityRandomFactor2Y"] : "0";
+	std::string LvelocityRandomFactor2z = node.contains("velocityRandomFactor2Z") ? node["velocityRandomFactor2Z"] : "0";
+	std::string _velocityconstants = node.contains("velocityconstants") ? node["velocityconstants"] : "0";
 
-	std::string LparticlesLifeTime = node["particlesLifeTime"].is_null() ? "0" : node["particlesLifeTime"];
-	std::string LparticlesLifeTime1 = node["particlesLifeTime1"].is_null() ? "0" : node["particlesLifeTime1"];
-	std::string LparticlesLifeTime2 = node["particlesLifeTime2"].is_null() ? "0" : node["particlesLifeTime2"];
-	std::string _lifetimeconstants = node["lifetimeconstants"].is_null() ? "0" : node["lifetimeconstants"];
+	std::string LparticlesLifeTime = node.contains("particlesLifeTime") ? node["particlesLifeTime"] : "0";
+	std::string LparticlesLifeTime1 = node.contains("particlesLifeTime1") ? node["particlesLifeTime1"] : "0";
+	std::string LparticlesLifeTime2 = node.contains("particlesLifeTime2") ? node["particlesLifeTime2"] : "0";
+	std::string _lifetimeconstants = node.contains("lifetimeconstants") ? node["lifetimeconstants"] : "0";
 
 	followEmitterPosition = node.contains("followEmitterPosition") ? node["followEmitterPosition"].get<bool>() : false;
 	followEmitterRotation = node.contains("followEmitterRotation") ? node["followEmitterRotation"].get<bool>() : false;
 
-	playOnAwake = node["PlayOnAwake"].is_null() ? false : node["PlayOnAwake"].get<bool>();
+	playOnAwake = node.contains("PlayOnAwake") ? node["PlayOnAwake"].get<bool>() : false;
 	emisionActive = playOnAwake;
 
-	std::string LParticlesSize = node["particlesSize"].is_null() ? "0" : node["particlesSize"];
+	std::string LParticlesSize = node.contains("particlesSize") ? node["particlesSize"] : "0";
 
-	std::string _animation = node["animation"].is_null() ? "0" : node["animation"];
-	std::string _tiles_X = node["tiles_X"].is_null() ? "1" : node["tiles_X"];
-	std::string _tiles_Y = node["tiles_Y"].is_null() ? "1" : node["tiles_Y"];
-	std::string _cycles = node["cycles"].is_null() ? "1" : node["cycles"];
-	std::string _startFrame = node["startFrame"].is_null() ? "0" : node["startFrame"];
+	std::string _animation = node.contains("animation") ? node["animation"] : "0";
+	std::string _tiles_X = node.contains("tiles_X") ? node["tiles_X"] : "1";
+	std::string _tiles_Y = node.contains("tiles_Y") ? node["tiles_Y"] : "1";
+	std::string _cycles = node.contains("cycles") ? node["cycles"] : "1";
+	std::string _startFrame = node.contains("startFrame") ? node["startFrame"] : "0";
 
-	randomStartFrame = node["randomStartFrame"].is_null() ? true : node["randomStartFrame"].get<bool>();
+	randomStartFrame = node.contains("randomStartFrame") ? node["randomStartFrame"].get<bool>() : true;
 
-	std::string LDuration = node["Duration"].is_null() ? "0" : node["Duration"];
+	std::string LDuration = node.contains("Duration") ? node["Duration"] : "0";
 
-	std::string LParticlesScaleX = node["particlesScaleX"].is_null() ? "1" : node["particlesScaleX"];
-	std::string LParticlesScaleY = node["particlesScaleY"].is_null() ? "1" : node["particlesScaleY"];
-	std::string LParticlesScaleZ = node["particlesScaleZ"].is_null() ? "1" : node["particlesScaleZ"];
+	std::string LParticlesScaleX = node.contains("particlesScaleX") ? node["particlesScaleX"] : "1";
+	std::string LParticlesScaleY = node.contains("particlesScaleY") ? node["particlesScaleY"] : "1";
+	std::string LParticlesScaleZ = node.contains("particlesScaleZ") ? node["particlesScaleZ"] : "1";
 
-	std::string LParticleScaleRandomFactor1 = node["particleScaleRandomFactor1"].is_null() ? "1" : node["particleScaleRandomFactor1"];
-	std::string LParticleScaleRandomFactor2 = node["particleScaleRandomFactor2"].is_null() ? "1" : node["particleScaleRandomFactor2"];
+	std::string LParticleScaleRandomFactor1 = node.contains("particleScaleRandomFactor1") ? node["particleScaleRandomFactor1"] : "1";
+	std::string LParticleScaleRandomFactor2 = node.contains("particleScaleRandomFactor2") ? node["particleScaleRandomFactor2"] : "1";
 
-	std::string LScaleOverTime = node["particleScaleOverTime"].is_null() ? "0" : node["particleScaleOverTime"];
+	std::string LScaleOverTime = node.contains("particleScaleOverTime") ? node["particleScaleOverTime"] : "0";
 
-	std::string _num_colors = node["num_colors"].is_null() ? "0" : node["num_colors"];
-	std::string _num_gradients = node["num_gradients"].is_null() ? "0" : node["num_gradients"];
-	std::string _gradientDuration = node["grad_duration"].is_null() ? "0" : node["grad_duration"];
-	std::string _num_curves = node["num_curves"].is_null() ? "0" : node["num_curves"];
-	std::string _separateAxisScale = node["separateAxisScale"].is_null() ? "0" : node["separateAxisScale"]; 
+	std::string _num_colors = node.contains("num_colors") ? node["num_colors"] : "0";
+	std::string _num_gradients = node.contains("num_gradients") ? node["num_gradients"] : "0";
+	std::string _gradientDuration = node.contains("grad_duration") ? node["grad_duration"] : "0";
+	std::string _num_curves = node.contains("num_curves") ? node["num_curves"] : "0";
+	std::string _separateAxisScale = node.contains("separateAxisScale") ? node["separateAxisScale"] : "0";
 
-	std::string _separateAxis = node["separateAxis"].is_null() ? "0" : node["separateAxis"];
+	std::string _separateAxis = node.contains("separateAxis") ? node["separateAxis"] : "0";
 	std::string rotationOvertime1_X = node["rotationOvertime1"][0].is_null() ? "0" : node["rotationOvertime1"][0];
 	std::string rotationOvertime1_Y = node["rotationOvertime1"][1].is_null() ? "0" : node["rotationOvertime1"][1];
 	std::string rotationOvertime1_Z = node["rotationOvertime1"][2].is_null() ? "0" : node["rotationOvertime1"][2];
 	std::string rotationOvertime2_X = node["rotationOvertime2"][0].is_null() ? "0" : node["rotationOvertime2"][0];
 	std::string rotationOvertime2_Y = node["rotationOvertime2"][1].is_null() ? "0" : node["rotationOvertime2"][1];
 	std::string rotationOvertime2_Z = node["rotationOvertime2"][2].is_null() ? "0" : node["rotationOvertime2"][2];
-	std::string _rotationconstants = node["rotationconstants"].is_null() ? "0" : node["rotationconstants"];
-	std::string _scaleconstants = node["scaleconstants"].is_null() ? "0" : node["scaleconstants"];
+	std::string _rotationconstants = node.contains("rotationconstants") ? node["rotationconstants"] : "0";
+	std::string _scaleconstants = node.contains("scaleconstants") ? node["scaleconstants"] : "0";
 
 	std::string minInitialRotation_X = node["minInitialRotation"][0].is_null() ? "0" : node["minInitialRotation"][0];
 	std::string minInitialRotation_Y = node["minInitialRotation"][1].is_null() ? "0" : node["minInitialRotation"][1];
@@ -741,7 +741,7 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string maxInitialRotation_Y = node["maxInitialRotation"][1].is_null() ? "0" : node["maxInitialRotation"][1];
 	std::string maxInitialRotation_Z = node["maxInitialRotation"][2].is_null() ? "0" : node["maxInitialRotation"][2];
 
-	randomInitialRotation = node["randomInitialRotation"].is_null() ? false : node["randomInitialRotation"].get<bool>();
+	randomInitialRotation = node.contains("randomInitialRotation") ? node["randomInitialRotation"].get<bool>() : false;
 
 
 	std::string rotation_type = node.contains("rotationType") ? node["rotationType"] : "0";
@@ -753,10 +753,10 @@ void ComponentParticleEmitter::Load(json& node)
 	if (num != 0) {
 		colors.pop_back();
 		for (int i = 0; i < num; ++i) {
-			std::string color_x = node["colors"][i]["x"].is_null() ? "255" : node["colors"][i]["x"];
-			std::string color_y = node["colors"][i]["y"].is_null() ? "255" : node["colors"][i]["y"];
-			std::string color_z = node["colors"][i]["z"].is_null() ? "255" : node["colors"][i]["z"];
-			std::string color_a = node["colors"][i]["a"].is_null() ? "255" : node["colors"][i]["a"];
+			std::string color_x = node["colors"][i].contains("x") ? node["colors"][i]["x"] : "255";
+			std::string color_y = node["colors"][i].contains("y") ? node["colors"][i]["y"] : "255";
+			std::string color_z = node["colors"][i].contains("z") ? node["colors"][i]["z"] : "255";
+			std::string color_a = node["colors"][i].contains("a") ? node["colors"][i]["a"] : "255";
 			float4 color = float4(std::stof(color_x), std::stof(color_y), std::stof(color_z), std::stof(color_a));
 			colors.push_back(color);
 		}
@@ -769,29 +769,29 @@ void ComponentParticleEmitter::Load(json& node)
 
 	num = std::stof(_num_gradients);
 	for (int i = 0; i < num; ++i) {
-		std::string color_x = node["gradients"][i]["x"].is_null() ? "255" : node["gradients"][i]["x"];
-		std::string color_y = node["gradients"][i]["y"].is_null() ? "255" : node["gradients"][i]["y"];
-		std::string color_z = node["gradients"][i]["z"].is_null() ? "255" : node["gradients"][i]["z"];
-		std::string color_a = node["gradients"][i]["a"].is_null() ? "255" : node["gradients"][i]["a"];
+		std::string color_x = node["gradients"][i].contains("x") ? node["gradients"][i]["x"] : "255";
+		std::string color_y = node["gradients"][i].contains("y") ? node["gradients"][i]["y"] : "255";
+		std::string color_z = node["gradients"][i].contains("z") ? node["gradients"][i]["z"] : "255";
+		std::string color_a = node["gradients"][i].contains("a") ? node["gradients"][i]["a"] : "255";
 		float4 color = float4(std::stof(color_x), std::stof(color_y), std::stof(color_z), std::stof(color_a));
 		gradients.push_back(color);
 	}
 
 	num = std::stof(_num_curves);
 	for (int i = 0; i < num; ++i) {
-		std::string _num_points = node["curves"][i]["num_points"].is_null() ? "0" : node["curves"][i]["num_points"];
-		std::string name = node["curves"][i]["name"].is_null() ? "" : node["curves"][i]["name"];
-		std::string _type = node["curves"][i]["type"].is_null() ? "0" : node["curves"][i]["type"];
-		std::string _multi = node["curves"][i]["multiplier"].is_null() ? "1" : node["curves"][i]["multiplier"];
+		std::string _num_points = node["curves"][i].contains("num_points") ? node["curves"][i]["num_points"] : "0";
+		std::string name = node["curves"][i].contains("name") ? node["curves"][i]["name"] : "";
+		std::string _type = node["curves"][i].contains("type") ? node["curves"][i]["type"] : "0";
+		std::string _multi = node["curves"][i].contains("multiplier") ? node["curves"][i]["multiplier"] : "1";
 		int points = std::stof(_num_points);
 		CurveEditor* curve = new CurveEditor(name.c_str(), (CurveType)(int)std::stof(_type), std::stof(_multi));
 		for (int j = 0; j < points; ++j) {
-			std::string prev_tangentX = node["curves"][i][std::to_string(j).c_str()]["PrevX"].is_null() ? "0" : node["curves"][i][std::to_string(j).c_str()]["PrevX"];
-			std::string prev_tangentY = node["curves"][i][std::to_string(j).c_str()]["PrevY"].is_null() ? "0" : node["curves"][i][std::to_string(j).c_str()]["PrevY"];
-			std::string pX = node["curves"][i][std::to_string(j).c_str()]["PX"].is_null() ? "0" : node["curves"][i][std::to_string(j).c_str()]["PX"];
-			std::string pY = node["curves"][i][std::to_string(j).c_str()]["PY"].is_null() ? "0" : node["curves"][i][std::to_string(j).c_str()]["PY"];
-			std::string post_tangentX = node["curves"][i][std::to_string(j).c_str()]["NextX"].is_null() ? "0" : node["curves"][i][std::to_string(j).c_str()]["NextX"];
-			std::string post_tangentY = node["curves"][i][std::to_string(j).c_str()]["NextY"].is_null() ? "0" : node["curves"][i][std::to_string(j).c_str()]["NextY"];
+			std::string prev_tangentX = node["curves"][i][std::to_string(j).c_str()].contains("PrevX") ? node["curves"][i][std::to_string(j).c_str()]["PrevX"] : "0";
+			std::string prev_tangentY = node["curves"][i][std::to_string(j).c_str()].contains("PrevY") ? node["curves"][i][std::to_string(j).c_str()]["PrevY"] : "0";
+			std::string pX = node["curves"][i][std::to_string(j).c_str()].contains("PX") ? node["curves"][i][std::to_string(j).c_str()]["PX"] : "0";
+			std::string pY = node["curves"][i][std::to_string(j).c_str()].contains("PY") ? node["curves"][i][std::to_string(j).c_str()]["PY"] : "0";
+			std::string post_tangentX = node["curves"][i][std::to_string(j).c_str()].contains("NextX") ? node["curves"][i][std::to_string(j).c_str()]["NextX"] : "0";
+			std::string post_tangentY = node["curves"][i][std::to_string(j).c_str()].contains("NextY") ? node["curves"][i][std::to_string(j).c_str()]["NextY"] : "0";
 			Point p;
 			p.prev_tangent = float2(std::stof(prev_tangentX), std::stof(prev_tangentY));
 			p.p = float2(std::stof(pX), std::stof(pY));

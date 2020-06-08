@@ -203,7 +203,7 @@ Resource* ImporterMaterial::Load(const char* path) const
 			normalMap = (ResourceTexture*)App->resources->ImportAssets(IDataNormTex);
 
 		// --- Load Shader and Uniforms ---
-		std::string shader_path = file["shader"]["ResourceShader"].is_null() ? "NONE" : file["shader"]["ResourceShader"].get<std::string>();
+		std::string shader_path = file["shader"].contains("ResourceShader") ? file["shader"]["ResourceShader"].get<std::string>() : "NONE";
 		Importer::ImportData IDataShader(shader_path.c_str());
 
 		if (shader_path != "NONE")

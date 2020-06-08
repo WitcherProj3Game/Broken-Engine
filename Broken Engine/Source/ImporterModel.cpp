@@ -516,7 +516,7 @@ Resource* ImporterModel::Load(const char* path) const {
 	if (!file.is_null()) 
 	{
 		// --- Load Tex preview ---
-		std::string previewTexpath = file["PreviewTexture"].is_null() ? "none" : file["PreviewTexture"];
+		std::string previewTexpath = file.contains("PreviewTexture") ? file["PreviewTexture"] : "none";
 		uint width, height = 0;
 
 		if (previewTexpath != "none" && App->fs->Exists(previewTexpath.c_str()))
@@ -570,7 +570,7 @@ Resource* ImporterModel::Load(const char* path) const {
 
 								to_Add->SetName(name.c_str());
 
-								/*std::string meshpreviewTexpath = _resources[it3.key()]["PreviewTexture"].is_null() ? "none" : _resources[it3.key()]["PreviewTexture"];
+								/*std::string meshpreviewTexpath = _resources[it3.key()].contains("PreviewTexture") ? _resources[it3.key()]["PreviewTexture"] : "none";
 								uint width, height = 0;
 
 								if (meshpreviewTexpath != "none" && App->fs->Exists(mesh->previewTexPath.c_str()))

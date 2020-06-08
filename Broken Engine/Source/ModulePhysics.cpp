@@ -612,14 +612,14 @@ const Broken::json& ModulePhysics::SaveStatus() const {
 
 void ModulePhysics::LoadStatus(const Broken::json& file) {
 
-	gravity = file[name]["gravity"].is_null() ? gravity : (float)file[name]["gravity"];
-	materialDesc.x = file[name]["staticFriction"].is_null() ? materialDesc.x : (float)file[name]["staticFriction"];
-	materialDesc.y = file[name]["dynamicFriction"].is_null() ? materialDesc.y : (float)file[name]["dynamicFriction"];
-	materialDesc.z = file[name]["restitution"].is_null() ? materialDesc.z : (float)file[name]["restitution"];;
+	gravity = file[name].contains("gravity") ? (float)file[name]["gravity"] : gravity;
+	materialDesc.x = file[name].contains("staticFriction") ? (float)file[name]["staticFriction"] : materialDesc.x;
+	materialDesc.y = file[name].contains("dynamicFriction") ? (float)file[name]["dynamicFriction"] : materialDesc.y;
+	materialDesc.z = file[name].contains("restitution") ? (float)file[name]["restitution"] : materialDesc.z;
 
-	int count = file[name]["count"].is_null() ? 0 : (int)file[name]["count"];
-	fixed = file[name]["fixed"].is_null() ? false : (bool)file[name]["fixed"];
-	fixed_dt = file[name]["fixed_dt"].is_null() ? (1.0f / 60.0f) : (float)file[name]["fixed_dt"];
+	int count = file[name].contains("count") ? (int)file[name]["count"] : 0;
+	fixed = file[name].contains("fixed") ? (bool)file[name]["fixed"] : false;
+	fixed_dt = file[name].contains("fixed_dt") ? (float)file[name]["fixed_dt"] : (1.0f / 60.0f);
 
 	if (count != 0) {
 		for (uint i = 0; i < count; ++i) {

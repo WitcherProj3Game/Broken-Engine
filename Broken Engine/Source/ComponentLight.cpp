@@ -569,28 +569,28 @@ json ComponentLight::Save() const
 
 void ComponentLight::Load(json& node)
 {
-	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
-	m_DrawMesh = node["DrawMesh"].is_null() ? true : (bool)node["DrawMesh"];
+	this->active = node.contains("Active") ? (bool)node["Active"] : true;
+	m_DrawMesh = node.contains("DrawMesh") ? (bool)node["DrawMesh"] : true;
 
 	// --- Load Strings ---
-	std::string str_dirX = node["DirectionX"].is_null() ? "0" : node["DirectionX"];
-	std::string str_dirY = node["DirectionY"].is_null() ? "0" : node["DirectionY"];
-	std::string str_dirZ = node["DirectionZ"].is_null() ? "0" : node["DirectionZ"];
+	std::string str_dirX = node.contains("DirectionX") ? node["DirectionX"] : "0";
+	std::string str_dirY = node.contains("DirectionY") ? node["DirectionY"] : "0";
+	std::string str_dirZ = node.contains("DirectionZ") ? node["DirectionZ"] : "0";
 
-	std::string str_colR = node["ColorR"].is_null() ? "1" : node["ColorR"];
-	std::string str_colG = node["ColorG"].is_null() ? "1" : node["ColorG"];
-	std::string str_colB = node["ColorB"].is_null() ? "1" : node["ColorB"];
+	std::string str_colR = node.contains("ColorR") ? node["ColorR"] : "1";
+	std::string str_colG = node.contains("ColorG") ? node["ColorG"] : "1";
+	std::string str_colB = node.contains("ColorB") ? node["ColorB"] : "1";
 
-	std::string str_AttK = node["AttenuationK"].is_null() ? "1" : node["AttenuationK"];
-	std::string str_AttL = node["AttenuationL"].is_null() ? "0.09" : node["AttenuationL"];
-	std::string str_AttQ = node["AttenuationQ"].is_null() ? "0.032" : node["AttenuationQ"];
+	std::string str_AttK = node.contains("AttenuationK") ? node["AttenuationK"] : "1";
+	std::string str_AttL = node.contains("AttenuationL") ? node["AttenuationL"] : "0.09";
+	std::string str_AttQ = node.contains("AttenuationQ") ? node["AttenuationQ"] : "0.032";
 
-	std::string str_inCut = node["InnerCutoff"].is_null() ? "12.5" : node["InnerCutoff"];
-	std::string str_outCut = node["OuterCutoff"].is_null() ? "45" : node["OuterCutoff"];
+	std::string str_inCut = node.contains("InnerCutoff") ? node["InnerCutoff"] : "12.5";
+	std::string str_outCut = node.contains("OuterCutoff") ? node["OuterCutoff"] : "45";
 
-	std::string str_intensity = node["Intensity"].is_null() ? "0.5" : node["Intensity"];
-	std::string str_distMult = node["DistanceMultiplier"].is_null() ? "1.0" : node["DistanceMultiplier"];
-	std::string str_LType = node["LightType"].is_null() ? "1" : node["LightType"];
+	std::string str_intensity = node.contains("Intensity") ? node["Intensity"] : "0.5";
+	std::string str_distMult = node.contains("DistanceMultiplier") ? node["DistanceMultiplier"] : "1.0";
+	std::string str_LType = node.contains("LightType") ? node["LightType"] : "1";
 
 	// --- Pass Strings to the needed Data Type
 	m_Direction = float3(std::stof(str_dirX), std::stof(str_dirY), std::stof(str_dirZ));

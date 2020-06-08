@@ -197,30 +197,30 @@ void ComponentCircularBar::Load(json& node)
 	if (texture)
 		texture->AddUser(GO);
 
-	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
-	std::string visible_str = node["visible"].is_null() ? "0" : node["visible"];
-	std::string priority_str = node["priority"].is_null() ? "0" : node["priority"];
+	this->active = node.contains("Active") ? (bool)node["Active"] : true;
+	std::string visible_str = node.contains("visible") ? node["visible"] : "0";
+	std::string priority_str = node.contains("priority") ? node["priority"] : "0";
 
-	std::string position2Dx = node["position2Dx"].is_null() ? "0" : node["position2Dx"];
-	std::string position2Dy = node["position2Dy"].is_null() ? "0" : node["position2Dy"];
+	std::string position2Dx = node.contains("position2Dx") ? node["position2Dx"] : "0";
+	std::string position2Dy = node.contains("position2Dy") ? node["position2Dy"] : "0";
 
-	std::string size2Dx = node["size2Dx"].is_null() ? "0" : node["size2Dx"];
-	std::string size2Dy = node["size2Dy"].is_null() ? "0" : node["size2Dy"];
+	std::string size2Dx = node.contains("size2Dx") ? node["size2Dx"] : "0";
+	std::string size2Dy = node.contains("size2Dy") ? node["size2Dy"] : "0";
 
 	position2D = float2(std::stof(position2Dx), std::stof(position2Dy));
 	size2D = float2(std::stof(size2Dx), std::stof(size2Dy));
 
-	std::string Color1_R = node["Color1_R"].is_null() ? "0" : node["Color1_R"];
-	std::string Color1_G = node["Color1_G"].is_null() ? "0" : node["Color1_G"];
-	std::string Color1_B = node["Color1_B"].is_null() ? "0" : node["Color1_B"];
-	std::string Color1_A = node["Color1_A"].is_null() ? "0" : node["Color1_A"];
+	std::string Color1_R = node.contains("Color1_R") ? node["Color1_R"] : "0";
+	std::string Color1_G = node.contains("Color1_G") ? node["Color1_G"] : "0";
+	std::string Color1_B = node.contains("Color1_B") ? node["Color1_B"] : "0";
+	std::string Color1_A = node.contains("Color1_A") ? node["Color1_A"] : "0";
 
-	std::string Color2_R = node["Color2_R"].is_null() ? "0" : node["Color2_R"];
-	std::string Color2_G = node["Color2_G"].is_null() ? "0" : node["Color2_G"];
-	std::string Color2_B = node["Color2_B"].is_null() ? "0" : node["Color2_B"];
-	std::string Color2_A = node["Color2_A"].is_null() ? "0" : node["Color2_A"];
+	std::string Color2_R = node.contains("Color2_R") ? node["Color2_R"] : "0";
+	std::string Color2_G = node.contains("Color2_G") ? node["Color2_G"] : "0";
+	std::string Color2_B = node.contains("Color2_B") ? node["Color2_B"] : "0";
+	std::string Color2_A = node.contains("Color2_A") ? node["Color2_A"] : "0";
 
-	percentage = node["Percentage"].is_null() ? 100 : (float)node["Percentage"];
+	percentage = node.contains("Percentage") ? (float)node["Percentage"] : 100;
 
 	visible = bool(std::stoi(visible_str));
 	priority = int(std::stoi(priority_str));

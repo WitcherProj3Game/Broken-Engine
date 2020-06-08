@@ -152,7 +152,7 @@ json ComponentMeshRenderer::Save() const
 
 void ComponentMeshRenderer::Load(json& node)
 {
-	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
+	this->active = node.contains("Active") ? (bool)node["Active"] : true;
 
 	cast_shadows = node.find("CastsShadows") == node.end() ? true : node["CastsShadows"].get<bool>();
 	receive_shadows = node.find("ReceivesShadows") == node.end() ? true : node["ReceivesShadows"].get<bool>();

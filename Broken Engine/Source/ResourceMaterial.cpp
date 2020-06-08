@@ -38,7 +38,6 @@ ResourceMaterial::~ResourceMaterial()
 
 bool ResourceMaterial::LoadInMemory() 
 {
-	std::unique_lock<std::shared_mutex> lk(memory_mutex);
 
 	//shader->GetAllUniforms(uniforms);
 
@@ -63,7 +62,6 @@ bool ResourceMaterial::LoadInMemory()
 
 void ResourceMaterial::FreeMemory() 
 {
-	std::unique_lock<std::shared_mutex> lk(memory_mutex);
 
 	for (uint i = 0; i < uniforms.size(); ++i) 
 	{

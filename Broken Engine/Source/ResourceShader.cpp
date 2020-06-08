@@ -40,7 +40,6 @@ bool ResourceShader::LoadInMemory()
 {
 	bool ret = true;
 
-	std::unique_lock<std::shared_mutex> lk(memory_mutex);
 
 	// --- Load from binary file ---
 	if (!ret/*App->fs->Exists(resource_file.c_str())*/)
@@ -173,7 +172,6 @@ bool ResourceShader::LoadInMemory()
 
 void ResourceShader::FreeMemory() 
 {
-	std::unique_lock<std::shared_mutex> lk(memory_mutex);
 	DeleteShaderProgram();
 }
 

@@ -39,9 +39,7 @@ bool ResourceFont::LoadInMemory()
 		return false;
 	}
 
-	// We try to lock this so we do not proceed if we are freeing memory
-	std::unique_lock<std::shared_mutex> lk(memory_mutex);
-
+	
 	FT_Set_Pixel_Sizes(face, 0, size);
 	//FT_Set_Char_Size(face, size << 6, size << 6, 96, 96);
 	
@@ -116,9 +114,7 @@ bool ResourceFont::LoadInMemory()
 
 void ResourceFont::FreeMemory()
 {
-	// We lock this while deleting memory so we do not create it while deleting it
-	std::unique_lock<std::shared_mutex> lk(memory_mutex);
-
+	
 	// delete vbo vao texture
 	if (VAO != 0) glDeleteVertexArrays(1,&VAO);
 	if (VBO != 0) glDeleteBuffers(1,&VBO);

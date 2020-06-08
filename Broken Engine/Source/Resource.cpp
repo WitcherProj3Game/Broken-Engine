@@ -82,17 +82,12 @@ bool Resource::IsInMemory() const
 
 bool Resource::LoadToMemory() 
 {
-	memory_mutex.lock_shared();
 	if (instances > 0)
 	{
-		memory_mutex.unlock_shared();
-
 		instances++;
 	}
 	else
 	{
-		memory_mutex.unlock_shared();
-
 		instances = LoadInMemory() ? 1 : 0; //LoadInMemory is already assumed to be thread safe
 	}
 

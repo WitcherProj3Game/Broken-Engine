@@ -3,7 +3,7 @@
 #include "ModuleGui.h"
 #include "ModuleFileSystem.h"
 #include "ModuleResourceManager.h"
-
+#include "ModuleThreading.h"
 
 #include "ImporterMesh.h"
 
@@ -259,6 +259,10 @@ void ResourceMesh::CreateVAO()
 	glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, biTangent)));
 	glEnableVertexAttribArray(5);
 
+	// --- Vertex Smooth Normals ---
+	glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, smoothNormal)));
+	glEnableVertexAttribArray(6);
+
 	// --- Unbind VAO and VBO ---
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -291,4 +295,84 @@ void ResourceMesh::Repath()
 	IMesh->Save(this);
 }
 
+void ResourceMesh::CalculateSmoothNormals()
+{
+	std::vector<std::vector<float3>> wnormals;
+	wnormals.resize(VerticesSize);
+
+	float tricount = IndicesSize / 3; //Each triangle uses up 3 indices
+	uint nthreads = App->threading->GetConcurrentThreads();
+	int tris_per_batch = int(tricount / nthreads);
+
+	// We send the triangle batches to the other threads to calculate it parallel
+	for (int i = 0; i < nthreads - 1; ++i)
+		App->threading->ADDTASK(this, ResourceMesh::_CalculateFaceNormals, tris_per_batch * i, tris_per_batch * (i + 1), wnormals);
+	App->threading->ADDTASK(this, ResourceMesh::_CalculateFaceNormals, tris_per_batch * (nthreads - 1), tricount, wnormals);
+
+	App->threading->FinishProcessing(); // We wait for the triangle normals to be all calculated
+
+	// We calculate the amount of vertices per batch
+	int vertices_per_batch = int(VerticesSize / nthreads);
+
+	// We send the vertices batches to calculate
+	for (int i = 0; i < nthreads - 1; ++i)
+		App->threading->ADDTASK(this, ResourceMesh::_CalculateVertexSmooth, vertices_per_batch * i, vertices_per_batch * (i + 1), wnormals);
+	App->threading->ADDTASK(this, ResourceMesh::_CalculateVertexSmooth, vertices_per_batch * (nthreads - 1), VerticesSize, wnormals);
+
+	App->threading->FinishProcessing(); // We wait for all the smooth normals to be calculated
+	smoothNormals = true;
+}
+
+void ResourceMesh::_CalculateFaceNormals(float from, float to, std::vector<std::vector<float3>> &wnormals)
+{
+	for (int f = from; f < to; f++)
+	{
+		// p1, p2 and p3 are the points in the face (f)
+		float3 p1, p2, p3;
+		p1 = {vertices[Indices[f * 3]].normal[0], vertices[Indices[f * 3]].normal[1], vertices[Indices[f * 3]].normal[2]};
+		p2 = {vertices[Indices[f * 3 + 1]].normal[0], vertices[Indices[f * 3 + 1]].normal[1], vertices[Indices[f * 3 + 1]].normal[2]};
+		p3 = {vertices[Indices[f * 3 + 2]].normal[0], vertices[Indices[f * 3 + 2]].normal[1], vertices[Indices[f * 3 + 2]].normal[2]};
+
+		// calculate facet normal of the triangle using cross product;
+		// both components are "normalized" against a common point chosen as the base
+		float3 n = (p2 - p1).Cross(p3 - p1); // p1 is the 'base' here
+
+		// get the angle between the two other points for each point;
+		// the starting point will be the 'base' and the two adjacent points will be normalized against it
+		float a1 = (p2 - p1).AngleBetween(p3 - p1); // p1 is the 'base' here
+		float a2 = (p3 - p2).AngleBetween(p1 - p2); // p2 is the 'base' here
+		float a3 = (p1 - p3).AngleBetween(p2 - p3); // p3 is the 'base' here
+
+		// normalize the initial facet normals if you want to ignore surface area
+		n.Normalize();
+
+		v_mutex.lock();
+		// store the weighted normal in an structured array
+		wnormals[Indices[f * 3]].push_back(n * a1);
+		wnormals[Indices[f * 3 + 1]].push_back(n * a2);
+		wnormals[Indices[f * 3 + 2]].push_back(n * a3);
+		v_mutex.unlock();
+	}
+}
+
+void ResourceMesh::_CalculateVertexSmooth(float from, float to, const std::vector<std::vector<float3>> &wnormals)
+{
+	for (int v = from; v < to; v++)
+	{
+		float3 N;
+
+		// run through the normals in each vertex's array and interpolate them
+		// vertex(v) here fetches the data of the vertex at index 'v'
+		for (int n = 0; n < wnormals[v].size(); v++)
+		{
+			N += wnormals[v].at(n);
+		}
+
+		// normalize the final normal
+		N.Normalize();
+		vertices[v].smoothNormal[0] = N.x;
+		vertices[v].smoothNormal[1] = N.y;
+		vertices[v].smoothNormal[2] = N.z;
+	}
+}
 

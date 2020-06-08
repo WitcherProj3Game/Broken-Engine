@@ -48,6 +48,9 @@ ComponentImage::ComponentImage(GameObject* gameObject) : UI_Element(gameObject, 
 
 ComponentImage::~ComponentImage()
 {
+	if (is3D)
+		App->ui_system->RemoveElement3D(this);
+
 	if (texture)
 	{
 		texture->Release();
@@ -136,13 +139,30 @@ void ComponentImage::NextAnimationFrame()
 void ComponentImage::Draw()
 {
 	// --- Frame image with camera ---
-	float nearp = App->renderer3D->active_camera->GetNearPlane();
-	float3 pos = { GetFinalPosition() , nearp + 0.026f };
-	float3 size = { size2D.x / App->gui->sceneWidth, size2D.y / App->gui->sceneHeight, 1.0f };
-	float4x4 transform = transform.FromTRS(pos, Quat::identity, size);
+	float4x4 transform;
+	uint shaderID = 0;
+	if (!is3D)
+	{
+
+		shaderID = App->renderer3D->UI_Shader->ID;
+
+		float nearp = App->renderer3D->active_camera->GetNearPlane();
+		float3 pos = { GetFinalPosition() , nearp + 0.026f };
+		float3 size = { size2D.x / App->gui->sceneWidth, size2D.y / App->gui->sceneHeight, 1.0f };
+		transform = transform.FromTRS(pos, Quat::identity, size);
+	}
+	else
+	{
+		//ComponentTransform* t = GO->GetComponent<ComponentTransform>();
+		//float3 pos = t->GetGlobalPosition();
+		//float3 size = t->GetScale();
+		//Quat rot = t->GetQuaternionRotation();
+		//transform = transform.FromTRS(pos, rot, size);
+		transform = GO->GetComponent<ComponentTransform>()->GetGlobalTransform();
+		shaderID = App->renderer3D->defaultShader->ID;
+	}
 
 	// --- Set Uniforms ---
-	uint shaderID = App->renderer3D->UI_Shader->ID;
 	//uint shaderID = App->renderer3D->defaultShader->ID;
 	glUseProgram(shaderID);
 
@@ -321,6 +341,7 @@ json ComponentImage::Save() const
 
 	node["MantainAspect"] = (resize) ? "1" : "0";
 	node["IsProgressBar"] = (is_progress_bar) ? "1" : "0";
+	node["is3d"] = (is3D) ? "1" : "0";
 
 	return node;
 }
@@ -408,12 +429,35 @@ void ComponentImage::Load(json& node)
 
 	std::string bar = node["IsProgressBar"].is_null() ? "0" : node["IsProgressBar"];
 	is_progress_bar = std::stoi(bar) == 1;
+
+	std::string three = node["is3d"].is_null() ? "0" : node["is3d"];
+	is3D = std::stoi(three) == 1;
+
+	if (is3D)
+		App->ui_system->AddElement3D(this);
 }
 
 void ComponentImage::CreateInspectorNode()
 {
 	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
 	ImGui::Checkbox("Visible", &visible);
+	ImGui::Separator();
+
+	if (ImGui::Checkbox("Is 3D", &is3D))
+	{
+		if (is3D) {
+			App->ui_system->AddElement3D(this);
+			if (canvas)
+				canvas->RemoveElement(this);
+		}
+		else
+		{
+			App->ui_system->RemoveElement3D(this);
+			if (canvas)
+				canvas->AddElement(this);
+		}
+	}
+
 	ImGui::Separator();
 
 	int anchor = (int)anchor_type;

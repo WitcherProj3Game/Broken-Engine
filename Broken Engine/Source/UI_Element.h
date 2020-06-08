@@ -21,7 +21,6 @@ public:
 		BOTTOM_LEFT,
 		BOTTOM,
 		BOTTOM_RIGHT,
-		PERCENTAGE,
 
 		NONE
 	};
@@ -47,8 +46,8 @@ public:
 
 	float2 size2D = { 50,50 };
 	float2 position2D = { 0,0 };
-	float2 position2DPercentage = { 0,0 };
 
+	bool is3D = false;
 	float rotation2D = 0.0f;
 	ComponentCanvas* canvas = nullptr;
 

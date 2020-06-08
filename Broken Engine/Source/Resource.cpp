@@ -104,21 +104,22 @@ bool Resource::LoadToMemory()
 
 void Resource::Release()
 {
-	memory_mutex.lock_shared(); //We lock our mutex in read mode
+	//memory_mutex.lock_shared(); //We lock our mutex in read mode
 	if (instances != 0) 
 	{
-		memory_mutex.unlock_shared(); // We unlock from read mode and lock it in write mode
-		memory_mutex.lock();
+		//memory_mutex.unlock_shared(); // We unlock from read mode and lock it in write mode
+		//memory_mutex.lock();
 		if (--instances == 0)
 		{
-			App->threading->ADDTASK(this, Resource::FreeMemory);
-			App->threading->FinishProcessingInFrame();
+			FreeMemory();
+			//App->threading->ADDTASK(this, Resource::FreeMemory);
+			//App->threading->FinishProcessing();
 		}
-		memory_mutex.unlock(); // We unlock write mode
+		//memory_mutex.unlock(); // We unlock write mode
 	}
 	else
 	{
-		memory_mutex.unlock_shared(); //We can unlock our mutex from read mode
+		//memory_mutex.unlock_shared(); //We can unlock our mutex from read mode
 		ENGINE_CONSOLE_LOG("![Warning]: Trying to release an already released resource: %s", name.c_str());
 	}
 }

@@ -73,7 +73,7 @@ bool ResourceShader::LoadInMemory()
 
 				if (meta)
 				{
-					uint format = meta->ResourceData["FORMAT"].is_null() ? 0 : meta->ResourceData["FORMAT"].get<uint>();
+					uint format = meta->ResourceData.contains("FORMAT") ? meta->ResourceData["FORMAT"].get<uint>() : 0;
 
 					char* buffer = nullptr;
 

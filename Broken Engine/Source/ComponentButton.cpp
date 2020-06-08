@@ -252,7 +252,7 @@ void ComponentButton::Load(json& node)
 	std::string path = node["Resources"]["ResourceTexture"].is_null() ? "0" : node["Resources"]["ResourceTexture"];
 	App->fs->SplitFilePath(path.c_str(), nullptr, &path);
 	path = path.substr(0, path.find_last_of("."));
-	anchor_type = node["anchor"].is_null() ? UI_Anchor::NONE : (UI_Anchor)node["anchor"].get<int>();
+	anchor_type = node.contains("anchor") ? (UI_Anchor)node["anchor"].get<int>() : UI_Anchor::NONE;
 
 	ResourceTexture* texture = (ResourceTexture*)App->resources->GetResource(std::stoi(path));
 
@@ -265,45 +265,45 @@ void ComponentButton::Load(json& node)
 		texture->AddUser(image->GetContainerGameObject());
 	}
 
-	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
-	std::string visible_str = node["visible"].is_null() ? "0" : node["visible"];
-	std::string draggable_str = node["visible"].is_null() ? "0" : node["draggable"];
-	std::string interactable_str = node["visible"].is_null() ? "0" : node["interactable"];
-	std::string priority_str = node["priority"].is_null() ? "0" : node["priority"];
+	this->active = node.contains("Active") ? (bool)node["Active"] : true;
+	std::string visible_str = node.contains("visible") ? node["visible"] : "0";
+	std::string draggable_str = node.contains("visible") ? node["draggable"] : "0";
+	std::string interactable_str = node.contains("visible") ? node["interactable"] : "0";
+	std::string priority_str = node.contains("priority") ? node["priority"] : "0";
 
-	std::string position2Dx = node["position2Dx"].is_null() ? "0" : node["position2Dx"];
-	std::string position2Dy = node["position2Dy"].is_null() ? "0" : node["position2Dy"];
+	std::string position2Dx = node.contains("position2Dx") ? node["position2Dx"] : "0";
+	std::string position2Dy = node.contains("position2Dy") ? node["position2Dy"] : "0";
 
-	std::string size2Dx = node["size2Dx"].is_null() ? "0" : node["size2Dx"];
-	std::string size2Dy = node["size2Dy"].is_null() ? "0" : node["size2Dy"];
+	std::string size2Dx = node.contains("size2Dx") ? node["size2Dx"] : "0";
+	std::string size2Dy = node.contains("size2Dy") ? node["size2Dy"] : "0";
 
-	std::string colliderx = node["colliderx"].is_null() ? "0" : node["colliderx"];
-	std::string collidery = node["collidery"].is_null() ? "0" : node["collidery"];
-	std::string colliderw = node["colliderw"].is_null() ? "0" : node["colliderw"];
-	std::string colliderh = node["colliderh"].is_null() ? "0" : node["colliderh"];
+	std::string colliderx = node.contains("colliderx") ? node["colliderx"] : "0";
+	std::string collidery = node.contains("collidery") ? node["collidery"] : "0";
+	std::string colliderw = node.contains("colliderw") ? node["colliderw"] : "0";
+	std::string colliderh = node.contains("colliderh") ? node["colliderh"] : "0";
 
-	std::string script_str = node["script"].is_null() ? "0" : node["script"];
-	std::string function_str = node["function"].is_null() ? "None" : node["function"];
+	std::string script_str = node.contains("script") ? node["script"] : "0";
+	std::string function_str = node.contains("function") ? node["function"] : "None";
 
-	std::string idle_color_r = node["idle_color.r"].is_null() ? "0" : node["idle_color.r"];
-	std::string idle_color_g = node["idle_color.g"].is_null() ? "0" : node["idle_color.g"];
-	std::string idle_color_b = node["idle_color.b"].is_null() ? "0" : node["idle_color.b"];
-	std::string idle_color_a = node["idle_color.a"].is_null() ? "0" : node["idle_color.a"];
+	std::string idle_color_r = node.contains("idle_color.r") ? node["idle_color.r"] : "0";
+	std::string idle_color_g = node.contains("idle_color.g") ? node["idle_color.g"] : "0";
+	std::string idle_color_b = node.contains("idle_color.b") ? node["idle_color.b"] : "0";
+	std::string idle_color_a = node.contains("idle_color.a") ? node["idle_color.a"] : "0";
 
-	std::string hovered_color_r = node["hovered_color.r"].is_null() ? "0" : node["hovered_color.r"];
-	std::string hovered_color_g = node["hovered_color.g"].is_null() ? "0" : node["hovered_color.g"];
-	std::string hovered_color_b = node["hovered_color.b"].is_null() ? "0" : node["hovered_color.b"];
-	std::string hovered_color_a = node["hovered_color.a"].is_null() ? "0" : node["hovered_color.a"];
+	std::string hovered_color_r = node.contains("hovered_color.r") ? node["hovered_color.r"] : "0";
+	std::string hovered_color_g = node.contains("hovered_color.g") ? node["hovered_color.g"] : "0";
+	std::string hovered_color_b = node.contains("hovered_color.b") ? node["hovered_color.b"] : "0";
+	std::string hovered_color_a = node.contains("hovered_color.a") ? node["hovered_color.a"] : "0";
 
-	std::string selected_color_r = node["selected_color.r"].is_null() ? "0" : node["selected_color.r"];
-	std::string selected_color_g = node["selected_color.g"].is_null() ? "0" : node["selected_color.g"];
-	std::string selected_color_b = node["selected_color.b"].is_null() ? "0" : node["selected_color.b"];
-	std::string selected_color_a = node["selected_color.a"].is_null() ? "0" : node["selected_color.a"];
+	std::string selected_color_r = node.contains("selected_color.r") ? node["selected_color.r"] : "0";
+	std::string selected_color_g = node.contains("selected_color.g") ? node["selected_color.g"] : "0";
+	std::string selected_color_b = node.contains("selected_color.b") ? node["selected_color.b"] : "0";
+	std::string selected_color_a = node.contains("selected_color.a") ? node["selected_color.a"] : "0";
 
-	std::string locked_color_r = node["locked_color.r"].is_null() ? "0" : node["locked_color.r"];
-	std::string locked_color_g = node["locked_color.g"].is_null() ? "0" : node["locked_color.g"];
-	std::string locked_color_b = node["locked_color.b"].is_null() ? "0" : node["locked_color.b"];
-	std::string locked_color_a = node["locked_color.a"].is_null() ? "0" : node["locked_color.a"];
+	std::string locked_color_r = node.contains("locked_color.r") ? node["locked_color.r"] : "0";
+	std::string locked_color_g = node.contains("locked_color.g") ? node["locked_color.g"] : "0";
+	std::string locked_color_b = node.contains("locked_color.b") ? node["locked_color.b"] : "0";
+	std::string locked_color_a = node.contains("locked_color.a") ? node["locked_color.a"] : "0";
 
 	//-------
 	visible = bool(std::stoi(visible_str));

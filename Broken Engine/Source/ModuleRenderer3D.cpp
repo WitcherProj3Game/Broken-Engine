@@ -530,9 +530,9 @@ void ModuleRenderer3D::LoadStatus(const json& file)
 
 		if (file["Renderer3D"].find("SkyboxRotation") != file["Renderer3D"].end())
 		{
-			skyboxangle.x = file["Renderer3D"]["SkyboxRotation"]["X"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["X"].get<float>();
-			skyboxangle.y = file["Renderer3D"]["SkyboxRotation"]["Y"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["Y"].get<float>();
-			skyboxangle.z = file["Renderer3D"]["SkyboxRotation"]["Z"].is_null() ? 0.0f : file["Renderer3D"]["SkyboxRotation"]["Z"].get<float>();
+			skyboxangle.x = file["Renderer3D"]["SkyboxRotation"].contains("X") ? file["Renderer3D"]["SkyboxRotation"]["X"].get<float>() : 0.0f;
+			skyboxangle.y = file["Renderer3D"]["SkyboxRotation"].contains("Y") ? file["Renderer3D"]["SkyboxRotation"]["Y"].get<float>() : 0.0f;
+			skyboxangle.z = file["Renderer3D"]["SkyboxRotation"].contains("Z") ? file["Renderer3D"]["SkyboxRotation"]["Z"].get<float>() : 0.0f;
 		}
 
 

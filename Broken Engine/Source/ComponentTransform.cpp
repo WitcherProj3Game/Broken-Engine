@@ -148,19 +148,19 @@ json ComponentTransform::Save() const {
 
 void ComponentTransform::Load(json& node)
 {
-	std::string layer = node["layer"].is_null() ? "0" : node["layer"];
-	std::string posx = node["positionx"].is_null() ? "0" : node["positionx"];
-	std::string posy = node["positiony"].is_null() ? "0" : node["positiony"];
-	std::string posz = node["positionz"].is_null() ? "0" : node["positionz"];
+	std::string layer = node.contains("layer") ? node["layer"] : "0";
+	std::string posx = node.contains("positionx") ? node["positionx"] : "0";
+	std::string posy = node.contains("positiony") ? node["positiony"] : "0";
+	std::string posz = node.contains("positionz") ? node["positionz"] : "0";
 
-	std::string rotx = node["rotationx"].is_null() ? "0" : node["rotationx"];
-	std::string roty = node["rotationy"].is_null() ? "0" : node["rotationy"];
-	std::string rotz = node["rotationz"].is_null() ? "0" : node["rotationz"];
-	std::string rotw = node["rotationw"].is_null() ? "0" : node["rotationw"];
+	std::string rotx = node.contains("rotationx") ? node["rotationx"] : "0";
+	std::string roty = node.contains("rotationy") ? node["rotationy"] : "0";
+	std::string rotz = node.contains("rotationz") ? node["rotationz"] : "0";
+	std::string rotw = node.contains("rotationw") ? node["rotationw"] : "0";
 
-	std::string scalex = node["scalex"].is_null() ? "0" : node["scalex"];
-	std::string scaley = node["scaley"].is_null() ? "0" : node["scaley"];
-	std::string scalez = node["scalez"].is_null() ? "0" : node["scalez"];
+	std::string scalex = node.contains("scalex") ? node["scalex"] : "0";
+	std::string scaley = node.contains("scaley") ? node["scaley"] : "0";
+	std::string scalez = node.contains("scalez") ? node["scalez"] : "0";
 
 	GO->layer = std::stof(layer);
 

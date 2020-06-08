@@ -70,7 +70,7 @@ void ComponentAudioListener::Update()
 
 void ComponentAudioListener::Load(json& node)
 {
-	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
+	this->active = node.contains("Active") ? (bool)node["Active"] : true;
 }
 
 json ComponentAudioListener::Save() const

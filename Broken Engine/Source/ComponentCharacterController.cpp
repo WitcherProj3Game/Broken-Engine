@@ -331,18 +331,18 @@ void ComponentCharacterController::Load(json& node)
 {
 	//ENGINE_CONSOLE_LOG("Load");
 
-	std::string contactOffset_ = node["contactOffset"].is_null() ? "0" : node["contactOffset"];
-	std::string stepOffset_ = node["stepOffset"].is_null() ? "0" : node["stepOffset"];
-	std::string slopeLimit_ = node["slopeLimit"].is_null() ? "0" : node["slopeLimit"];
-	std::string radius_ = node["radius"].is_null() ? "0" : node["radius"];
-	std::string height_ = node["height"].is_null() ? "0" : node["height"];
-	std::string positionX = node["positionX"].is_null() ? "0" : node["positionX"];
-	std::string positionY = node["positionY"].is_null() ? "0" : node["positionY"];
-	std::string positionZ = node["positionZ"].is_null() ? "0" : node["positionZ"];
-	std::string nonWalkableMode = node["nonWalkableMode"].is_null() ? "0" : node["nonWalkableMode"];
-	std::string firstTime_ = node["firstTime"].is_null() ? "0" : node["firstTime"];
-	std::string gravity_ = node["gravity"].is_null() ? "0" : node["gravity"];
-	std::string draw_ = node["draw"].is_null() ? "0" : node["draw"];
+	std::string contactOffset_ = node.contains("contactOffset") ? node["contactOffset"] : "0";
+	std::string stepOffset_ = node.contains("stepOffset") ? node["stepOffset"] : "0";
+	std::string slopeLimit_ = node.contains("slopeLimit") ? node["slopeLimit"] : "0";
+	std::string radius_ = node.contains("radius") ? node["radius"] : "0";
+	std::string height_ = node.contains("height") ? node["height"] : "0";
+	std::string positionX = node.contains("positionX") ? node["positionX"] : "0";
+	std::string positionY = node.contains("positionY") ? node["positionY"] : "0";
+	std::string positionZ = node.contains("positionZ") ? node["positionZ"] : "0";
+	std::string nonWalkableMode = node.contains("nonWalkableMode") ? node["nonWalkableMode"] : "0";
+	std::string firstTime_ = node.contains("firstTime") ? node["firstTime"] : "0";
+	std::string gravity_ = node.contains("gravity") ? node["gravity"] : "0";
+	std::string draw_ = node.contains("draw") ? node["draw"] : "0";
 
 	contactOffset = std::stof(contactOffset_);
 	stepOffset = std::stof(stepOffset_);

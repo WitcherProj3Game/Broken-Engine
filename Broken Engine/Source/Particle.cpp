@@ -25,16 +25,11 @@ Particle::Particle()
 	position = { 0.0f,0.0f,0.0f };
 	lifeTime = 1000;
 	diameter = 1;
-	plane = App->scene_manager->plane;
+	particle_mesh = App->scene_manager->plane;
 }
 
 Particle::~Particle()
 {}
-
-void Particle::SetAnimation(ResourceMesh* mesh)
-{
-	plane = mesh;
-}
 
 void Particle::Draw(bool shadowsPass)
 {
@@ -73,7 +68,7 @@ void Particle::Draw(bool shadowsPass)
 	glUseProgram(shaderID);
 
 	// --- Shader Matrices ---
-	float4x4 transform = transform.FromTRS(float3(position.x, position.y, position.z), finalRot, float3(scale.x, scale.y, 1));
+	float4x4 transform = transform.FromTRS(float3(position.x, position.y, position.z), finalRot, float3(scale.x, scale.y, scale.z));
 	float4x4 projMat = float4x4::identity;
 	float4x4 viewMat = float4x4::identity;
 	const ComponentLight* light = App->renderer3D->GetShadowerLight();
@@ -124,10 +119,10 @@ void Particle::Draw(bool shadowsPass)
 	}
 
 	// --- Draw plane with given texture ---
-	glBindVertexArray(plane->VAO);
+	glBindVertexArray(particle_mesh->VAO);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, plane->EBO);
-	glDrawElements(GL_TRIANGLES, plane->IndicesSize, GL_UNSIGNED_INT, NULL); // render primitives from array data
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, particle_mesh->EBO);
+	glDrawElements(GL_TRIANGLES, particle_mesh->IndicesSize, GL_UNSIGNED_INT, NULL); // render primitives from array data
 
 	// --- Back to Defaults ---
 	glBindVertexArray(0);

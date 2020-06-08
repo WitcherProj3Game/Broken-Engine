@@ -75,7 +75,11 @@ void ComponentMeshRenderer::DrawComponent()
 	if (cmesh && cmesh->resource_mesh && material)
 	{
 		App->renderer3D->DrawMesh(GO->GetComponent<ComponentTransform>()->GetGlobalTransform(), cmesh->resource_mesh, material, cmesh->deformable_mesh, flags, Broken::White, only_shadows);
-		DrawNormals(*cmesh->resource_mesh, *GO->GetComponent<ComponentTransform>());
+		
+		if(cmesh->deformable_mesh == nullptr)
+			DrawNormals(*cmesh->resource_mesh, *GO->GetComponent<ComponentTransform>());
+		else
+			DrawNormals(*cmesh->deformable_mesh, *GO->GetComponent<ComponentTransform>());
 	}
 }
 
@@ -203,6 +207,7 @@ void ComponentMeshRenderer::CreateInspectorNode()
 	// --- Shadows Node ---
 	ImGui::NewLine();
 	ImGui::Separator();
+	ImGui::NewLine();
 	ImGui::Text("Shadowing");
 
 	ImGui::Text("Cast Shadows"); ImGui::SameLine();
@@ -296,6 +301,30 @@ void ComponentMeshRenderer::CreateInspectorNode()
 				ImGui::SameLine();
 				if (ImGui::Checkbox("Culling", &material->has_culling)) save_material = true;
 
+				//Rim Light
+				ImGui::Separator();
+				ImGui::NewLine();
+				ImGui::NewLine(); ImGui::SameLine();
+				if (ImGui::Checkbox("Apply Rim Light", &material->m_ApplyRimLight)) save_material = true;
+
+				if (material->m_ApplyRimLight)
+				{
+					ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+					ImGui::Text("Rim Power");
+					ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f); ImGui::SetNextItemWidth(200.0f);
+					if (ImGui::DragFloat("##MatRimPowerEd", &material->m_RimPower, 0.005f, -10.0f, 10.0f)) save_material = true;
+
+					ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
+					ImGui::Text("Rim Smooth");
+					ImGui::NewLine(); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 30.0f);
+
+					ImGui::Text("Low"); ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f); ImGui::SetNextItemWidth(75.0f);
+					if (ImGui::DragFloat("##MatEdLowRimSm", &material->m_RimSmooth.x, 0.005f, -10.0f, 10.0f, "%.4f")) save_material = true;
+
+					ImGui::SameLine(); ImGui::Text("High"); ImGui::SameLine(); ImGui::SetNextItemWidth(75.0f);
+					if (ImGui::DragFloat("##MatEdHighRimSm", &material->m_RimSmooth.y, 0.005f, -10.0f, 10.0f, "%.4f")) save_material = true;
+				}
+
 				//Color
 				ImGui::Separator();
 				ImGui::NewLine();
@@ -308,7 +337,7 @@ void ComponentMeshRenderer::CreateInspectorNode()
 				ImGui::Text("Shininess");
 				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x + 10.0f);
 				ImGui::SetNextItemWidth(300.0f);
-				if(ImGui::SliderFloat("", &material->m_Shininess, -0.5f, 500.00f, "%.3f", 1.5f)) save_material = true;
+				if(ImGui::SliderFloat("##MatShininessEd", &material->m_Shininess, -0.5f, 500.00f, "%.3f", 1.5f)) save_material = true;
 
 				//ImGui::Text("Shader Uniforms");
 

@@ -13,6 +13,12 @@ class Particle;
 class ResourceTexture;
 class CurveEditor;
 
+enum class ROTATION_PARENT {
+	GO_GLOBAL=0,
+	NONE,
+	GO_LOCAL
+};
+
 class BROKEN_API ComponentParticleEmitter : public Component
 {
 	friend class ModuleParticles;
@@ -40,6 +46,7 @@ public:
 	// -- Other functionalities
 	void CreateInspectorNode() override;
 	void DrawEmitterArea();
+	void UpdateAABBs();
 
 	//Scripting functions
 	//Emitter
@@ -57,10 +64,9 @@ public:
 
 	//Particles
 	void SetLifeTime(int ms);
-	void SetParticlesScale(float x, float y);
+	void SetParticlesScale(float x, float y, float z);
 	void SetParticlesScaleRF(float randomFactor1, float randomFactor2);
 	void UpdateActorLayer(const int* layerMask);
-	void SetScale(float x, float y);
 	void SetScaleOverTime(float scale);
 	void SetTexture(uint UID);
 
@@ -89,6 +95,8 @@ private:
 private:
 	physx::PxParticleSystem* particleSystem = nullptr;
 
+	bool custom_mesh = false;
+	ResourceMesh* particles_mesh = nullptr;
 	std::vector<ResourceMesh*> particleMeshes;
 	std::vector<Particle*> particles;
 	std::map<float, int> drawingIndices;
@@ -118,12 +126,15 @@ private:
 	bool playOnAwake = false;
 	int duration = 1000;
 	uint emisionStart = 0;
+	int rotationTypeInt = 0;
+	ROTATION_PARENT rotationType = ROTATION_PARENT::GO_LOCAL;
 
 	//Sprite rotations
 	bool rotationActive = false;
 	int rotationOvertime1[3] = { 0,0,0 };
 	int rotationOvertime2[3] = { 0,0,0 };
 	bool separateAxis = false;
+	bool separateAxisScale = false;
 	bool randomInitialRotation = false;
 	int minInitialRotation[3] = { 0,0,0 };
 	int maxInitialRotation[3] = { 0,0,0 };
@@ -144,15 +155,16 @@ private:
 	int particlesLifeTime = 1000;
 	int particlesLifeTime1 = 1000;
 	int particlesLifeTime2 = 1000;
-	float2 particlesScale = { 1,1 };
+	float3 particlesScale = float3::one;
 	float scaleOverTime = 0.0f;
 	float particlesScaleRandomFactor1 = 1;
 	float particlesScaleRandomFactor2 = 1;
 	ResourceTexture* texture = nullptr;
 	int lifetimeconstants = 0;
 	int velocityconstants = 0;
-	bool followEmitter = true;
-	bool collision_active = true;
+	bool followEmitterPosition = false;
+	bool followEmitterRotation= false;
+	bool collision_active = false;
 
 	//Colors
 	bool colorGradient = false;
@@ -166,6 +178,8 @@ private:
 	//Curves
 	std::vector<CurveEditor*> curves;
 	CurveEditor* scaleCurve = nullptr;
+	CurveEditor* scaleCurveY = nullptr;
+	CurveEditor* scaleCurveZ = nullptr;
 	CurveEditor* rotateCurve = nullptr;
 	int rotationconstants = 0;
 	int scaleconstants = 0;
@@ -191,6 +205,7 @@ private:
 
 	//Debug Drawing
 	OBB emisionAreaOBB;
+	AABB particlesAreaAABB;
 };
 BE_END_NAMESPACE
 

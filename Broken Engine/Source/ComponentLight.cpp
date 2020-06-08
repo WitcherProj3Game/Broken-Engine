@@ -559,6 +559,8 @@ json ComponentLight::Save() const
 	node["ShadowPCFDivisor"] = m_ShadowPCFDivisor;
 	node["FrustumSizeX"] = frustum_size.x;
 	node["FrustumSizeY"] = frustum_size.y;
+	node["FrustumPlanesNear"] = frusutm_planes.x;
+	node["FrustumPlanesFar"] = frusutm_planes.y;
 	node["DebugDraw"] = dir_debug_draw;
 
 
@@ -619,6 +621,9 @@ void ComponentLight::Load(json& node)
 	m_ShadowOffsetBlur = node.find("ShadowOffsetBlur") == node.end() ? 0.2f : node["ShadowOffsetBlur"].get<float>();
 	m_ShadowPoissonBlur = node.find("ShadowPoissonBlur") == node.end() ? 700.0f : node["ShadowPoissonBlur"].get<float>();
 	m_ShadowPCFDivisor = node.find("ShadowPCFDivisor") == node.end() ? 9.0f : node["ShadowPCFDivisor"].get<float>();
+
+	frusutm_planes.x = node.contains("FrustumPlanesNear") ? node["FrustumPlanesNear"].get<float>() : 2.0f;
+	frusutm_planes.y = node.contains("FrustumPlanesFar") ? node["FrustumPlanesFar"].get<float>() : 75.0f;
 
 	if (m_CurrentShadower)
 		App->renderer3D->SetShadowerLight(this);

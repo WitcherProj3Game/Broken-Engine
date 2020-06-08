@@ -313,7 +313,10 @@ void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms)
 			|| strcmp(name, "u_ShadowSmootherPCF") == 0	|| strcmp(name, "u_ShadowSmootherPoissonDisk") == 0	|| strcmp(name, "u_ShadowSmootherBoth") == 0
 			|| strcmp(name, "u_ClampShadows") == 0
 			|| std::string(name).find("u_BkLights") != std::string::npos
-			|| strcmp(name, "time") == 0)
+			|| strcmp(name, "time") == 0
+			|| strcmp(name, "u_ApplyRimLight") == 0
+			|| strcmp(name, "u_RimSmooth") == 0
+			|| strcmp(name, "u_RimPower") == 0)
 			continue;
 
 		Uniform* uniform = nullptr;

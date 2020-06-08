@@ -72,6 +72,9 @@ void AutoCompleteFileGen::EmplaceUserInterfaceFunctions()
 	SetUIElementPosition.variables.push_back("x"); SetUIElementPosition.variables.push_back("y");
 	SetUIElementPosition.variables.push_back("go_UUID");
 
+	SerializedFunction GetUIElementPosition("GetUIElementPosition", source.c_str());
+	GetUIElementPosition.variables.push_back("comp_type"); GetUIElementPosition.variables.push_back("go_UUID");
+
 	SerializedFunction SetUIElementInteractable("SetUIElementInteractable", source.c_str());
 	SetUIElementInteractable.variables.push_back("comp_type"); SetUIElementInteractable.variables.push_back("gameObject_UID"); SetUIElementInteractable.variables.push_back("value");
 
@@ -136,6 +139,7 @@ void AutoCompleteFileGen::EmplaceUserInterfaceFunctions()
 	engine_functions.push_back(MakeElementInvisible);
 	engine_functions.push_back(SetUIElementInteractable);
 	engine_functions.push_back(SetUIElementPosition);
+	engine_functions.push_back(GetUIElementPosition);
 
 	engine_functions.push_back(SetUIBarPercentage);
 	engine_functions.push_back(SetUICircularBarPercentage);
@@ -321,6 +325,7 @@ void AutoCompleteFileGen::EmplaceSystemFunctions()
 	SerializedFunction GameTime("GameTime", source.c_str());
 	SerializedFunction PauseGame("PauseGame", source.c_str());
 	SerializedFunction ResumeGame("ResumeGame", source.c_str());
+	SerializedFunction IsGamePaused("IsGamePaused", source.c_str());
 	SerializedFunction GetDebuggingPath("GetDebuggingPath", source.c_str());
 
 		// Maths
@@ -356,6 +361,7 @@ void AutoCompleteFileGen::EmplaceSystemFunctions()
 	engine_functions.push_back(GameTime);
 	engine_functions.push_back(PauseGame);
 	engine_functions.push_back(ResumeGame);
+	engine_functions.push_back(IsGamePaused);
 	engine_functions.push_back(GetDebuggingPath);
 	engine_functions.push_back(CompareFloats);
 	engine_functions.push_back(CompareDoubles);
@@ -388,6 +394,8 @@ void AutoCompleteFileGen::EmplaceTransformFunctions()
 	SerializedFunction SetScale("SetScale", source.c_str());
 	SetScale.variables.push_back("x"); SetScale.variables.push_back("y"); SetScale.variables.push_back("z"); SetScale.variables.push_back("gameObject_UID");
 
+	SerializedFunction GetScale("GetScale", source.c_str());
+	GetScale.variables.push_back("gameobject_UUID");
 
 	// Rotation
 	SerializedFunction GetRotation("GetRotation", source.c_str());
@@ -404,6 +412,7 @@ void AutoCompleteFileGen::EmplaceTransformFunctions()
 	engine_functions.push_back(SetPosition);
 	engine_functions.push_back(SetLocalPosition);
 	engine_functions.push_back(SetScale);
+	engine_functions.push_back(GetScale);
 	engine_functions.push_back(GetRotation);
 	engine_functions.push_back(RotateObject);
 	engine_functions.push_back(SetObjectRotation);
@@ -506,7 +515,11 @@ void AutoCompleteFileGen::EmplacePhysicsFunctions()
 	SerializedFunction SetMass("SetMass", source.c_str());
 	SetMass.variables.push_back("mass"); SetMass.variables.push_back("gameObject_UID");
 
+	SerializedFunction FixedSimulationRate("FixedSimulationRate", source.c_str());
+	FixedSimulationRate.variables.push_back("rate");
 
+	SerializedFunction FixedSimulation("FixedSimulation", source.c_str());
+	FixedSimulation.variables.push_back("fixed");
 
 	SerializedFunction GetAngularVelocity("GetAngularVelocity", source.c_str());
 	GetAngularVelocity.variables.push_back("gameObject_UID");
@@ -581,6 +594,9 @@ void AutoCompleteFileGen::EmplacePhysicsFunctions()
 	//PushBack all functions
 	engine_functions.push_back(GetMass);
 	engine_functions.push_back(SetMass);
+
+	engine_functions.push_back(SetMass);
+	engine_functions.push_back(FixedSimulationRate);
 
 	engine_functions.push_back(GetAngularVelocity);
 	engine_functions.push_back(SetAngularVelocity);
@@ -663,7 +679,8 @@ void AutoCompleteFileGen::EmplaceParticlesFunctions()
 
 	
 	SerializedFunction SetParticlesScale("SetParticlesScale", source.c_str());
-	SetParticlesScale.variables.push_back("x"); SetParticlesScale.variables.push_back("y"); SetParticlesScale.variables.push_back("gameObject_UID");
+	SetParticlesScale.variables.push_back("x"); SetParticlesScale.variables.push_back("y"); SetParticlesScale.variables.push_back("z");
+	SetParticlesScale.variables.push_back("gameObject_UID");
 	
 	SerializedFunction SetRandomParticlesScale("SetRandomParticlesScale", source.c_str());
 	SetRandomParticlesScale.variables.push_back("randomFactor"); SetRandomParticlesScale.variables.push_back("gameObject_UID");

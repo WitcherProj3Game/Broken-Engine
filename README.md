@@ -5,17 +5,23 @@ We used as basis for the engine (fork), Aitor Simona's [Central 3D Engine](https
 
 ## TOOLS & LIBRARIES USED
 
-We used [SDL 2.0.10](https://www.libsdl.org/), STL, [OpenGL 4.4](https://www.opengl.org/) with [GLAD 0.1.33](https://glad.dav1d.de/), [ImGui 1.72b](https://github.com/ocornut/imgui), [GPUDetect](https://github.com/GameTechDev/gpudetect), [MMGR](https://www.flipcode.com/archives/Presenting_A_Memory_Manager.shtml), [ParShapes](https://prideout.net/shapes), [Assimp 3.3](http://www.assimp.org/), [Devil 1.8.0](http://openil.sourceforge.net/), [JSON for Modern C++](https://nlohmann.github.io/json/), [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo).
+We used [SDL 2.0.12](https://www.libsdl.org/), STL, [OpenGL 4.4](https://www.opengl.org/) with [GLAD 0.1.33](https://glad.dav1d.de/), [ImGui 1.73 WIP](https://github.com/ocornut/imgui), [GPUDetect](https://github.com/GameTechDev/gpudetect), [MMGR](https://www.flipcode.com/archives/Presenting_A_Memory_Manager.shtml), [ParShapes](https://prideout.net/shapes), [Assimp 5.0](http://www.assimp.org/), [Devil 1.8.0](http://openil.sourceforge.net/), [JSON for Modern C++ 3.7.0](https://nlohmann.github.io/json/), [ImGuizmo 1.0](https://github.com/CedricGuillemet/ImGuizmo).
 
 In Addition:
 
 - Microsoft Visual Studio 2019 
 - Visual Studio Code
+- ZeroBrane studio
 - MathGeoLib 1.5 (commit 1994)
-- PhysFS
+- PhysFS 3.0
 - PhysX 3.4.2 
 - Recast Navigation
 - Optick 1.3.0
+- Freetype
+- [Lua 535](https://www.lua.org/)
+- LuaBridge 241
+- PhysFS
+- Wwise
 
 
 ## HOW TO USE

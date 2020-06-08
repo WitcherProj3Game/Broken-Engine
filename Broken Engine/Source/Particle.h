@@ -15,8 +15,6 @@ public:
 	Particle();
 	~Particle();
 
-	void SetAnimation(ResourceMesh* mesh);
-
 	void Draw(bool shadowsPass);
 
 public:
@@ -29,11 +27,13 @@ public:
 	int gradientTimer = 0;
 	float diameter=1;
 	float3 rotation = { 0,0,0 };
-	float3 scale = {1,1,1};
+	float3 scale = float3::one;
 	float3 rotationSpeed = { 0,0,0 };
 	float3 scaleSpeed = { 0,0,0 };
 	float3 emitterSpawnPosition = { 0,0,0 };
 	float distanceToCam = 0.0f;
+
+	Quat intialRotation = Quat::identity;
 
 	int startFrame = 0;
 
@@ -42,7 +42,7 @@ public:
 	bool cam_billboard = true;
 
 	ResourceTexture* texture = nullptr;
-	ResourceMesh* plane = nullptr;
+	ResourceMesh* particle_mesh = nullptr;
 
 	//Rendering Stuff
 	bool scene_colorAffected = true;

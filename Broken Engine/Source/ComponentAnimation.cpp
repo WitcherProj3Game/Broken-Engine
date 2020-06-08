@@ -102,10 +102,6 @@ void ComponentAnimation::Update()
 			}
 		}
 	}
-	else
-	{
-		time = 0;
-	}
 
 	if (to_copy)
 	{
@@ -185,7 +181,9 @@ void ComponentAnimation::SetAnimationSpeed(const char* name, float speed)
 		}
 		else if (animations[i]->name.compare(name) == 0)
 		{
-			time += time * (animations[i]->speed / speed);
+			if(playing_animation == animations[i])
+				time = time * (animations[i]->speed / speed);
+
 			animations[i]->speed = speed;
 		}
 	}

@@ -109,6 +109,11 @@ uniform float u_ShadowsSmoothMultiplicator = 1.0;
 //Other Variables
 vec2 poissonDisk[4] = vec2[](vec2(-0.94201624, -0.39906216 ), vec2(0.94558609, -0.76890725), vec2(-0.094184101, -0.92938870 ), vec2(0.34495938, 0.29387760));
 
+//Rim Light Uniforms
+uniform bool u_ApplyRimLight = false;
+uniform vec2 u_RimSmooth = vec2(0.0, 1.0);
+uniform float u_RimPower = 1.0;
+
 //Light Uniforms
 struct BrokenLight
 {
@@ -177,6 +182,15 @@ float ShadowCalculation(vec3 dir, vec3 normal)
 }
 
 //Light Calculations Functions ---------------------------------------------------------------------------------------
+vec3 CalculateRimLight(vec3 normal, vec3 view, vec3 rimColor, float rimPower, vec2 rimSmooth)
+{
+	float rimFactor = 1.0 - dot(normal, view);
+	rimFactor = smoothstep(rimSmooth.x, rimSmooth.y, rimFactor); //Constrain to [0,1] range
+	rimFactor = pow(rimFactor, rimPower);
+
+	return rimFactor*rimColor;
+}
+
 vec3 CalculateLightResult(vec3 LColor, vec3 LDir, vec3 normal, vec3 viewDir, bool lightShadower)
 {
 	//Normalize light direction
@@ -205,6 +219,9 @@ vec3 CalculateLightResult(vec3 LColor, vec3 LDir, vec3 normal, vec3 viewDir, boo
 
 	if(u_ReceiveShadows && lightShadower)
 		ret *= (1.0 - ShadowCalculation(lightDir, normal));
+
+	if(u_ApplyRimLight)
+		ret += CalculateRimLight(normal, viewDir, LColor, u_RimPower, u_RimSmooth);
 
 	return ret;
 }
@@ -257,6 +274,7 @@ vec3 CalculateSpotlight(BrokenLight light, vec3 normal, vec3 viewDir)
 	//Result
 	return CalculateLightResult(light.color, direction, normal, viewDir, false) * lightAttenuation * lightIntensity;
 }
+
 
 //------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------

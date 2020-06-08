@@ -115,6 +115,26 @@ void ScriptingTransform::SetLocalPosition(float x, float y, float z, uint gameob
 		ENGINE_CONSOLE_LOG("![Script]: (SetLocalPosition) Could not find GameObject with UUID %d", gameobject_UUID);
 }
 
+void ScriptingTransform::GetScale(uint gameobject_UUID, lua_State* L) {
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	float3 scale = float3::zero;
+	if (go) {
+		ComponentTransform* transform = go->GetComponent<ComponentTransform>();
+
+		if (transform)
+			scale = transform->GetScale();
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (GetScale) GameObject has no component transform.");
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (GetScale) Could not find GameObject with UUID %d", gameobject_UUID);
+
+	luabridge::LuaRef table = luabridge::newTable(L);
+	table.append(scale.x);
+	table.append(scale.y);
+	table.append(scale.z);
+}
+
 void ScriptingTransform::SetScale(float x, float y, float z, uint gameobject_UUID) {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 

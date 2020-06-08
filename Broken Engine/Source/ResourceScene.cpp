@@ -39,7 +39,7 @@ ResourceScene::~ResourceScene()
 bool ResourceScene::LoadInMemory()
 {
 	// We try to lock this so we do not proceed if we are freeing memory
-	std::unique_lock lk(memory_mutex);
+	std::unique_lock<std::shared_mutex> lk(memory_mutex);
 
 	// --- Load scene game objects ---
 	if (NoStaticGameObjects.size() == 0 && App->fs->Exists(resource_file.c_str()))
@@ -298,7 +298,7 @@ bool ResourceScene::LoadInMemory()
 
 void ResourceScene::FreeMemory() {
 	// We lock this while deleting memory so we do not create it while deleting it
-	std::unique_lock lk(memory_mutex);
+	std::unique_lock<std::shared_mutex> lk(memory_mutex);
 
 	// --- Delete all scene game objects ---
 	for (std::unordered_map<uint, GameObject*>::iterator it = NoStaticGameObjects.begin(); it != NoStaticGameObjects.end(); ++it)

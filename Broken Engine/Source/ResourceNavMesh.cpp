@@ -26,7 +26,7 @@ bool ResourceNavMesh::LoadInMemory() {
 	bool ret = true;
 
 	// We try to lock this so we do not proceed if we are freeing memory
-	std::unique_lock lk(memory_mutex);
+	std::unique_lock<std::shared_mutex> lk(memory_mutex);
 
 	if (App->fs->Exists(resource_file.c_str())) {
 		// --- Load navmesh data ---
@@ -93,7 +93,7 @@ bool ResourceNavMesh::LoadInMemory() {
 
 void ResourceNavMesh::FreeMemory() {
 	// We lock this while deleting memory so we do not create it while deleting it
-	std::unique_lock lk(memory_mutex);
+	std::unique_lock<std::shared_mutex> lk(memory_mutex);
 
 	dtFreeNavMesh(navMesh);
 	navMesh = nullptr;

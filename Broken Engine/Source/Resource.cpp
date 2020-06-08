@@ -78,21 +78,25 @@ void Resource::SetResourceFile(const char* new_path)
 
 bool Resource::IsInMemory() const
 {
-	std::shared_lock lk(memory_mutex);
+	std::shared_lock<std::shared_mutex> lk(memory_mutex);
 	return instances >= 1;
 }
 
 bool Resource::LoadToMemory() 
 {
-	std::unique_lock lk(memory_mutex);
-
-	if (instances > 0) 
+	memory_mutex.lock_shared();
+	if (instances > 0)
 	{
+		memory_mutex.unlock_shared();
+
+		std::unique_lock<std::shared_mutex> lk(memory_mutex);
 		instances++;
 	}
-	else 
+	else
 	{
-		instances = LoadInMemory() ? 1 : 0;
+		memory_mutex.unlock_shared();
+
+		instances = LoadInMemory() ? 1 : 0; //LoadInMemory is already assumed to be thread safe
 	}
 
 	return instances > 0;

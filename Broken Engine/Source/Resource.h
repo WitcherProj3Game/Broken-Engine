@@ -70,7 +70,7 @@ public:
 	bool has_parent = false;
 
 public:
-	std::shared_mutex memory_mutex;
+	mutable std::shared_mutex memory_mutex;
 
 protected:
 	// --- Utilities ---

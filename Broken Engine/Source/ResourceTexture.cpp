@@ -26,7 +26,7 @@ ResourceTexture::~ResourceTexture()
 
 bool ResourceTexture::LoadInMemory()
 {
-	std::unique_lock lk(memory_mutex);
+	std::unique_lock<std::shared_mutex> lk(memory_mutex);
 
 	if (App->resources->IsFileImported(original_file.c_str()) && App->fs->Exists(resource_file.c_str()))
 	{
@@ -42,7 +42,7 @@ bool ResourceTexture::LoadInMemory()
 
 void ResourceTexture::FreeMemory()
 {
-	std::unique_lock lk(memory_mutex);
+	std::unique_lock<std::shared_mutex> lk(memory_mutex);
 
 	if(buffer_id != App->gui->textureTexID)
 		glDeleteTextures(1, (GLuint*)&buffer_id);

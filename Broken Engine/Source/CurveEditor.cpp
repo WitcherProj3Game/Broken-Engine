@@ -43,7 +43,7 @@ void CurveEditor::DrawCurveEditor()
 		Point* data = pointsCurveTangents.data();
 
 		int flags = (int)SHOW_GRID;
-
+		ImGui::PushID(name.c_str());
 		if (ImGui::Combo("Type", &current, "Linear\0Curve\0\0"))
 		{
 			type = (CurveType)current;
@@ -75,6 +75,7 @@ void CurveEditor::DrawCurveEditor()
 				tangent2 = tangent2.Normalized() * half;
 			}
 		}
+		ImGui::PopID();
 	}
 }
 

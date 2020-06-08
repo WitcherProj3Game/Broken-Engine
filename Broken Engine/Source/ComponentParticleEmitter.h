@@ -134,6 +134,7 @@ private:
 	int rotationOvertime1[3] = { 0,0,0 };
 	int rotationOvertime2[3] = { 0,0,0 };
 	bool separateAxis = false;
+	bool separateAxisScale = false;
 	bool randomInitialRotation = false;
 	int minInitialRotation[3] = { 0,0,0 };
 	int maxInitialRotation[3] = { 0,0,0 };
@@ -177,6 +178,8 @@ private:
 	//Curves
 	std::vector<CurveEditor*> curves;
 	CurveEditor* scaleCurve = nullptr;
+	CurveEditor* scaleCurveY = nullptr;
+	CurveEditor* scaleCurveZ = nullptr;
 	CurveEditor* rotateCurve = nullptr;
 	int rotationconstants = 0;
 	int scaleconstants = 0;

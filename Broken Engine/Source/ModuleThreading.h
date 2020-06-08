@@ -32,6 +32,8 @@ public:
 	void FinishProcessingInUpdate()  { processInUpdate = true; }
 	void FinishProcessingInFrame()  { processInFrame = true; }
 
+	unsigned int GetConcurrentThreads() const { return concurrentThreads; }
+
 private:
 	void ShutdownPool();
 	void ProcessTasks(int threadID, std::atomic<bool>& stop);

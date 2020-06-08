@@ -30,17 +30,13 @@ ResourceAnimator::~ResourceAnimator()
 
 bool ResourceAnimator::LoadInMemory() 
 {
-	memory_mutex.lock_shared();
 	std::string tmp = resource_file.c_str();
-	memory_mutex.unlock_shared();
 
 	json file = App->GetJLoader()->Load(tmp.c_str());
 
 	if (!file.is_null())
 	{
-		// We try to lock this so we do not proceed if we are freeing memory
-		std::unique_lock<std::shared_mutex> lk(memory_mutex);
-
+		
 		for (json::iterator it = file.begin(); it != file.end(); ++it)
 		{
 			std::string name = file[it.key().c_str()]["name"];
@@ -60,9 +56,7 @@ bool ResourceAnimator::LoadInMemory()
 
 void ResourceAnimator::FreeMemory() 
 {
-	// We lock this while deleting memory so we do not create it while deleting it
-	std::unique_lock<std::shared_mutex> lk(memory_mutex);
-
+	
 	for (int i = 0; i < animations.size(); i++)
 	{
 		if (animations[i])

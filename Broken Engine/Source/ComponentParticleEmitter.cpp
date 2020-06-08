@@ -58,7 +58,7 @@ ComponentParticleEmitter::ComponentParticleEmitter(GameObject* ContainerGO) :Com
 	colors.push_back(whiteColor);
 
 	if (scaleCurve == nullptr) {
-		scaleCurve = new CurveEditor("##scale", LINEAR);
+		scaleCurve = new CurveEditor("##scalex", LINEAR);
 		scaleCurve->Init();
 		curves.push_back(scaleCurve);
 	}
@@ -66,6 +66,16 @@ ComponentParticleEmitter::ComponentParticleEmitter(GameObject* ContainerGO) :Com
 		rotateCurve = new CurveEditor("##rotation", LINEAR);
 		rotateCurve->Init();
 		curves.push_back(rotateCurve);
+	}
+	if (scaleCurveY == nullptr) {
+		scaleCurveY = new CurveEditor("##scaley", LINEAR);
+		scaleCurveY->Init();
+		curves.push_back(scaleCurveY);
+	}
+	if (scaleCurveZ == nullptr) {
+		scaleCurveZ = new CurveEditor("##scalez", LINEAR);
+		scaleCurveZ->Init();
+		curves.push_back(scaleCurveZ);
 	}
 }
 
@@ -237,8 +247,16 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 				// -- SCALE --
 				if (scaleconstants == 2) {
 					scaleOverTime = scaleCurve->GetCurrentValue(diff_time, particles[i]->lifeTime);
-					particles[i]->scale.x = scaleOverTime;
-					particles[i]->scale.y = scaleOverTime;
+					if (separateAxisScale) {
+						particles[i]->scale.x = scaleCurve->GetCurrentValue(diff_time, particles[i]->lifeTime);
+						particles[i]->scale.y = scaleCurveY->GetCurrentValue(diff_time, particles[i]->lifeTime);
+						particles[i]->scale.z = scaleCurveZ->GetCurrentValue(diff_time, particles[i]->lifeTime);
+					}
+					else {
+						particles[i]->scale.x = scaleOverTime;
+						particles[i]->scale.y = scaleOverTime;
+						particles[i]->scale.z = scaleOverTime;
+					}
 				}
 
 				if (aabbInCamera) {
@@ -302,6 +320,9 @@ void ComponentParticleEmitter::UpdateParticles(float dt)
 
 				if (particles[i]->scale.y < 0)
 					particles[i]->scale.y = 0;
+
+				if (particles[i]->scale.z < 0)
+					particles[i]->scale.z = 0;
 
 				//Choose Frame Animation
 				if (animation && particleMeshes.size() > 0)
@@ -584,6 +605,7 @@ json ComponentParticleEmitter::Save() const
 	node["maxInitialRotation"][1]= std::to_string(maxInitialRotation[1]);
 	node["maxInitialRotation"][2]= std::to_string(maxInitialRotation[2]);
 
+	node["separateAxisScale"] = std::to_string(separateAxisScale);
 	node["num_curves"] = std::to_string(curves.size());
 	for (int i = 0; i < curves.size(); ++i) {
 		CurveEditor* curve = curves[i];
@@ -625,6 +647,8 @@ void ComponentParticleEmitter::Load(json& node)
 	}
 	curves.clear();
 	scaleCurve = nullptr;
+	scaleCurveY = nullptr;
+	scaleCurveZ = nullptr;
 	rotateCurve = nullptr;
 
 	this->active = node["Active"].is_null() ? false : (bool)node["Active"];
@@ -698,7 +722,7 @@ void ComponentParticleEmitter::Load(json& node)
 	std::string _num_gradients = node["num_gradients"].is_null() ? "0" : node["num_gradients"];
 	std::string _gradientDuration = node["grad_duration"].is_null() ? "0" : node["grad_duration"];
 	std::string _num_curves = node["num_curves"].is_null() ? "0" : node["num_curves"];
-
+	std::string _separateAxisScale = node["separateAxisScale"].is_null() ? "0" : node["separateAxisScale"]; 
 
 	std::string _separateAxis = node["separateAxis"].is_null() ? "0" : node["separateAxis"];
 	std::string rotationOvertime1_X = node["rotationOvertime1"][0].is_null() ? "0" : node["rotationOvertime1"][0];
@@ -779,6 +803,8 @@ void ComponentParticleEmitter::Load(json& node)
 	if (num > 0) {
 		scaleCurve = curves[0];
 		rotateCurve = curves[1];
+		scaleCurveY = curves[2];
+		scaleCurveZ = curves[3];
 	}
 
 	if (!node["Loop"].is_null())
@@ -880,6 +906,7 @@ void ComponentParticleEmitter::Load(json& node)
 	startFrame = std::stof(_startFrame);
 
 	separateAxis = std::stof(_separateAxis);
+	separateAxisScale = std::stof(_separateAxisScale);
 	rotationOvertime1[0] = std::stof(rotationOvertime1_X);
 	rotationOvertime1[1] = std::stof(rotationOvertime1_Y);
 	rotationOvertime1[2] = std::stof(rotationOvertime1_Z);
@@ -898,7 +925,7 @@ void ComponentParticleEmitter::Load(json& node)
 
 
 	if (scaleCurve == nullptr) {
-		scaleCurve = new CurveEditor("##scale", LINEAR);
+		scaleCurve = new CurveEditor("##scalex", LINEAR);
 		scaleCurve->Init();
 		curves.push_back(scaleCurve);
 	}
@@ -906,6 +933,16 @@ void ComponentParticleEmitter::Load(json& node)
 		rotateCurve = new CurveEditor("##rotation", LINEAR);
 		rotateCurve->Init();
 		curves.push_back(rotateCurve);
+	}
+	if (scaleCurveY == nullptr && separateAxisScale) {
+		scaleCurveY = new CurveEditor("##scaley", LINEAR);
+		scaleCurveY->Init();
+		curves.push_back(scaleCurveY);
+	}
+	if (scaleCurveZ == nullptr && separateAxisScale) {
+		scaleCurveZ = new CurveEditor("##scalez", LINEAR);
+		scaleCurveZ->Init();
+		curves.push_back(scaleCurveZ);
 	}
 
 	// --- Blending Load ---
@@ -1445,6 +1482,7 @@ void ComponentParticleEmitter::CreateInspectorNode()
 
 	if (ImGui::TreeNode("Particles Scale"))
 	{
+
 		if (scaleconstants == 0)
 		{
 			ImGui::Text("Scale");
@@ -1476,8 +1514,17 @@ void ComponentParticleEmitter::CreateInspectorNode()
 			ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.15f);
 			ImGui::DragFloat("##SParticlesRandomScaleY", &particlesScaleRandomFactor2, 0.005f, 0.0f, INFINITY);
 		}
-		else if (scaleconstants == 2)
+		else if (scaleconstants == 2) {
+			ImGui::Text("Separate Axis");
+			ImGui::SameLine();
+			ImGui::Checkbox("##separateaxisScale", &separateAxisScale);
 			scaleCurve->DrawCurveEditor();
+
+			if (separateAxisScale) {
+				scaleCurveY->DrawCurveEditor();
+				scaleCurveZ->DrawCurveEditor();
+			}
+		}
 
 		ImGui::SameLine();
 		if (ImGui::SmallButton("v"))

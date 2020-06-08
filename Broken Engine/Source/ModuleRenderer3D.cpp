@@ -985,8 +985,8 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 			{
 				shader = OutlineShader->ID;
 				colorToDraw = { 1.0f, 0.65f, 0.0f };
-				float3 scale = float3(1.05f, 1.05f, 1.05f);
-				model = float4x4::FromTRS(model.TranslatePart(), model.RotatePart(), scale);
+				// float3 scale = float3(1.05f, 1.05f, 1.05f);
+				// model = float4x4::FromTRS(model.TranslatePart(), model.RotatePart(), scale);
 			}
 
 			// --- Display Z buffer ---
@@ -1470,6 +1470,7 @@ void  ModuleRenderer3D::PickBlendingManualFunction(BlendingTypes src, BlendingTy
 
 void ModuleRenderer3D::HandleObjectOutlining()
 {
+	SendShaderUniforms(OutlineShader->ID, false);
 	// --- Selected Object Outlining ---
 	for (GameObject* obj : *App->selection->GetSelected())
 	{
@@ -1479,6 +1480,7 @@ void ModuleRenderer3D::HandleObjectOutlining()
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilMask(0x00);
 		glDisable(GL_DEPTH_TEST);
+		glCullFace(GL_FRONT);
 
 		// --- Search for Renderer Component ---
 		ComponentMeshRenderer* MeshRenderer = obj->GetComponent<ComponentMeshRenderer>();
@@ -1494,6 +1496,8 @@ void ModuleRenderer3D::HandleObjectOutlining()
 
 			if (cmesh && cmesh->resource_mesh && cmesh_renderer && cmesh_renderer->material)
 			{
+				if (!cmesh->resource_mesh->smoothNormals)
+					cmesh->resource_mesh->CalculateSmoothNormals();
 				meshInstances.push_back(RenderMesh(obj->GetComponent<ComponentTransform>()->GetGlobalTransform(), cmesh->resource_mesh, cmesh_renderer->material, flags));
 				DrawRenderMesh(meshInstances, false);
 			}
@@ -1502,6 +1506,8 @@ void ModuleRenderer3D::HandleObjectOutlining()
 
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glEnable(GL_DEPTH_TEST);
+		glCullFace(GL_BACK);
+
 	}
 }
 

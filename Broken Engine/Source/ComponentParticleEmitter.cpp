@@ -800,11 +800,19 @@ void ComponentParticleEmitter::Load(json& node)
 		}
 		curves.push_back(curve);
 	}
-	if (num > 0) {
-		scaleCurve = curves[0];
-		rotateCurve = curves[1];
-		scaleCurveY = curves[2];
+	switch (num)
+	{
+	default:
+	case 4:
 		scaleCurveZ = curves[3];
+	case 3:
+		scaleCurveY = curves[2];
+	case 2:
+		rotateCurve = curves[1];
+	case 1:
+		scaleCurve = curves[0];
+	case 0:
+		break;
 	}
 
 	if (!node["Loop"].is_null())

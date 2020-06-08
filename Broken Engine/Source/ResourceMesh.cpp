@@ -145,7 +145,15 @@ bool ResourceMesh::LoadInMemory()
 			vertices[i].biTangent[0] = BiTangents[i * 3];
 			vertices[i].biTangent[1] = BiTangents[(i * 3) + 1];
 			vertices[i].biTangent[2] = BiTangents[(i * 3) + 2];
+
+			// --- Smooth Normals ---
+			vertices[i].smoothNormal[0] = 0;
+			vertices[i].smoothNormal[1] = 0;
+			vertices[i].smoothNormal[2] = 0;
 		}
+
+		// --- Smooth Normals ---
+		CalculateSmoothNormals();
 
 		// --- Delete buffer data ---
 		if (buffer)
@@ -295,31 +303,103 @@ void ResourceMesh::Repath()
 	IMesh->Save(this);
 }
 
+//MT Version WIP
+// void ResourceMesh::CalculateSmoothNormals()
+// {
+// 	std::vector<std::vector<float3>> wnormals;
+// 	wnormals.resize(VerticesSize);
+
+// 	for(int i = 0; i < VerticesSize; ++i)
+// 		wnormals[i].reserve(15);
+
+// 	float tricount = IndicesSize / 3; //Each triangle uses up 3 indices
+// 	uint nthreads = App->threading->GetConcurrentThreads();
+// 	int tris_per_batch = int(tricount / nthreads);
+
+// 	// We send the triangle batches to the other threads to calculate it parallel
+// 	for (int i = 0; i < nthreads - 1; ++i)
+// 		App->threading->ADDTASK(this, ResourceMesh::_CalculateFaceNormals, tris_per_batch * i, tris_per_batch * (i + 1), wnormals);
+// 	App->threading->ADDTASK(this, ResourceMesh::_CalculateFaceNormals, tris_per_batch * (nthreads - 1), tricount, wnormals);
+
+// 	App->threading->FinishProcessing(); // We wait for the triangle normals to be all calculated
+
+// 	// We calculate the amount of vertices per batch
+// 	int vertices_per_batch = int(VerticesSize / nthreads);
+
+// 	// We send the vertices batches to calculate
+// 	for (int i = 0; i < nthreads - 1; ++i)
+// 		App->threading->ADDTASK(this, ResourceMesh::_CalculateVertexSmooth, vertices_per_batch * i, vertices_per_batch * (i + 1), wnormals);
+// 	App->threading->ADDTASK(this, ResourceMesh::_CalculateVertexSmooth, vertices_per_batch * (nthreads - 1), VerticesSize, wnormals);
+
+// 	App->threading->FinishProcessing(); // We wait for all the smooth normals to be calculated
+// 	smoothNormals = true;
+// }
+
 void ResourceMesh::CalculateSmoothNormals()
 {
 	std::vector<std::vector<float3>> wnormals;
 	wnormals.resize(VerticesSize);
 
-	float tricount = IndicesSize / 3; //Each triangle uses up 3 indices
-	uint nthreads = App->threading->GetConcurrentThreads();
-	int tris_per_batch = int(tricount / nthreads);
+	int tricount = IndicesSize / 3;
 
-	// We send the triangle batches to the other threads to calculate it parallel
-	for (int i = 0; i < nthreads - 1; ++i)
-		App->threading->ADDTASK(this, ResourceMesh::_CalculateFaceNormals, tris_per_batch * i, tris_per_batch * (i + 1), wnormals);
-	App->threading->ADDTASK(this, ResourceMesh::_CalculateFaceNormals, tris_per_batch * (nthreads - 1), tricount, wnormals);
+	for (int f = 0; f < tricount; f++)
+	{
+		// p1, p2 and p3 are the points in the face (f)
+		float3 p1, p2, p3;
+		p1 = {vertices[Indices[f * 3]].position[0], vertices[Indices[f * 3]].position[1], vertices[Indices[f * 3]].position[2]};
+		p2 = {vertices[Indices[f * 3 + 1]].position[0], vertices[Indices[f * 3 + 1]].position[1], vertices[Indices[f * 3 + 1]].position[2]};
+		p3 = {vertices[Indices[f * 3 + 2]].position[0], vertices[Indices[f * 3 + 2]].position[1], vertices[Indices[f * 3 + 2]].position[2]};
 
-	App->threading->FinishProcessing(); // We wait for the triangle normals to be all calculated
+		// calculate facet normal of the triangle using cross product;
+		// both components are "normalized" against a common point chosen as the base
+		float3 n;
+		float3 V1 = p2 - p1;
+		float3 V2 = p3 - p1;
+		n.x = (V1.y * V2.z) - (V1.z - V2.y);
+		n.y = -((V2.z * V1.x) - (V2.x * V1.z));
+		n.z = (V1.x * V2.y) - (V1.y * V2.x);
 
-	// We calculate the amount of vertices per batch
-	int vertices_per_batch = int(VerticesSize / nthreads);
+		// get the angle between the two other points for each point;
+		// the starting point will be the 'base' and the two adjacent points will be normalized against it
+		float a1 = (p2 - p1).AngleBetween(p3 - p1); // p1 is the 'base' here
+		float a2 = (p3 - p2).AngleBetween(p1 - p2); // p2 is the 'base' here
+		float a3 = (p1 - p3).AngleBetween(p2 - p3); // p3 is the 'base' here
 
-	// We send the vertices batches to calculate
-	for (int i = 0; i < nthreads - 1; ++i)
-		App->threading->ADDTASK(this, ResourceMesh::_CalculateVertexSmooth, vertices_per_batch * i, vertices_per_batch * (i + 1), wnormals);
-	App->threading->ADDTASK(this, ResourceMesh::_CalculateVertexSmooth, vertices_per_batch * (nthreads - 1), VerticesSize, wnormals);
+		// normalize the initial facet normals if you want to ignore surface area
+		n.Normalize();
 
-	App->threading->FinishProcessing(); // We wait for all the smooth normals to be calculated
+		// store the weighted normal in an structured array
+		wnormals[Indices[f * 3]].push_back(n);
+		wnormals[Indices[f * 3 + 1]].push_back(n);
+		wnormals[Indices[f * 3 + 2]].push_back(n);
+	}
+
+	for (int v = 0; v < VerticesSize; v++)
+	{
+		float3 N = float3::zero;
+
+		// run through the normals in each vertex's array and interpolate them
+		for (int n = 0; n < wnormals[v].size(); n++)
+		{
+			N += wnormals[v][n];
+		}
+
+		N /= wnormals[v].size();
+
+		// normalize the final normal
+		N.Normalize();
+		vertices[v].smoothNormal[0] = N[0];
+		vertices[v].smoothNormal[1] = N[1];
+		vertices[v].smoothNormal[2] = N[2];
+	}
+
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * VerticesSize, vertices, GL_DYNAMIC_DRAW);
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	smoothNormals = true;
 }
 

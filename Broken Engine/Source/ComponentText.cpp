@@ -310,7 +310,7 @@ void ComponentText::CreateInspectorNode()
 	// Temporary disabled for usability and design consistency
 	/*if (ImGui::DragInt("Font size", &font->size, 1, 1, 200, "%.2f")) {
 
-		font->Init();
+		font->LoadToMemory();
 	}
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip("Use with caution, may temporary freeze the editor with large numbers. \n It is recommended to directly input the number with the keyboard");

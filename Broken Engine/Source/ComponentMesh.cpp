@@ -5,6 +5,7 @@
 #include "ModuleResourceManager.h"
 #include "ModuleFileSystem.h"
 #include "ModuleRenderer3D.h"
+#include "ModuleSceneManager.h"
 
 // -- Components --
 #include "GameObject.h"
@@ -27,7 +28,7 @@ ComponentMesh::ComponentMesh(GameObject* ContainerGO) : Component(ContainerGO, C
 
 ComponentMesh::~ComponentMesh() 
 {
-	if (resource_mesh && resource_mesh->IsInMemory()) 
+	if (resource_mesh && resource_mesh->IsInMemory() && resource_mesh->GetUID() != App->scene_manager->plane->GetUID()) 
 	{
 		resource_mesh->Release();
 		resource_mesh->RemoveUser(GO);
@@ -110,7 +111,7 @@ void ComponentMesh::Load(json& node)
 		resource_mesh = (ResourceMesh*)App->resources->GetResource(std::stoi(path));
 
 	// --- We want to be notified of any resource event ---
-	if (resource_mesh)
+	if (resource_mesh && resource_mesh->GetUID() != App->scene_manager->plane->GetUID())
 		resource_mesh->AddUser(GO);
 }
 

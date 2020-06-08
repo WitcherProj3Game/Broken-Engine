@@ -38,6 +38,8 @@ ResourceMaterial::~ResourceMaterial()
 
 bool ResourceMaterial::LoadInMemory() 
 {
+	std::unique_lock lk(memory_mutex);
+
 	//shader->GetAllUniforms(uniforms);
 
 	// --- Texture Stuff ---
@@ -61,6 +63,8 @@ bool ResourceMaterial::LoadInMemory()
 
 void ResourceMaterial::FreeMemory() 
 {
+	std::unique_lock lk(memory_mutex);
+
 	for (uint i = 0; i < uniforms.size(); ++i) 
 	{
 		delete uniforms[i];

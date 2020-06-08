@@ -1,12 +1,14 @@
 #include "Resource.h"
-#include "Resource.h"
+
+// --- Modules --
 #include "Application.h"
 #include "ModuleResourceManager.h"
 #include "ModuleEventManager.h"
 #include "ModuleFileSystem.h"
 #include "ModuleThreading.h"
-#include "GameObject.h"
 
+// -- Utilities
+#include "GameObject.h"
 #include <mutex> //For std::unique_lock
 
 #include "mmgr/mmgr.h"

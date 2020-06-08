@@ -31,6 +31,9 @@ bool ResourceAnimation::LoadInMemory()
 
 	if (App->fs->Exists(resource_file.c_str()))
 	{
+		// We try to lock this so we do not proceed if we are freeing memory
+		std::unique_lock lk(memory_mutex);
+
 		char* buffer = nullptr;
 		uint bytes = 0;
 
@@ -151,12 +154,13 @@ bool ResourceAnimation::LoadInMemory()
 
 void ResourceAnimation::FreeMemory()
 {
+	// We lock this while deleting memory so we do not create it while deleting it
+	std::unique_lock lk(memory_mutex);
 	if (channels)
 	{
 		delete[] this->channels;
 		this->channels = nullptr;
 	}
-	
 }
 
 void ResourceAnimation::OnOverwrite()

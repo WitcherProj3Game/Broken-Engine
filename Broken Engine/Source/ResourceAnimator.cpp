@@ -31,10 +31,12 @@ ResourceAnimator::~ResourceAnimator()
 bool ResourceAnimator::LoadInMemory() 
 {
 	std::string tmp = resource_file.c_str();
+
 	json file = App->GetJLoader()->Load(tmp.c_str());
 
 	if (!file.is_null())
 	{
+		
 		for (json::iterator it = file.begin(); it != file.end(); ++it)
 		{
 			std::string name = file[it.key().c_str()]["name"];
@@ -54,6 +56,7 @@ bool ResourceAnimator::LoadInMemory()
 
 void ResourceAnimator::FreeMemory() 
 {
+	
 	for (int i = 0; i < animations.size(); i++)
 	{
 		if (animations[i])

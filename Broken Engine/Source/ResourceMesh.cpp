@@ -49,6 +49,7 @@ bool ResourceMesh::LoadInMemory()
 {
 	bool ret = true;
 
+	
 	if (App->fs->Exists(resource_file.c_str()))
 	{
 		// --- Load mesh data ---
@@ -173,6 +174,7 @@ bool ResourceMesh::LoadInMemory()
 
 void ResourceMesh::FreeMemory()
 {
+	
 	glDeleteBuffers(1, (GLuint*)&VBO);
 
 	glDeleteBuffers(1, (GLuint*)&EBO);
@@ -276,7 +278,7 @@ void ResourceMesh::OnDelete()
 	FreeMemory();
 
 	if(App->fs->Exists(resource_file.c_str()))
-	App->fs->Remove(resource_file.c_str());
+		App->fs->Remove(resource_file.c_str());
 	App->fs->Remove(previewTexPath.c_str());
 
 	App->resources->RemoveResourceFromFolder(this);

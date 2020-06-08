@@ -17,7 +17,7 @@
 #include "mmgr/mmgr.h"
 
 using namespace Broken;
-ResourceShader::ResourceShader(uint UID, const char* source_file) : Resource(Resource::ResourceType::SHADER, UID, source_file) 
+ResourceShader::ResourceShader(uint UID, const char* source_file) : Resource(Resource::ResourceType::SHADER, UID, source_file)
 {
 	extension = ".glsl";
 	resource_file = SHADERS_FOLDER + std::to_string(UID) + extension;
@@ -31,13 +31,13 @@ ResourceShader::ResourceShader(uint UID, const char* source_file) : Resource(Res
 	previewTexID = App->gui->shaderTexID;
 }
 
-ResourceShader::~ResourceShader() 
+ResourceShader::~ResourceShader()
 {
 	//DeleteShaderProgram();
 }
 
 
-bool ResourceShader::LoadInMemory() 
+bool ResourceShader::LoadInMemory()
 {
 	bool ret = true;
 
@@ -50,9 +50,9 @@ bool ResourceShader::LoadInMemory()
 	{
 		int success;
 		char infoLog[512];
-		
+
 		ret = LoadStream(resource_file.c_str());
-		
+
 		if (ret)
 		{
 			// --- Create empty program ---
@@ -80,7 +80,7 @@ bool ResourceShader::LoadInMemory()
 
 				if(buffer)
 					delete[] buffer;
-				
+
 
 
 				// --- Print linking errors if any ---
@@ -126,11 +126,11 @@ bool ResourceShader::LoadInMemory()
 
 	// --- Load glsl file ---
 	else
-	{	
+	{
 		ret = LoadStream(original_file.c_str());
 
 		// --- If no fs failure occurred... ---
-		if (ret) 
+		if (ret)
 		{
 			DeleteShaderProgram();
 
@@ -154,18 +154,18 @@ bool ResourceShader::LoadInMemory()
 			// --- Compile shaders ---
 			int success = 0;
 			char infoLog[512];
-	
+
 			success = CreateVertexShader(vertex, vShaderCode.data());
-	
-			if (!success) 
+
+			if (!success)
 			{
 				glGetShaderInfoLog(vertex, 512, NULL, infoLog);
 				ENGINE_AND_SYSTEM_CONSOLE_LOG("|[error]:Vertex Shader compilation error: %s", infoLog);
 			}
-	
+
 			success = CreateFragmentShader(fragment, fShaderCode.data());
-	
-			if (!success) 
+
+			if (!success)
 			{
 				glGetShaderInfoLog(fragment, 512, NULL, infoLog);
 				ENGINE_AND_SYSTEM_CONSOLE_LOG("|[error]:Fragment Shader compilation error: %s", infoLog);
@@ -181,15 +181,15 @@ bool ResourceShader::LoadInMemory()
 					ENGINE_AND_SYSTEM_CONSOLE_LOG("|[error]:Geometry Shader compilation error: %s", infoLog);
 				}
 			}
-	
+
 			success = CreateShaderProgram(vertex, fragment);
-	
-			if (!success) 
+
+			if (!success)
 			{
 				glGetProgramInfoLog(ID, 512, NULL, infoLog);
 				ENGINE_AND_SYSTEM_CONSOLE_LOG("|[error]:SHADER::PROGRAM::LINKING_FAILED: %s", infoLog);
 			}
-	
+
 			// delete the shaders as they're linked into our program now and no longer necessary
 			glDeleteShader(vertex);
 			glDeleteShader(fragment);
@@ -200,12 +200,12 @@ bool ResourceShader::LoadInMemory()
 	return ret;
 }
 
-void ResourceShader::FreeMemory() 
+void ResourceShader::FreeMemory()
 {
 	DeleteShaderProgram();
 }
 
-void ResourceShader::ReloadAndCompileShader() 
+void ResourceShader::ReloadAndCompileShader()
 {
 	uint new_vertex, new_fragment, new_geometry = 0;
 
@@ -342,7 +342,7 @@ void ResourceShader::ReloadAndCompileShader()
 	}
 }
 
-void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms) 
+void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms)
 {
 	std::vector<Uniform*> new_uniforms;
 
@@ -353,7 +353,7 @@ void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms)
 	GLenum type;
 	GLint size;
 
-	for (uint i = 0; i < uniform_count; ++i) 
+	for (uint i = 0; i < uniform_count; ++i)
 	{
 		glGetActiveUniform(ID, i, 128, nullptr, &size, &type, name);
 
@@ -395,7 +395,7 @@ void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms)
 		// --- This switch prevents retrieving unwanted/unsupported uniforms ---
 		// MYTODO: we may avoid the switch by defining some filters and testing against them
 
-		switch (type) 
+		switch (type)
 		{
 		case GL_INT:
 			uniform = new Uniform();
@@ -444,7 +444,7 @@ void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms)
 		}
 
 		// --- Conserve previous uniform values if they still exist ---
-		for (uint i = 0; i < uniforms.size(); ++i) 
+		for (uint i = 0; i < uniforms.size(); ++i)
 		{
 			if (uniforms[i]->name == uniform->name && uniforms[i]->type == uniform->type)
 				uniform->value = uniforms[i]->value;
@@ -454,7 +454,7 @@ void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms)
 	}
 
 	// --- Delete previous uniforms and retrieve new ones ---
-	for (uint i = 0; i < uniforms.size(); ++i) 
+	for (uint i = 0; i < uniforms.size(); ++i)
 	{
 		delete uniforms[i];
 	}
@@ -466,7 +466,7 @@ void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms)
 
 
 // Internal use only!
-bool ResourceShader::CreateVertexShader(unsigned int& vertex, const char* vShaderCode) 
+bool ResourceShader::CreateVertexShader(unsigned int& vertex, const char* vShaderCode)
 {
 	GLint success = 0;
 
@@ -481,7 +481,7 @@ bool ResourceShader::CreateVertexShader(unsigned int& vertex, const char* vShade
 }
 
 // Internal use only!
-bool ResourceShader::CreateFragmentShader(unsigned int& fragment, const char* fShaderCode) 
+bool ResourceShader::CreateFragmentShader(unsigned int& fragment, const char* fShaderCode)
 {
 	GLint success = 0;
 
@@ -510,7 +510,7 @@ bool ResourceShader::CreateGeometryShader(unsigned int& geometry, const char* gS
 }
 
 // Internal use only!
-bool ResourceShader::CreateShaderProgram(unsigned int vertex, unsigned int fragment) 
+bool ResourceShader::CreateShaderProgram(unsigned int vertex, unsigned int fragment)
 {
 	GLint success = 0;
 
@@ -525,7 +525,7 @@ bool ResourceShader::CreateShaderProgram(unsigned int vertex, unsigned int fragm
 	return success;
 }
 
-bool ResourceShader::CreateShaderProgram() 
+bool ResourceShader::CreateShaderProgram()
 {
 	GLint success = 1;
 	char infoLog[512];
@@ -547,16 +547,16 @@ bool ResourceShader::CreateShaderProgram()
 	return success;
 }
 
-void ResourceShader::DeleteShaderProgram() 
+void ResourceShader::DeleteShaderProgram()
 {
-	if (glIsProgram(ID)) 
+	if (glIsProgram(ID))
 	{
 		glDeleteProgram(ID);
 		ID = 0;
 	}
 }
 
-void ResourceShader::FillUniform(Uniform* uniform, const char* name, const uint type) const 
+void ResourceShader::FillUniform(Uniform* uniform, const char* name, const uint type) const
 {
 	uniform->name = name;
 	uniform->location = glGetUniformLocation(ID, name);
@@ -594,7 +594,7 @@ bool ResourceShader::LoadStream(const char* path)
 	return ret;
 }
 
-void ResourceShader::OnOverwrite() 
+void ResourceShader::OnOverwrite()
 {
 	NotifyUsers(ResourceNotificationType::Overwrite);
 
@@ -627,7 +627,7 @@ void ResourceShader::OnOverwrite()
 	//LoadInMemory();
 }
 
-void ResourceShader::OnDelete() 
+void ResourceShader::OnDelete()
 {
 	NotifyUsers(ResourceNotificationType::Deletion);
 
@@ -638,12 +638,12 @@ void ResourceShader::OnDelete()
 	App->resources->ONResourceDestroyed(this);
 }
 
-void ResourceShader::use() 
+void ResourceShader::use()
 {
 	glUseProgram(ID);
 }
 
-void ResourceShader::setBool(const std::string& name, bool value) const 
+void ResourceShader::setBool(const std::string& name, bool value) const
 {
 	glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
 }
@@ -671,4 +671,3 @@ void ResourceShader::setUniform(const char* name, data& unidata, UniformType Uni
 			break;
 	}
 }
-

@@ -1,11 +1,14 @@
 #include "Resource.h"
-#include "Resource.h"
+
+// --- Modules --
 #include "Application.h"
 #include "ModuleResourceManager.h"
 #include "ModuleEventManager.h"
 #include "ModuleFileSystem.h"
-#include "GameObject.h"
+#include "ModuleThreading.h"
 
+// -- Utilities
+#include "GameObject.h"
 
 #include "mmgr/mmgr.h"
 
@@ -79,13 +82,13 @@ bool Resource::IsInMemory() const
 
 bool Resource::LoadToMemory() 
 {
-	if (instances > 0) 
+	if (instances > 0)
 	{
 		instances++;
 	}
-	else 
+	else
 	{
-		instances = LoadInMemory() ? 1 : 0;
+		instances = LoadInMemory() ? 1 : 0; //LoadInMemory is already assumed to be thread safe
 	}
 
 	return instances > 0;
@@ -101,7 +104,9 @@ void Resource::Release()
 		}
 	}
 	else
+	{
 		ENGINE_CONSOLE_LOG("![Warning]: Trying to release an already released resource: %s", name.c_str());
+	}
 }
 
 void Resource::AddUser(GameObject* user) {

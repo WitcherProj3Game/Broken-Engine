@@ -48,6 +48,9 @@ ComponentImage::ComponentImage(GameObject* gameObject) : UI_Element(gameObject, 
 
 ComponentImage::~ComponentImage()
 {
+	if (is3D)
+		App->ui_system->RemoveElement3D(this);
+
 	if (texture)
 	{
 		texture->Release();
@@ -136,13 +139,30 @@ void ComponentImage::NextAnimationFrame()
 void ComponentImage::Draw()
 {
 	// --- Frame image with camera ---
-	float nearp = App->renderer3D->active_camera->GetNearPlane();
-	float3 pos = { GetFinalPosition() , nearp + 0.026f };
-	float3 size = { size2D.x / App->gui->sceneWidth, size2D.y / App->gui->sceneHeight, 1.0f };
-	float4x4 transform = transform.FromTRS(pos, Quat::identity, size);
+	float4x4 transform;
+	uint shaderID = 0;
+	if (!is3D)
+	{
+
+		shaderID = App->renderer3D->UI_Shader->ID;
+
+		float nearp = App->renderer3D->active_camera->GetNearPlane();
+		float3 pos = { GetFinalPosition() , nearp + 0.026f };
+		float3 size = { size2D.x / App->gui->sceneWidth, size2D.y / App->gui->sceneHeight, 1.0f };
+		transform = transform.FromTRS(pos, Quat::identity, size);
+	}
+	else
+	{
+		//ComponentTransform* t = GO->GetComponent<ComponentTransform>();
+		//float3 pos = t->GetGlobalPosition();
+		//float3 size = t->GetScale();
+		//Quat rot = t->GetQuaternionRotation();
+		//transform = transform.FromTRS(pos, rot, size);
+		transform = GO->GetComponent<ComponentTransform>()->GetGlobalTransform();
+		shaderID = App->renderer3D->defaultShader->ID;
+	}
 
 	// --- Set Uniforms ---
-	uint shaderID = App->renderer3D->UI_Shader->ID;
 	//uint shaderID = App->renderer3D->defaultShader->ID;
 	glUseProgram(shaderID);
 
@@ -321,19 +341,20 @@ json ComponentImage::Save() const
 
 	node["MantainAspect"] = (resize) ? "1" : "0";
 	node["IsProgressBar"] = (is_progress_bar) ? "1" : "0";
+	node["is3d"] = (is3D) ? "1" : "0";
 
 	return node;
 }
 
 void ComponentImage::Load(json& node)
 {
-	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
-	std::string visible_str = node["visible"].is_null() ? "0" : node["visible"];
-	std::string priority_str = node["priority"].is_null() ? "0" : node["priority"];
+	this->active = node.contains("Active") ? (bool)node["Active"] : true;
+	std::string visible_str = node.contains("visible") ? node["visible"] : "0";
+	std::string priority_str = node.contains("priority") ? node["priority"] : "0";
 	visible = bool(std::stoi(visible_str));
 	priority = int(std::stoi(priority_str));
 
-	anchor_type = node["anchor"].is_null() ? UI_Anchor::NONE : (UI_Anchor)node["anchor"].get<int>();
+	anchor_type = node.contains("anchor") ? (UI_Anchor)node["anchor"].get<int>() : UI_Anchor::NONE;
 
 	fullscreen = node.find("fullscreen") == node.end() ? false : node["fullscreen"].get<bool>();
 
@@ -346,16 +367,16 @@ void ComponentImage::Load(json& node)
 	if (texture)
 		texture->AddUser(GO);
 
-	std::string position2Dx = node["position2Dx"].is_null() ? "0" : node["position2Dx"];
-	std::string position2Dy = node["position2Dy"].is_null() ? "0" : node["position2Dy"];
+	std::string position2Dx = node.contains("position2Dx") ? node["position2Dx"] : "0";
+	std::string position2Dy = node.contains("position2Dy") ? node["position2Dy"] : "0";
 
-	std::string size2Dx = node["size2Dx"].is_null() ? "0" : node["size2Dx"];
-	std::string size2Dy = node["size2Dy"].is_null() ? "0" : node["size2Dy"];
+	std::string size2Dx = node.contains("size2Dx") ? node["size2Dx"] : "0";
+	std::string size2Dy = node.contains("size2Dy") ? node["size2Dy"] : "0";
 
-	std::string str_colorR = node["ColorR"].is_null() ? "1" : node["ColorR"];
-	std::string str_colorG = node["ColorG"].is_null() ? "1" : node["ColorG"];
-	std::string str_colorB = node["ColorB"].is_null() ? "1" : node["ColorB"];
-	std::string str_colorA = node["ColorA"].is_null() ? "1" : node["ColorA"];
+	std::string str_colorR = node.contains("ColorR") ? node["ColorR"] : "1";
+	std::string str_colorG = node.contains("ColorG") ? node["ColorG"] : "1";
+	std::string str_colorB = node.contains("ColorB") ? node["ColorB"] : "1";
+	std::string str_colorA = node.contains("ColorA") ? node["ColorA"] : "1";
 
 	img_color = float4(std::stof(str_colorR), std::stof(str_colorG), std::stof(str_colorB), std::stof(str_colorA));
 	position2D = float2(std::stof(position2Dx), std::stof(position2Dy));
@@ -363,7 +384,7 @@ void ComponentImage::Load(json& node)
 
 	// Animation ------------
 
-	std::string frames = node["NumberFrames"].is_null() ? "0" : node["NumberFrames"];
+	std::string frames = node.contains("NumberFrames") ? node["NumberFrames"] : "0";
 
 	int number_frames = std::stoi(frames);
 
@@ -371,29 +392,29 @@ void ComponentImage::Load(json& node)
 
 	if (animation)
 	{
-		std::string tileX = node["TileDivisionX"].is_null() ? "0" : node["TileDivisionX"];
-		std::string tileY = node["TileDivisionY"].is_null() ? "0" : node["TileDivisionY"];
+		std::string tileX = node.contains("TileDivisionX") ? node["TileDivisionX"] : "0";
+		std::string tileY = node.contains("TileDivisionY") ? node["TileDivisionY"] : "0";
 
 		tile_division_x = std::stoi(tileX);
 		tile_division_y = std::stoi(tileY);
 
-		std::string start_f = node["StartFrame"].is_null() ? "0" : node["StartFrame"];
-		std::string end_f = node["EndFrame"].is_null() ? "0" : node["EndFrame"];
+		std::string start_f = node.contains("StartFrame") ? node["StartFrame"] : "0";
+		std::string end_f = node.contains("EndFrame") ? node["EndFrame"] : "0";
 
 		start_frame = std::stoi(start_f);
 		end_frame = std::stoi(end_f);
 
-		std::string s_loop = node["Loop"].is_null() ? "0" : node["Loop"];
+		std::string s_loop = node.contains("Loop") ? node["Loop"] : "0";
 
 		loop = std::stoi(s_loop) == 1;
 
-		std::string anim_time = node["AnimationTime"].is_null() ? "1" : node["AnimationTime"];
+		std::string anim_time = node.contains("AnimationTime") ? node["AnimationTime"] : "1";
 
 		animation_time = std::stof(anim_time);
 
-		std::string playEditor = node["PlayInEditor"].is_null() ? "0" : node["PlayInEditor"];
+		std::string playEditor = node.contains("PlayInEditor") ? node["PlayInEditor"] : "0";
 
-		std::string scriptControl = node["ScriptControl"].is_null() ? "0" : node["ScriptControl"];
+		std::string scriptControl = node.contains("ScriptControl") ? node["ScriptControl"] : "0";
 
 		play_animation_editor = std::stoi(playEditor) == 1;
 
@@ -403,17 +424,40 @@ void ComponentImage::Load(json& node)
 
 	}
 
-	std::string aspect = node["MantainAspect"].is_null() ? "0" : node["MantainAspect"];
+	std::string aspect = node.contains("MantainAspect") ? node["MantainAspect"] : "0";
 	resize = std::stoi(aspect) == 1;
 
-	std::string bar = node["IsProgressBar"].is_null() ? "0" : node["IsProgressBar"];
-	is_progress_bar = std::stoi(bar) == 1;
+	std::string bar = node.contains("IsProgressBar") ? node["IsProgressBar"] : "0";
+	is_progress_bar = std::stoi(bar);
+
+	std::string isUI3D = node.contains("is3d") ? node["is3d"] : "0";
+	is3D = std::stoi(isUI3D);
+
+	if (is3D)
+		App->ui_system->AddElement3D(this);
 }
 
 void ComponentImage::CreateInspectorNode()
 {
 	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
 	ImGui::Checkbox("Visible", &visible);
+	ImGui::Separator();
+
+	if (ImGui::Checkbox("Is 3D", &is3D))
+	{
+		if (is3D) {
+			App->ui_system->AddElement3D(this);
+			if (canvas)
+				canvas->RemoveElement(this);
+		}
+		else
+		{
+			App->ui_system->RemoveElement3D(this);
+			if (canvas)
+				canvas->AddElement(this);
+		}
+	}
+
 	ImGui::Separator();
 
 	int anchor = (int)anchor_type;

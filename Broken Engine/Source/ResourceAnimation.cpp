@@ -31,6 +31,7 @@ bool ResourceAnimation::LoadInMemory()
 
 	if (App->fs->Exists(resource_file.c_str()))
 	{
+		
 		char* buffer = nullptr;
 		uint bytes = 0;
 
@@ -151,12 +152,11 @@ bool ResourceAnimation::LoadInMemory()
 
 void ResourceAnimation::FreeMemory()
 {
-	if (channels)
+		if (channels)
 	{
 		delete[] this->channels;
 		this->channels = nullptr;
 	}
-	
 }
 
 void ResourceAnimation::OnOverwrite()

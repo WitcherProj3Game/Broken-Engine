@@ -38,6 +38,7 @@ ResourceMaterial::~ResourceMaterial()
 
 bool ResourceMaterial::LoadInMemory() 
 {
+
 	//shader->GetAllUniforms(uniforms);
 
 	// --- Texture Stuff ---
@@ -61,6 +62,7 @@ bool ResourceMaterial::LoadInMemory()
 
 void ResourceMaterial::FreeMemory() 
 {
+
 	for (uint i = 0; i < uniforms.size(); ++i) 
 	{
 		delete uniforms[i];

@@ -5,6 +5,7 @@
 #include "ModuleResourceManager.h"
 #include "ModuleFileSystem.h"
 #include "ModuleRenderer3D.h"
+#include "ModuleSceneManager.h"
 
 // -- Components --
 #include "GameObject.h"
@@ -27,7 +28,7 @@ ComponentMesh::ComponentMesh(GameObject* ContainerGO) : Component(ContainerGO, C
 
 ComponentMesh::~ComponentMesh() 
 {
-	if (resource_mesh && resource_mesh->IsInMemory()) 
+	if (resource_mesh && resource_mesh->IsInMemory() && resource_mesh->GetUID() != App->scene_manager->plane->GetUID()) 
 	{
 		resource_mesh->Release();
 		resource_mesh->RemoveUser(GO);
@@ -97,9 +98,9 @@ json ComponentMesh::Save() const
 
 void ComponentMesh::Load(json& node)
 {
-	this->active = node["Active"].is_null() ? true : (bool)node["Active"];
+	this->active = node.contains("Active") ? (bool)node["Active"] : true;
 
-	std::string path = node["Resources"]["ResourceMesh"]["path"].is_null() ? "-1" : node["Resources"]["ResourceMesh"]["path"];
+	std::string path = node["Resources"]["ResourceMesh"]["path"].is_null() ?  "-1" : node["Resources"]["ResourceMesh"]["path"];
 	App->fs->SplitFilePath(path.c_str(), nullptr, &path);
 	path = path.substr(0, path.find_last_of("."));
 
@@ -110,7 +111,7 @@ void ComponentMesh::Load(json& node)
 		resource_mesh = (ResourceMesh*)App->resources->GetResource(std::stoi(path));
 
 	// --- We want to be notified of any resource event ---
-	if (resource_mesh)
+	if (resource_mesh && resource_mesh->GetUID() != App->scene_manager->plane->GetUID())
 		resource_mesh->AddUser(GO);
 }
 

@@ -38,6 +38,7 @@ ResourceScene::~ResourceScene()
 
 bool ResourceScene::LoadInMemory()
 {
+	
 	// --- Load scene game objects ---
 	if (NoStaticGameObjects.size() == 0 && App->fs->Exists(resource_file.c_str()))
 	{
@@ -294,6 +295,7 @@ bool ResourceScene::LoadInMemory()
 }
 
 void ResourceScene::FreeMemory() {
+	
 	// --- Delete all scene game objects ---
 	for (std::unordered_map<uint, GameObject*>::iterator it = NoStaticGameObjects.begin(); it != NoStaticGameObjects.end(); ++it)
 	{

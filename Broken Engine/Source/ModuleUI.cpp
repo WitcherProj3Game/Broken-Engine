@@ -106,16 +106,6 @@ bool ModuleUI::CleanUp()
 
 void ModuleUI::Draw() const
 {
-	ComponentCamera* cam = App->renderer3D->active_camera;
-	App->renderer3D->active_camera = ui_camera; //set ui camera as active camera
-
-	float3 pos = App->renderer3D->active_camera->frustum.Pos();
-	float3 up = App->renderer3D->active_camera->frustum.Up();
-	float3 front = App->renderer3D->active_camera->frustum.Front();
-
-	App->renderer3D->active_camera->frustum.SetPos({ 0,0,1 });
-	App->renderer3D->active_camera->Look({ 0, 0, 0 });
-
 	/////////////////////////////////////
 	GLint viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
@@ -133,6 +123,28 @@ void ModuleUI::Draw() const
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	//Draw 3D ingame UI
+	for (int i = 0; i < elements3D.size(); i++)
+	{
+		if (elements3D[i] == nullptr) continue;
+		if (elements3D[i]->visible)
+			elements3D[i]->Draw();
+	}
+
+	//Draw 2D UI
+
+	ComponentCamera* cam = App->renderer3D->active_camera;
+	App->renderer3D->active_camera = ui_camera; //set ui camera as active camera
+
+	float3 pos = App->renderer3D->active_camera->frustum.Pos();
+	float3 up = App->renderer3D->active_camera->frustum.Up();
+	float3 front = App->renderer3D->active_camera->frustum.Front();
+
+	App->renderer3D->active_camera->frustum.SetPos({ 0,0,1 });
+	App->renderer3D->active_camera->Look({ 0, 0, 0 });
+
+	
 
 	// Draw UI
 	for (int i = 0; i < elements.size(); i++)
@@ -162,6 +174,18 @@ void ModuleUI::RemoveElement(UI_Element* c)
 		if(*it && *it == c)
 		{
 			elements.erase(it);
+			break;
+		}
+	}
+}
+
+void ModuleUI::RemoveElement3D(UI_Element* c)
+{
+	for (std::vector<UI_Element*>::iterator it = elements3D.begin(); it != elements3D.end(); ++it)
+	{
+		if (*it && *it == c)
+		{
+			elements3D.erase(it);
 			break;
 		}
 	}

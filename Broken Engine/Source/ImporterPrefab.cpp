@@ -54,7 +54,7 @@ Resource* ImporterPrefab::Load(const char* path) const
 	if (!file.is_null())
 	{
 		// --- Load Tex preview ---
-		std::string previewTexpath = file["PreviewTexture"].is_null() ? "none" : file["PreviewTexture"];
+		std::string previewTexpath = file.contains("PreviewTexture") ? file["PreviewTexture"] : "none";
 		uint width, height = 0;
 
 		if (previewTexpath != "none" && App->fs->Exists(previewTexpath.c_str()))

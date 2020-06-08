@@ -203,8 +203,8 @@ const json& ModuleWindow::SaveStatus() const
 
 void ModuleWindow::LoadStatus(const json& file)
 {
-	screen_width = file["Window"]["sceneX"].is_null() ? 640 : file["Window"]["sceneX"].get<uint>();
-	screen_height = file["Window"]["sceneY"].is_null() ? 480 : file["Window"]["sceneY"].get<uint>();
+	screen_width = file["Window"].contains("sceneX") ? file["Window"]["sceneX"].get<uint>() : 640;
+	screen_height = file["Window"].contains("sceneY") ? file["Window"]["sceneY"].get<uint>() : 480;
 }
 
 void ModuleWindow::SetFullscreen(bool value) {

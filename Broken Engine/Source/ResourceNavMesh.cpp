@@ -25,6 +25,7 @@ ResourceNavMesh::~ResourceNavMesh() {
 bool ResourceNavMesh::LoadInMemory() {
 	bool ret = true;
 
+	
 	if (App->fs->Exists(resource_file.c_str())) {
 		// --- Load navmesh data ---
 		char* buffer = nullptr;
@@ -89,6 +90,7 @@ bool ResourceNavMesh::LoadInMemory() {
 }
 
 void ResourceNavMesh::FreeMemory() {
+	
 	dtFreeNavMesh(navMesh);
 	navMesh = nullptr;
 }

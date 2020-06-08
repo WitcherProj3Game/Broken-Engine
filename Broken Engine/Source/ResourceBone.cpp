@@ -27,6 +27,7 @@ bool ResourceBone::LoadInMemory()
 {
 	bool ret = true;
 
+	
 	if (App->fs->Exists(resource_file.c_str()))
 	{
 		// --- Load mesh data ---
@@ -72,7 +73,6 @@ bool ResourceBone::LoadInMemory()
 		delete[] buffer;
 		
 		cursor = nullptr;
-
 	}
 
 	return ret;
@@ -80,6 +80,7 @@ bool ResourceBone::LoadInMemory()
 
 void ResourceBone::FreeMemory()
 {
+	
 	if (weight)
 	{
 		delete[] weight;

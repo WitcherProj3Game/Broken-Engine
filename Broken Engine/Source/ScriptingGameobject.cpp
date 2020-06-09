@@ -110,9 +110,14 @@ uint ScriptingGameobject::FindChildGameObjectFromGO(const char* go_name, uint ga
 uint ScriptingGameobject::GetMyUID()
 {
 	uint ret = 0;
-
-	if(App->scripting->current_script != nullptr)
-		ret = App->scripting->current_script->my_component->GetContainerGameObject()->GetUID();
+	if (App->scripting->current_script != nullptr)
+	{
+		GameObject* GO = App->scripting->current_script->my_component->GetContainerGameObject();
+		if(GO)
+			ret = GO->GetUID();
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (GetMyUID) Current Script was NULL!");
 
 	return ret;
 }
@@ -120,12 +125,27 @@ uint ScriptingGameobject::GetMyUID()
 uint ScriptingGameobject::GetScriptGOParent()
 {
 	uint ret = 0;
-	GameObject* go = App->scripting->current_script->my_component->GetContainerGameObject()->parent;
-
-	if (go && go->GetName() != App->scene_manager->GetRootGO()->GetName())
-		ret = go->GetUID();
+	if (App->scripting->current_script != nullptr)
+	{
+		GameObject* go = App->scripting->current_script->my_component->GetContainerGameObject();
+		if (go)
+		{
+			GameObject* goParent = go->parent;
+			if (goParent)
+			{
+				if (goParent->GetName() != App->scene_manager->GetRootGO()->GetName())
+					ret = goParent->GetUID();
+				else
+					ENGINE_CONSOLE_LOG("![Script]: (GetScriptGOParent) Parent Game Object doesn't exists!");
+			}
+			else
+				ENGINE_CONSOLE_LOG("![Script]: (GetScriptGOParent) Current Script Game Object has a NULL parent!");
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (GetScriptGOParent) Current Script Game Object was NULL!");
+	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! This Gameobject has no parent! 0 will be returned");
+		ENGINE_CONSOLE_LOG("![Script]: (GetScriptGOParent) Current Script was NULL!");
 
 	return ret;
 }
@@ -140,10 +160,10 @@ uint ScriptingGameobject::GetGOParentFromUID(uint gameobject_UUID)
 		if (go->parent && go->parent->GetName() != App->scene_manager->GetRootGO()->GetName())
 			ret = go->parent->GetUID();
 		else
-			ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Gameobject with %d UUID has no parent! 0 will be returned", gameobject_UUID);
+			ENGINE_CONSOLE_LOG("![Script] (GetGOParentFromUID) Alert! Gameobject with %d UUID has no parent! 0 will be returned", gameobject_UUID);
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Gameobject with %d UUID was not found! 0 will be returned", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script] (GetGOParentFromUID) Alert! Gameobject with %d UUID was not found! 0 will be returned", gameobject_UUID);
 
 	return ret;
 }
@@ -151,30 +171,31 @@ uint ScriptingGameobject::GetGOParentFromUID(uint gameobject_UUID)
 void ScriptingGameobject::DestroyGOFromScript(uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
 	if (go)
 		App->scene_manager->DestroyGameObject(go);
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Gameobject with %d UUID does not exist!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script] (DestroyGOFromScript) Alert! Gameobject with %d UUID does not exist!", gameobject_UUID);
 }
 
 void ScriptingGameobject::SetActiveGameObject(bool active, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
-	if (go) {
+	if (go)
+	{
 		if (active)
 			go->Enable();
 		else
 			go->Disable();
 	}
 	else
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Gameobject with %d UUID does not exist!", gameobject_UUID);
+		ENGINE_CONSOLE_LOG("![Script] (SetActiveGameObject) Alert! Gameobject with %d UUID does not exist!", gameobject_UUID);
 }
-bool ScriptingGameobject::IsActiveGameObject(uint gameobject_UUID) {
-	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+bool ScriptingGameobject::IsActiveGameObject(uint gameobject_UUID)
+{
 	bool ret = false;
 
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 	if (go)
 		ret = go->GetActive();
 	else
@@ -185,8 +206,7 @@ bool ScriptingGameobject::IsActiveGameObject(uint gameobject_UUID) {
 uint ScriptingGameobject::GetComponentFromGO(const char* component_name, uint gameobject_UUID)
 {
 	uint ret = 0;
-	GameObject* go = nullptr;
-	go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 
 	if (go != nullptr)
 	{
@@ -221,18 +241,12 @@ uint ScriptingGameobject::GetComponentFromGO(const char* component_name, uint ga
 			comp = (Component*)go->GetComponent<ComponentCanvas>();
 
 		if (comp != nullptr)
-		{
 			ret = comp->GetUID();
-		}
 		else
-		{
-			ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Component %s was not found inside Gameobject with UUID %d! 0 will be returned", component_name, gameobject_UUID);
-		}
+			ENGINE_CONSOLE_LOG("![Script] (GetComponentFromGO) Alert! Component %s was not found inside Gameobject with UUID %d! 0 will be returned", component_name, gameobject_UUID);
 	}
 	else
-	{
-		ENGINE_CONSOLE_LOG("(SCRIPTING) Alert! Gameobject with UUID %d was not found! 0 will be returned", gameobject_UUID);
-	}
+		ENGINE_CONSOLE_LOG("![Script] (GetComponentFromGO) Alert! Gameobject with UUID %d was not found! 0 will be returned", gameobject_UUID);
 
 	return ret;
 }
@@ -242,33 +256,51 @@ luabridge::LuaRef ScriptingGameobject::GetScript(uint gameobject_UUID, lua_State
 	luabridge::LuaRef ret = 0;
 
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
-
 	if (go != nullptr)
 	{
 		ComponentScript* component_script = go->GetComponent<ComponentScript>();
-		if (component_script != nullptr) {
+		if (component_script)
+		{
 			ScriptInstance* script = App->scripting->GetScriptInstanceFromComponent(component_script);
-
-			ret = script->my_table_class;
+			if(script)
+				ret = script->my_table_class;
+			else
+				ENGINE_CONSOLE_LOG("![Script] (GetScript) Alert! Script Instance was NULL!");
 		}
+		else
+			ENGINE_CONSOLE_LOG("![Script] (GetScript) Alert! Component Script was not found inside Gameobject with UUID %d! 0 will be returned", gameobject_UUID);
 	}
+	else
+		ENGINE_CONSOLE_LOG("![Script] (GetScript) Alert! Gameobject with UUID %d was not found!", gameobject_UUID);
+
 	return ret;
 }
 
 int ScriptingGameobject::GetMyLayer()
 {
-	GameObject* body = App->scripting->current_script->my_component->GetContainerGameObject();
-	if (body) {
-		return body->GetLayer();
+	if (App->scripting->current_script != nullptr)
+	{
+		GameObject* go = App->scripting->current_script->my_component->GetContainerGameObject();
+		if (go)
+		{
+			return go->GetLayer();
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (GetMyLayer) Current Script Game Object was NULL!");
 	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (GetMyLayer) Current Script was NULL!");
+
 	return -1;
 }
 
 int ScriptingGameobject::GetLayerByID(uint UID)
 {
-	GameObject* body = App->scene_manager->currentScene->GetGOWithUID(UID);
-	if (body) {
-		return body->GetLayer();
-	}
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(UID);
+	if (go)
+		return go->GetLayer();
+	else
+		ENGINE_CONSOLE_LOG("![Script] (GetLayerByID) Alert! Gameobject with UUID %d was not found!", UID);
+
 	return -1;
 }

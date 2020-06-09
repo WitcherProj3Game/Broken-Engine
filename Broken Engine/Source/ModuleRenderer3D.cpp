@@ -1240,7 +1240,7 @@ void ModuleRenderer3D::SendShaderUniforms(uint shader, bool depthPass)
 		viewMat = active_camera->GetOpenGLViewMatrix();
 
 		//Calculate Light Space Matrix
-		if (shader == defaultShader->ID && current_directional)
+		if ((shader == defaultShader->ID || shader == toonShader->ID) && current_directional)
 		{
 			// --- Shadow Properties ---
 			glUniform1f(glGetUniformLocation(shader, "u_ShadowIntensity"), current_directional->m_ShadowsIntensity);
@@ -1879,6 +1879,15 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	defaultShader->ReloadAndCompileShader();
 	IShader->Save(defaultShader);
 
+	toonShader = (ResourceShader*)App->resources->CreateResourceGivenUID(Resource::ResourceType::SHADER, "Assets/Shaders/ToonShader.glsl", 11);
+	toonShader->vShaderCode = vertexShaderSource;
+	toonShader->fShaderCode = fragmentShaderSource;
+	toonShader->SetName("Toon");
+	toonShader->LoadToMemory();
+	toonShader->ReloadAndCompileShader();
+	IShader->Save(toonShader);
+
+	
 	// ---Creating screen shader ---
 	const char* vertexScreenShader =
 		R"(#version 440 core

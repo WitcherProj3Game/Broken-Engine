@@ -237,6 +237,7 @@ public:
 	ResourceShader* screenShader = nullptr;
 	ResourceShader* UI_Shader = nullptr;
 	ResourceShader* shadowsShader = nullptr;
+	ResourceShader* toonShader = nullptr;
 
 	ResourceShader* SkyboxShader = nullptr;
 

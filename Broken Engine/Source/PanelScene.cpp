@@ -82,10 +82,10 @@ bool PanelScene::Draw()
 				ImGui::SetWindowSize(name, ImVec2(size.x, size.y));
 			}
 
-			if (EngineApp->gui->sceneWidth > EngineApp->gui->sceneHeight)
-				EngineApp->renderer3D->active_camera->SetAspectRatio(EngineApp->gui->sceneWidth / EngineApp->gui->sceneHeight);
-			else
-				EngineApp->renderer3D->active_camera->SetAspectRatio(EngineApp->gui->sceneHeight / EngineApp->gui->sceneWidth);
+			//if (EngineApp->gui->sceneWidth > EngineApp->gui->sceneHeight)
+			//	EngineApp->renderer3D->active_camera->SetAspectRatio(EngineApp->gui->sceneWidth / EngineApp->gui->sceneHeight);
+			//else
+			//	EngineApp->renderer3D->active_camera->SetAspectRatio(EngineApp->gui->sceneHeight / EngineApp->gui->sceneWidth);
 
 		}
 
@@ -154,13 +154,13 @@ bool PanelScene::Draw()
 				ImGui::PopItemFlag();
 				ImGui::EndMenu();
 			}
-			if (ImGui::BeginMenu("AspectRatio"))
-			{
-				ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
-				ImGui::MenuItem("16:9", NULL, &fixed_ar);
-				ImGui::PopItemFlag();
-				ImGui::EndMenu();
-			}
+			//if (ImGui::BeginMenu("AspectRatio"))
+			//{
+			//	ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
+			//	ImGui::MenuItem("16:9", NULL, &fixed_ar);
+			//	ImGui::PopItemFlag();
+			//	ImGui::EndMenu();
+			//}
 			ImGui::EndMenuBar();
 		}
 

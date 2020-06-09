@@ -70,7 +70,9 @@ bool PanelScene::Draw()
 				size /= (size.y / height);
 			}
 			
-			EngineApp->renderer3D->active_camera->SetAspectRatio(16 / 9);
+			float fov = EngineApp->renderer3D->active_camera->GetFOV();
+			EngineApp->renderer3D->active_camera->SetAspectRatio(1.77);
+			EngineApp->renderer3D->active_camera->SetFOV(fov);
 		}
 		else
 		{
@@ -154,13 +156,13 @@ bool PanelScene::Draw()
 				ImGui::PopItemFlag();
 				ImGui::EndMenu();
 			}
-			//if (ImGui::BeginMenu("AspectRatio"))
-			//{
-			//	ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
-			//	ImGui::MenuItem("16:9", NULL, &fixed_ar);
-			//	ImGui::PopItemFlag();
-			//	ImGui::EndMenu();
-			//}
+			if (ImGui::BeginMenu("AspectRatio"))
+			{
+				ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
+				ImGui::MenuItem("16:9", NULL, &fixed_ar);
+				ImGui::PopItemFlag();
+				ImGui::EndMenu();
+			}
 			ImGui::EndMenuBar();
 		}
 

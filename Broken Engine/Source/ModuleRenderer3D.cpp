@@ -583,10 +583,10 @@ void ModuleRenderer3D::OnResize(int width, int height)
 	// --- Resetting View matrices ---
 	glViewport(0, 0, width, height);
 
-	if (width > height)
-		active_camera->SetAspectRatio(width / height);
-	else
-		active_camera->SetAspectRatio(height / width);
+	//if (width > height)
+	//	active_camera->SetAspectRatio(width / height);
+	//else
+	//	active_camera->SetAspectRatio(height / width);
 
 	glDeleteFramebuffers(1, &fbo);
 	glDeleteFramebuffers(1, &depthbufferFBO);

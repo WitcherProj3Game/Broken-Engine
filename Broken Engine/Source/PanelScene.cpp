@@ -70,7 +70,9 @@ bool PanelScene::Draw()
 				size /= (size.y / height);
 			}
 			
-			EngineApp->renderer3D->active_camera->SetAspectRatio(16 / 9);
+			float fov = EngineApp->renderer3D->active_camera->GetFOV();
+			EngineApp->renderer3D->active_camera->SetAspectRatio(1.77);
+			EngineApp->renderer3D->active_camera->SetFOV(fov);
 		}
 		else
 		{
@@ -82,10 +84,10 @@ bool PanelScene::Draw()
 				ImGui::SetWindowSize(name, ImVec2(size.x, size.y));
 			}
 
-			if (EngineApp->gui->sceneWidth > EngineApp->gui->sceneHeight)
-				EngineApp->renderer3D->active_camera->SetAspectRatio(EngineApp->gui->sceneWidth / EngineApp->gui->sceneHeight);
-			else
-				EngineApp->renderer3D->active_camera->SetAspectRatio(EngineApp->gui->sceneHeight / EngineApp->gui->sceneWidth);
+			//if (EngineApp->gui->sceneWidth > EngineApp->gui->sceneHeight)
+			//	EngineApp->renderer3D->active_camera->SetAspectRatio(EngineApp->gui->sceneWidth / EngineApp->gui->sceneHeight);
+			//else
+			//	EngineApp->renderer3D->active_camera->SetAspectRatio(EngineApp->gui->sceneHeight / EngineApp->gui->sceneWidth);
 
 		}
 

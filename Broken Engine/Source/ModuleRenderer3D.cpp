@@ -1523,7 +1523,7 @@ void ModuleRenderer3D::HandleObjectOutlining()
 
 			if (mat)
 			{
-				float lineWidth = (mat->m_Lih¡neWidth / 100.0f) * gl_MaxLineWidth;
+				float lineWidth = (mat->m_LineWidth / 100.0f) * gl_MaxLineWidth;
 				glLineWidth(lineWidth);
 			}
 

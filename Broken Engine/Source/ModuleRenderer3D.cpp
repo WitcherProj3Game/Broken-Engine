@@ -1499,6 +1499,8 @@ void ModuleRenderer3D::HandleObjectOutlining()
 		const RenderMesh* mesh = &outline_meshes[i];
 		const float4x4 model = mesh->transform;
 		const ResourceMesh *rmesh = mesh->resource_mesh;
+		if (mesh->deformable_mesh)
+			rmesh = mesh->deformable_mesh;
 
 		// Send uniform
 		glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_Model"), 1, GL_FALSE, model.Transposed().ptr());

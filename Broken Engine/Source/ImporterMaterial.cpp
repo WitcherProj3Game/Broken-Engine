@@ -204,7 +204,7 @@ Resource* ImporterMaterial::Load(const char* path) const
 			if (file["OccludedOutlineColor"].contains("R") && file["OccludedOutlineColor"].contains("G") &&
 				file["OccludedOutlineColor"].contains("B") && file["OccludedOutlineColor"].contains("A"))
 			{
-				mat->m_OutlineColor = float4(file["OccludedOutlineColor"]["R"].get<float>(), file["OccludedOutlineColor"]["G"].get<float>(), file["OccludedOutlineColor"]["B"].get<float>(), file["OccludedOutlineColor"]["A"].get<float>());
+				mat->m_OccludedOutlineColor = float4(file["OccludedOutlineColor"]["R"].get<float>(), file["OccludedOutlineColor"]["G"].get<float>(), file["OccludedOutlineColor"]["B"].get<float>(), file["OccludedOutlineColor"]["A"].get<float>());
 			}
 		}
 

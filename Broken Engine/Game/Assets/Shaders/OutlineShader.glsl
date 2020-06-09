@@ -6,12 +6,12 @@ uniform mat4 u_Model;
 uniform mat4 u_View; 
 uniform mat4 u_Proj; 
 
-uniform vec4 u_OutlineColor; // Color of outline
-
+uniform vec4 u_Color = vec4(0,0,0,1); // Color of outline
 out vec4 v_Color;
 void main()
 {
-    v_Color = u_OutlineColor;
+    v_Color = u_Color;
+
     vec3 position = vec3(u_Model * vec4(a_Position, 1.0));
     gl_Position = u_Proj * u_View * vec4(position, 1.0f); 
 }
@@ -22,7 +22,8 @@ void main()
 
 in vec4 v_Color;
 out vec4 color; 
-void main(){ 
+void main()
+{ 
     color = v_Color;
 } 
 #endif //FRAGMENT_SHADER 

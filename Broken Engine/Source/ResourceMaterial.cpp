@@ -155,6 +155,21 @@ void ResourceMaterial::CreateInspectorNode()
 	ImGui::SameLine();
 	if (ImGui::Checkbox("Culling", &has_culling)) save_material = true;
 
+	if(ImGui::Checkbox("Outline", &m_Outline)) save_material = true;
+	if (m_Outline)
+	{
+		ImGui::SameLine();
+		if(ImGui::ColorEdit4("##OutlineColor", (float*)&m_OutlineColor, ImGuiColorEditFlags_NoInputs))
+		save_material = true;
+	}
+	if(ImGui::Checkbox("Occluded Outline", &m_OccludedOutline)) save_material = true;
+	if (m_OccludedOutline)
+	{
+		ImGui::SameLine();
+		if(ImGui::ColorEdit4("##OccludedOutlineColor", (float*)&m_OccludedOutlineColor, ImGuiColorEditFlags_NoInputs))
+		save_material = true;
+	}
+
 	// --- Rim Light ---
 	ImGui::Separator();
 	ImGui::NewLine();

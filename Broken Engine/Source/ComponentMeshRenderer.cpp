@@ -72,6 +72,9 @@ void ComponentMeshRenderer::DrawComponent()
 	if(light_affected)
 		flags |= lightAffected;
 
+	if(material && (material->m_Outline || material->m_OccludedOutline))
+		flags |= outline;
+
 	if (cmesh && cmesh->resource_mesh && material)
 	{
 		App->renderer3D->DrawMesh(GO->GetComponent<ComponentTransform>()->GetGlobalTransform(), cmesh->resource_mesh, material, cmesh->deformable_mesh, flags, Broken::White, only_shadows);
@@ -300,6 +303,21 @@ void ComponentMeshRenderer::CreateInspectorNode()
 				if (ImGui::Checkbox("Transparencies", &material->has_transparencies)) save_material = true;
 				ImGui::SameLine();
 				if (ImGui::Checkbox("Culling", &material->has_culling)) save_material = true;
+
+				if (ImGui::Checkbox("Outline", &material->m_Outline)) save_material = true;
+				if (material->m_Outline)
+				{
+					ImGui::SameLine();
+					if (ImGui::ColorEdit4("##OutlineColor", (float *)&material->m_OutlineColor, ImGuiColorEditFlags_NoInputs))
+						save_material = true;
+				}
+				if (ImGui::Checkbox("Occluded Outline", &material->m_OccludedOutline)) save_material = true;
+				if (material->m_OccludedOutline)
+				{
+					ImGui::SameLine();
+					if (ImGui::ColorEdit4("##OccludedOutlineColor", (float *)&material->m_OccludedOutlineColor, ImGuiColorEditFlags_NoInputs))
+						save_material = true;
+				}
 
 				//Rim Light
 				ImGui::Separator();

@@ -189,7 +189,7 @@ Resource* ImporterMaterial::Load(const char* path) const
 		// --- Outline --
 		mat->m_Outline = file.contains("UseOutline") ? file["UseOutline"].get<bool>() : false;
 		mat->m_OccludedOutline = file.contains("UseOccludedOutline") ? file["UseOccludedOutline"].get<bool>() : false;
-		mat->m_LineWidth = file.contains("OutlineThickness") ? file["OutlineThickness"] : 100.0f;
+		mat->m_LineWidth = file.contains("OutlineThickness") ? file["OutlineThickness"].get<float>() : 100.0f;
 
 		if (file.contains("OutlineColor"))
 		{

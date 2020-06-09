@@ -1491,6 +1491,7 @@ void ModuleRenderer3D::HandleObjectOutlining()
 	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	glStencilMask(0x00);
 	glCullFace(GL_FRONT);
+	glDepthMask(GL_FALSE);
 
 	// --- Selected Object Outlining ---
 	for (int i = 0; i < outline_meshes.size(); i++)
@@ -1521,7 +1522,6 @@ void ModuleRenderer3D::HandleObjectOutlining()
 				glUniform4f(vertexColorLocation, color[0], color[1], color[2], 1);
 				// --- Render ---
 				glDrawElements(GL_TRIANGLES, rmesh->IndicesSize, GL_UNSIGNED_INT, NULL); //render from array data
-				glFinish();
 			}
 
 			if (mat && mat->m_Outline)
@@ -1532,7 +1532,6 @@ void ModuleRenderer3D::HandleObjectOutlining()
 
 				// --- Render ---
 				glDrawElements(GL_TRIANGLES, rmesh->IndicesSize, GL_UNSIGNED_INT, NULL); //render from array data
-				glFinish();
 			}
 		}
 		else
@@ -1557,6 +1556,7 @@ void ModuleRenderer3D::HandleObjectOutlining()
 	glEnable(GL_DEPTH_TEST);
 	glCullFace(GL_BACK);
 	glDepthFunc(GL_LESS);
+	glDepthMask(GL_TRUE);
 	outline_meshes.clear();
 }
 

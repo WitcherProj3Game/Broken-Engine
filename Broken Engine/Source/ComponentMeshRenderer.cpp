@@ -319,6 +319,15 @@ void ComponentMeshRenderer::CreateInspectorNode()
 						save_material = true;
 				}
 
+				if (material->m_Outline || material->m_OccludedOutline)
+				{
+					ImGui::Text("Line thickness");
+					ImGui::SameLine();
+					ImGui::SetNextItemWidth(300.0f);
+					if (ImGui::SliderFloat("##OutlineThickness", &material->m_LineWidth, 0.5f, 100.0f, "%.1f %%"))
+						save_material = true;
+				}
+
 				//Rim Light
 				ImGui::Separator();
 				ImGui::NewLine();

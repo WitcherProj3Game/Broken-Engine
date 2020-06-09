@@ -189,6 +189,7 @@ Resource* ImporterMaterial::Load(const char* path) const
 		// --- Outline --
 		mat->m_Outline = file.contains("UseOutline") ? file["UseOutline"].get<bool>() : false;
 		mat->m_OccludedOutline = file.contains("UseOccludedOutline") ? file["UseOccludedOutline"].get<bool>() : false;
+		mat->m_LineWidth = file.contains("OutlineThickness") ? file["OutlineThickness"] : 100.0f;
 
 		if (file.contains("OutlineColor"))
 		{
@@ -505,6 +506,8 @@ void ImporterMaterial::Save(ResourceMaterial* mat) const
 	file["OccludedOutlineColor"]["G"] = mat->m_OccludedOutlineColor[1];
 	file["OccludedOutlineColor"]["B"] = mat->m_OccludedOutlineColor[2];
 	file["OccludedOutlineColor"]["A"] = mat->m_OccludedOutlineColor[3];
+
+	file["OutlineThickness"] = mat->m_LineWidth;
 
 	if (mat->m_DiffuseResTexture)
 		file["ResourceDiffuse"] = mat->m_DiffuseResTexture->GetOriginalFile();

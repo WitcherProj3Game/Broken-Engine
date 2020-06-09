@@ -159,15 +159,24 @@ void ResourceMaterial::CreateInspectorNode()
 	if (m_Outline)
 	{
 		ImGui::SameLine();
-		if(ImGui::ColorEdit4("##OutlineColor", (float*)&m_OutlineColor, ImGuiColorEditFlags_NoInputs))
-		save_material = true;
+		if (ImGui::ColorEdit4("##OutlineColor", (float *)&m_OutlineColor, ImGuiColorEditFlags_NoInputs))
+			save_material = true;
 	}
 	if(ImGui::Checkbox("Occluded Outline", &m_OccludedOutline)) save_material = true;
 	if (m_OccludedOutline)
 	{
 		ImGui::SameLine();
-		if(ImGui::ColorEdit4("##OccludedOutlineColor", (float*)&m_OccludedOutlineColor, ImGuiColorEditFlags_NoInputs))
-		save_material = true;
+		if (ImGui::ColorEdit4("##OccludedOutlineColor", (float *)&m_OccludedOutlineColor, ImGuiColorEditFlags_NoInputs))
+			save_material = true;
+	}
+
+	if(m_Outline || m_OccludedOutline)
+	{
+		ImGui::Text("Line thickness");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(300.0f);
+		if (ImGui::SliderFloat("##OutlineThickness", &m_LineWidth, 0.5f, 100.0f, "%.1f %%"))
+			save_material = true;
 	}
 
 	// --- Rim Light ---

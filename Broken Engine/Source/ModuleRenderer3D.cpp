@@ -1479,7 +1479,6 @@ void ModuleRenderer3D::HandleObjectOutlining()
 
 	// --- Enable wireframe mode --
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glLineWidth(30.0);
 
 	// --- Set Matrix Uniforms ---
 	uint shaderID = OutlineShader->ID;
@@ -1492,6 +1491,10 @@ void ModuleRenderer3D::HandleObjectOutlining()
 	glStencilMask(0x00);
 	glCullFace(GL_FRONT);
 	glDepthMask(GL_FALSE);
+
+	float gl_MaxLineWidth;
+	gl_MaxLineWidth = 10;
+	glLineWidth(0.9 * gl_MaxLineWidth);
 
 	// --- Selected Object Outlining ---
 	for (int i = 0; i < outline_meshes.size(); i++)
@@ -1517,6 +1520,13 @@ void ModuleRenderer3D::HandleObjectOutlining()
 			float4 color;
 			glEnable(GL_DEPTH_TEST);
 			ResourceMaterial* mat = mesh->mat;
+
+			if (mat)
+			{
+				float lineWidth = (mat->m_Lih¡neWidth / 100.0f) * gl_MaxLineWidth;
+				glLineWidth(lineWidth);
+			}
+
 			if (mat && mat->m_OccludedOutline)
 			{
 				glDepthFunc(GL_GREATER);

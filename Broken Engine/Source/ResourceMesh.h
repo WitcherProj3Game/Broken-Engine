@@ -4,14 +4,12 @@
 #include "Resource.h"
 #include "MathGeoLib/include/Geometry/AABB.h"
 #include "MathGeoLib/include/Geometry/OBB.h"
-#include <mutex>
 
 BE_BEGIN_NAMESPACE
 struct BROKEN_API Vertex
 {
 	float position[3];
 	float normal[3];
-	float smoothNormal[3];
 	unsigned char color[4];
 	float texCoord[2];
 	float tangent[3];
@@ -35,8 +33,6 @@ public:
 	void CreateVAO();
 	void CreateVBO();
 	void CreateEBO();
-
-	void CalculateSmoothNormals();
 private:
 
 public:
@@ -56,17 +52,11 @@ public:
 
 	uint VAO = 0;	// Vertex Array Object
 
-	bool smoothNormals = false;
-
 private:
 
 	void OnOverwrite() override;
 	void OnDelete() override;
 	void Repath() override;
-
-	void _CalculateFaceNormals(float from, float to, std::vector<std::vector<float3>> &wnormals);
-	void _CalculateVertexSmooth(float from, float to, const std::vector<std::vector<float3>> &wnormals);
-	std::mutex v_mutex;
 };
 
 BE_END_NAMESPACE

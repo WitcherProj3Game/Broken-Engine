@@ -104,18 +104,6 @@ void ComponentMeshRenderer::DrawNormals(const ResourceMesh& mesh, const Componen
 		}
 	}
 
-	if (draw_smoothnormals && mesh.vertices->smoothNormal)
-	{
-		for (uint i = 0; i < mesh.IndicesSize; ++i) 
-		{
-			// --- Normals ---
-			origin = float3(mesh.vertices[mesh.Indices[i]].position[0], mesh.vertices[mesh.Indices[i]].position[1], mesh.vertices[mesh.Indices[i]].position[2]);
-			end = float3(mesh.vertices[mesh.Indices[i]].position[0] + mesh.vertices[mesh.Indices[i]].smoothNormal[0] * NORMAL_LENGTH, mesh.vertices[mesh.Indices[i]].position[1] + mesh.vertices[mesh.Indices[i]].smoothNormal[1] * NORMAL_LENGTH, mesh.vertices[mesh.Indices[i]].position[2] + mesh.vertices[mesh.Indices[i]].smoothNormal[2] * NORMAL_LENGTH);
-
-			App->renderer3D->DrawLine(transf, origin, end, color);
-		}
-	}
-
 	// --- Draw Face Normals ---
 	if (draw_facenormals)
 	{
@@ -212,9 +200,8 @@ void ComponentMeshRenderer::CreateInspectorNode()
 	// --- Mesh Node ---
 	ImGui::Checkbox("Vertex Normals", &draw_vertexnormals);
 	ImGui::SameLine();
-	ImGui::Checkbox("Smooth Normals  ", &draw_smoothnormals);
-	ImGui::SameLine();
 	ImGui::Checkbox("Face Normals  ", &draw_facenormals);
+	ImGui::SameLine();
 	ImGui::Checkbox("Checkers", &checkers);
 
 	// --- Shadows Node ---

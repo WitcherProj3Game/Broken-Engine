@@ -37,7 +37,6 @@ public:
 
 	bool draw_vertexnormals = false;
 	bool draw_facenormals = false;
-	bool draw_smoothnormals = false;
 	bool checkers = false;
 	ResourceMaterial* material = nullptr;
 

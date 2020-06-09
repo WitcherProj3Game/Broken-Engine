@@ -983,6 +983,8 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 
 			if (mesh->flags & RenderMeshFlags_::outline)
 			{
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				glLineWidth(30.0);
 				shader = OutlineShader->ID;
 				colorToDraw = { 1.0f, 0.65f, 0.0f };
 				// float3 scale = float3(1.05f, 1.05f, 1.05f);
@@ -1157,8 +1159,10 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 			}
 
 			// --- DeActivate wireframe mode ---
-			if (mesh->flags & RenderMeshFlags_::wire)
+			if (mesh->flags & RenderMeshFlags_::wire || mesh->flags & RenderMeshFlags_::outline)
+			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			}
 
 			if (mesh->flags & RenderMeshFlags_::selected)
 				glStencilMask(0x00);
@@ -1470,7 +1474,17 @@ void  ModuleRenderer3D::PickBlendingManualFunction(BlendingTypes src, BlendingTy
 
 void ModuleRenderer3D::HandleObjectOutlining()
 {
-	SendShaderUniforms(OutlineShader->ID, false);
+	// --- Set Matrix Uniforms ---
+	uint shaderID = OutlineShader->ID;
+	glUseProgram(shaderID);
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_View"), 1, GL_FALSE, active_camera->GetOpenGLViewMatrix().ptr());
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_Proj"), 1, GL_FALSE, active_camera->GetOpenGLProjectionMatrix().ptr());
+	Color orange(255, 165, 0, 255);
+	orange.Normalize();
+
+	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_OutlineColor");
+	glUniform4f(vertexColorLocation, orange.r, orange.g, orange.b, orange.a);
+
 	// --- Selected Object Outlining ---
 	for (GameObject* obj : *App->selection->GetSelected())
 	{
@@ -1496,8 +1510,6 @@ void ModuleRenderer3D::HandleObjectOutlining()
 
 			if (cmesh && cmesh->resource_mesh && cmesh_renderer && cmesh_renderer->material)
 			{
-				if (!cmesh->resource_mesh->smoothNormals)
-					cmesh->resource_mesh->CalculateSmoothNormals();
 				meshInstances.push_back(RenderMesh(obj->GetComponent<ComponentTransform>()->GetGlobalTransform(), cmesh->resource_mesh, cmesh_renderer->material, flags));
 				DrawRenderMesh(meshInstances, false);
 			}

@@ -280,7 +280,7 @@ uint ModuleTextures::CreateDepthCubemap()
 	unsigned int depthCubemap;
 	glGenTextures(1, &depthCubemap);
 
-	const unsigned int SHADOW_WIDTH = App->window->GetWindowWidth(), SHADOW_HEIGHT = App->window->GetWindowHeight();
+	const unsigned int SHADOW_WIDTH = App->window->GetWindowWidth(), SHADOW_HEIGHT = SHADOW_WIDTH; // App->window->GetWindowHeight();
 	glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
 	for (unsigned int i = 0; i < 6; ++i)
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,
@@ -291,8 +291,7 @@ uint ModuleTextures::CreateDepthCubemap()
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
 	return depthCubemap;
 }

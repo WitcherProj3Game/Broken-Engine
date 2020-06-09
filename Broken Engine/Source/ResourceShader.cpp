@@ -233,19 +233,6 @@ void ResourceShader::ReloadAndCompileShader()
 	else
 		ENGINE_AND_SYSTEM_CONSOLE_LOG("Vertex Shader compiled successfully");
 
-	// --- Compile new fragment shader ---
-
-	success = CreateFragmentShader(new_fragment, fragmentcode);
-
-	if (!success)
-	{
-		glGetShaderInfoLog(new_fragment, 512, NULL, infoLog);
-		ENGINE_AND_SYSTEM_CONSOLE_LOG("|[error]:Fragment Shader compilation error: %s", infoLog);
-		accumulated_errors++;
-	}
-	else
-		ENGINE_AND_SYSTEM_CONSOLE_LOG("Fragment Shader compiled successfully");
-
 	// --- Compile new geometry shader ---
 
 	if (gShaderCode != "none")
@@ -261,6 +248,21 @@ void ResourceShader::ReloadAndCompileShader()
 		else
 			ENGINE_AND_SYSTEM_CONSOLE_LOG("Geometry Shader compiled successfully");
 	}
+
+	// --- Compile new fragment shader ---
+
+	success = CreateFragmentShader(new_fragment, fragmentcode);
+
+	if (!success)
+	{
+		glGetShaderInfoLog(new_fragment, 512, NULL, infoLog);
+		ENGINE_AND_SYSTEM_CONSOLE_LOG("|[error]:Fragment Shader compilation error: %s", infoLog);
+		accumulated_errors++;
+	}
+	else
+		ENGINE_AND_SYSTEM_CONSOLE_LOG("Fragment Shader compiled successfully");
+
+	
 
 	if (accumulated_errors == 0)
 	{

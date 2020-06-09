@@ -182,6 +182,7 @@ bool ModuleRenderer3D::Init(json& file)
 
 
 	//Projection matrix for
+	depthTextureCubemap = App->textures->CreateDepthCubemap();
 	OnResize(App->window->GetWindowWidth(), App->window->GetWindowHeight());
 
 	// --- Create adaptive grid ---
@@ -427,23 +428,8 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 			(*LightIteratori)->m_LightFrustum.SetUp(float3(0.0, -1.0, 0.0));
 			shadowTransforms.push_back(shadowProj * (*LightIteratori)->GetFrustViewMatrix());
 
-
-			for (unsigned int i = 0; i < 6; ++i)
-			{
-				int loc = glGetUniformLocation(points_shadowsShader->ID, std::string("shadowMatrices[" + std::to_string(i) + "]").c_str());
-				glUniformMatrix4fv(glGetUniformLocation(points_shadowsShader->ID, std::string("shadowMatrices[" + std::to_string(i) + "]").c_str()), 1, GL_FALSE, shadowTransforms[i].ptr());
-			}
-			//simpleDepthShader.setMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
-
-
-			//glUniformMatrix4fv(glGetUniformLocation(shadowsShader->ID, "u_View"), 1, GL_FALSE, viewMat.ptr());
-			//glUniformMatrix4fv(glGetUniformLocation(points_shadowsShader->ID, "u_Proj"), 1, GL_FALSE, shadowProj.ptr());
 			float3 pos = (*LightIteratori)->GetContainerGameObject()->GetComponent<ComponentTransform>()->GetPosition();
-			int loc2 = glGetUniformLocation(points_shadowsShader->ID, "lightPos");
-			glUniform3f(glGetUniformLocation(points_shadowsShader->ID, "lightPos"), pos.x, pos.y, pos.z);
-
-
-			SendPointShadowsUniforms();
+			SendPointShadowsUniforms(pos, shadowTransforms);
 			break; // just 1 for now
 		}
 	}
@@ -1255,12 +1241,13 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 }
 
 
-void ModuleRenderer3D::SendPointShadowsUniforms()
+void ModuleRenderer3D::SendPointShadowsUniforms(float3 light_position, std::vector<float4x4> shadowTransforms)
 {
 	for (std::map<uint, std::vector<RenderMesh>>::const_iterator it = render_meshes.begin(); it != render_meshes.end(); ++it)
 	{
 		uint shader = points_shadowsShader->ID;
 		glUseProgram(shader);
+
 		for (uint i = 0; i < (*it).second.size(); ++i)
 		{
 			const RenderMesh* mesh = &(*it).second[i];
@@ -1269,7 +1256,20 @@ void ModuleRenderer3D::SendPointShadowsUniforms()
 			if ((mesh->flags & RenderMeshFlags_::castShadows) != RenderMeshFlags_::castShadows)
 				continue;
 
+			// -----------------------------------------------------------------------------------------
+			int loc = 0;
+			for (unsigned int i = 0; i < 6; ++i)
+			{
+				loc = glGetUniformLocation(shader, std::string("shadowMatrices[" + std::to_string(i) + "]").c_str());
+				glUniformMatrix4fv(glGetUniformLocation(shader, std::string("shadowMatrices[" + std::to_string(i) + "]").c_str()), 1, GL_FALSE, shadowTransforms[i].ptr());
+			}
+
+			int loc2 = glGetUniformLocation(shader, "lightPos");
+			glUniform3f(glGetUniformLocation(shader, "lightPos"), light_position.x, light_position.y, light_position.z);
+
+
 			// --- Set Model Matrix Uniform ---
+			int loc3 = glGetUniformLocation(shader, "u_Model");
 			glUniformMatrix4fv(glGetUniformLocation(shader, "u_Model"), 1, GL_FALSE, model.Transposed().ptr());
 
 			if (mesh->resource_mesh->vertices && mesh->resource_mesh->Indices) // if mesh to draw
@@ -1494,7 +1494,9 @@ void ModuleRenderer3D::CreateFramebuffer()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
+	glBindTexture(GL_TEXTURE_CUBE_MAP, depthTextureCubemap);
 	glGenFramebuffers(1, &depthbufferCubemapFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthbufferCubemapFBO);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTextureCubemap, 0);
@@ -1502,7 +1504,7 @@ void ModuleRenderer3D::CreateFramebuffer()
 	glReadBuffer(GL_NONE);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
 	// --- Create a texture to use it as render target ---
 	glGenTextures(1, &rendertexture);
@@ -2190,7 +2192,8 @@ void ModuleRenderer3D::CreateDefaultShaders()
 			#endif)";
 
 	const char* pointshadowsGeoShader =
-		R"(#define GEOMETRY_SHADER
+		R"(#version 440 core
+			#define GEOMETRY_SHADER
 			#ifdef GEOMETRY_SHADER			
 			layout (triangles) in; 
 			layout (triangle_strip, max_vertices = 18) out; 			
@@ -2224,7 +2227,7 @@ void ModuleRenderer3D::CreateDefaultShaders()
 
 	points_shadowsShader = (ResourceShader*)App->resources->CreateResourceGivenUID(Resource::ResourceType::SHADER, "Assets/Shaders/PointShadowsShader.glsl", 19);
 	points_shadowsShader->vShaderCode = pointshadowsVertexShader;
-	points_shadowsShader->fShaderCode = pointshadowsGeoShader;
+	points_shadowsShader->fShaderCode = pointshadowsFragmentShader;
 	points_shadowsShader->gShaderCode = pointshadowsGeoShader;
 	points_shadowsShader->ReloadAndCompileShader();
 	points_shadowsShader->SetName("Point Shadows Shader");

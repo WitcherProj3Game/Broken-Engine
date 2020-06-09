@@ -205,7 +205,7 @@ private:
 
 	// --- Draw Commands ---
 	void SendShaderUniforms(uint shader, bool depthPass);
-	void SendPointShadowsUniforms();
+	void SendPointShadowsUniforms(float3 light_position, std::vector<float4x4> shadowTransforms);
 	void DrawRenderMeshes(bool depthPass);
 	void DrawTransparentRenderMeshes(bool depthPass);
 	void DrawRenderMesh(std::vector<RenderMesh> meshInstances, bool depthPass);

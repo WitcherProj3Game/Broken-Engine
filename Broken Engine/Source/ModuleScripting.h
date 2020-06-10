@@ -24,10 +24,10 @@ public:
 
 	bool DoHotReloading();
 	bool JustCompile(std::string absolute_path);
-	void CompileScriptTableClass(ScriptInstance* script);
+	void CompileScriptTableClass(ScriptInstance* script, bool hotReload = false);
 	void SendScriptToModule(ComponentScript* script_component);
 
-	void FillScriptInstanceComponentVars(ScriptInstance* script);
+	void FillScriptInstanceComponentVars(ScriptInstance* script, bool hotReload = false);
 	void FillScriptInstanceComponentFuncs(ScriptInstance* script);
 
 	void DeleteScriptInstanceWithParentComponent(ComponentScript* script_component);

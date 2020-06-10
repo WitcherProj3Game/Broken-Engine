@@ -46,6 +46,7 @@ public:
 
 	// Bool to see if the value was changed in the editor
 	bool changed_value = false;
+	bool hot_reloaded = false;
 };
 
 //This data structure is created in order to restrict possibilities from callbacks and avoid users/programmers from crashing the engine

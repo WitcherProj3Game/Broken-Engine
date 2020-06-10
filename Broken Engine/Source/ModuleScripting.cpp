@@ -96,7 +96,7 @@ bool ModuleScripting::DoHotReloading() {
 		if (can_instantiate) {
 			// If everything compiled just fine, give the recompiled instances the new version of the script
 			for (std::vector<ScriptInstance*>::iterator it = recompiled_instances.begin(); it != recompiled_instances.end(); ++it)
-				CompileScriptTableClass((*it));
+				CompileScriptTableClass((*it), true);
 
 			for (int i = 0; i < recompiled_instances.size(); ++i)
 				class_instances.push_back(recompiled_instances[i]);
@@ -192,7 +192,7 @@ bool ModuleScripting::JustCompile(std::string absolute_path) {
 	return ret;
 }
 
-void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
+void ModuleScripting::CompileScriptTableClass(ScriptInstance* script, bool hotReload)
 {
 	//MYTODO: Didac Commented this so I can try and compile, must uncomment when SCRIPTING class contents are uncommented too
 	luabridge::getGlobalNamespace(L)
@@ -613,7 +613,7 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script)
 				luabridge::LuaRef table(ScriptGetTable());
 
 				script->my_table_class = table;
-				FillScriptInstanceComponentVars(script);
+				FillScriptInstanceComponentVars(script, hotReload);
 			}
 		}
 		else {
@@ -634,16 +634,19 @@ void ModuleScripting::SendScriptToModule(ComponentScript* script_component) {
 }
 
 // Fill the ScriptVars of the component associated with this script
-void ModuleScripting::FillScriptInstanceComponentVars(ScriptInstance* script) {
+void ModuleScripting::FillScriptInstanceComponentVars(ScriptInstance* script, bool hotReload) {
 
 	if (script == nullptr)
 	{
 		ENGINE_CONSOLE_LOG("|[Error] The script sent to FillScriptInstanceComponentVars is NULLPTR, operation will be aborted");
 		return;
 	}
-	// Reset the type of all the variables
-	for (int i = 0; i < script->my_component->script_variables.size(); ++i)
-		script->my_component->script_variables[i].type = VarType::NONE;
+	// Set all hot reloading to false
+	if (hotReload)
+	{
+		for (int i = 0; i < script->my_component->script_variables.size(); ++i)
+			script->my_component->script_variables[i].hot_reloaded = false;
+	}
 
 	for (luabridge::Iterator iterator(script->my_table_class); !iterator.isNil(); ++iterator) {
 		// Declare necessary vars for intialization & get variable name
@@ -678,6 +681,7 @@ void ModuleScripting::FillScriptInstanceComponentVars(ScriptInstance* script) {
 
 		// Assign name to variable and push it if is compatible
 		variable.name = str;
+		variable.hot_reloaded = true;
 		int variable_index = script->my_component->ScriptVarAlreadyInComponent(variable.name);
 		if (variable_type != VarType::NONE) {
 
@@ -686,7 +690,10 @@ void ModuleScripting::FillScriptInstanceComponentVars(ScriptInstance* script) {
 			{
 				// Check that the variable is still of the same type before changing any value
 				if (variable.type == script->my_component->script_variables[variable_index].type) {
-					script->my_component->script_variables[variable_index].editor_value = variable.editor_value;
+					if (!hotReload)
+						script->my_component->script_variables[variable_index].editor_value = variable.editor_value;
+					else
+						script->my_component->script_variables[variable_index].hot_reloaded = true;
 				}
 				// The variable changed its type
 				else
@@ -700,11 +707,13 @@ void ModuleScripting::FillScriptInstanceComponentVars(ScriptInstance* script) {
 		}
 	}
 
-	// Erase from memory variables deleted in hot reloading (those that are still type NONE)
-	for (int i = 0; i < script->my_component->script_variables.size(); ++i) {
-		if (script->my_component->script_variables[i].type == VarType::NONE) {
-			std::vector<ScriptVar>::iterator var_it = std::find(script->my_component->script_variables.begin(), script->my_component->script_variables.end(), script->my_component->script_variables[i]);
-			script->my_component->script_variables.erase(var_it);
+	// Erase from memory variables deleted in hot reloading
+	if (hotReload)
+	{
+		for (std::vector<ScriptVar>::iterator it = script->my_component->script_variables.begin(); it != script->my_component->script_variables.end(); ++it)
+		{
+			if (!(*it).hot_reloaded)
+				it-- = script->my_component->script_variables.erase(it);
 		}
 	}
 	//Fill Component Functions

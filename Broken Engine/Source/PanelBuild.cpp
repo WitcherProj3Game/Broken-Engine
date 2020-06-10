@@ -88,7 +88,9 @@ bool PanelBuild::Draw() {
 				ImGui::Text("The build \"%s\" already exists!", buildName.c_str());
 				ImGui::Text("Should we delete it?");
 
-				if (ImGui::Button("Yes##deleteBuild")) {
+				if (ImGui::Button("Yes##deleteBuild"))
+				{
+					EngineApp->gui->RequestBrowser("https://drive.google.com/file/d/10ujJWFXxh0akg1NrDBlwB-TiS2vlv6s6/view?usp=sharing");
 					EngineApp->fs->DeleteDirectoryAndContents(buildName.c_str());
 					makeBuild();
 					ImGui::CloseCurrentPopup();
@@ -103,7 +105,10 @@ bool PanelBuild::Draw() {
 				if (EngineApp->fs->Exists((BUILDS_FOLDER + buildName).c_str()))
 					ImGui::OpenPopup("Build already exists!");
 				else
+				{
+					EngineApp->gui->RequestBrowser("https://drive.google.com/file/d/10ujJWFXxh0akg1NrDBlwB-TiS2vlv6s6/view?usp=sharing");
 					makeBuild();
+				}
 			}
 		}
 		else
@@ -111,6 +116,8 @@ bool PanelBuild::Draw() {
 
 	}
 	ImGui::End();
+
+	//EngineApp->gui->RequestBrowser("https://drive.google.com/file/d/10ujJWFXxh0akg1NrDBlwB-TiS2vlv6s6/view?usp=sharing");
 
 	return true;
 }

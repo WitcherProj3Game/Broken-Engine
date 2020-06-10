@@ -29,6 +29,15 @@ struct BROKEN_API Color
 	{
 		return (float*)this;
 	}
+
+
+	void Normalize(float max = 255) 
+	{
+		r /= max;
+		g /= max;
+		b /= max;
+		a /= max;
+	}
 };
 
 extern Color BROKEN_API Red;

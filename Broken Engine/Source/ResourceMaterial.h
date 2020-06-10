@@ -47,6 +47,13 @@ public:
 	ResourceTexture* m_SpecularResTexture = nullptr;
 	ResourceTexture* m_NormalResTexture = nullptr;
 
+	// Outlining
+	bool m_Outline = false;
+	bool m_OccludedOutline = false;
+	float4 m_OutlineColor = { 0.0f, 0.0f, 0.0f, 0.0f };
+	float4 m_OccludedOutlineColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float m_LineWidth = 100.0f;
+
 	std::string DiffuseResTexturePath;
 	std::string SpecularResTexturePath;
 	std::string NormalResTexturePath;

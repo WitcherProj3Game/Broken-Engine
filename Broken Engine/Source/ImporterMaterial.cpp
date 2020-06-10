@@ -186,6 +186,29 @@ Resource* ImporterMaterial::Load(const char* path) const
 		mat->m_MatManualBlend_Dst = file.find("MatManualAlphaFuncDst") == file.end() ? BlendingTypes::ONE_MINUS_SRC_ALPHA : (BlendingTypes)file["MatManualAlphaFuncDst"].get<int>();
 		mat->m_AutoBlending = file.find("MatAutoBlending") == file.end() ? true : file["MatAutoBlending"].get<bool>();
 
+		// --- Outline --
+		mat->m_Outline = file.contains("UseOutline") ? file["UseOutline"].get<bool>() : false;
+		mat->m_OccludedOutline = file.contains("UseOccludedOutline") ? file["UseOccludedOutline"].get<bool>() : false;
+		mat->m_LineWidth = file.contains("OutlineThickness") ? file["OutlineThickness"].get<float>() : 100.0f;
+
+		if (file.contains("OutlineColor"))
+		{
+			if (file["OutlineColor"].contains("R") && file["OutlineColor"].contains("G") &&
+				file["OutlineColor"].contains("B") && file["OutlineColor"].contains("A"))
+			{
+				mat->m_OutlineColor = float4(file["OutlineColor"]["R"].get<float>(), file["OutlineColor"]["G"].get<float>(), file["OutlineColor"]["B"].get<float>(), file["OutlineColor"]["A"].get<float>());
+			}
+		}
+
+		if (file.contains("OccludedOutlineColor"))
+		{
+			if (file["OccludedOutlineColor"].contains("R") && file["OccludedOutlineColor"].contains("G") &&
+				file["OccludedOutlineColor"].contains("B") && file["OccludedOutlineColor"].contains("A"))
+			{
+				mat->m_OccludedOutlineColor = float4(file["OccludedOutlineColor"]["R"].get<float>(), file["OccludedOutlineColor"]["G"].get<float>(), file["OccludedOutlineColor"]["B"].get<float>(), file["OccludedOutlineColor"]["A"].get<float>());
+			}
+		}
+
 		// --- Texture Stuff ---
 		Importer::ImportData IDataDiff(diffuse_texture_path.c_str());
 
@@ -469,6 +492,22 @@ void ImporterMaterial::Save(ResourceMaterial* mat) const
 	file["MatManualAlphaFuncSrc"] = (int)mat->m_MatManualBlend_Src;
 	file["MatManualAlphaFuncDst"] = (int)mat->m_MatManualBlend_Dst;
 	file["MatAutoBlending"] = mat->m_AutoBlending;
+
+	// --- Outline --
+	file["UseOutline"] = mat->m_Outline;
+	file["UseOccludedOutline"] = mat->m_OccludedOutline;
+
+	file["OutlineColor"]["R"] = mat->m_OutlineColor[0];
+	file["OutlineColor"]["G"] = mat->m_OutlineColor[1];
+	file["OutlineColor"]["B"] = mat->m_OutlineColor[2];
+	file["OutlineColor"]["A"] = mat->m_OutlineColor[3];
+
+	file["OccludedOutlineColor"]["R"] = mat->m_OccludedOutlineColor[0];
+	file["OccludedOutlineColor"]["G"] = mat->m_OccludedOutlineColor[1];
+	file["OccludedOutlineColor"]["B"] = mat->m_OccludedOutlineColor[2];
+	file["OccludedOutlineColor"]["A"] = mat->m_OccludedOutlineColor[3];
+
+	file["OutlineThickness"] = mat->m_LineWidth;
 
 	if (mat->m_DiffuseResTexture)
 		file["ResourceDiffuse"] = mat->m_DiffuseResTexture->GetOriginalFile();

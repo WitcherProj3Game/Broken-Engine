@@ -387,6 +387,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
 	// --- Draw Grid ---
+	display_grid = false;
 	if (display_grid)
 		DrawGrid();
 	

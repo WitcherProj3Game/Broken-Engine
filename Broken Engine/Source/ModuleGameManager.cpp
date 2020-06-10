@@ -37,13 +37,13 @@ update_status ModuleGameManager::PreUpdate(float dt) {
 	GameApp->gui->sceneWidth = GameApp->window->GetWindowWidth();
 	GameApp->gui->isSceneHovered = GameApp->window->isMouseFocused();
 
-	if(GameApp->renderer3D->active_camera)
-		GameApp->renderer3D->active_camera->SetAspectRatio(16 / 9);
+
 
 	return UPDATE_CONTINUE;
 }
 
 update_status ModuleGameManager::PostUpdate(float dt) {
+
 	if (GameApp->GetAppState() == Broken::AppState::EDITOR)
 		GameApp->GetAppState() = Broken::AppState::TO_PLAY;
 	return UPDATE_CONTINUE;

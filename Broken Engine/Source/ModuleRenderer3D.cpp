@@ -975,19 +975,21 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 			float3 colorToDraw = float3(1.0f);
 
 			// --- Select/Outline ---
-			if (mesh->flags & RenderMeshFlags_::selected)
+			if (mesh->flags & RenderMeshFlags_::selected || mesh->flags & RenderMeshFlags_::outline)
 			{
+				outline_meshes.push_back(meshInstances[i]);
 				glStencilFunc(GL_ALWAYS, 1, 0xFF);
 				glStencilMask(0xFF);
 			}
 
-			if (mesh->flags & RenderMeshFlags_::outline)
-			{
-				shader = OutlineShader->ID;
-				colorToDraw = { 1.0f, 0.65f, 0.0f };
-				float3 scale = float3(1.05f, 1.05f, 1.05f);
-				model = float4x4::FromTRS(model.TranslatePart(), model.RotatePart(), scale);
-			}
+			// if (mesh->flags & RenderMeshFlags_::outline)
+			// {
+			// 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			// 	glLineWidth(30.0);
+			// 	shader = OutlineShader->ID;
+			// 	// float3 scale = float3(1.05f, 1.05f, 1.05f);
+			// 	// model = float4x4::FromTRS(model.TranslatePart(), model.RotatePart(), scale);
+			// }
 
 			// --- Display Z buffer ---
 			if (zdrawer)
@@ -1158,9 +1160,11 @@ void ModuleRenderer3D::DrawRenderMesh(std::vector<RenderMesh> meshInstances, boo
 
 			// --- DeActivate wireframe mode ---
 			if (mesh->flags & RenderMeshFlags_::wire)
+			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			}
 
-			if (mesh->flags & RenderMeshFlags_::selected)
+			if (mesh->flags & RenderMeshFlags_::selected || mesh->flags & RenderMeshFlags_::outline)
 				glStencilMask(0x00);
 
 			if (!mesh->mat->has_culling)
@@ -1236,7 +1240,7 @@ void ModuleRenderer3D::SendShaderUniforms(uint shader, bool depthPass)
 		viewMat = active_camera->GetOpenGLViewMatrix();
 
 		//Calculate Light Space Matrix
-		if (shader == defaultShader->ID && current_directional)
+		if ((shader == defaultShader->ID || shader == toonShader->ID) && current_directional)
 		{
 			// --- Shadow Properties ---
 			glUniform1f(glGetUniformLocation(shader, "u_ShadowIntensity"), current_directional->m_ShadowsIntensity);
@@ -1470,39 +1474,102 @@ void  ModuleRenderer3D::PickBlendingManualFunction(BlendingTypes src, BlendingTy
 
 void ModuleRenderer3D::HandleObjectOutlining()
 {
+	if (outline_meshes.size() == 0)
+		return;
+
+	// --- Enable wireframe mode --
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	// --- Set Matrix Uniforms ---
+	uint shaderID = OutlineShader->ID;
+	glUseProgram(shaderID);
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_View"), 1, GL_FALSE, active_camera->GetOpenGLViewMatrix().ptr());
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_Proj"), 1, GL_FALSE, active_camera->GetOpenGLProjectionMatrix().ptr());
+	GLint vertexColorLocation = glGetUniformLocation(shaderID, "u_Color");
+
+	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	glStencilMask(0x00);
+	glCullFace(GL_FRONT);
+	glDepthMask(GL_FALSE);
+
+	float gl_MaxLineWidth;
+	gl_MaxLineWidth = 10;
+	glLineWidth(0.9 * gl_MaxLineWidth);
+
 	// --- Selected Object Outlining ---
-	for (GameObject* obj : *App->selection->GetSelected())
+	for (int i = 0; i < outline_meshes.size(); i++)
 	{
-		// --- Draw slightly scaled-up versions of the objects, disable stencil writing
+		const RenderMesh* mesh = &outline_meshes[i];
+		const float4x4 model = mesh->transform;
+		const ResourceMesh *rmesh = mesh->resource_mesh;
+		if (mesh->deformable_mesh)
+			rmesh = mesh->deformable_mesh;
+
+		// Send uniform
+		glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_Model"), 1, GL_FALSE, model.Transposed().ptr());
+
+		// Bind arrays
+		glBindVertexArray(rmesh->VAO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rmesh->EBO);
+
 		// The stencil buffer is filled with several 1s. The parts that are 1 are not drawn, only the objects size
 		// differences, making it look like borders ---
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-		glStencilMask(0x00);
-		glDisable(GL_DEPTH_TEST);
-
-		// --- Search for Renderer Component ---
-		ComponentMeshRenderer* MeshRenderer = obj->GetComponent<ComponentMeshRenderer>();
-
-		// --- If Found, draw the mesh ---
-		if (MeshRenderer && MeshRenderer->IsEnabled() && obj->GetActive())
+		int selected = mesh->flags & RenderMeshFlags_::selected;
+		if (!selected)
 		{
-			std::vector<RenderMesh> meshInstances;
+			float4 color;
+			glEnable(GL_DEPTH_TEST);
+			ResourceMaterial* mat = mesh->mat;
 
-			ComponentMesh* cmesh = obj->GetComponent<ComponentMesh>();
-			ComponentMeshRenderer* cmesh_renderer = obj->GetComponent<ComponentMeshRenderer>();
-			RenderMeshFlags flags = outline;
-
-			if (cmesh && cmesh->resource_mesh && cmesh_renderer && cmesh_renderer->material)
+			if (mat)
 			{
-				meshInstances.push_back(RenderMesh(obj->GetComponent<ComponentTransform>()->GetGlobalTransform(), cmesh->resource_mesh, cmesh_renderer->material, flags));
-				DrawRenderMesh(meshInstances, false);
+				float lineWidth = (mat->m_LineWidth / 100.0f) * gl_MaxLineWidth;
+				glLineWidth(lineWidth);
+			}
+
+			if (mat && mat->m_OccludedOutline)
+			{
+				glDepthFunc(GL_GREATER);
+				color = mat->m_OccludedOutlineColor;
+				glUniform4f(vertexColorLocation, color[0], color[1], color[2], 1);
+				// --- Render ---
+				glDrawElements(GL_TRIANGLES, rmesh->IndicesSize, GL_UNSIGNED_INT, NULL); //render from array data
+			}
+
+			if (mat && mat->m_Outline)
+			{
+				glDepthFunc(GL_LESS);
+				color = mat->m_OutlineColor;
+				glUniform4f(vertexColorLocation, color[0], color[1], color[2], 1);
+
+				// --- Render ---
+				glDrawElements(GL_TRIANGLES, rmesh->IndicesSize, GL_UNSIGNED_INT, NULL); //render from array data
 			}
 		}
-		//MeshRenderer->Draw(true);
+		else
+		{
+			glDisable(GL_DEPTH_TEST);
+			Color orange(255, 165, 0, 255);
+			orange.Normalize();
 
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glEnable(GL_DEPTH_TEST);
+			glUniform4f(vertexColorLocation, orange.r, orange.g, orange.b, orange.a);
+
+			// --- Render ---
+			glDrawElements(GL_TRIANGLES, rmesh->IndicesSize, GL_UNSIGNED_INT, NULL); //render from array data
+		}
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glLineWidth(1.0);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glEnable(GL_DEPTH_TEST);
+	glCullFace(GL_BACK);
+	glDepthFunc(GL_LESS);
+	glDepthMask(GL_TRUE);
+	outline_meshes.clear();
 }
 
 
@@ -1812,6 +1879,15 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	defaultShader->ReloadAndCompileShader();
 	IShader->Save(defaultShader);
 
+	toonShader = (ResourceShader*)App->resources->CreateResourceGivenUID(Resource::ResourceType::SHADER, "Assets/Shaders/ToonShader.glsl", 11);
+	toonShader->vShaderCode = vertexShaderSource;
+	toonShader->fShaderCode = fragmentShaderSource;
+	toonShader->SetName("Toon");
+	toonShader->LoadToMemory();
+	toonShader->ReloadAndCompileShader();
+	IShader->Save(toonShader);
+
+	
 	// ---Creating screen shader ---
 	const char* vertexScreenShader =
 		R"(#version 440 core
@@ -1988,6 +2064,8 @@ void ModuleRenderer3D::CreateDefaultShaders()
 	shadowsShader->SetName("Shadows Shader");
 	shadowsShader->LoadToMemory();
 	IShader->Save(shadowsShader);
+
+
 
 	defaultShader->use();
 }

@@ -237,6 +237,7 @@ public:
 	ResourceShader* screenShader = nullptr;
 	ResourceShader* UI_Shader = nullptr;
 	ResourceShader* shadowsShader = nullptr;
+	ResourceShader* toonShader = nullptr;
 
 	ResourceShader* SkyboxShader = nullptr;
 
@@ -286,6 +287,7 @@ private:
 
 	std::map<uint, std::vector<RenderMesh>> render_meshes;
 	std::map<uint, std::vector<RenderMesh>> transparent_render_meshes;
+	std::vector<RenderMesh> 				outline_meshes;
 
 	std::vector<RenderBox<AABB>> render_aabbs;
 	std::vector<RenderBox<OBB>> render_obbs;

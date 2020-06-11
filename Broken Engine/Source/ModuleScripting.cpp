@@ -759,9 +759,11 @@ void ModuleScripting::FillScriptInstanceComponentFuncs(ScriptInstance* script)
 
 void ModuleScripting::DeleteScriptInstanceWithParentComponent(ComponentScript* script_component) {
 	for (int i = 0; i < class_instances.size(); ++i) {
-		if (class_instances[i] != nullptr && class_instances[i]->my_component == script_component) {
-			if (class_instances[i] == current_script)
-				current_script = nullptr;
+		if (class_instances[i] != nullptr && class_instances[i]->my_component && class_instances[i]->my_component->GetUID() == script_component->GetUID())
+		{
+			
+			//if (class_instances[i] == current_script)
+			current_script = nullptr;
 
 			delete class_instances[i];
 			class_instances.erase(class_instances.begin() + i);

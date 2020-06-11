@@ -372,7 +372,6 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 			SetRendererBlending(); //Set Blending to Renderer's Default
 
 		DrawTransparentRenderMeshes(true);
-
 		App->particles->DrawParticles(true);
 		
 		//glCullFace(GL_BACK);
@@ -408,8 +407,6 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	OPTICK_POP();
 
 	// --- Transparent Meshes ---
-	glEnable(GL_BLEND);
-
 	if (m_ChangedBlending)
 		SetRendererBlending(); //Set Blending to Renderer's Default
 
@@ -417,10 +414,12 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	DrawTransparentRenderMeshes(false);
 	OPTICK_POP();
 
+	// --- Selected Object Outlining ---
+	HandleObjectOutlining();
+
 	// -- Draw particles ---
 	OPTICK_PUSH("Particles Rendering");
-	/*for (int i = 0; i < particleEmitters.size(); ++i)
-		particleEmitters[i]->DrawParticles();*/
+	glEnable(GL_BLEND);
 	App->particles->DrawParticles(false);
 	OPTICK_POP();
 	
@@ -430,8 +429,6 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 
 	glDisable(GL_BLEND);
 
-	// --- Selected Object Outlining ---
-	HandleObjectOutlining();
 
 	// --- UI ---
 	OPTICK_PUSH("UI Rendering");
@@ -1491,6 +1488,7 @@ void ModuleRenderer3D::HandleObjectOutlining()
 	glStencilMask(0x00);
 	glCullFace(GL_FRONT);
 	glDepthMask(GL_FALSE);
+	glDisable(GL_BLEND);
 
 	float gl_MaxLineWidth;
 	gl_MaxLineWidth = 10;
@@ -1569,6 +1567,7 @@ void ModuleRenderer3D::HandleObjectOutlining()
 	glCullFace(GL_BACK);
 	glDepthFunc(GL_LESS);
 	glDepthMask(GL_TRUE);
+	glEnable(GL_BLEND);
 	outline_meshes.clear();
 }
 

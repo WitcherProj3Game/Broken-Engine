@@ -156,7 +156,7 @@ void ComponentLight::SendUniforms(uint shaderID, uint lightIndex)
 		ComponentTransform* trans = GetContainerGameObject()->GetComponent<ComponentTransform>();
 		float3 pos = float3(0.0f);
 		if (trans)
-			pos = trans->GetPosition();
+			pos = trans->GetGlobalPosition();
 
 		glUniform3f(posLoc, pos.x, pos.y, pos.z);
 

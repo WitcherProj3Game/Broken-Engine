@@ -83,9 +83,42 @@ void ScriptingPhysics::FixedSimulationRate(int rate)
 	App->physics->fixed_dt = (1 / rate);
 }
 
+
 void ScriptingPhysics::FixedSimulation(bool fixed)
 {
 	App->physics->fixed = fixed;
+}
+
+void ScriptingPhysics::SetActiveCollider(bool enable, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go != nullptr)
+	{
+		ComponentCollider* collider = go->GetComponent<ComponentCollider>();
+		if (collider)
+		{
+			if (!collider->IsEnabled() && enable) {
+				collider->Enable();
+			}
+			else if (collider->IsEnabled() && !enable) {
+				collider->Disable();
+			}
+			else {
+				if (collider->IsEnabled()) {
+					ENGINE_CONSOLE_LOG("![Script]: (SetActiveCollider) Collider already enabled");
+				}
+				else {
+					ENGINE_CONSOLE_LOG("![Script]: (SetActiveCollider) Collider already disabled");
+				}
+			}
+
+		}
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (SetActiveCollider) Gameobject with UID %d has no Collider", gameobject_UUID);
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (SetActiveCollider) Gameobject with UID %d was not found!", gameobject_UUID);
 }
 
 float ScriptingPhysics::GetMass(uint gameobject_UUID)
@@ -211,6 +244,55 @@ void ScriptingPhysics::SetKinematic(bool enable, uint gameobject_UUID)
 	}
 	else
 		ENGINE_CONSOLE_LOG("![Script]: (SetKinematic) Gameobject with UID %d was not found!", gameobject_UUID);
+}
+
+void ScriptingPhysics::FreezePositionX(bool enable, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentDynamicRigidBody* body = go->GetComponent<ComponentDynamicRigidBody>();
+		ComponentCollider* coll = go->GetComponent<ComponentCollider>();
+
+		if (body && coll)
+			return body->FeezePosition_X(enable);
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (FreezePositionX) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (FreezePositionX) Gameobject with UID %d was not found!", gameobject_UUID);
+}
+void ScriptingPhysics::FreezePositionY(bool enable, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentDynamicRigidBody* body = go->GetComponent<ComponentDynamicRigidBody>();
+		ComponentCollider* coll = go->GetComponent<ComponentCollider>();
+
+		if (body && coll)
+			return body->FeezePosition_Y(enable);
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (FreezePositionY) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (FreezePositionY) Gameobject with UID %d was not found!", gameobject_UUID);
+}
+void ScriptingPhysics::FreezePositionZ(bool enable, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentDynamicRigidBody* body = go->GetComponent<ComponentDynamicRigidBody>();
+		ComponentCollider* coll = go->GetComponent<ComponentCollider>();
+
+		if (body && coll)
+			return body->FeezePosition_Z(enable);
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (FreezePositionZ) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (FreezePositionZ) Gameobject with UID %d was not found!", gameobject_UUID);
 }
 
 void ScriptingPhysics::UseGravity(bool enable, uint gameobject_UUID)

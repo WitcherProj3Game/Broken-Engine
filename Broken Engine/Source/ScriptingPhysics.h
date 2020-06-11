@@ -25,6 +25,8 @@ public:
 
 	void FixedSimulation(bool fixed);
 
+	void SetActiveCollider(bool enable, uint gameobject_UUID);
+
 	luabridge::LuaRef GetLinearVelocity(uint gameobject_UUID, lua_State* L);
 	luabridge::LuaRef GetAngularVelocity(uint gameobject_UUID, lua_State* L);
 	void SetLinearVelocity(float x, float y, float z, uint gameobject_UUID);
@@ -34,6 +36,9 @@ public:
 	void AddForce(float forceX, float forceY, float forceZ, int ForceMode, uint gameobject_UUID);
 
 	void SetKinematic(bool enable, uint gameobject_UUID);
+	void FreezePositionX(bool enable, uint gameobject_UUID);
+	void FreezePositionY(bool enable, uint gameobject_UUID);
+	void FreezePositionZ(bool enable, uint gameobject_UUID);
 	void UseGravity(bool enable, uint gameobject_UUID);
 	luabridge::LuaRef OverlapSphere(float position_x, float position_y, float position_z, float radius, uint layer, lua_State* L);
 

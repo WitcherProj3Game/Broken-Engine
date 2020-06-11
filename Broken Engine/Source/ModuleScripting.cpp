@@ -291,6 +291,8 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script, bool hotRe
 		.beginClass <ScriptingPhysics>("Physics")
 		.addConstructor<void(*) (void)>()
 
+
+		.addFunction("SetActiveCollider", &ScriptingPhysics::SetActiveCollider)
 		.addFunction("FixedSimulation", &ScriptingPhysics::FixedSimulation)
 		.addFunction("FixedSimulationRate", &ScriptingPhysics::FixedSimulationRate)
 
@@ -306,6 +308,10 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script, bool hotRe
 		.addFunction("AddForce", &ScriptingPhysics::AddForce)
 		.addFunction("UseGravity", &ScriptingPhysics::UseGravity)
 		.addFunction("SetKinematic", &ScriptingPhysics::SetKinematic)
+
+		.addFunction("FreezePositionX", &ScriptingPhysics::FreezePositionX)
+		.addFunction("FreezePositionY", &ScriptingPhysics::FreezePositionY)
+		.addFunction("FreezePositionZ", &ScriptingPhysics::FreezePositionZ)
 
 		.addFunction("OnTriggerEnter", &ScriptingPhysics::OnTriggerEnter)
 		.addFunction("OnTriggerStay", &ScriptingPhysics::OnTriggerStay)

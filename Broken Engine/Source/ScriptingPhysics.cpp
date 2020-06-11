@@ -222,7 +222,7 @@ void ScriptingPhysics::FreezePositionX(bool enable, uint gameobject_UUID)
 		ComponentCollider* coll = go->GetComponent<ComponentCollider>();
 
 		if (body && coll)
-			return body->FreezeRotation_X(enable);
+			return body->FeezePosition_X(enable);
 		else
 			ENGINE_CONSOLE_LOG("![Script]: (FreezePositionX) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
 	}
@@ -238,7 +238,7 @@ void ScriptingPhysics::FreezePositionY(bool enable, uint gameobject_UUID)
 		ComponentCollider* coll = go->GetComponent<ComponentCollider>();
 
 		if (body && coll)
-			return body->FreezeRotation_Y(enable);
+			return body->FeezePosition_Y(enable);
 		else
 			ENGINE_CONSOLE_LOG("![Script]: (FreezePositionY) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
 	}
@@ -254,7 +254,7 @@ void ScriptingPhysics::FreezePositionZ(bool enable, uint gameobject_UUID)
 		ComponentCollider* coll = go->GetComponent<ComponentCollider>();
 
 		if (body && coll)
-			return body->FreezeRotation_Z(enable);
+			return body->FeezePosition_Z(enable);
 		else
 			ENGINE_CONSOLE_LOG("![Script]: (FreezePositionZ) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
 	}

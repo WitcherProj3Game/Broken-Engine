@@ -64,7 +64,7 @@ There are more options in Window -> Settings
 
 MIT License
 
-Copyright (c) 2019 Aitor Simona Bouzas
+Copyright (c) 2020 Broken Gem Studio based on Central 3D Engine of Aitor Simona Bouzas
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

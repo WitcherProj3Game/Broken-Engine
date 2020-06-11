@@ -291,6 +291,8 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script, bool hotRe
 		.beginClass <ScriptingPhysics>("Physics")
 		.addConstructor<void(*) (void)>()
 
+
+		.addFunction("SetActiveCollider", &ScriptingPhysics::SetActiveCollider)
 		.addFunction("FixedSimulation", &ScriptingPhysics::FixedSimulation)
 		.addFunction("FixedSimulationRate", &ScriptingPhysics::FixedSimulationRate)
 

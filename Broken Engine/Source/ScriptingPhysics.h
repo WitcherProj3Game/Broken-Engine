@@ -25,6 +25,8 @@ public:
 
 	void FixedSimulation(bool fixed);
 
+	void SetActiveCollider(bool enable, uint gameobject_UUID);
+
 	luabridge::LuaRef GetLinearVelocity(uint gameobject_UUID, lua_State* L);
 	luabridge::LuaRef GetAngularVelocity(uint gameobject_UUID, lua_State* L);
 	void SetLinearVelocity(float x, float y, float z, uint gameobject_UUID);

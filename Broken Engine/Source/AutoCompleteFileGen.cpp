@@ -533,6 +533,8 @@ void AutoCompleteFileGen::EmplacePhysicsFunctions()
 	SerializedFunction SetLinearVelocity("SetLinearVelocity", source.c_str());
 	SetLinearVelocity.variables.push_back("x"); SetLinearVelocity.variables.push_back("y"); SetLinearVelocity.variables.push_back("z"); SetLinearVelocity.variables.push_back("gameObject_UID");
 	
+	SerializedFunction SetActiveCollider("SetActiveCollider", source.c_str());
+	SetActiveCollider.variables.push_back("bool_enable"); SetActiveCollider.variables.push_back("gameObject_UID");
 	
 	SerializedFunction AddTorque("AddTorque", source.c_str());
 	AddTorque.variables.push_back("forceX"); AddTorque.variables.push_back("forceY"); AddTorque.variables.push_back("forceZ"); AddTorque.variables.push_back("force_mode"); AddTorque.variables.push_back("gameObject_UID");
@@ -564,7 +566,6 @@ void AutoCompleteFileGen::EmplacePhysicsFunctions()
 	SerializedFunction OnTriggerExit("OnTriggerExit", source.c_str());
 	OnTriggerExit.variables.push_back("gameObject_UID");
 
-
 	SerializedFunction OnCollisionEnter("OnCollisionEnter", source.c_str());
 	OnCollisionEnter.variables.push_back("gameObject_UID");
 	
@@ -574,10 +575,12 @@ void AutoCompleteFileGen::EmplacePhysicsFunctions()
 	SerializedFunction OnCollisionExit("OnCollisionExit", source.c_str());
 	OnCollisionExit.variables.push_back("gameObject_UID");
 
-
 	SerializedFunction Move("Move", source.c_str());
 	Move.variables.push_back("vel_x"); Move.variables.push_back("vel_z"); Move.variables.push_back("gameObject_UID");
-	
+
+	SerializedFunction SetActiveController("SetActiveController", source.c_str());
+	SetActiveController.variables.push_back("bool_enable"); SetActiveController.variables.push_back("gameObject_UID");
+
 	SerializedFunction GetCharacterPosition("GetCharacterPosition", source.c_str());
 	GetCharacterPosition.variables.push_back("gameObject_UID");
 	
@@ -600,6 +603,7 @@ void AutoCompleteFileGen::EmplacePhysicsFunctions()
 	Raycast.variables.push_back("maxDistance"); Raycast.variables.push_back("layer"); Raycast.variables.push_back("bool_hitTriggers");
 
 	//PushBack all functions
+	engine_functions.push_back(SetActiveCollider);
 	engine_functions.push_back(GetMass);
 	engine_functions.push_back(SetMass);
 
@@ -615,6 +619,9 @@ void AutoCompleteFileGen::EmplacePhysicsFunctions()
 	engine_functions.push_back(AddForce);
 	engine_functions.push_back(UseGravity);
 	engine_functions.push_back(SetKinematic);
+	engine_functions.push_back(FreezePositionX);
+	engine_functions.push_back(FreezePositionY);
+	engine_functions.push_back(FreezePositionZ);
 
 	engine_functions.push_back(OnTriggerEnter);
 	engine_functions.push_back(OnTriggerStay);
@@ -625,6 +632,7 @@ void AutoCompleteFileGen::EmplacePhysicsFunctions()
 	engine_functions.push_back(OnCollisionStay);
 	engine_functions.push_back(OnCollisionExit);
 
+	engine_functions.push_back(SetActiveController);
 	engine_functions.push_back(Move);
 	engine_functions.push_back(GetCharacterPosition);
 	engine_functions.push_back(SetCharacterPosition);

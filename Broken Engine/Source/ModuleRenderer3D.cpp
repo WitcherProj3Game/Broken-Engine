@@ -407,6 +407,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	OPTICK_POP();
 
 	// --- Transparent Meshes ---
+	glEnable(GL_BLEND);
 	if (m_ChangedBlending)
 		SetRendererBlending(); //Set Blending to Renderer's Default
 
@@ -419,7 +420,6 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 
 	// -- Draw particles ---
 	OPTICK_PUSH("Particles Rendering");
-	glEnable(GL_BLEND);
 	App->particles->DrawParticles(false);
 	OPTICK_POP();
 	

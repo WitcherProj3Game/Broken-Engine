@@ -298,7 +298,8 @@ void ComponentScript::Load(json& node)
 		//if (script)
 		//	script->AddUser(GO); 
 
-		AssignScript((ResourceScript*)this->script);
+		if(script)
+			AssignScript((ResourceScript*)this->script);
 	}
 
 	// Load the public variables of the script

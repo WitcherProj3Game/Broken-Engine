@@ -206,40 +206,44 @@ void ComponentImage::Draw()
 }
 
 void ComponentImage::CreateAnimation(uint w, uint h) {
-	int width = texture->Texture_width / w;
-	int height = texture->Texture_height / h;
 
-	for (int i = 0; i < animation_frames.size(); i++)
+	if (texture)
 	{
-		animation_frames[i]->FreeMemory();
-		delete(animation_frames[i]);
-	}
-	animation_frames.clear();
+		int width = texture->Texture_width / w;
+		int height = texture->Texture_height / h;
 
-	for (int j = h - 1; j >= 0; --j) {
-		for (int i = 0; i < w; ++i) {
-
-			ResourceMesh* plane = new ResourceMesh(App->GetRandom().Int(), "FrameMesh");
-			App->scene_manager->CreatePlane(1, 1, 1, plane);
-
-			//Set Texture Coords
-			plane->vertices[0].texCoord[0] = i * width / (float)texture->Texture_width;
-			plane->vertices[0].texCoord[1] = j * height / (float)texture->Texture_height;
-			plane->vertices[2].texCoord[0] = ((i * width) + width) / (float)texture->Texture_width;
-			plane->vertices[2].texCoord[1] = j * height / (float)texture->Texture_height;
-			plane->vertices[1].texCoord[0] = i * width / (float)texture->Texture_width;
-			plane->vertices[1].texCoord[1] = ((j * height) + height) / (float)texture->Texture_height;
-			plane->vertices[3].texCoord[0] = ((i * width) + width) / (float)texture->Texture_width;
-			plane->vertices[3].texCoord[1] = ((j * height) + height) / (float)texture->Texture_height;
-
-			//Update Buffer
-			plane->LoadInMemory();
-			animation_frames.push_back(plane);
-
+		for (int i = 0; i < animation_frames.size(); i++)
+		{
+			animation_frames[i]->FreeMemory();
+			delete(animation_frames[i]);
 		}
+		animation_frames.clear();
+
+		for (int j = h - 1; j >= 0; --j) {
+			for (int i = 0; i < w; ++i) {
+
+				ResourceMesh* plane = new ResourceMesh(App->GetRandom().Int(), "FrameMesh");
+				App->scene_manager->CreatePlane(1, 1, 1, plane);
+
+				//Set Texture Coords
+				plane->vertices[0].texCoord[0] = i * width / (float)texture->Texture_width;
+				plane->vertices[0].texCoord[1] = j * height / (float)texture->Texture_height;
+				plane->vertices[2].texCoord[0] = ((i * width) + width) / (float)texture->Texture_width;
+				plane->vertices[2].texCoord[1] = j * height / (float)texture->Texture_height;
+				plane->vertices[1].texCoord[0] = i * width / (float)texture->Texture_width;
+				plane->vertices[1].texCoord[1] = ((j * height) + height) / (float)texture->Texture_height;
+				plane->vertices[3].texCoord[0] = ((i * width) + width) / (float)texture->Texture_width;
+				plane->vertices[3].texCoord[1] = ((j * height) + height) / (float)texture->Texture_height;
+
+				//Update Buffer
+				plane->LoadInMemory();
+				animation_frames.push_back(plane);
+
+			}
+		}
+		animation_created = true;
+		PlayAnimation();
 	}
-	animation_created = true;
-	PlayAnimation();
 }
 float2 ComponentImage::GetParentPos()
 {

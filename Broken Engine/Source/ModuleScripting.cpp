@@ -307,6 +307,10 @@ void ModuleScripting::CompileScriptTableClass(ScriptInstance* script, bool hotRe
 		.addFunction("UseGravity", &ScriptingPhysics::UseGravity)
 		.addFunction("SetKinematic", &ScriptingPhysics::SetKinematic)
 
+		.addFunction("FreezePositionX", &ScriptingPhysics::FreezePositionX)
+		.addFunction("FreezePositionY", &ScriptingPhysics::FreezePositionY)
+		.addFunction("FreezePositionZ", &ScriptingPhysics::FreezePositionZ)
+
 		.addFunction("OnTriggerEnter", &ScriptingPhysics::OnTriggerEnter)
 		.addFunction("OnTriggerStay", &ScriptingPhysics::OnTriggerStay)
 		.addFunction("OnTriggerExit", &ScriptingPhysics::OnTriggerExit)

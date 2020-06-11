@@ -545,7 +545,15 @@ void AutoCompleteFileGen::EmplacePhysicsFunctions()
 	
 	SerializedFunction SetKinematic("SetKinematic", source.c_str());
 	SetKinematic.variables.push_back("bool_enable"); SetKinematic.variables.push_back("gameObject_UID");
-	
+
+	SerializedFunction FreezePositionX("FreezePositionX", source.c_str());
+	FreezePositionX.variables.push_back("bool_enable"); FreezePositionX.variables.push_back("gameObject_UID");
+
+	SerializedFunction FreezePositionY("FreezePositionY", source.c_str());
+	FreezePositionY.variables.push_back("bool_enable"); FreezePositionY.variables.push_back("gameObject_UID");
+
+	SerializedFunction FreezePositionZ("FreezePositionZ", source.c_str());
+	FreezePositionZ.variables.push_back("bool_enable"); FreezePositionZ.variables.push_back("gameObject_UID");
 
 	SerializedFunction OnTriggerEnter("OnTriggerEnter", source.c_str());
 	OnTriggerEnter.variables.push_back("gameObject_UID");

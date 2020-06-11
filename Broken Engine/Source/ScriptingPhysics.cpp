@@ -213,6 +213,55 @@ void ScriptingPhysics::SetKinematic(bool enable, uint gameobject_UUID)
 		ENGINE_CONSOLE_LOG("![Script]: (SetKinematic) Gameobject with UID %d was not found!", gameobject_UUID);
 }
 
+void ScriptingPhysics::FreezePositionX(bool enable, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentDynamicRigidBody* body = go->GetComponent<ComponentDynamicRigidBody>();
+		ComponentCollider* coll = go->GetComponent<ComponentCollider>();
+
+		if (body && coll)
+			return body->FreezeRotation_X(enable);
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (FreezePositionX) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (FreezePositionX) Gameobject with UID %d was not found!", gameobject_UUID);
+}
+void ScriptingPhysics::FreezePositionY(bool enable, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentDynamicRigidBody* body = go->GetComponent<ComponentDynamicRigidBody>();
+		ComponentCollider* coll = go->GetComponent<ComponentCollider>();
+
+		if (body && coll)
+			return body->FreezeRotation_Y(enable);
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (FreezePositionY) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (FreezePositionY) Gameobject with UID %d was not found!", gameobject_UUID);
+}
+void ScriptingPhysics::FreezePositionZ(bool enable, uint gameobject_UUID)
+{
+	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
+
+	if (go) {
+		ComponentDynamicRigidBody* body = go->GetComponent<ComponentDynamicRigidBody>();
+		ComponentCollider* coll = go->GetComponent<ComponentCollider>();
+
+		if (body && coll)
+			return body->FreezeRotation_Z(enable);
+		else
+			ENGINE_CONSOLE_LOG("![Script]: (FreezePositionZ) Gameobject with UID %d has no RigidBody and/or Collider", gameobject_UUID);
+	}
+	else
+		ENGINE_CONSOLE_LOG("![Script]: (FreezePositionZ) Gameobject with UID %d was not found!", gameobject_UUID);
+}
+
 void ScriptingPhysics::UseGravity(bool enable, uint gameobject_UUID)
 {
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);

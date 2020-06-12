@@ -189,7 +189,10 @@ void ModuleSceneManager::DrawScene()
 
 				// MYTODO: Check why some aabbs have NaN values, found one with lots of them
 
-				if (aabb.IsFinite() && App->renderer3D->culling_camera->frustum.Intersects(aabb))
+				Frustum cull = App->renderer3D->culling_camera->frustum;
+				cull.SetVerticalFovAndAspectRatio(App->renderer3D->culling_camera->GetFOV() * DEGTORAD * 1.1f, App->renderer3D->culling_camera->frustum.AspectRatio());
+
+				if (aabb.IsFinite() && cull.Intersects(aabb))
 				{
 					// --- Issue render order ---
 					if ((*it).second->GetActive())

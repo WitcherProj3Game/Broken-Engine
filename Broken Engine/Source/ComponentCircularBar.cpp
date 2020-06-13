@@ -45,8 +45,8 @@ ComponentCircularBar::~ComponentCircularBar()
 {
 	if (texture)
 	{
-		texture->Release();
 		texture->RemoveUser(GO);
+		texture->Release();
 	}
 
 	if (canvas)

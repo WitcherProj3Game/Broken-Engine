@@ -53,8 +53,8 @@ ComponentImage::~ComponentImage()
 
 	if (texture)
 	{
-		texture->Release();
 		texture->RemoveUser(GO);
+		texture->Release();
 	}
 
 	if (canvas)

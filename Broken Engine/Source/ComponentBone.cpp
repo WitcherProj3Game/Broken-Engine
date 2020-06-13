@@ -32,8 +32,8 @@ ComponentBone::~ComponentBone()
 {
 	if (res_bone && res_bone->IsInMemory())
 	{
-		res_bone->Release();
 		res_bone->RemoveUser(GO);
+		res_bone->Release();
 	}
 }
 

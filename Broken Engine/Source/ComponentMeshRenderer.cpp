@@ -41,8 +41,8 @@ ComponentMeshRenderer::~ComponentMeshRenderer()
 {
 	if (material && material->IsInMemory()) 
 	{
-		material->Release();
 		material->RemoveUser(GO);
+		material->Release();
 	}
 }
 
@@ -399,8 +399,8 @@ void ComponentMeshRenderer::CreateInspectorNode()
 				if (material && material->IsInMemory())
 				{
 					save_material = false;
-					material->Release();
 					material->RemoveUser(GO);
+					material->Release();
 					material = nullptr;
 				}
 			}

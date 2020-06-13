@@ -39,8 +39,10 @@ ComponentText::~ComponentText()
 {
 	if (font && font->IsInMemory())
 	{
-		font->Release();
 		font->RemoveUser(GO);
+
+		if(font->GetUID() != App->resources->DefaultFont->GetUID())
+			font->Release();
 	}
 
 	if (canvas)
@@ -374,8 +376,10 @@ void ComponentText::CreateInspectorNode()
 			if (resource && resource->GetType() == Resource::ResourceType::FONT) {
 				if (font && font->IsInMemory())
 				{
-					font->Release();
 					font->RemoveUser(GO);
+
+					if (font->GetUID() != App->resources->DefaultFont->GetUID())
+						font->Release();
 				}
 
 				font = (ResourceFont*)App->resources->GetResource(UID);

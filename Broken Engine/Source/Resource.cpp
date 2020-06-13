@@ -101,12 +101,16 @@ void Resource::Release()
 		if (--instances == 0)
 		{
 			FreeMemory();
+
+			if (users.size() > 0)
+			{
+				ENGINE_CONSOLE_LOG("|[error]: Resource %s with extension %s has been fully released but still holds active users!", name.c_str(), extension.c_str());
+				users.clear();
+			}
 		}
 	}
 	else
-	{
 		ENGINE_CONSOLE_LOG("![Warning]: Trying to release an already released resource: %s", name.c_str());
-	}
 }
 
 void Resource::AddUser(GameObject* user) {
@@ -114,12 +118,19 @@ void Resource::AddUser(GameObject* user) {
 }
 
 void Resource::RemoveUser(GameObject* user) {
-	for (std::vector<GameObject*>::iterator it = users.begin(); it != users.end(); ++it) {
-		if ((*it)->GetUID() == user->GetUID()) {
-			users.erase(it);
-			break;
+
+	if (user)
+	{
+		for (std::vector<GameObject*>::iterator it = users.begin(); it != users.end(); ++it) {
+			if ((*it)->GetUID() == user->GetUID()) {
+				users.erase(it);
+				break;
+			}
 		}
 	}
+	else
+		ENGINE_CONSOLE_LOG("![Warning]: Trying to remove inexistant user from resource %s", name.c_str());
+
 }
 
 void Resource::ClearUsers() {

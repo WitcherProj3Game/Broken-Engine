@@ -30,8 +30,8 @@ ComponentMesh::~ComponentMesh()
 {
 	if (resource_mesh && resource_mesh->IsInMemory() && resource_mesh->GetUID() != App->scene_manager->plane->GetUID()) 
 	{
-		resource_mesh->Release();
 		resource_mesh->RemoveUser(GO);
+		resource_mesh->Release();
 	}
 
 	if (deformable_mesh)

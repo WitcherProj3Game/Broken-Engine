@@ -58,14 +58,14 @@ ComponentAnimation::~ComponentAnimation()
 	//Free memory from ResourceAnimation
 	if (res_anim && res_anim->IsInMemory())
 	{
-		res_anim->Release();
 		res_anim->RemoveUser(GO);
+		res_anim->Release();
 	}
 
 	if (res_animator && res_animator->IsInMemory())
 	{
+		res_anim->RemoveUser(GO);
 		res_animator->Release();
-		res_animator->RemoveUser(GO);
 	}
 
 }
@@ -757,8 +757,8 @@ void ComponentAnimation::LoadAnimator(bool drop, uint UID)
 
 	if (drop && res_animator)
 	{
-		res_animator->Release();
 		res_animator->RemoveUser(GO);
+		res_animator->Release();
 	}
 
 	animations.clear();

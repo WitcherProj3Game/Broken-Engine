@@ -26,8 +26,8 @@ ComponentScript::~ComponentScript()
 
 	if (script && script->IsInMemory())
 	{
-		script->Release();
 		script->RemoveUser(GO);
+		script->Release();
 	}
 }
 

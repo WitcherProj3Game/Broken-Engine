@@ -367,8 +367,8 @@ void ImporterMaterial::Save(ResourceMaterial* mat) const
 	std::vector<GameObject*> gos;
 	GameObject* tmpgo = App->scene_manager->LoadSphere();
 	gos.push_back(tmpgo);
-	tmpgo->GetComponent<ComponentMeshRenderer>()->material->Release();
 	tmpgo->GetComponent<ComponentMeshRenderer>()->material->RemoveUser(tmpgo);
+	tmpgo->GetComponent<ComponentMeshRenderer>()->material->Release();
 	tmpgo->GetComponent<ComponentMeshRenderer>()->material = (ResourceMaterial*)App->resources->GetResource(mat->GetUID());
 
 	uint TexID = 0;

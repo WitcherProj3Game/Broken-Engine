@@ -254,6 +254,8 @@ Resource* ImporterMaterial::Load(const char* path) const
 			float* tmpf = new float[4];
 			int* tmpi = new int[4];
 
+			mat->shader->use();
+
 			for (json::iterator iterator = uniforms_node.begin(); iterator != uniforms_node.end(); ++iterator)
 			{
 				Uniform* uniform = new Uniform();
@@ -334,6 +336,8 @@ Resource* ImporterMaterial::Load(const char* path) const
 
 			delete[] tmpf;
 			delete[] tmpi;
+
+			mat->UpdateUniforms();
 		}
 	}
 

@@ -273,6 +273,8 @@ void ResourceShader::GetAllUniforms(std::vector<Uniform*>& uniforms)
 {
 	std::vector<Uniform*> new_uniforms;
 
+	use();
+
 	int uniform_count;
 	glGetProgramiv(ID, GL_ACTIVE_UNIFORMS, &uniform_count);
 

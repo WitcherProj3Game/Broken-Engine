@@ -34,6 +34,14 @@ ResourceMaterial::ResourceMaterial(uint UID, const char* source_file) : Resource
 ResourceMaterial::~ResourceMaterial() 
 {
 	glDeleteTextures(1, (GLuint*)&previewTexID);
+	
+
+	for (uint i = 0; i < uniforms.size(); ++i) 
+	{
+		delete uniforms[i];
+	}
+
+	uniforms.clear();
 }
 
 bool ResourceMaterial::LoadInMemory() 
@@ -63,10 +71,10 @@ bool ResourceMaterial::LoadInMemory()
 void ResourceMaterial::FreeMemory() 
 {
 
-	for (uint i = 0; i < uniforms.size(); ++i) 
-	{
-		delete uniforms[i];
-	}
+	//for (uint i = 0; i < uniforms.size(); ++i) 
+	//{
+	//	delete uniforms[i];
+	//}
 
 	if (m_DiffuseResTexture)
 		m_DiffuseResTexture->Release();
@@ -75,7 +83,7 @@ void ResourceMaterial::FreeMemory()
 	if (m_NormalResTexture)
 		m_NormalResTexture->Release();
 
-	uniforms.clear();
+	//uniforms.clear();
 }
 
 void ResourceMaterial::SetBlending() const

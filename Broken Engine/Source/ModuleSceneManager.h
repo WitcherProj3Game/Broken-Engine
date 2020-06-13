@@ -128,14 +128,14 @@ public:
 	// do not destroy
 	ResourceScene* defaultScene = nullptr;
 	ResourceScene* temporalScene = nullptr;
+
+	uint go_count = 0;
+
 private:
 
 	// Game objects to be deleted
 	std::vector<GameObject*> go_to_delete;
 
-
-
-	uint go_count = 0;
 	GameObject* root = nullptr;
 	//GameObject* root_selected = nullptr;
 	//GameObject* SelectedGameObject = nullptr;

@@ -71,6 +71,8 @@ GameObject::~GameObject()
 
 	if (model)
 		model->Release();
+
+	App->scene_manager->go_count--;
 }
 
 void GameObject::Update(float dt)

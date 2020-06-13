@@ -131,6 +131,8 @@ bool ModuleSceneManager::Start()
 update_status ModuleSceneManager::PreUpdate(float dt)
 {
 	OPTICK_CATEGORY("Scene Manager PreUpdate", Optick::Category::Scene);
+
+
 	return UPDATE_CONTINUE;
 }
 
@@ -190,7 +192,7 @@ void ModuleSceneManager::DrawScene()
 				// MYTODO: Check why some aabbs have NaN values, found one with lots of them
 
 				Frustum cull = App->renderer3D->culling_camera->frustum;
-				cull.SetVerticalFovAndAspectRatio(App->renderer3D->culling_camera->GetFOV() * DEGTORAD * 1.1f, App->renderer3D->culling_camera->frustum.AspectRatio());
+				cull.SetVerticalFovAndAspectRatio(App->renderer3D->culling_camera->GetFOV() * DEGTORAD * 1.25f, App->renderer3D->culling_camera->frustum.AspectRatio());
 
 				if (aabb.IsFinite() && cull.Intersects(aabb))
 				{
@@ -878,7 +880,7 @@ void ModuleSceneManager::DestroyGameObject(GameObject* go)
 
 	delete go;
 	go = nullptr;
-	this->go_count--;
+	//this->go_count--;
 }
 
 void ModuleSceneManager::GatherGameObjects(GameObject* go, std::vector<GameObject*>& gos_vec)

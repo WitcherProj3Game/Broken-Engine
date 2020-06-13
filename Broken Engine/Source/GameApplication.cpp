@@ -66,6 +66,7 @@ GameApplication::GameApplication() {
 
 	// Scenes
 	AddModule(scene_manager);
+	AddModule(selection);
 
 	//Module to set up and manage the game
 	AddModule(game_manager);

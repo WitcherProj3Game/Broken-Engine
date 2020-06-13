@@ -173,8 +173,7 @@ void ScriptingGameobject::DestroyGOFromScript(uint gameobject_UUID)
 	GameObject* go = App->scene_manager->currentScene->GetGOWithUID(gameobject_UUID);
 	if (go)
 		App->scene_manager->SendToDelete(go);
-
-		//App->scene_manager->DestroyGameObject(go);
+		//App->scene_manager->DestroyGameObject(go);		
 	else
 		ENGINE_CONSOLE_LOG("![Script] (DestroyGOFromScript) Alert! Gameobject with %d UUID does not exist!", gameobject_UUID);
 }

@@ -205,6 +205,10 @@ void ModuleWindow::LoadStatus(const json& file)
 {
 	screen_width = file["Window"].contains("sceneX") ? file["Window"]["sceneX"].get<uint>() : 640;
 	screen_height = file["Window"].contains("sceneY") ? file["Window"]["sceneY"].get<uint>() : 480;
+	bool fullscreendesktop = screen_height = file["Window"].contains("fullscreenDesktop") ? file["Window"]["fullscreenDesktop"].get<bool>() : false;
+
+	if (fullscreendesktop)
+		SetFullscreenDesktop(fullscreendesktop);
 }
 
 void ModuleWindow::SetFullscreen(bool value) {

@@ -35,6 +35,7 @@ private:
 	std::string sceneName;
 	//std::string cameraName;
 	bool Activate_Debug = false;
+	bool fullscreen = false;
 };
 
 #endif

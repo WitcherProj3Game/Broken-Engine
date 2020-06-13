@@ -83,6 +83,7 @@ bool PanelBuild::Draw() {
 			ImGui::Separator();
 			ImGui::Text("Lua Debugging:");
 			ImGui::Checkbox("Make the game build debuggable (Scripting)", &Activate_Debug);
+			ImGui::Checkbox("Fullscreen", &fullscreen);
 			ImGui::Separator();
 			if (ImGui::BeginPopup("Build already exists!")) {
 				ImGui::Text("The build \"%s\" already exists!", buildName.c_str());
@@ -233,6 +234,7 @@ void PanelBuild::makeBuild() {
 	gameSettings["Window"]["sceneX"] = EngineApp->gui->sceneWidth;
 	gameSettings["Window"]["sceneY"] = EngineApp->gui->sceneHeight;
 	gameSettings["Scripting"]["LUA_Debug_Game"] = Activate_Debug;
+	gameSettings["Window"]["fullscreenDesktop"] = fullscreen;
 
 	EngineApp->SaveForBuild(gameSettings, settingspath.c_str());
 	SetOnOff(false);

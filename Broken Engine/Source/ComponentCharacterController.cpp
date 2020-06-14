@@ -68,47 +68,52 @@ ComponentCharacterController::~ComponentCharacterController()
 
 void ComponentCharacterController::Enable()
 {
-	if (controller == nullptr)
-	{
-		controller = App->physics->mControllerManager->createController(*desc);
+	//if (controller == nullptr)
+	//{
+	//	controller = App->physics->mControllerManager->createController(*desc);
 
-		controller->getActor()->getShapes(&shape, 1);
+	//	controller->getActor()->getShapes(&shape, 1);
 
-		physx::PxFilterData filterData;
-		filterData.word0 = (1 << GO->layer); // word0 = own ID
-		filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup;
-		shape->setSimulationFilterData(filterData);
+	//	physx::PxFilterData filterData;
+	//	filterData.word0 = (1 << GO->layer); // word0 = own ID
+	//	filterData.word1 = App->physics->layer_list.at(GO->layer).LayerGroup;
+	//	shape->setSimulationFilterData(filterData);
 
-		App->physics->addActor(shape->getActor(), GO);
-		controller->setFootPosition(desc->position);
-		hasBeenDeactivated = false;
-	}
-	//GetActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, false);
+	//	App->physics->addActor(shape->getActor(), GO);
+	//	controller->setFootPosition(desc->position);
+	//	hasBeenDeactivated = false;
+	//	active = true;
+	//}
+
 	active = true;
+	float3 pos = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
+	controller->setFootPosition(physx::PxExtendedVec3(pos.x, pos.y, pos.z));
 }
 
 void ComponentCharacterController::Disable()
 {
-	if (controller != nullptr) {
-		if (shape)
-		{
-			if (shape->getActor() != nullptr)
-			{
-				//GetActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, true);
-				if (!hasBeenDeactivated )
-				{
-					desc->position = controller->getFootPosition();
-					if(App->physics->actors.size() > 0)
-					App->physics->actors.erase(shape->getActor());
-				}
-			}
-		}
-		shape = nullptr;
-		controller->release();
-		controller = nullptr;
-		hasBeenDeactivated = true;
-	}
+	//if (controller != nullptr) {
+	//	if (shape)
+	//	{
+	//		if (shape->getActor() != nullptr)
+	//		{
+	//			//GetActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, true);
+	//			if (!hasBeenDeactivated )
+	//			{
+	//				desc->position = controller->getFootPosition();
+	//				if(App->physics->actors.size() > 0)
+	//				App->physics->actors.erase(shape->getActor());
+	//			}
+	//		}
+	//	}
+	//	shape = nullptr;
+	//	controller->release();
+	//	controller = nullptr;
+	//	hasBeenDeactivated = true;
+	//	active = false;
+	//}
 	active = false;
+	controller->setFootPosition(physx::PxExtendedVec3(0, -100, 0));
 }
 
 void ComponentCharacterController::Update()
@@ -153,7 +158,8 @@ void ComponentCharacterController::Update()
 			creation = true;
 		}
 
-		GO->GetComponent<ComponentTransform>()->SetPosition((float3)cctPos);
+		if(active)
+			GO->GetComponent<ComponentTransform>()->SetPosition((float3)cctPos);
 
 		if (to_delete)
 		{

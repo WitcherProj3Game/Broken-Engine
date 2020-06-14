@@ -232,7 +232,7 @@ bool ModulePhysics::Init(json& config)
 
 	mControllerManager = PxCreateControllerManager(*mScene);
 
-	cache = mScene->createVolumeCache(32, 8);
+	cache = mScene->createVolumeCache(32, 80);
 
 	return true;
 }
@@ -528,8 +528,8 @@ void ModulePhysics::OverlapSphere(float3 position, float radius, LayerMask layer
 {
 	detected_objects = &objects;
 
-	physx::PxOverlapHit hit[100];
-	physx::PxOverlapBuffer hit_buffer(hit, 100);       // [out] Overlap results
+	physx::PxOverlapHit hit[256];
+	physx::PxOverlapBuffer hit_buffer(hit, 256);       // [out] Overlap results
 	const physx::PxSphereGeometry overlapShape(radius);			// [in] shape to test for overlaps
 	const physx::PxTransform shapePose = physx::PxTransform(position.x, position.y, position.z);    // [in] initial shape pose (at distance=0)
 

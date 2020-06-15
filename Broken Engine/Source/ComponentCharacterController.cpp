@@ -88,6 +88,7 @@ void ComponentCharacterController::Enable()
 	active = true;
 	float3 pos = GO->GetComponent<ComponentTransform>()->GetGlobalPosition();
 	controller->setFootPosition(physx::PxExtendedVec3(pos.x, pos.y, pos.z));
+	gravity = true;
 }
 
 void ComponentCharacterController::Disable()
@@ -114,11 +115,11 @@ void ComponentCharacterController::Disable()
 	//}
 	active = false;
 	controller->setFootPosition(physx::PxExtendedVec3(0, -100, 0));
+	gravity = false;
 }
 
 void ComponentCharacterController::Update()
 {
-
 	vel = physx::PxVec3(0);
 
 	ComponentTransform* cTransform = GO->GetComponent<ComponentTransform>();

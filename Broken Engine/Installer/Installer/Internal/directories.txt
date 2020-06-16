@@ -1,0 +1,186 @@
+<Directory Id="Folder_Assets" Name="Assets" >
+	<Directory Id="Folder_Assets_Audio_Scripts" Name="Audio_Scripts" >
+	</Directory>
+	<Directory Id="Folder_Assets_Boss_v2" Name="Boss_v2" >
+	</Directory>
+	<Directory Id="Folder_Assets_Camera_v2" Name="Camera_v2" >
+	</Directory>
+	<Directory Id="Folder_Assets_Characters" Name="Characters" >
+		<Directory Id="Folder_Assets_Characters_Geralt" Name="Geralt" >
+		</Directory>
+		<Directory Id="Folder_Assets_Characters_Jaskier" Name="Jaskier" >
+		</Directory>
+	</Directory>
+	<Directory Id="Folder_Assets_Cinematic" Name="Cinematic" >
+	</Directory>
+	<Directory Id="Folder_Assets_CinematicTutorial" Name="CinematicTutorial" >
+	</Directory>
+	<Directory Id="Folder_Assets_CityLevel_Final" Name="CityLevel_Final" >
+		<Directory Id="Folder_Assets_CityLevel_Final_Doors" Name="Doors" >
+			<Directory Id="Folder_Assets_CityLevel_Final_Doors_Big_Door" Name="Big Door" >
+			</Directory>
+		</Directory>
+		<Directory Id="Folder_Assets_CityLevel_Final_Dummy" Name="Dummy" >
+		</Directory>
+		<Directory Id="Folder_Assets_CityLevel_Final_Tutorial_Level" Name="Tutorial_Level" >
+		</Directory>
+	</Directory>
+	<Directory Id="Folder_Assets_Credits" Name="Credits" >
+	</Directory>
+	<Directory Id="Folder_Assets_Fonts" Name="Fonts" >
+	</Directory>
+	<Directory Id="Folder_Assets_Forest_Prefabs" Name="Forest Prefabs" >
+	</Directory>
+	<Directory Id="Folder_Assets_ForestLevel_Final" Name="ForestLevel_Final" >
+		<Directory Id="Folder_Assets_ForestLevel_Final_Forest_Level" Name="Forest_Level" >
+		</Directory>
+		<Directory Id="Folder_Assets_ForestLevel_Final_LevelFinalVersion" Name="LevelFinalVersion" >
+			<Directory Id="Folder_Assets_ForestLevel_Final_LevelFinalVersion_NewestVersion" Name="NewestVersion" >
+			</Directory>
+		</Directory>
+		<Directory Id="Folder_Assets_ForestLevel_Final_Particles_prefab" Name="Particles prefab" >
+		</Directory>
+		<Directory Id="Folder_Assets_ForestLevel_Final_TreeLeafs" Name="TreeLeafs" >
+		</Directory>
+	</Directory>
+	<Directory Id="Folder_Assets_Hordas" Name="Hordas" >
+	</Directory>
+	<Directory Id="Folder_Assets_Images" Name="Images" >
+	</Directory>
+	<Directory Id="Folder_Assets_Intro" Name="Intro" >
+	</Directory>
+	<Directory Id="Folder_Assets_LoreVoicelines" Name="LoreVoicelines" >
+	</Directory>
+	<Directory Id="Folder_Assets_LvLExports" Name="LvLExports" >
+		<Directory Id="Folder_Assets_LvLExports_Tree" Name="Tree" >
+		</Directory>
+		<Directory Id="Folder_Assets_LvLExports_WoodMaterialsFencesWallsPillar" Name="WoodMaterialsFencesWallsPillar" >
+		</Directory>
+	</Directory>
+	<Directory Id="Folder_Assets_LVLOne" Name="LVLOne" >
+		<Directory Id="Folder_Assets_LVLOne_LightsPrefab" Name="LightsPrefab" >
+		</Directory>
+		<Directory Id="Folder_Assets_LVLOne_Trees" Name="Trees" >
+		</Directory>
+	</Directory>
+	<Directory Id="Folder_Assets_LvlTwo" Name="LvlTwo" >
+	</Directory>
+	<Directory Id="Folder_Assets_MainMenu" Name="MainMenu" >
+		<Directory Id="Folder_Assets_MainMenu_v2.0" Name="v2.0" >
+		</Directory>
+	</Directory>
+	<Directory Id="Folder_Assets_NavMeshes" Name="NavMeshes" >
+	</Directory>
+	<Directory Id="Folder_Assets_New_Folder_16" Name="New Folder 16" >
+		<Directory Id="Folder_Assets_New_Folder_16_Breakable_Prop" Name="Breakable Prop" >
+			<Directory Id="Folder_Assets_New_Folder_16_Breakable_Prop_Prefabs" Name="Prefabs" >
+				<Directory Id="Folder_Assets_New_Folder_16_Breakable_Prop_Prefabs_City" Name="City" >
+				</Directory>
+				<Directory Id="Folder_Assets_New_Folder_16_Breakable_Prop_Prefabs_Forest" Name="Forest" >
+				</Directory>
+			</Directory>
+		</Directory>
+		<Directory Id="Folder_Assets_New_Folder_16_Lumberjack" Name="Lumberjack" >
+		</Directory>
+		<Directory Id="Folder_Assets_New_Folder_16_MinionGhoul" Name="MinionGhoul" >
+		</Directory>
+		<Directory Id="Folder_Assets_New_Folder_16_New_Folder_17" Name="New Folder 17" >
+		</Directory>
+		<Directory Id="Folder_Assets_New_Folder_16_Props" Name="Props" >
+		</Directory>
+		<Directory Id="Folder_Assets_New_Folder_16_Recruit" Name="Recruit" >
+		</Directory>
+		<Directory Id="Folder_Assets_New_Folder_16_Spawner_prefabs" Name="Spawner prefabs" >
+		</Directory>
+		<Directory Id="Folder_Assets_New_Folder_16_Titan" Name="Titan" >
+		</Directory>
+		<Directory Id="Folder_Assets_New_Folder_16_Walker_ghoul" Name="Walker ghoul" >
+		</Directory>
+	</Directory>
+	<Directory Id="Folder_Assets_Particles" Name="Particles" >
+		<Directory Id="Folder_Assets_Particles_Auras" Name="Auras" >
+		</Directory>
+		<Directory Id="Folder_Assets_Particles_Blood_and_Smoke" Name="Blood and Smoke" >
+		</Directory>
+		<Directory Id="Folder_Assets_Particles_Drops" Name="Drops" >
+		</Directory>
+		<Directory Id="Folder_Assets_Particles_Gerald_Ultimate" Name="Gerald_Ultimate" >
+		</Directory>
+		<Directory Id="Folder_Assets_Particles_ParticlesLevelCity" Name="ParticlesLevelCity" >
+		</Directory>
+	</Directory>
+	<Directory Id="Folder_Assets_Pause" Name="Pause" >
+	</Directory>
+	<Directory Id="Folder_Assets_Scenes" Name="Scenes" >
+	</Directory>
+	<Directory Id="Folder_Assets_ScreenSelectionAssets" Name="ScreenSelectionAssets" >
+		<Directory Id="Folder_Assets_ScreenSelectionAssets_Selection_Screen" Name="Selection_Screen" >
+		</Directory>
+	</Directory>
+	<Directory Id="Folder_Assets_Shaders" Name="Shaders" >
+		<Directory Id="Folder_Assets_Shaders_FolliageShader" Name="FolliageShader" >
+		</Directory>
+		<Directory Id="Folder_Assets_Shaders_WaterShaders" Name="WaterShaders" >
+		</Directory>
+	</Directory>
+	<Directory Id="Folder_Assets_Sounds" Name="Sounds" >
+	</Directory>
+	<Directory Id="Folder_Assets_Statistics_Screen" Name="Statistics_Screen" >
+		<Directory Id="Folder_Assets_Statistics_Screen_Scoreboard_UI_Texts" Name="Scoreboard_UI_Texts" >
+		</Directory>
+	</Directory>
+	<Directory Id="Folder_Assets_TestingPNGs" Name="TestingPNGs" >
+	</Directory>
+	<Directory Id="Folder_Assets_Tutorial" Name="Tutorial" >
+		<Directory Id="Folder_Assets_Tutorial_Little_Cards" Name="Little Cards" >
+		</Directory>
+		<Directory Id="Folder_Assets_Tutorial_NEW_CARDS" Name="NEW CARDS" >
+		</Directory>
+		<Directory Id="Folder_Assets_Tutorial_Prefabs" Name="Prefabs" >
+		</Directory>
+	</Directory>
+	<Directory Id="Folder_Assets_UI" Name="UI" >
+		<Directory Id="Folder_Assets_UI_ANIMATIONS" Name="ANIMATIONS" >
+			<Directory Id="Folder_Assets_UI_ANIMATIONS_NEW" Name="NEW" >
+			</Directory>
+		</Directory>
+		<Directory Id="Folder_Assets_UI_FONTS" Name="FONTS" >
+		</Directory>
+		<Directory Id="Folder_Assets_UI_IMAGES" Name="IMAGES" >
+			<Directory Id="Folder_Assets_UI_IMAGES_GERALT" Name="GERALT" >
+			</Directory>
+			<Directory Id="Folder_Assets_UI_IMAGES_JASKIER" Name="JASKIER" >
+			</Directory>
+			<Directory Id="Folder_Assets_UI_IMAGES_POTIS" Name="POTIS" >
+				<Directory Id="Folder_Assets_UI_IMAGES_POTIS_NEWPOTIS" Name="NEWPOTIS" >
+				</Directory>
+			</Directory>
+		</Directory>
+		<Directory Id="Folder_Assets_UI_SCRIPTS" Name="SCRIPTS" >
+		</Directory>
+	</Directory>
+	<Directory Id="Folder_Assets_Win_Lose" Name="Win_Lose" >
+	</Directory>
+</Directory>
+<Directory Id="Folder_Library" Name="Library" >
+	<Directory Id="Folder_Library_Animations" Name="Animations" >
+	</Directory>
+	<Directory Id="Folder_Library_Animator" Name="Animator" >
+	</Directory>
+	<Directory Id="Folder_Library_Bones" Name="Bones" >
+	</Directory>
+	<Directory Id="Folder_Library_Meshes" Name="Meshes" >
+	</Directory>
+	<Directory Id="Folder_Library_Models" Name="Models" >
+	</Directory>
+	<Directory Id="Folder_Library_Scripts" Name="Scripts" >
+	</Directory>
+	<Directory Id="Folder_Library_Shaders" Name="Shaders" >
+	</Directory>
+	<Directory Id="Folder_Library_Textures" Name="Textures" >
+	</Directory>
+</Directory>
+<Directory Id="Folder_Lua_Globals" Name="Lua_Globals" >
+</Directory>
+<Directory Id="Folder_Settings" Name="Settings" >
+</Directory>

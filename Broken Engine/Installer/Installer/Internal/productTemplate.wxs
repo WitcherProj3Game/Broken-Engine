@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="69D9A983-2BB9-41C5-879C-944AE175DA2A" Name="The Witcher Ties of destiny" Language="1033" Version="1.0.0" Manufacturer="BrokenGem" UpgradeCode="70EDF160-2665-4CC2-B0C2-3AAF6CC3ACFC">
+    <Package Id="70EA163F-F251-4155-A354-72A08AC888A8" InstallerVersion="200" Compressed="yes" InstallScope="perMachine" Description="Windows installer of The Witcher Ties of destiny" Manufacturer="BrokenGem" />
+    <Property Id="ARPPRODUCTICON">_B4B5AEFE35DF</Property>
+    <Icon Id="_B4B5AEFE35DF" SourceFile="..\..\..\..\..\Desktop\TiesofDestinyBeta_v3\TheWitcherTOD.ico" />
+    <Property Id="ARPCONTACT" Value="BrokenGem" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of The Witcher Ties of destiny is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+    <Icon Id="TheWitcherTOD.exe" SourceFile="D:\Users\William\Desktop\TiesofDestinyBeta_v3\TheWitcherTOD.ico" />
+    <Feature Id="ProductFeature" Title="TheWitcherTiesOfDestiny_Installer" Level="1">
+      <!-- Manual components that have specific properties -->
+      <ComponentGroupRef Id="ProductComponents" />
+
+      <!-- Rest of the components - componentsReference.txt-->
+
+    </Feature>
+  </Product>
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="BrokenGem" Name="BrokenGem">
+          <Directory Id="INSTALLFOLDER" Name="The Witcher - Ties of destiny">
+            <!-- Rest of the directories - directories.txt -->
+          </Directory>
+        </Directory>
+      </Directory>
+      <Directory Id="ProgramMenuFolder" Name="Programs">
+        <Directory Id="ProgramMenuDir" Name="TheWitcher 1.0"></Directory>
+      </Directory>
+      <Directory Id="DesktopFolder" Name="Desktop" />
+    </Directory>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <!-- Manual components that have specific properties -->
+      <Component Id="MainExecutable" Guid="*">
+        <File Id="BEGEXE" Name="TheWitcherTOD.exe" DiskId="1" Source="D:\Users\William\Desktop\TiesofDestinyBeta_v3\BEG.exe" KeyPath="yes">
+          <Shortcut Id="startmenuTW" Directory="ProgramMenuDir" Name="TheWitcher 1.0" WorkingDirectory="INSTALLDIR" Icon="TheWitcherTOD.exe" IconIndex="0" Advertise="yes" />
+          <Shortcut Id="desktopTW" Directory="DesktopFolder" Name="TheWitcher 1.0" WorkingDirectory="INSTALLDIR" Icon="TheWitcherTOD.exe" IconIndex="0" Advertise="yes" />
+        </File>
+      </Component>
+      <Component Id="ProgramMenuDir" Guid="*">
+        <RemoveFolder Id="RemoveProgramMenuDir" Directory="ProgramMenuDir" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\BrokenGem\The Witcher Ties of destiny" Type="string" Value="" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <!-- Rest of the components components.txt-->
+
+  </Fragment>
+</Wix>
